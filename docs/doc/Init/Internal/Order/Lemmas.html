@@ -1,0 +1,1028 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../.././style.css"></link><link rel="icon" href="../../.././favicon.svg"></link><link rel="mask-icon" href="../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../.././/declarations/declaration-data.bmp" as="image"></link><title>Init.Internal.Order.Lemmas</title><script defer="true" src="../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../.././";</script><script>const MODULE_NAME="Init.Internal.Order.Lemmas";</script><script type="module" src="../../.././jump-src.js"></script><script type="module" src="../../.././search.js"></script><script type="module" src="../../.././expand-nav.js"></script><script type="module" src="../../.././how-about.js"></script><script type="module" src="../../.././instances.js"></script><script type="module" src="../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Init</span>.<span class="name">Internal</span>.<span class="name">Order</span>.<span class="name">Lemmas</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../.././Init/Data/Array/Basic.html">Init.Data.Array.Basic</a></li><li><a href="../../.././Init/Data/List/Control.html">Init.Data.List.Control</a></li><li><a href="../../.././Init/Data/Option/Basic.html">Init.Data.Option.Basic</a></li><li><a href="../../.././Init/Internal/Order/Basic.html">Init.Internal.Order.Basic</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Init.Internal.Order.Lemmas" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Functor.monotone_map"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Functor</span>.<span class="name">monotone_map</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Seq.monotone_seq"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Seq</span>.<span class="name">monotone_seq</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.SeqLeft.monotone_seqLeft"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">SeqLeft</span>.<span class="name">monotone_seqLeft</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.SeqRight.monotone_seqRight"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">SeqRight</span>.<span class="name">monotone_seqRight</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Option.monotone_bindM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Option</span>.<span class="name">monotone_bindM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Option.monotone_mapM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Option</span>.<span class="name">monotone_mapM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Option.monotone_elimM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Option</span>.<span class="name">monotone_elimM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Option.monotone_getDM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Option</span>.<span class="name">monotone_getDM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.List.monotone_mapM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_mapM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.List.monotone_forM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_forM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.List.monotone_filterAuxM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_filterAuxM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.List.monotone_filterM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_filterM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.List.monotone_filterRevM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_filterRevM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.List.monotone_foldlM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_foldlM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.List.monotone_foldrM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_foldrM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.List.monotone_anyM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_anyM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.List.monotone_allM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_allM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.List.monotone_findM?"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_findM?</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.List.monotone_findSomeM?"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_findSomeM?</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.List.monotone_forIn'_loop"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_forIn'_loop</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.List.monotone_forIn'"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_forIn'</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.List.monotone_forIn"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_forIn</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_modifyM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_modifyM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_forIn'_loop"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_forIn'_loop</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_forIn'"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_forIn'</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_forIn"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_forIn</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_foldlM_loop"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_foldlM_loop</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_foldlM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_foldlM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_foldrM_fold"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_foldrM_fold</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_foldrM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_foldrM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_mapM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_mapM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_mapFinIdxM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_mapFinIdxM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_findSomeM?"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_findSomeM?</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_findM?"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_findM?</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_findIdxM?"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_findIdxM?</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_anyM_loop"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_anyM_loop</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_anyM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_anyM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_allM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_allM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_findSomeRevM?"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_findSomeRevM?</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_findRevM?"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_findRevM?</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_array_forM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_array_forM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_array_forRevM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_array_forRevM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_flatMapM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_flatMapM</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Order.Array.monotone_array_filterMapM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_array_filterMapM</span></a></div></nav><main>
+<div class="mod_doc"><p>This file contains monotonicity lemmas for higher-order monadic operations (e.g. <code>mapM</code>) in the
+standard library. This allows recursive definitions using <code>partial_fixpoint</code> to use nested
+recursion.</p><p>Ideally, every higher-order monadic function in the standard library has a lemma here. At the time
+of writing, this file covers functions from</p><ul>
+<li>Init/Data/Option/Basic.lean</li>
+<li>Init/Data/List/Control.lean</li>
+<li>Init/Data/Array/Basic.lean</li>
+</ul><p>in the order of their appearance there. No automation to check the exhaustiveness exists yet.</p><p>The lemma statements are written manually, but follow a predictable scheme, and could be automated.
+Likewise, the proofs are written very naively. Most of them could be handled by a tactic like
+<code>monotonicity</code> (extended to make use of local hypotheses).</p></div><div class="decl" id="Lean.Order.Functor.monotone_map"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L46-L51">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Functor.monotone_map"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Functor</span>.<span class="name">monotone_map</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn">g</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Seq.monotone_seq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L53-L63">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Seq.monotone_seq"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Seq</span>.<span class="name">monotone_seq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<span class="fn">α</span> → <span class="fn">β</span>)</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono₁</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">g</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono₂</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><span class="fn"><span class="fn">g</span> <span class="fn">x</span></span> &lt;*&gt; <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.SeqLeft.monotone_seqLeft"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L65-L73">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.SeqLeft.monotone_seqLeft"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">SeqLeft</span>.<span class="name">monotone_seqLeft</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono₁</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">g</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono₂</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><span class="fn"><span class="fn">g</span> <span class="fn">x</span></span> &lt;* <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.SeqRight.monotone_seqRight"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L75-L83">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.SeqRight.monotone_seqRight"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">SeqRight</span>.<span class="name">monotone_seqRight</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono₁</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">g</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono₂</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><span class="fn"><span class="fn">g</span> <span class="fn">x</span></span> *&gt; <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Option.monotone_bindM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L88-L93">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Option.monotone_bindM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Option</span>.<span class="name">monotone_bindM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">β</span>)</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Option/Basic.html#Option.bindM">Option.bindM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Option.monotone_mapM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L95-L103">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Option.monotone_mapM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Option</span>.<span class="name">monotone_mapM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Option/Basic.html#Option.mapM">Option.mapM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Option.monotone_elimM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L105-L118">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Option.monotone_elimM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Option</span>.<span class="name">monotone_elimM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span>)</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">n</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">s</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono₁</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">a</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono₂</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">n</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono₃</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">s</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Option/Basic.html#Option.elimM">Option.elimM</a> <span class="fn">(<span class="fn">a</span> <span class="fn">x</span>)</span> <span class="fn">(<span class="fn">n</span> <span class="fn">x</span>)</span> <span class="fn">(<span class="fn">s</span> <span class="fn">x</span>)</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Option.monotone_getDM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L121-L126">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Option.monotone_getDM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Option</span>.<span class="name">monotone_getDM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">o</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">y</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">y</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><span class="fn"><span class="fn">o</span>.<a href="../../.././Init/Data/Option/Basic.html#Option.getDM">getDM</a></span> <span class="fn">(<span class="fn">y</span> <span class="fn">x</span>)</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.List.monotone_mapM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L133-L154">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.List.monotone_mapM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_mapM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/List/Control.html#List.mapM">List.mapM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.List.monotone_forM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L156-L167">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.List.monotone_forM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_forM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#PUnit">PUnit</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Data/List/Control.html#List.forM">forM</a></span> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.List.monotone_filterAuxM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L169-L182">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.List.monotone_filterAuxM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_filterAuxM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#Bool">Bool</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs </span><span class="fn">acc</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/List/Control.html#List.filterAuxM">List.filterAuxM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span> <span class="fn">acc</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.List.monotone_filterM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L184-L191">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.List.monotone_filterM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_filterM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#Bool">Bool</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/List/Control.html#List.filterM">List.filterM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.List.monotone_filterRevM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L193-L198">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.List.monotone_filterRevM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_filterRevM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#Bool">Bool</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/List/Control.html#List.filterRevM">List.filterRevM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.List.monotone_foldlM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L200-L213">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.List.monotone_foldlM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_foldlM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/List/Control.html#List.foldlM">List.foldlM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">init</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.List.monotone_foldrM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L215-L226">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.List.monotone_foldrM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_foldrM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/List/Control.html#List.foldrM">List.foldrM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">init</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.List.monotone_anyM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L228-L243">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.List.monotone_anyM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_anyM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#Bool">Bool</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/List/Control.html#List.anyM">List.anyM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.List.monotone_allM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L245-L260">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.List.monotone_allM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_allM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#Bool">Bool</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/List/Control.html#List.allM">List.allM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.List.monotone_findM?"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L262-L277">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.List.monotone_findM?"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_findM?</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#Bool">Bool</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/List/Control.html#List.findM?">List.findM?</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.List.monotone_findSomeM?"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L279-L293">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.List.monotone_findSomeM?"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_findSomeM?</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">β</span>)</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/List/Control.html#List.findSomeM?">List.findSomeM?</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.List.monotone_forIn'_loop"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L295-L312">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.List.monotone_forIn'_loop"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_forIn'_loop</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> uu}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">as</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Core.html#ForInStep">ForInStep</a> <span class="fn">β</span>)</span></span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">as'</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">b</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">p</span> : <a href="../../.././Init/Core.html#Exists">∃</a> <a href="../../.././Init/Core.html#Exists">(</a><span class="fn">bs</span> <a href="../../.././Init/Core.html#Exists">:</a> <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span><a href="../../.././Init/Core.html#Exists">)</a><a href="../../.././Init/Core.html#Exists">,</a> <span class="fn">bs</span> <a href="../../.././Init/Prelude.html#HAppend.hAppend">++</a> <span class="fn">as'</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">as</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/List/Control.html#List.forIn'.loop">List.forIn'.loop</a> <span class="fn">as</span> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">as'</span> <span class="fn">b</span> <span class="fn">p</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.List.monotone_forIn'"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L314-L319">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.List.monotone_forIn'"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_forIn'</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> uu}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">as</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Core.html#ForInStep">ForInStep</a> <span class="fn">β</span>)</span></span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Core.html#ForIn'.forIn'">forIn'</a> <span class="fn">as</span> <span class="fn">init</span> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.List.monotone_forIn"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L321-L331">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.List.monotone_forIn"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">List</span>.<span class="name">monotone_forIn</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> uu}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Core.html#ForInStep">ForInStep</a> <span class="fn">β</span>)</span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Core.html#ForIn.forIn">forIn</a> <span class="fn">as</span> <span class="fn">init</span> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_modifyM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L337-L346">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_modifyM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_modifyM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">i</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><span class="fn"><span class="fn">a</span>.<a href="../../.././Init/Data/Array/Basic.html#Array.modifyM">modifyM</a></span> <span class="fn">i</span> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_forIn'_loop"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L348-L365">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_forIn'_loop"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_forIn'_loop</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> uu}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">as</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Core.html#ForInStep">ForInStep</a> <span class="fn">β</span>)</span></span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">i</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">i</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">b</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.forIn'.loop">Array.forIn'.loop</a> <span class="fn">as</span> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">i</span> <span class="fn">h</span> <span class="fn">b</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_forIn'"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L367-L372">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_forIn'"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_forIn'</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> uu}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>) → <span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#Membership.mem">∈</a> <span class="fn">as</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Core.html#ForInStep">ForInStep</a> <span class="fn">β</span>)</span></span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Core.html#ForIn'.forIn'">forIn'</a> <span class="fn">as</span> <span class="fn">init</span> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_forIn"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L375-L385">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_forIn"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_forIn</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> uu}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Core.html#ForInStep">ForInStep</a> <span class="fn">β</span>)</span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Core.html#ForIn.forIn">forIn</a> <span class="fn">as</span> <span class="fn">init</span> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_foldlM_loop"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L387-L406">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_foldlM_loop"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_foldlM_loop</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">stop</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">i </span><span class="fn">j</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">b</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.foldlM.loop">Array.foldlM.loop</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span> <span class="fn">stop</span> <span class="fn">h</span> <span class="fn">i</span> <span class="fn">j</span> <span class="fn">b</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_foldlM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L408-L413">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_foldlM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_foldlM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start </span><span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.foldlM">Array.foldlM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">init</span> <span class="fn">xs</span> <span class="fn">start</span> <span class="fn">stop</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_foldrM_fold"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L415-L437">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_foldrM_fold"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_foldrM_fold</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop </span><span class="fn">i</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">i</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">b</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.foldrM.fold">Array.foldrM.fold</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span> <span class="fn">stop</span> <span class="fn">i</span> <span class="fn">h</span> <span class="fn">b</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_foldrM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L439-L450">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_foldrM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_foldrM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start </span><span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.foldrM">Array.foldrM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">init</span> <span class="fn">xs</span> <span class="fn">start</span> <span class="fn">stop</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_mapM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L452-L470">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_mapM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_mapM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.mapM">Array.mapM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_mapFinIdxM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L472-L489">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_mapFinIdxM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_mapFinIdxM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn">(<span class="fn">i</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>) → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Data/Array/Basic.html#Array.mapFinIdxM">mapFinIdxM</a></span> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_findSomeM?"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L491-L506">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_findSomeM?"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_findSomeM?</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">β</span>)</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.findSomeM?">Array.findSomeM?</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_findM?"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L508-L524">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_findM?"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_findM?</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> → <a href="../../.././foundational_types.html">Type</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#Bool">Bool</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.findM?">Array.findM?</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_findIdxM?"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L526-L542">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_findIdxM?"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_findIdxM?</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#Bool">Bool</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.findIdxM?">Array.findIdxM?</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_anyM_loop"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L544-L564">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_anyM_loop"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_anyM_loop</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#Bool">Bool</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">stop</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">j</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.anyM.loop">Array.anyM.loop</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span> <span class="fn">stop</span> <span class="fn">h</span> <span class="fn">j</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_anyM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L566-L576">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_anyM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_anyM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#Bool">Bool</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start </span><span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.anyM">Array.anyM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span> <span class="fn">start</span> <span class="fn">stop</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_allM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L578-L592">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_allM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_allM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#Bool">Bool</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start </span><span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.allM">Array.allM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span> <span class="fn">start</span> <span class="fn">stop</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_findSomeRevM?"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L594-L614">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_findSomeRevM?"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_findSomeRevM?</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">β</span>)</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.findSomeRevM?">Array.findSomeRevM?</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_findRevM?"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L616-L628">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_findRevM?"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_findRevM?</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#Bool">Bool</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.findRevM?">Array.findRevM?</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_array_forM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L630-L638">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_array_forM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_array_forM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#PUnit">PUnit</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start </span><span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.forM">Array.forM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span> <span class="fn">start</span> <span class="fn">stop</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_array_forRevM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L640-L651">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_array_forRevM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_array_forRevM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#PUnit">PUnit</a></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start </span><span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.forRevM">Array.forRevM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span> <span class="fn">start</span> <span class="fn">stop</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_flatMapM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L653-L666">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_flatMapM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_flatMapM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">β</span>)</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.flatMapM">Array.flatMapM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div><div class="decl" id="Lean.Order.Array.monotone_array_filterMapM"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Internal/Order/Lemmas.lean#L669-L682">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Internal/Order/Lemmas.html#Lean.Order.Array.monotone_array_filterMapM"><span class="name">Lean</span>.<span class="name">Order</span>.<span class="name">Array</span>.<span class="name">monotone_array_filterMapM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u) → <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">(<span class="fn">m</span> <span class="fn">α</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.MonoBind">MonoBind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder">PartialOrder</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">γ</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">β</span>)</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hmono</span> : <span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">f</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Internal/Order/Basic.html#Lean.Order.monotone">monotone</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">γ</span>) =&gt; <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.filterMapM">Array.filterMapM</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">xs</span></span></span></span></div></div></div></div></main>
+<nav class="nav"><iframe src="../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

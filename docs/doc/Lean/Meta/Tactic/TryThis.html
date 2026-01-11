@@ -1,0 +1,230 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../.././style.css"></link><link rel="icon" href="../../.././favicon.svg"></link><link rel="mask-icon" href="../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../.././/declarations/declaration-data.bmp" as="image"></link><title>Lean.Meta.Tactic.TryThis</title><script defer="true" src="../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../.././";</script><script>const MODULE_NAME="Lean.Meta.Tactic.TryThis";</script><script type="module" src="../../.././jump-src.js"></script><script type="module" src="../../.././search.js"></script><script type="module" src="../../.././expand-nav.js"></script><script type="module" src="../../.././how-about.js"></script><script type="module" src="../../.././instances.js"></script><script type="module" src="../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/TryThis.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../.././Lean/Meta/Hint.html">Lean.Meta.Hint</a></li><li><a href="../../.././Lean/Meta/Hint.html">Lean.Meta.Hint</a></li><li><a href="../../.././Lean/Server/CodeActions.html">Lean.Server.CodeActions</a></li><li><a href="../../.././Lean/Widget/UserWidget.html">Lean.Widget.UserWidget</a></li><li><a href="../../.././Lean/Elab/Tactic/Basic.html">Lean.Elab.Tactic.Basic</a></li><li><a href="../../.././Lean/Meta/Tactic/ExposeNames.html">Lean.Meta.Tactic.ExposeNames</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Lean.Meta.Tactic.TryThis" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Lean.Meta.Tactic.TryThis.delabToRefinableSyntax"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">delabToRefinableSyntax</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Meta.Tactic.TryThis.delabToRefinableSuggestion"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">delabToRefinableSuggestion</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Meta.Tactic.TryThis.addSuggestion"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addSuggestion</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Meta.Tactic.TryThis.addSuggestions"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addSuggestions</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Meta.Tactic.TryThis.addExactSuggestion"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addExactSuggestion</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Meta.Tactic.TryThis.addExactSuggestions"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addExactSuggestions</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Meta.Tactic.TryThis.addTermSuggestion"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addTermSuggestion</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Meta.Tactic.TryThis.addTermSuggestions"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addTermSuggestions</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Meta.Tactic.TryThis.addHaveSuggestion"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addHaveSuggestion</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Meta.Tactic.TryThis.addRewriteSuggestion"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addRewriteSuggestion</span></a></div></nav><main>
+<div class="mod_doc"><h1 class="markdown-heading" id="Try-this-code-action-and-tactic-suggestions">&quot;Try this&quot; code action and tactic suggestions <a class="hover-link" href="#Try-this-code-action-and-tactic-suggestions">#</a></h1><p>This implements a mechanism for tactics to print a message saying <code>Try this: &lt;suggestion&gt;</code>,
+where <code>&lt;suggestion&gt;</code> is a link to a replacement tactic. Users can either click on the link
+in the suggestion (provided by a widget), or use a code action which applies the suggestion.</p></div><div class="mod_doc"><h1 class="markdown-heading" id="Raw-widget">Raw widget <a class="hover-link" href="#Raw-widget">#</a></h1></div><div class="mod_doc"><h1 class="markdown-heading" id="Code-action">Code action <a class="hover-link" href="#Code-action">#</a></h1></div><div class="mod_doc"><h1 class="markdown-heading" id="Formatting">Formatting <a class="hover-link" href="#Formatting">#</a></h1></div><div class="decl" id="Lean.Meta.Tactic.TryThis.delabToRefinableSyntax"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/TryThis.lean#L59-L61">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Lean/Meta/Tactic/TryThis.html#Lean.Meta.Tactic.TryThis.delabToRefinableSyntax"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">delabToRefinableSyntax</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">e</span> : <a href="../../.././Lean/Expr.html#Lean.Expr">Expr</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Lean/Meta/Basic.html#Lean.Meta.MetaM">MetaM</a> <a href="../../.././Init/Meta/Defs.html#Lean.Syntax.Term">Term</a></span></div></div><p>Delaborate <code>e</code> into syntax suitable for use by <code>refine</code>.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><a href="../../.././Lean/Meta/Tactic/TryThis.html#Lean.Meta.Tactic.TryThis.delabToRefinableSyntax">Lean.Meta.Tactic.TryThis.delabToRefinableSyntax</a> <span class="fn">e</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a>   <span class="fn"><a href="../../.././Lean/Data/Options.html#Lean.MonadWithOptions.withOptions">Lean.withOptions</a> <span class="fn">(fun (<span class="fn">x</span> : <a href="../../.././Lean/Data/Options.html#Lean.Options">Lean.Options</a>) =&gt; <span class="fn"><a href="../../.././Lean/Data/Options.html#Lean.Option.set">Lean.Option.set</a> <span class="fn">x</span> <a href="../../.././Lean/PrettyPrinter/Delaborator/Options.html#Lean.pp.mvars.anonymous">Lean.pp.mvars.anonymous</a> <a href="../../.././Init/Prelude.html#Bool.false">false</a></span>)</span>
+    <span class="fn">(<a href="../../.././Lean/PrettyPrinter/Delaborator/Basic.html#Lean.PrettyPrinter.delab">Lean.PrettyPrinter.delab</a> <span class="fn">e</span>)</span></span></li></ul></details><details id="instances-for-list-Lean.Meta.Tactic.TryThis.delabToRefinableSyntax" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Meta.Tactic.TryThis.delabToRefinableSuggestion"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/TryThis.lean#L63-L65">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Lean/Meta/Tactic/TryThis.html#Lean.Meta.Tactic.TryThis.delabToRefinableSuggestion"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">delabToRefinableSuggestion</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">e</span> : <a href="../../.././Lean/Expr.html#Lean.Expr">Expr</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Lean/Meta/Basic.html#Lean.Meta.MetaM">MetaM</a> <a href="../../.././Lean/Meta/TryThis.html#Lean.Meta.Tactic.TryThis.Suggestion">Suggestion</a></span></div></div><p>Delaborate <code>e</code> into a suggestion suitable for use by <code>refine</code>.</p><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Meta.Tactic.TryThis.delabToRefinableSuggestion" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Meta.Tactic.TryThis.addSuggestion"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/TryThis.lean#L67-L103">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Lean/Meta/Tactic/TryThis.html#Lean.Meta.Tactic.TryThis.addSuggestion"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addSuggestion</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">ref</span> : <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">s</span> : <a href="../../.././Lean/Meta/TryThis.html#Lean.Meta.Tactic.TryThis.Suggestion">Suggestion</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">origSpan?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">header</span> : <a href="../../.././Init/Prelude.html#String">String</a> := <span class="fn">&quot;Try this:&quot;</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">codeActionPrefix?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#String">String</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">diffGranularity</span> : <a href="../../.././Lean/Meta/Hint.html#Lean.Meta.Hint.DiffGranularity">Hint.DiffGranularity</a> := <a href="../../.././Lean/Meta/Hint.html#Lean.Meta.Hint.DiffGranularity.none">Hint.DiffGranularity.none</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Lean/CoreM.html#Lean.Core.CoreM">CoreM</a> <a href="../../.././Init/Prelude.html#Unit">Unit</a></span></div></div><p>Add a &quot;try this&quot; suggestion. This has two effects:</p><ul>
+<li>A widget diagnostic is displayed, saying <code>Try this: &lt;suggestion&gt;</code> with a link on <code>&lt;suggestion&gt;</code>
+to apply the suggestion</li>
+<li>A code action is added, which will apply the suggestion.</li>
+</ul><p>The parameters are:</p><ul>
+<li><code>ref</code>: the span of the widget diagnostic</li>
+<li><code>s</code>: a <code>Suggestion</code>, which contains<ul>
+<li><code>suggestion</code>: the replacement text</li>
+<li><code>preInfo?</code>: an optional string shown immediately before the replacement text in the widget
+message (only)</li>
+<li><code>postInfo?</code>: an optional string shown immediately after the replacement text in the widget
+message (only)</li>
+<li><code>messageData?</code>: an optional <code>MessageData</code> displayed instead of <code>suggestion</code>.
+If set, implies <code>diffGranularity = .none</code>.</li>
+<li><code>toCodeActionTitle?</code>: an optional function <code><a href="../../.././Init/Prelude.html#String">String</a> → <a href="../../.././Init/Prelude.html#String">String</a></code> describing how to transform the
+pretty-printed suggestion text into the code action text which appears in the lightbulb menu.
+If <code>none</code>, we simply prepend <code>&quot;Try This: &quot;</code> to the suggestion text.</li>
+</ul>
+</li>
+<li><code>origSpan?</code>: a syntax object whose span is the actual text to be replaced by <code>suggestion</code>.
+If not provided it defaults to <code>ref</code>.</li>
+<li><code>header</code>: a string that begins the display. By default, it is <code>&quot;Try this:&quot;</code>.</li>
+<li><code>codeActionPrefix?</code>: an optional string to be used as the prefix of the replacement text if the
+suggestion does not have a custom <code>toCodeActionTitle?</code>. If not provided, <code>&quot;Try this: &quot;</code> is used.</li>
+<li><code>diffGranularity</code>: How to compute the diff display in the suggestion. Defaults to only displaying
+the inserted string.</li>
+</ul><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Meta.Tactic.TryThis.addSuggestion" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Meta.Tactic.TryThis.addSuggestions"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/TryThis.lean#L106-L147">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Lean/Meta/Tactic/TryThis.html#Lean.Meta.Tactic.TryThis.addSuggestions"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addSuggestions</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">ref</span> : <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">suggestions</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <a href="../../.././Lean/Meta/TryThis.html#Lean.Meta.Tactic.TryThis.Suggestion">Suggestion</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">origSpan?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">header</span> : <a href="../../.././Init/Prelude.html#String">String</a> := <span class="fn">&quot;Try these:&quot;</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">style?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Lean/Meta/TryThis.html#Lean.Meta.Tactic.TryThis.SuggestionStyle">SuggestionStyle</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">codeActionPrefix?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#String">String</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">diffGranularity</span> : <a href="../../.././Lean/Meta/Hint.html#Lean.Meta.Hint.DiffGranularity">Hint.DiffGranularity</a> := <a href="../../.././Lean/Meta/Hint.html#Lean.Meta.Hint.DiffGranularity.none">Hint.DiffGranularity.none</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Lean/CoreM.html#Lean.Core.CoreM">CoreM</a> <a href="../../.././Init/Prelude.html#Unit">Unit</a></span></div></div><p>Add a list of &quot;try this&quot; suggestions as a single &quot;try these&quot; suggestion. This has two effects:</p><ul>
+<li>A widget diagnostic is displayed, saying <code>Try these: &lt;list of suggestions&gt;</code> with a link on
+each suggestion in <code>&lt;list of suggestions&gt;</code> to apply each suggestion</li>
+<li>A code action for each suggestion is added, which will apply the suggestion.</li>
+</ul><p>The parameters are:</p><ul>
+<li><code>ref</code>: the span of the widget diagnostic</li>
+<li><code>suggestions</code>: an array of <code>Suggestion</code>s, which each contain<ul>
+<li><code>suggestion</code>: the replacement text</li>
+<li><code>preInfo?</code>: an optional string shown immediately before the replacement text in the widget
+message (only)</li>
+<li><code>postInfo?</code>: an optional string shown immediately after the replacement text in the widget
+message (only)</li>
+<li><code>messageData?</code>: an optional <code>MessageData</code> displayed instead of <code>suggestion</code>.
+If set, implies <code>diffGranularity = .none</code>.</li>
+<li><code>toCodeActionTitle?</code>: an optional function <code><a href="../../.././Init/Prelude.html#String">String</a> → <a href="../../.././Init/Prelude.html#String">String</a></code> describing how to transform the
+pretty-printed suggestion text into the code action text which appears in the lightbulb menu.
+If <code>none</code>, we simply prepend <code>&quot;Try this: &quot;</code> to the suggestion text.</li>
+</ul>
+</li>
+<li><code>origSpan?</code>: a syntax object whose span is the actual text to be replaced by <code>suggestion</code>.
+If not provided it defaults to <code>ref</code>.</li>
+<li><code>header</code>: a string that precedes the list. By default, it is <code>&quot;Try these:&quot;</code>.</li>
+<li><code>style?</code> (<strong>deprecated</strong>): unused.</li>
+<li><code>codeActionPrefix?</code>: an optional string to be used as the prefix of the replacement text for all
+suggestions which do not have a custom <code>toCodeActionTitle?</code>. If not provided, <code>&quot;Try this: &quot;</code> is
+used.</li>
+<li><code>diffGranularity</code>: How to compute the diff display in the suggestion. Defaults to only displaying
+the inserted string.</li>
+</ul><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Meta.Tactic.TryThis.addSuggestions" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="mod_doc"><h1 class="markdown-heading" id="Tactic-specific-widget-hooks">Tactic-specific widget hooks <a class="hover-link" href="#Tactic-specific-widget-hooks">#</a></h1></div><div class="decl" id="Lean.Meta.Tactic.TryThis.addExactSuggestion"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/TryThis.lean#L236-L264">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Lean/Meta/Tactic/TryThis.html#Lean.Meta.Tactic.TryThis.addExactSuggestion"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addExactSuggestion</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">ref</span> : <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">e</span> : <a href="../../.././Lean/Expr.html#Lean.Expr">Expr</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">origSpan?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">addSubgoalsMsg</span> : <a href="../../.././Init/Prelude.html#Bool">Bool</a> := <a href="../../.././Init/Prelude.html#Bool.false">false</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">codeActionPrefix?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#String">String</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">checkState?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Lean/Elab/Term/TermElabM.html#Lean.Elab.Tactic.SavedState">Elab.Tactic.SavedState</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">tacticErrorAsInfo</span> : <a href="../../.././Init/Prelude.html#Bool">Bool</a> := <a href="../../.././Init/Prelude.html#Bool.false">false</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Lean/Elab/Tactic/Basic.html#Lean.Elab.Tactic.TacticM">Elab.Tactic.TacticM</a> <a href="../../.././Init/Prelude.html#Unit">Unit</a></span></div></div><p>Add an <code>exact e</code> or <code>refine e</code> suggestion.</p><p>The parameters are:</p><ul>
+<li><code>ref</code>: the span of the widget diagnostic</li>
+<li><code>e</code>: the replacement expression</li>
+<li><code>origSpan?</code>: a syntax object whose span is the actual text to be replaced by <code>suggestion</code>.
+If not provided it defaults to <code>ref</code>.</li>
+<li><code>addSubgoalsMsg</code>: if true (default false), any remaining subgoals will be shown after
+<code>Remaining subgoals:</code></li>
+<li><code>codeActionPrefix?</code>: an optional string to be used as the prefix of the replacement text if the
+suggestion does not have a custom <code>toCodeActionTitle?</code>. If not provided, <code>&quot;Try this: &quot;</code> is used.</li>
+<li><code>checkState?</code>: if passed, the tactic state in which the generated tactic will be validated,
+inserting <code>expose_names</code> if necessary.</li>
+<li><code>tacticErrorAsInfo</code>: if true (default false), if a generated tactic is invalid (e.g., due to a
+pretty-printing issue), the resulting error message will be logged as an info message instead of
+being thrown as an error. Has no effect if <code>checkState?</code> is <code>none</code>.</li>
+</ul><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Meta.Tactic.TryThis.addExactSuggestion" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Meta.Tactic.TryThis.addExactSuggestions"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/TryThis.lean#L266-L302">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Lean/Meta/Tactic/TryThis.html#Lean.Meta.Tactic.TryThis.addExactSuggestions"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addExactSuggestions</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">ref</span> : <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">es</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <a href="../../.././Lean/Expr.html#Lean.Expr">Expr</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">origSpan?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">addSubgoalsMsg</span> : <a href="../../.././Init/Prelude.html#Bool">Bool</a> := <a href="../../.././Init/Prelude.html#Bool.false">false</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">codeActionPrefix?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#String">String</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">checkState?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Lean/Elab/Term/TermElabM.html#Lean.Elab.Tactic.SavedState">Elab.Tactic.SavedState</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">tacticErrorAsInfo</span> : <a href="../../.././Init/Prelude.html#Bool">Bool</a> := <a href="../../.././Init/Prelude.html#Bool.true">true</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Lean/Elab/Tactic/Basic.html#Lean.Elab.Tactic.TacticM">Elab.Tactic.TacticM</a> <a href="../../.././Init/Prelude.html#Unit">Unit</a></span></div></div><p>Add <code>exact e</code> or <code>refine e</code> suggestions if they can be successfully generated; for those that
+cannot, display messages indicating the invalid generated tactics.</p><p>The parameters are:</p><ul>
+<li><code>ref</code>: the span of the widget diagnostic</li>
+<li><code>es</code>: the array of replacement expressions</li>
+<li><code>origSpan?</code>: a syntax object whose span is the actual text to be replaced by <code>suggestion</code>.
+If not provided it defaults to <code>ref</code>.</li>
+<li><code>addSubgoalsMsg</code>: if true (default false), any remaining subgoals will be shown after
+<code>Remaining subgoals:</code></li>
+<li><code>codeActionPrefix?</code>: an optional string to be used as the prefix of the replacement text for all
+suggestions which do not have a custom <code>toCodeActionTitle?</code>. If not provided, <code>&quot;Try this: &quot;</code> is
+used.</li>
+<li><code>checkState?</code>: if passed, the tactic state in which the generated tactics will be validated,
+inserting <code>expose_names</code> if necessary.</li>
+<li><code>tacticErrorAsInfo</code>: if true (default true), invalid generated tactics will log info messages
+instead of throwing an error. The default behavior differs from <code><a href="../../.././Lean/Meta/Tactic/TryThis.html#Lean.Meta.Tactic.TryThis.addExactSuggestion">addExactSuggestion</a></code> because
+throwing an error means that any subsequent suggestions will not be displayed. Has no effect if
+<code>checkState?</code> is <code>none</code>.</li>
+</ul><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Meta.Tactic.TryThis.addExactSuggestions" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Meta.Tactic.TryThis.addTermSuggestion"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/TryThis.lean#L304-L319">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Lean/Meta/Tactic/TryThis.html#Lean.Meta.Tactic.TryThis.addTermSuggestion"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addTermSuggestion</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">ref</span> : <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">e</span> : <a href="../../.././Lean/Expr.html#Lean.Expr">Expr</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">origSpan?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">header</span> : <a href="../../.././Init/Prelude.html#String">String</a> := <span class="fn">&quot;Try this:&quot;</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">codeActionPrefix?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#String">String</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Lean/Meta/Basic.html#Lean.Meta.MetaM">MetaM</a> <a href="../../.././Init/Prelude.html#Unit">Unit</a></span></div></div><p>Add a term suggestion.</p><p>The parameters are:</p><ul>
+<li><code>ref</code>: the span of the widget diagnostic</li>
+<li><code>e</code>: the replacement expression</li>
+<li><code>origSpan?</code>: a syntax object whose span is the actual text to be replaced by <code>suggestion</code>.
+If not provided it defaults to <code>ref</code>.</li>
+<li><code>header</code>: a string which precedes the suggestion. By default, it's <code>&quot;Try this:&quot;</code>.</li>
+<li><code>codeActionPrefix?</code>: an optional string to be used as the prefix of the replacement text if the
+suggestion does not have a custom <code>toCodeActionTitle?</code>. If not provided, <code>&quot;Try this: &quot;</code> is used.</li>
+</ul><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Meta.Tactic.TryThis.addTermSuggestion" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Meta.Tactic.TryThis.addTermSuggestions"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/TryThis.lean#L321-L337">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Lean/Meta/Tactic/TryThis.html#Lean.Meta.Tactic.TryThis.addTermSuggestions"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addTermSuggestions</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">ref</span> : <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">es</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <a href="../../.././Lean/Expr.html#Lean.Expr">Expr</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">origSpan?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">header</span> : <a href="../../.././Init/Prelude.html#String">String</a> := <span class="fn">&quot;Try these:&quot;</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">codeActionPrefix?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#String">String</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Lean/Meta/Basic.html#Lean.Meta.MetaM">MetaM</a> <a href="../../.././Init/Prelude.html#Unit">Unit</a></span></div></div><p>Add term suggestions.</p><p>The parameters are:</p><ul>
+<li><code>ref</code>: the span of the widget diagnostic</li>
+<li><code>es</code>: an array of the replacement expressions</li>
+<li><code>origSpan?</code>: a syntax object whose span is the actual text to be replaced by <code>suggestion</code>.
+If not provided it defaults to <code>ref</code>.</li>
+<li><code>header</code>: a string which precedes the list of suggestions. By default, it's <code>&quot;Try these:&quot;</code>.</li>
+<li><code>codeActionPrefix?</code>: an optional string to be used as the prefix of the replacement text for all
+suggestions which do not have a custom <code>toCodeActionTitle?</code>. If not provided, <code>&quot;Try this: &quot;</code> is
+used.</li>
+</ul><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Meta.Tactic.TryThis.addTermSuggestions" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Meta.Tactic.TryThis.addHaveSuggestion"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/TryThis.lean#L341-L372">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Lean/Meta/Tactic/TryThis.html#Lean.Meta.Tactic.TryThis.addHaveSuggestion"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addHaveSuggestion</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">ref</span> : <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#Lean.Name">Name</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">t?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Lean/Expr.html#Lean.Expr">Expr</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">e</span> : <a href="../../.././Lean/Expr.html#Lean.Expr">Expr</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">origSpan?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">checkState?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Lean/Elab/Term/TermElabM.html#Lean.Elab.Tactic.SavedState">Elab.Tactic.SavedState</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Lean/Elab/Tactic/Basic.html#Lean.Elab.Tactic.TacticM">Elab.Tactic.TacticM</a> <a href="../../.././Init/Prelude.html#Unit">Unit</a></span></div></div><p>Add a suggestion for <code>have h : t := e</code>.</p><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Meta.Tactic.TryThis.addHaveSuggestion" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Meta.Tactic.TryThis.addRewriteSuggestion"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/TryThis.lean#L377-L436">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Lean/Meta/Tactic/TryThis.html#Lean.Meta.Tactic.TryThis.addRewriteSuggestion"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">TryThis</span>.<span class="name">addRewriteSuggestion</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">ref</span> : <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">rules</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> (<a href="../../.././Lean/Expr.html#Lean.Expr">Expr</a> <a href="../../.././Init/Prelude.html#Prod">×</a> <a href="../../.././Init/Prelude.html#Bool">Bool</a>)</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">type?</span> : <span class="fn"><a href="../../.././Lean/Data/LOption.html#Lean.LOption">LOption</a> <a href="../../.././Lean/Expr.html#Lean.Expr">Expr</a></span> := <a href="../../.././Lean/Data/LOption.html#Lean.LOption.undef">LOption.undef</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">loc?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Lean/Expr.html#Lean.Expr">Expr</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">origSpan?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Init/Prelude.html#Lean.Syntax">Syntax</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">checkState?</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <a href="../../.././Lean/Elab/Term/TermElabM.html#Lean.Elab.Tactic.SavedState">Elab.Tactic.SavedState</a></span> := <a href="../../.././Init/Prelude.html#Option.none">none</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Lean/Elab/Tactic/Basic.html#Lean.Elab.Tactic.TacticM">Elab.Tactic.TacticM</a> <a href="../../.././Init/Prelude.html#Unit">Unit</a></span></div></div><p>Add a suggestion for <code>rw [h₁, ← h₂] at loc</code>.</p><p>Parameters:</p><ul>
+<li><code>ref</code>: the span of the widget diagnostic</li>
+<li><code>rules</code>: a list of arguments to <code>rw</code>, with the second component <code>true</code> if the rewrite is reversed</li>
+<li><code>type?</code>: the goal after the suggested rewrite, <code>.none</code> if the rewrite closes the goal, or <code>.undef</code>
+if the resulting goal is unknown</li>
+<li><code>loc?</code>: the hypothesis at which the rewrite is performed, or <code>none</code> if the goal is targeted</li>
+<li><code>origSpan?</code>: a syntax object whose span is the actual text to be replaced by <code>suggestion</code>.
+If not provided it defaults to <code>ref</code>.</li>
+<li><code>checkState?</code>: if passed, the tactic state in which the generated tactic will be validated,
+inserting <code>expose_names</code> if necessary</li>
+</ul><details id="instances-for-list-Lean.Meta.Tactic.TryThis.addRewriteSuggestion" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div></main>
+<nav class="nav"><iframe src="../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

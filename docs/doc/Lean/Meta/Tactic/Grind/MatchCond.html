@@ -1,0 +1,99 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../../.././style.css"></link><link rel="icon" href="../../../.././favicon.svg"></link><link rel="mask-icon" href="../../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../../.././/declarations/declaration-data.bmp" as="image"></link><title>Lean.Meta.Tactic.Grind.MatchCond</title><script defer="true" src="../../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../../.././";</script><script>const MODULE_NAME="Lean.Meta.Tactic.Grind.MatchCond";</script><script type="module" src="../../../.././jump-src.js"></script><script type="module" src="../../../.././search.js"></script><script type="module" src="../../../.././expand-nav.js"></script><script type="module" src="../../../.././how-about.js"></script><script type="module" src="../../../.././instances.js"></script><script type="module" src="../../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">Grind</span>.<span class="name">MatchCond</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/Grind/MatchCond.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../../.././Init/Grind.html">Init.Grind</a></li><li><a href="../../../.././Init/Simproc.html">Init.Simproc</a></li><li><a href="../../../.././Lean/Meta/Tactic/Contradiction.html">Lean.Meta.Tactic.Contradiction</a></li><li><a href="../../../.././Lean/Meta/Tactic/Grind/PropagatorAttr.html">Lean.Meta.Tactic.Grind.PropagatorAttr</a></li><li><a href="../../../.././Lean/Meta/Tactic/Grind/ProveEq.html">Lean.Meta.Tactic.Grind.ProveEq</a></li><li><a href="../../../.././Lean/Meta/Tactic/Grind/Types.html">Lean.Meta.Tactic.Grind.Types</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Lean.Meta.Tactic.Grind.MatchCond" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Lean.Meta.Grind.collectMatchCondLhssAndAbstract"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Grind</span>.<span class="name">collectMatchCondLhssAndAbstract</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Meta.Grind.tryToProveFalse"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Grind</span>.<span class="name">tryToProveFalse</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Meta.Grind.propagateMatchCondUp"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Grind</span>.<span class="name">propagateMatchCondUp</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Meta.Grind.propagateMatchCondDown"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Grind</span>.<span class="name">propagateMatchCondDown</span></a></div></nav><main>
+<div class="mod_doc"><p>Support for <code>match</code>-expressions with overlapping patterns.
+Recall that when a <code>match</code>-expression has overlapping patterns, some of its equation theorems are
+conditional. Let's consider the following example</p><pre><code>inductive S where
+  | mk1 (n : Nat)
+  | mk2 (n : Nat) (s : S)
+  | mk3 (n : Bool)
+  | mk4 (s1 s2 : S)
+
+def f (x y : S) :=
+  match x, y with
+  | .mk1 a, c =&gt; a + 2
+  | a, .mk2 1 (.mk4 b c) =&gt; 3
+  | .mk3 a, .mk4 b c =&gt; 4
+  | a, b =&gt; 5
+</code></pre><p>The <code>match</code>-expression in this example has 4 equations. The second and fourth are conditional.</p><pre><code>f.match_1.eq_2
+  (motive : S → S → Sort u) (a b c : S)
+  (h_1 : (a : Nat) → (c : S) → motive (S.mk1 a) c)
+  (h_2 : (a b c : S) → motive a (S.mk2 1 (b.mk4 c)))
+  (h_3 : (a : Bool) → (b c : S) → motive (S.mk3 a) (b.mk4 c))
+  (h_4 : (a b : S) → motive a b) :
+  (∀ (a_1 : Nat),  a = S.mk1 a_1 → False) → -- &lt;&lt;&lt; Condition stating it is not the first case
+  f.match_1 motive a (S.mk2 1 (b.mk4 c)) h_1 h_2 h_3 h_4 = h_2 a b c
+
+f.match_1.eq_4
+  (motive : S → S → Sort u) (a b : S)
+  (h_1 : (a : Nat) → (c : S) → motive (S.mk1 a) c)
+  (h_2 : (a b c : S) → motive a (S.mk2 1 (b.mk4 c)))
+  (h_3 : (a : Bool) → (b c : S) → motive (S.mk3 a) (b.mk4 c))
+  (h_4 : (a b : S) → motive a b) :
+  (∀ (a_1 : Nat), a = S.mk1 a_1 → False) →  -- &lt;&lt;&lt; Condition stating it is not the first case
+  (∀ (b_1 c : S), b = S.mk2 1 (b_1.mk4 c) → False) →  -- &lt;&lt;&lt; Condition stating it is not the second case
+  (∀ (a_1 : Bool) (b_1 c : S), a = S.mk3 a_1 → b = b_1.mk4 c → False) → -- -- &lt;&lt;&lt; Condition stating it is not the third case
+  f.match_1 motive a b h_1 h_2 h_3 h_4 = h_4 a b
+</code></pre><p>In the two equational theorems above, we have the following conditions.</p><pre><code>- `(∀ (a_1 : Nat),  a = S.mk1 a_1 → False)`
+- `(∀ (b_1 c : S), b = S.mk2 1 (b_1.mk4 c) → False)`
+- `(∀ (a_1 : Bool) (b_1 c : S), a = S.mk3 a_1 → b = b_1.mk4 c → False)`
+</code></pre><p>When instantiating the equations (and <code>match</code>-splitter), we wrap the conditions with the gadget <code>Grind.PreMatchCond</code>.
+<code>Grind.PreMatchCond</code> uses the default reducibility setting and cannot be accidentally reduced by <code>simp</code>.
+After <code>simp</code> is applied, it is replaced with <code>Grind.MatchCond</code> which is reducible.
+This <code>Grind.MatchCond</code> is used for implementing truth-value propagation.
+See the propagator <code>propagateMatchCond</code> below.
+For example, given a condition <code>C</code> of the form <code>Grind.MatchCond (∀ (a : Nat),  t = S.mk1 a → False)</code>,
+if <code>t</code> is merged with an equivalence class containing <code>S.mk2 n s</code>, then <code>C</code> is asseted to <code>true</code> by <code>propagateMatchCond</code>.</p><p>This module also provides auxiliary functions for detecting congruences between <code>match</code>-expression conditions.
+See function <code><a href="../../../.././Lean/Meta/Tactic/Grind/MatchCond.html#Lean.Meta.Grind.collectMatchCondLhssAndAbstract">collectMatchCondLhssAndAbstract</a></code>.</p><p>Remark: This note highlights that the representation used for encoding <code>match</code>-expressions with
+overlapping patterns is far from ideal for the <code>grind</code> module which operates with equivalence classes
+and does not perform substitutions like <code>simp</code>.  While modifying how <code>match</code>-expressions are encoded in Lean
+would require major refactoring and affect many modules, this issue is important to acknowledge.
+A different representation could simplify <code>grind</code>, but it could add extra complexity to other modules.</p></div><div class="decl" id="Lean.Meta.Grind.collectMatchCondLhssAndAbstract"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/Grind/MatchCond.lean#L123-L198">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Lean/Meta/Tactic/Grind/MatchCond.html#Lean.Meta.Grind.collectMatchCondLhssAndAbstract"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Grind</span>.<span class="name">collectMatchCondLhssAndAbstract</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">matchCond</span> : <a href="../../../.././Lean/Expr.html#Lean.Expr">Expr</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../../.././Lean/Meta/Tactic/Grind/Types.html#Lean.Meta.Grind.GoalM">GoalM</a> (<span class="fn"><a href="../../../.././Init/Prelude.html#Array">Array</a> <a href="../../../.././Lean/Expr.html#Lean.Expr">Expr</a></span> <a href="../../../.././Init/Prelude.html#Prod">×</a> <a href="../../../.././Lean/Expr.html#Lean.Expr">Expr</a>)</span></div></div><p>Given <code>e</code> a <code>match</code>-expression condition, returns the left-hand side
+of the ground equations, <strong>and</strong> function application that abstracts the left-hand sides.
+As an example, assume we have a <code>match</code>-expression condition <code>C₁</code> of the form</p><pre><code>Grind.MatchCond (∀ y₁ y₂ y₃, t = .mk₁ y₁ → s = .mk₂ y₂ y₃ → False)
+</code></pre><p>then the result returned by this function is</p><pre><code>(#[t, s], (fun x₁ x₂ =&gt; (∀ y₁ y₂ y₃, x₁ = .mk₁ y₁ → x₂ = .mk₂ y₂ y₃ → False)) t s)
+</code></pre><p>Note that the returned expression is definitionally equal to <code>C₁</code>.
+We use this expression to detect whether two different <code>match</code>-expression conditions are
+congruent.
+For example, suppose we also have the <code>match</code>-expression <code>C₂</code> of the form</p><pre><code>Grind.MatchCond (∀ y₁ y₂ y₃, a = .mk₁ y₁ → b = .mk₂ y₂ y₃ → False)
+</code></pre><p>This function would return</p><pre><code>(#[a, b], (fun x₁ x₂ =&gt; (∀ y₁ y₂ y₃, x₁ = .mk₁ y₁ → x₂ = .mk₂ y₂ y₃ → False)) a b)
+</code></pre><p>Note that the lambda abstraction is identical to the first one. Let's call it <code>l</code>.
+Thus, we can write the two pairs above as</p><ul>
+<li><code>(#[t, s], l t s)</code></li>
+<li><code>(#[a, b], l a b)</code>
+Moreover, <code>C₁</code> is definitionally equal to <code>l t s</code>, and <code>C₂</code> is definitionally equal to <code>l a b</code>.
+Then, if <code>grind</code> infers that <code>t = a</code> and <code>s = b</code>, it will detect that <code>l t s</code> and <code>l a b</code> are
+equal by congruence, and consequently <code>C₁</code> is equal to <code>C₂</code>.</li>
+</ul><p>Gruesome details for heterogeneous equalities.</p><p>When pattern matching on indexing families, the generated conditions often use heterogeneous equalities. Here is an example:</p><pre><code>(∀ (x : Vec α 0), n = 0 → as ≍ Vec.nil → bs ≍ x → False)
+</code></pre><p>In this case, it is not sufficient to abstract the left-hand side. We also have
+to abstract its type. The following is produced in this case.</p><pre><code>(#[n, Vec α n, as, Vec α n, bs],
+ (fun (x_0 : Nat) (ty_1 : Type u_1) (x_1 : ty_1) (ty_2 : Type u_1) (x_2 : ty_2) =&gt;
+    ∀ (x : Vec α 0), x_0 = 0 → x_1 ≍ Vec.nil → x_2 ≍ x → False)
+ n (Vec α n) as (Vec α n) bs)
+</code></pre><p>The example makes it clear why this is needed, <code>as</code> and <code>bs</code> depend on <code>n</code>.
+Note that we can abstract the type without introducing type errors because
+heterogeneous equality is used for <code>as</code> and <code>bs</code>.</p><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Meta.Grind.collectMatchCondLhssAndAbstract" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Meta.Grind.tryToProveFalse"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/Grind/MatchCond.lean#L323-L410">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Lean/Meta/Tactic/Grind/MatchCond.html#Lean.Meta.Grind.tryToProveFalse"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Grind</span>.<span class="name">tryToProveFalse</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">e</span> : <a href="../../../.././Lean/Expr.html#Lean.Expr">Expr</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../../.././Lean/Meta/Tactic/Grind/Types.html#Lean.Meta.Grind.GoalM">GoalM</a> <a href="../../../.././Init/Prelude.html#Unit">Unit</a></span></div></div><p>Given a <code>match</code>-expression condition <code>e</code> that is known to be equal to <code><a href="../../../.././Init/Prelude.html#True">True</a></code>,
+try to close the goal by proving <code><a href="../../../.././Init/Prelude.html#False">False</a></code>. We use the following to example to illustrate
+the purpose of this function.</p><pre><code>def f : <a href="../../../.././Init/Prelude.html#List">List</a> <a href="../../../.././Init/Prelude.html#Nat">Nat</a> → <a href="../../../.././Init/Prelude.html#List">List</a> <a href="../../../.././Init/Prelude.html#Nat">Nat</a> → <a href="../../../.././Init/Prelude.html#Nat">Nat</a>
+  | _, 1 :: _ :: _ =&gt; 1
+  | _, _ :: _ =&gt; 2
+  | _, _  =&gt; 0
+
+example : z = a :: as → y = z → f x y &gt; 0 := by
+  grind [f.eq_def]
+</code></pre><p>After <code>grind</code> unfolds <code>f</code>, it case splits on the <code>match</code>-expression producing
+three subgoals. The first two are easily closed by it. In the third one,
+we have the following two <code>match</code>-expression conditions stating that we
+are <strong>not</strong> in the first and second cases.</p><pre><code><a href="../../../.././Init/Grind/Util.html#Lean.Grind.MatchCond">Lean.Grind.MatchCond</a> (∀ (head : Nat) (tail : <a href="../../../.././Init/Prelude.html#List">List</a> Nat), x✝² = 1 :: head :: tail → False)
+<a href="../../../.././Init/Grind/Util.html#Lean.Grind.MatchCond">Lean.Grind.MatchCond</a> (∀ (head : Nat) (tail : <a href="../../../.././Init/Prelude.html#List">List</a> Nat), x✝² = head :: tail → False)
+</code></pre><p>Moreover, we have the following equivalence class.</p><pre><code>{z, y, x✝², a :: as}
+</code></pre><p>Thus, we can close the goal by using the second <code>match</code>-expression condition,
+we just have to instantiate <code>head</code> and <code>tail</code> with <code>a</code> and <code>as</code> respectively,
+and use the fact that <code>x✝²</code> is equal to <code>a :: as</code>.</p><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Meta.Grind.tryToProveFalse" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Meta.Grind.propagateMatchCondUp"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/Grind/MatchCond.lean#L412-L423">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Lean/Meta/Tactic/Grind/MatchCond.html#Lean.Meta.Grind.propagateMatchCondUp"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Grind</span>.<span class="name">propagateMatchCondUp</span></a></span><span class="decl_args"> :</span><div class="decl_type"><a href="../../../.././Lean/Meta/Tactic/Grind/Types.html#Lean.Meta.Grind.Propagator">Propagator</a></div></div><p>Propagates <code>MatchCond</code> upwards</p><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Meta.Grind.propagateMatchCondUp" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Meta.Grind.propagateMatchCondDown"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/Grind/MatchCond.lean#L425-L429">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Lean/Meta/Tactic/Grind/MatchCond.html#Lean.Meta.Grind.propagateMatchCondDown"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Grind</span>.<span class="name">propagateMatchCondDown</span></a></span><span class="decl_args"> :</span><div class="decl_type"><a href="../../../.././Lean/Meta/Tactic/Grind/Types.html#Lean.Meta.Grind.Propagator">Propagator</a></div></div><p>Propagates <code>MatchCond</code> downwards</p><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Meta.Grind.propagateMatchCondDown" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div></main>
+<nav class="nav"><iframe src="../../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

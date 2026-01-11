@@ -1,0 +1,132 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../.././style.css"></link><link rel="icon" href="../../.././favicon.svg"></link><link rel="mask-icon" href="../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../.././/declarations/declaration-data.bmp" as="image"></link><title>Lean.Meta.Tactic.FunInd</title><script defer="true" src="../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../.././";</script><script>const MODULE_NAME="Lean.Meta.Tactic.FunInd";</script><script type="module" src="../../.././jump-src.js"></script><script type="module" src="../../.././search.js"></script><script type="module" src="../../.././expand-nav.js"></script><script type="module" src="../../.././how-about.js"></script><script type="module" src="../../.././instances.js"></script><script type="module" src="../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Lean</span>.<span class="name">Meta</span>.<span class="name">Tactic</span>.<span class="name">FunInd</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/FunInd.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../.././Lean/Data/Array.html">Lean.Data.Array</a></li><li><a href="../../.././Lean/Meta/ArgsPacker.html">Lean.Meta.ArgsPacker</a></li><li><a href="../../.././Lean/Meta/Injective.html">Lean.Meta.Injective</a></li><li><a href="../../.././Lean/Meta/Tactic/ElimInfo.html">Lean.Meta.Tactic.ElimInfo</a></li><li><a href="../../.././Lean/Meta/Tactic/FunIndInfo.html">Lean.Meta.Tactic.FunIndInfo</a></li><li><a href="../../.././Lean/Meta/Tactic/Refl.html">Lean.Meta.Tactic.Refl</a></li><li><a href="../../.././Lean/Meta/Tactic/Replace.html">Lean.Meta.Tactic.Replace</a></li><li><a href="../../.././Lean/Elab/PreDefinition/Structural/Eqns.html">Lean.Elab.PreDefinition.Structural.Eqns</a></li><li><a href="../../.././Lean/Elab/PreDefinition/Structural/FindRecArg.html">Lean.Elab.PreDefinition.Structural.FindRecArg</a></li><li><a href="../../.././Lean/Elab/PreDefinition/WF/Eqns.html">Lean.Elab.PreDefinition.WF.Eqns</a></li><li><a href="../../.././Lean/Meta/Match/MatcherApp/Transform.html">Lean.Meta.Match.MatcherApp.Transform</a></li><li><a href="../../.././Lean/Meta/Tactic/Simp/Rewrite.html">Lean.Meta.Tactic.Simp.Rewrite</a></li><li><a href="../../.././Lean/Meta/Tactic/Simp/Types.html">Lean.Meta.Tactic.Simp.Types</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Lean.Meta.Tactic.FunInd" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Lean.Tactic.FunInd.rwIfWith"><span class="name">Lean</span>.<span class="name">Tactic</span>.<span class="name">FunInd</span>.<span class="name">rwIfWith</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Tactic.FunInd.rwMatcher"><span class="name">Lean</span>.<span class="name">Tactic</span>.<span class="name">FunInd</span>.<span class="name">rwMatcher</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Tactic.FunInd.isFunInductName"><span class="name">Lean</span>.<span class="name">Tactic</span>.<span class="name">FunInd</span>.<span class="name">isFunInductName</span></a></div></nav><main>
+<div class="mod_doc"><p>This module contains code to derive, from the definition of a recursive function (structural or
+well-founded, possibly mutual), a <strong>functional induction principle</strong> tailored to proofs about that
+function(s).</p><p>For example from:</p><pre><code>def ackermann : <a href="../../.././Init/Prelude.html#Nat">Nat</a> → <a href="../../.././Init/Prelude.html#Nat">Nat</a> → <a href="../../.././Init/Prelude.html#Nat">Nat</a>
+  | 0, m =&gt; m + 1
+  | n+1, 0 =&gt; ackermann n 1
+  | n+1, m+1 =&gt; ackermann n (ackermann (n + 1) m)
+</code></pre><p>we get</p><pre><code>ackermann.induct (motive : <a href="../../.././Init/Prelude.html#Nat">Nat</a> → <a href="../../.././Init/Prelude.html#Nat">Nat</a> → Prop) (case1 : ∀ (m : Nat), motive 0 m)
+  (case2 : ∀ (n : Nat), motive n 1 → motive (Nat.succ n) 0)
+  (case3 : ∀ (n m : Nat), motive (n + 1) m → motive n (ackermann (n + 1) m) → motive (Nat.succ n) (Nat.succ m))
+  (x x : Nat) : motive x x
+</code></pre><h2 class="markdown-heading" id="Specification">Specification <a class="hover-link" href="#Specification">#</a></h2><p>The functional induction principle takes the same fixed parameters as the function, and
+the motive takes the same non-fixed parameters as the original function.</p><p>For each branch of the original function, there is a case in the induction principle.
+Here &quot;branch&quot; roughly corresponds to tail-call positions: branches of top-level
+<code>if</code>-<code>then</code>-<code>else</code> and of <code>match</code> expressions.</p><p>For every recursive call in that branch, an induction hypothesis asserting the
+motive for the arguments of the recursive call is provided.
+If the recursive call is under binders and it, or its proof of termination,
+depend on the bound values, then these become assumptions of the inductive
+hypothesis.</p><p>Additionally, the local context of the branch (e.g. the condition of an
+if-then-else; a let-binding, a have-binding) is provided as assumptions in the
+corresponding induction case, if they are likely to be useful (as determined
+by <code>MVarId.cleanup</code>).</p><p>Mutual recursion is supported and results in multiple motives.</p><h2 class="markdown-heading" id="Implementation-overview-well-founded-recursion">Implementation overview (well-founded recursion) <a class="hover-link" href="#Implementation-overview-well-founded-recursion">#</a></h2><p>For a non-mutual, unary function <code>foo</code> (or else for the <code>_unary</code> function), we</p><ol>
+<li><p>expect its definition to be of the form</p>
+<pre><code>def foo := fun x₁ … xₙ (y : a) =&gt; <a href="../../.././Init/WF.html#WellFounded.fix">WellFounded.fix</a> (fun y' oldIH =&gt; body) y
+</code></pre>
+<p>where <code>xᵢ…</code> are the fixed parameter prefix and <code>y</code> is the varying parameter of
+the function.</p>
+</li>
+<li><p>From this structure we derive the type of the motive, and start assembling the induction
+principle:</p>
+<pre><code>def foo.induct := fun x₁ … xₙ (motive : (y : a) → Prop) =&gt;
+ fix (fun y' newIH =&gt; T[body])
+</code></pre>
+</li>
+<li><p>The first phase, transformation <code>T1[body]</code> (implemented in <code>buildInductionBody</code>)
+mirrors the branching structure of <code>foo</code>, i.e. replicates <code><a href="../../.././Init/Prelude.html#dite">dite</a></code> and some matcher applications,
+while adjusting their motive. It also unfolds calls to <code>oldIH</code> and collects induction hypotheses
+in conditions (see below).</p>
+<p>In particular, when translating a <code>match</code> it is prepared to recognize the idiom
+as introduced by <code>mkFix</code> via <code><a href="../../.././Lean/Meta/Match/MatcherApp/Transform.html#Lean.Meta.MatcherApp.addArg?">Lean.Meta.MatcherApp.addArg?</a></code>, which refines the type of <code>oldIH</code>
+throughout the match. The transformation will replace <code>oldIH</code> with <code>newIH</code> here.</p>
+<pre><code>     T[(match (motive := fun oldIH =&gt; …) y with | … =&gt; fun oldIH' =&gt; body) oldIH]
+ ==&gt; (match (motive := fun newIH =&gt; …) y with | … =&gt; fun newIH' =&gt; T[body]) newIH
+</code></pre>
+<p>In addition, the information gathered from the match is preserved, so that when performing the
+proof by induction, the user can reliably enter the right case. To achieve this</p>
+<ul>
+<li>the matcher is replaced by its splitter, which brings extra assumptions into scope when
+patterns are overlapping (using <code>matcherApp.transform (useSplitter := true)</code>)</li>
+<li>simple discriminants that are mentioned in the goal (i.e plain parameters) are instantiated
+in the goal.</li>
+<li>for discriminants that are not instantiated that way, equalities connecting the discriminant
+to the instantiation are added (just as if the user wrote <code>match h : x with …</code>)</li>
+<li>also, simple discriminants (<code>FVars</code>) are remembered as <code>toClear</code>, as they are unlikely to
+provide useful context, and are redundant given the context that comes from the pattern match.</li>
+</ul>
+</li>
+<li><p>When a tail position (no more branching) is found, function <code>buildInductionCase</code> assembles the
+type of the case: a fresh <code>MVar</code> asserts the current goal, unwanted values from the local context
+are cleared, and the current <code>body</code> is searched for recursive calls using <code>foldAndCollect</code>,
+which are then asserted as inductive hypotheses in the <code>MVar</code>.</p>
+</li>
+<li><p>The function <code>foldAndCollect</code> walks the term and performs two operations:</p>
+<ul>
+<li>collects the induction hypotheses for the current case (with proofs).</li>
+<li>recovering the recursive calls</li>
+</ul>
+<p>So when it encounters a saturated application of <code>oldIH arg proof</code>, it</p>
+<ul>
+<li>returns <code>f arg</code> and</li>
+<li>remembers the expression <code>newIH arg proof : motive x</code> as an inductive hypothesis.</li>
+</ul>
+<p>Since <code>arg</code> and <code>proof</code> can contain further recursive calls, they are folded there as well.
+This assumes that the termination proof <code>proof</code> works nevertheless.</p>
+<p>Again, <code>foldAndCollect</code> may encounter the <code>Lean.Meta.Matcherapp.addArg?</code> idiom, and again it
+threads <code>newIH</code> through, replacing the extra argument. The resulting type of this induction
+hypothesis is now itself a <code>match</code> statement (cf. <code><a href="../../.././Lean/Meta/Match/MatcherApp/Transform.html#Lean.Meta.MatcherApp.inferMatchType">Lean.Meta.MatcherApp.inferMatchType</a></code>)</p>
+<p>The termination proof of <code>foo</code> may have abstracted over some proofs; these proofs must be
+transferred, so auxiliary lemmas are unfolded if needed.</p>
+</li>
+<li><p>After this construction, the MVars introduced by <code>buildInductionCase</code> are turned into parameters.</p>
+</li>
+</ol><p>The resulting term then becomes <code>foo.induct</code> at its inferred type.</p><h2 class="markdown-heading" id="Implementation-overview-mutual-non-unary-well-founded-recursion">Implementation overview (mutual/non-unary well-founded recursion) <a class="hover-link" href="#Implementation-overview-mutual-non-unary-well-founded-recursion">#</a></h2><p>If <code>foo</code> is not unary and/or part of a mutual reduction, then the induction theorem for <code>foo._unary</code>
+(i.e. the unary non-mutual recursion function produced by the equation compiler)
+of the form</p><pre><code>foo._unary.induct : {motive : (a ⊗' b) ⊕' c → Prop} →
+  (case1 : ∀ …, motive (PSum.inl (x,y)) →  …) → … →
+  (x : (a ⊗' b) ⊕' c) → motive x
+</code></pre><p>will first in <code>unpackMutualInduction</code> be turned into a joint induction theorem of the form</p><pre><code>foo.mutual_induct : {motive1 : a → b → Prop} {motive2 : c → Prop} →
+  (case1 : ∀ …, motive1 x y  →  …) → … →
+  ((x : a) → (y : b) → motive1 x y) ∧ ((z : c) → motive2 z)
+</code></pre><p>where all the <code><a href="../../.././Init/Core.html#PSum">PSum</a></code>/<code><a href="../../.././Init/Core.html#PSigma">PSigma</a></code> encoding has been resolved. This theorem is attached to the
+name of the first function in the mutual group, like the <code>._unary</code> definition.</p><p>Finally, in <code>deriveUnpackedInduction</code>, for each of the functions in the mutual group, a simple
+projection yields the final <code>foo.induct</code> theorem:</p><pre><code>foo.induct : {motive1 : a → b → Prop} {motive2 : c → Prop} →
+  (case1 : ∀ …, motive1 x y  →  …) → … →
+  (x : a) → (y : b) → motive1 x y
+</code></pre><h2 class="markdown-heading" id="Implementation-overview-structural-recursion">Implementation overview (structural recursion) <a class="hover-link" href="#Implementation-overview-structural-recursion">#</a></h2><p>When handling structural recursion, the overall approach is the same, with the following
+differences:</p><ul>
+<li><p>Instead of <code><a href="../../.././Init/WF.html#WellFounded.fix">WellFounded.fix</a></code> we look for a <code>.brecOn</code> application, using <code>isBRecOnRecursor</code></p>
+<p>Despite its name, this function does <em>not</em> recognize the <code>.brecOn</code> of inductive <em>predicates</em>,
+which we also do not support at this point.</p>
+</li>
+<li><p>The elaboration of structurally recursive function can handle extra arguments. We keep the
+<code>motive</code> parameters in the original order.</p>
+</li>
+</ul><h2 class="markdown-heading" id="Unfolding-principles">Unfolding principles <a class="hover-link" href="#Unfolding-principles">#</a></h2><p>The code can also create a variant of the induction/cases principles that automatically unfolds
+the function application. It's motive abstracts over the function call, so for the ackermann
+function one gets</p><pre><code>ackermann.fun_cases_unfolding
+  (motive : <a href="../../.././Init/Prelude.html#Nat">Nat</a> → <a href="../../.././Init/Prelude.html#Nat">Nat</a> → <a href="../../.././Init/Prelude.html#Nat">Nat</a> → Prop)
+  (case1 : ∀ (m : Nat), motive 0 m (m + 1))
+  (case2 : ∀ (n : Nat), motive n.succ 0 (ackermann n 1))
+  (case3 : ∀ (n m : Nat), motive n.succ m.succ (ackermann n (ackermann (n + 1) m)))
+  (x✝ x✝¹ : Nat) : motive x✝ x✝¹ (ackermann x✝ x✝¹)
+</code></pre><p>To implement this, in the initial goal <code>motive x (ackermann x)</code> of <code>buildInductionBody</code> we unfold the
+function definition, and then reduce is as we go into match, ite or let expressions, using the
+<code>withRewrittenMotive</code> function.</p><p>This gives us great control over the reduction, for example to move <code>let</code> expressions to the context
+simultaneously.</p><p>The combinators passed to <code>withRewrittenMotive</code> are forgiving, so when <code>unfolding := false</code>, or when
+something goes wrong, one still gets a useful induction principle, just maybe with the function
+not fully simplified.</p></div><div class="decl" id="Lean.Tactic.FunInd.rwIfWith"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/FunInd.lean#L585-L627">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Lean/Meta/Tactic/FunInd.html#Lean.Tactic.FunInd.rwIfWith"><span class="name">Lean</span>.<span class="name">Tactic</span>.<span class="name">FunInd</span>.<span class="name">rwIfWith</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">hc </span><span class="fn">e</span> : <a href="../../.././Lean/Expr.html#Lean.Expr">Expr</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Lean/Meta/Basic.html#Lean.Meta.MetaM">MetaM</a> <a href="../../.././Lean/Meta/Tactic/Simp/Types.html#Lean.Meta.Simp.Result">Meta.Simp.Result</a></span></div></div><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Tactic.FunInd.rwIfWith" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Tactic.FunInd.rwMatcher"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/FunInd.lean#L651-L724">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Lean/Meta/Tactic/FunInd.html#Lean.Tactic.FunInd.rwMatcher"><span class="name">Lean</span>.<span class="name">Tactic</span>.<span class="name">FunInd</span>.<span class="name">rwMatcher</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">altIdx</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">e</span> : <a href="../../.././Lean/Expr.html#Lean.Expr">Expr</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Lean/Meta/Basic.html#Lean.Meta.MetaM">MetaM</a> <a href="../../.././Lean/Meta/Tactic/Simp/Types.html#Lean.Meta.Simp.Result">Meta.Simp.Result</a></span></div></div><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Tactic.FunInd.rwMatcher" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Tactic.FunInd.isFunInductName"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Lean/Meta/Tactic/FunInd.lean#L1627-L1647">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Lean/Meta/Tactic/FunInd.html#Lean.Tactic.FunInd.isFunInductName"><span class="name">Lean</span>.<span class="name">Tactic</span>.<span class="name">FunInd</span>.<span class="name">isFunInductName</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">env</span> : <a href="../../.././Lean/Environment.html#Lean.Environment">Environment</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">name</span> : <a href="../../.././Init/Prelude.html#Lean.Name">Name</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../../.././Init/Prelude.html#Bool">Bool</a></div></div><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li><li class="equation"><span class="fn"><a href="../../.././Lean/Meta/Tactic/FunInd.html#Lean.Tactic.FunInd.isFunInductName">Lean.Tactic.FunInd.isFunInductName</a> <span class="fn">env</span> <span class="fn">(<span class="fn"><span class="fn">indName</span>.<a href="../../.././Init/Prelude.html#Lean.Name.str">str</a></span> <span class="fn">str</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <a href="../../.././Init/Prelude.html#Bool.false">false</a>)</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span></li><li class="equation"><span class="fn"><a href="../../.././Lean/Meta/Tactic/FunInd.html#Lean.Tactic.FunInd.isFunInductName">Lean.Tactic.FunInd.isFunInductName</a> <span class="fn">env</span> <span class="fn">name</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <a href="../../.././Init/Prelude.html#Bool.false">false</a>)</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span></li></ul></details><details id="instances-for-list-Lean.Tactic.FunInd.isFunInductName" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div></main>
+<nav class="nav"><iframe src="../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

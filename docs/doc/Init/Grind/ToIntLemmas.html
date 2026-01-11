@@ -1,0 +1,462 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../.././style.css"></link><link rel="icon" href="../.././favicon.svg"></link><link rel="mask-icon" href="../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../.././/declarations/declaration-data.bmp" as="image"></link><title>Init.Grind.ToIntLemmas</title><script defer="true" src="../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../.././";</script><script>const MODULE_NAME="Init.Grind.ToIntLemmas";</script><script type="module" src="../.././jump-src.js"></script><script type="module" src="../.././search.js"></script><script type="module" src="../.././expand-nav.js"></script><script type="module" src="../.././how-about.js"></script><script type="module" src="../.././instances.js"></script><script type="module" src="../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Init</span>.<span class="name">Grind</span>.<span class="name">ToIntLemmas</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../.././Init/Grind/ToInt.html">Init.Grind.ToInt</a></li><li><a href="../.././Init/Grind/ToInt.html">Init.Grind.ToInt</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Init.Grind.ToIntLemmas" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.of_eq_wrap_co_0"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">of_eq_wrap_co_0</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.of_eq"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">of_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.of_diseq"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">of_diseq</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.of_le"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">of_le</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.of_not_le"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">of_not_le</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.of_lt"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">of_lt</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.of_not_lt"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">of_not_lt</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.add_congr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">add_congr</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.add_congr.ww"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">add_congr</span>.<span class="name">ww</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.add_congr.wr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">add_congr</span>.<span class="name">wr</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.add_congr.wl"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">add_congr</span>.<span class="name">wl</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.mul_congr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">mul_congr</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.mul_congr.ww"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">mul_congr</span>.<span class="name">ww</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.mul_congr.wr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">mul_congr</span>.<span class="name">wr</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.mul_congr.wl"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">mul_congr</span>.<span class="name">wl</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.sub_congr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">sub_congr</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.neg_congr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">neg_congr</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.pow_congr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">pow_congr</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.div_congr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">div_congr</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.mod_congr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">mod_congr</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.ofNat_eq"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">ofNat_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.zero_eq"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">zero_eq</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.ge_lower"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">ge_lower</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.ge_lower0"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">ge_lower0</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.le_upper"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">le_upper</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.ge_lower'"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">ge_lower'</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.ToInt.le_upper'"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">le_upper'</span></a></div></nav><main>
+<div class="mod_doc"><p>Wrap</p></div><div class="decl" id="Lean.Grind.ToInt.of_eq_wrap_co_0"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L18-L21">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.of_eq_wrap_co_0"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">of_eq_wrap_co_0</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hi</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">i</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.co">IntInterval.co</a> <span class="fn">0</span> <span class="fn">hi</span></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> <span class="fn">b</span></span> → <span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b</span> <a href="../.././Init/Prelude.html#HMod.hMod">%</a> <span class="fn">hi</span></span></div></div></div></div><div class="mod_doc"><p>Asserted propositions</p></div><div class="decl" id="Lean.Grind.ToInt.of_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L25-L28">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.of_eq"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">of_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b</span> → <span class="fn">a'</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span></span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.of_diseq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L30-L33">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.of_diseq"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">of_diseq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">a</span> <a href="../.././Init/Core.html#Ne">≠</a> <span class="fn">b</span> → <span class="fn">a'</span> <a href="../.././Init/Core.html#Ne">≠</a> <span class="fn">b'</span></span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.of_le"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L35-L38">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.of_le"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">of_le</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#LE">_root_.LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.LE">LE</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">a</span> <a href="../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span> → <span class="fn">a'</span> <a href="../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b'</span></span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.of_not_le"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L40-L43">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.of_not_le"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">of_not_le</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#LE">_root_.LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.LE">LE</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../.././Init/Prelude.html#Not">¬</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span> → <span class="fn">b'</span> <a href="../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span> <a href="../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">a'</span></span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.of_lt"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L45-L48">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.of_lt"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">of_lt</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#LT">_root_.LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.LT">LT</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">a</span> <a href="../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">b</span> → <span class="fn">a'</span> <a href="../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span> <a href="../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b'</span></span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.of_not_lt"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L50-L53">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.of_not_lt"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">of_not_lt</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#LT">_root_.LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.LT">LT</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../.././Init/Prelude.html#Not">¬</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">b</span> → <span class="fn">b'</span> <a href="../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">a'</span></span></div></div></div></div><div class="mod_doc"><p>Addition</p></div><div class="decl" id="Lean.Grind.ToInt.add_congr"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L61-L63">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.add_congr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">add_congr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#Add">_root_.Add</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.Add">Add</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a>(<span class="fn">a</span> <a href="../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">b</span>) <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> (<span class="fn">a'</span> <a href="../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">b'</span>)</span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.add_congr.ww"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L65-L67">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.add_congr.ww"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">add_congr</span>.<span class="name">ww</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#Add">_root_.Add</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.Add">Add</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.isFinite">isFinite</a></span> <a href="../.././Init/Prelude.html#Eq">=</a> <a href="../.././Init/Prelude.html#Bool.true">true</a>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> <span class="fn">a'</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> <span class="fn">b'</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a>(<span class="fn">a</span> <a href="../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">b</span>) <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> (<span class="fn">a'</span> <a href="../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">b'</span>)</span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.add_congr.wr"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L69-L73">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.add_congr.wr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">add_congr</span>.<span class="name">wr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#Add">_root_.Add</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.Add">Add</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.isFinite">isFinite</a></span> <a href="../.././Init/Prelude.html#Eq">=</a> <a href="../.././Init/Prelude.html#Bool.true">true</a>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> <span class="fn">b'</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a>(<span class="fn">a</span> <a href="../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">b</span>) <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> (<span class="fn">a'</span> <a href="../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">b'</span>)</span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.add_congr.wl"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L75-L79">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.add_congr.wl"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">add_congr</span>.<span class="name">wl</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#Add">_root_.Add</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.Add">Add</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.isFinite">isFinite</a></span> <a href="../.././Init/Prelude.html#Eq">=</a> <a href="../.././Init/Prelude.html#Bool.true">true</a>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> <span class="fn">a'</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a>(<span class="fn">a</span> <a href="../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">b</span>) <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> (<span class="fn">a'</span> <a href="../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">b'</span>)</span></div></div></div></div><div class="mod_doc"><p>Multiplication</p></div><div class="decl" id="Lean.Grind.ToInt.mul_congr"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L83-L85">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.mul_congr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">mul_congr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#Mul">_root_.Mul</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.Mul">Mul</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a>(<span class="fn">a</span> <a href="../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span>) <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> (<span class="fn">a'</span> <a href="../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b'</span>)</span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.mul_congr.ww"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L87-L89">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.mul_congr.ww"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">mul_congr</span>.<span class="name">ww</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#Mul">_root_.Mul</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.Mul">Mul</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.isFinite">isFinite</a></span> <a href="../.././Init/Prelude.html#Eq">=</a> <a href="../.././Init/Prelude.html#Bool.true">true</a>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> <span class="fn">a'</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> <span class="fn">b'</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a>(<span class="fn">a</span> <a href="../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span>) <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> (<span class="fn">a'</span> <a href="../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b'</span>)</span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.mul_congr.wr"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L91-L95">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.mul_congr.wr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">mul_congr</span>.<span class="name">wr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#Mul">_root_.Mul</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.Mul">Mul</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.isFinite">isFinite</a></span> <a href="../.././Init/Prelude.html#Eq">=</a> <a href="../.././Init/Prelude.html#Bool.true">true</a>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> <span class="fn">b'</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a>(<span class="fn">a</span> <a href="../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span>) <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> (<span class="fn">a'</span> <a href="../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b'</span>)</span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.mul_congr.wl"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L97-L101">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.mul_congr.wl"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">mul_congr</span>.<span class="name">wl</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#Mul">_root_.Mul</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.Mul">Mul</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.isFinite">isFinite</a></span> <a href="../.././Init/Prelude.html#Eq">=</a> <a href="../.././Init/Prelude.html#Bool.true">true</a>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> <span class="fn">a'</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a>(<span class="fn">a</span> <a href="../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span>) <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> (<span class="fn">a'</span> <a href="../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b'</span>)</span></div></div></div></div><div class="mod_doc"><p>Subtraction</p></div><div class="decl" id="Lean.Grind.ToInt.sub_congr"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L105-L107">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.sub_congr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">sub_congr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#Sub">_root_.Sub</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.Sub">Sub</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a>(<span class="fn">a</span> <a href="../.././Init/Prelude.html#HSub.hSub">-</a> <span class="fn">b</span>) <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> (<span class="fn">a'</span> <a href="../.././Init/Prelude.html#HSub.hSub">-</a> <span class="fn">b'</span>)</span></div></div></div></div><div class="mod_doc"><p>Negation</p></div><div class="decl" id="Lean.Grind.ToInt.neg_congr"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L111-L113">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.neg_congr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">neg_congr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#Neg">_root_.Neg</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.Neg">Neg</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a>(<a href="../.././Init/Prelude.html#Neg.neg">-</a><span class="fn">a</span>) <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> (<a href="../.././Init/Prelude.html#Neg.neg">-</a><span class="fn">a'</span>)</span></div></div></div></div><div class="mod_doc"><p>Power</p></div><div class="decl" id="Lean.Grind.ToInt.pow_congr"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L117-L119">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.pow_congr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">pow_congr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#HPow">HPow</a> <span class="fn">α</span> <a href="../.././Init/Prelude.html#Nat">Nat</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.Pow">Pow</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">k</span> : <a href="../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">a'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a>(<span class="fn">a</span> <a href="../.././Init/Prelude.html#HPow.hPow">^</a> <span class="fn">k</span>) <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> (<span class="fn">a'</span> <a href="../.././Init/Prelude.html#HPow.hPow">^</a> <span class="fn">k</span>)</span></div></div></div></div><div class="mod_doc"><p>Division</p></div><div class="decl" id="Lean.Grind.ToInt.div_congr"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L123-L125">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.div_congr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">div_congr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#Div">_root_.Div</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.Div">Div</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a>(<span class="fn">a</span> <a href="../.././Init/Prelude.html#HDiv.hDiv">/</a> <span class="fn">b</span>) <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span> <a href="../.././Init/Prelude.html#HDiv.hDiv">/</a> <span class="fn">b'</span></div></div></div></div><div class="mod_doc"><p>Modulo</p></div><div class="decl" id="Lean.Grind.ToInt.mod_congr"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L129-L131">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.mod_congr"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">mod_congr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#Mod">_root_.Mod</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.Mod">Mod</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a' </span><span class="fn">b'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">b</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">b'</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a>(<span class="fn">a</span> <a href="../.././Init/Prelude.html#HMod.hMod">%</a> <span class="fn">b</span>) <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">a'</span> <a href="../.././Init/Prelude.html#HMod.hMod">%</a> <span class="fn">b'</span></div></div></div></div><div class="mod_doc"><p>OfNat</p></div><div class="decl" id="Lean.Grind.ToInt.ofNat_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L135-L137">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.ofNat_eq"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">ofNat_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">(<span class="fn">n</span> : <a href="../.././Init/Prelude.html#Nat">Nat</a>) → <span class="fn"><a href="../.././Init/Prelude.html#OfNat">_root_.OfNat</a> <span class="fn">α</span> <span class="fn">n</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.OfNat">OfNat</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">n</span> : <a href="../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">(<a href="../.././Init/Prelude.html#OfNat.ofNat">OfNat.ofNat</a> <span class="fn">n</span>)</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.wrap">wrap</a></span> <span class="fn">↑<span class="fn">n</span></span></span></div></div></div></div><div class="mod_doc"><p>Zero</p></div><div class="decl" id="Lean.Grind.ToInt.zero_eq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L141-L142">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.zero_eq"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">zero_eq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Prelude.html#Zero">_root_.Zero</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.Zero">Zero</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">0</span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn">0</span></div></div></div></div><div class="mod_doc"><p>Lower and upper bounds</p></div><div class="decl" id="Lean.Grind.ToInt.ge_lower"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L146-L148">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.ge_lower"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">ge_lower</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">lo</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : (<span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.lo?">lo?</a></span> <a href="../.././Init/Prelude.html#BEq.beq">==</a> <span class="fn"><a href="../.././Init/Prelude.html#Option.some">some</a> <span class="fn">lo</span></span>) <a href="../.././Init/Prelude.html#Eq">=</a> <a href="../.././Init/Prelude.html#Bool.true">true</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">-<span class="fn">1</span></span> <a href="../.././Init/Prelude.html#HMul.hMul">*</a> <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">lo</span> <a href="../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.ge_lower0"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L150-L152">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.ge_lower0"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">ge_lower0</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : (<span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.lo?">lo?</a></span> <a href="../.././Init/Prelude.html#BEq.beq">==</a> <span class="fn"><a href="../.././Init/Prelude.html#Option.some">some</a> <span class="fn">0</span></span>) <a href="../.././Init/Prelude.html#Eq">=</a> <a href="../.././Init/Prelude.html#Bool.true">true</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">-<span class="fn">1</span></span> <a href="../.././Init/Prelude.html#HMul.hMul">*</a> <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.le_upper"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L154-L156">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.le_upper"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">le_upper</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">hi'</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : (<span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.hi?">hi?</a></span> <a href="../.././Init/Prelude.html#BEq.beq">==</a> <span class="fn"><a href="../.././Init/Prelude.html#Option.some">some</a> (<a href="../.././Init/Prelude.html#Neg.neg">-</a><span class="fn">hi'</span> <a href="../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span>)</span>) <a href="../.././Init/Prelude.html#Eq">=</a> <a href="../.././Init/Prelude.html#Bool.true">true</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">hi'</span> <a href="../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.ge_lower'"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L158-L160">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.ge_lower'"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">ge_lower'</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">lo</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.lo?">lo?</a></span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../.././Init/Prelude.html#Option.some">some</a> <span class="fn">lo</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">lo</span> <a href="../.././Init/Prelude.html#LE.le">≤</a> <a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span></div></div></div></div><div class="decl" id="Lean.Grind.ToInt.le_upper'"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/ToIntLemmas.lean#L162-L166">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/ToIntLemmas.html#Lean.Grind.ToInt.le_upper'"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">ToInt</span>.<span class="name">le_upper'</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">i</span> : <a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval">IntInterval</a>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt">ToInt</a> <span class="fn">α</span> <span class="fn">i</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">hi</span> : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">i</span>.<a href="../.././Init/Grind/ToInt.html#Lean.Grind.IntInterval.hi?">hi?</a></span> <a href="../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../.././Init/Prelude.html#Option.some">some</a> <span class="fn">hi</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Grind/ToInt.html#Lean.Grind.ToInt.toInt">↑</a><span class="fn">a</span> <a href="../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span> <a href="../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">hi</span></div></div></div></div></main>
+<nav class="nav"><iframe src="../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

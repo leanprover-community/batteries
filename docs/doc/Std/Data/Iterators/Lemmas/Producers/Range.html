@@ -1,0 +1,975 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../../../.././style.css"></link><link rel="icon" href="../../../../.././favicon.svg"></link><link rel="mask-icon" href="../../../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../../../.././/declarations/declaration-data.bmp" as="image"></link><title>Std.Data.Iterators.Lemmas.Producers.Range</title><script defer="true" src="../../../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../../../.././";</script><script>const MODULE_NAME="Std.Data.Iterators.Lemmas.Producers.Range";</script><script type="module" src="../../../../.././jump-src.js"></script><script type="module" src="../../../../.././search.js"></script><script type="module" src="../../../../.././expand-nav.js"></script><script type="module" src="../../../../.././how-about.js"></script><script type="module" src="../../../../.././instances.js"></script><script type="module" src="../../../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Std</span>.<span class="name">Data</span>.<span class="name">Iterators</span>.<span class="name">Lemmas</span>.<span class="name">Producers</span>.<span class="name">Range</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../../../.././Init/Data/Range/Polymorphic/Lemmas.html">Init.Data.Range.Polymorphic.Lemmas</a></li><li><a href="../../../../.././Std/Data/Iterators/Producers/Range.html">Std.Data.Iterators.Producers.Range</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Std.Data.Iterators.Lemmas.Producers.Range" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Std.Rcc.toList_iter"><span class="name">Std</span>.<span class="name">Rcc</span>.<span class="name">toList_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rcc.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Rcc</span>.<span class="name">toList_iter_eq_toList</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rcc.toArray_iter"><span class="name">Std</span>.<span class="name">Rcc</span>.<span class="name">toArray_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rcc.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Rcc</span>.<span class="name">toArray_iter_eq_toArray</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rcc.count_iter"><span class="name">Std</span>.<span class="name">Rcc</span>.<span class="name">count_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rcc.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Rcc</span>.<span class="name">count_iter_eq_size</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rco.toList_iter"><span class="name">Std</span>.<span class="name">Rco</span>.<span class="name">toList_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rco.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Rco</span>.<span class="name">toList_iter_eq_toList</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rco.toArray_iter"><span class="name">Std</span>.<span class="name">Rco</span>.<span class="name">toArray_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rco.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Rco</span>.<span class="name">toArray_iter_eq_toArray</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rco.count_iter"><span class="name">Std</span>.<span class="name">Rco</span>.<span class="name">count_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rco.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Rco</span>.<span class="name">count_iter_eq_size</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rci.toList_iter"><span class="name">Std</span>.<span class="name">Rci</span>.<span class="name">toList_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rci.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Rci</span>.<span class="name">toList_iter_eq_toList</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rci.toArray_iter"><span class="name">Std</span>.<span class="name">Rci</span>.<span class="name">toArray_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rci.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Rci</span>.<span class="name">toArray_iter_eq_toArray</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rci.count_iter"><span class="name">Std</span>.<span class="name">Rci</span>.<span class="name">count_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rci.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Rci</span>.<span class="name">count_iter_eq_size</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roc.toList_iter"><span class="name">Std</span>.<span class="name">Roc</span>.<span class="name">toList_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roc.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Roc</span>.<span class="name">toList_iter_eq_toList</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roc.toArray_iter"><span class="name">Std</span>.<span class="name">Roc</span>.<span class="name">toArray_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roc.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Roc</span>.<span class="name">toArray_iter_eq_toArray</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roc.count_iter"><span class="name">Std</span>.<span class="name">Roc</span>.<span class="name">count_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roc.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Roc</span>.<span class="name">count_iter_eq_size</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roo.toList_iter"><span class="name">Std</span>.<span class="name">Roo</span>.<span class="name">toList_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roo.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Roo</span>.<span class="name">toList_iter_eq_toList</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roo.toArray_iter"><span class="name">Std</span>.<span class="name">Roo</span>.<span class="name">toArray_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roo.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Roo</span>.<span class="name">toArray_iter_eq_toArray</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roo.count_iter"><span class="name">Std</span>.<span class="name">Roo</span>.<span class="name">count_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roo.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Roo</span>.<span class="name">count_iter_eq_size</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roi.toList_iter"><span class="name">Std</span>.<span class="name">Roi</span>.<span class="name">toList_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roi.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Roi</span>.<span class="name">toList_iter_eq_toList</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roi.toArray_iter"><span class="name">Std</span>.<span class="name">Roi</span>.<span class="name">toArray_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roi.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Roi</span>.<span class="name">toArray_iter_eq_toArray</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roi.count_iter"><span class="name">Std</span>.<span class="name">Roi</span>.<span class="name">count_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Roi.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Roi</span>.<span class="name">count_iter_eq_size</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Ric.toList_iter"><span class="name">Std</span>.<span class="name">Ric</span>.<span class="name">toList_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Ric.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Ric</span>.<span class="name">toList_iter_eq_toList</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Ric.toArray_iter"><span class="name">Std</span>.<span class="name">Ric</span>.<span class="name">toArray_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Ric.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Ric</span>.<span class="name">toArray_iter_eq_toArray</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Ric.count_iter"><span class="name">Std</span>.<span class="name">Ric</span>.<span class="name">count_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Ric.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Ric</span>.<span class="name">count_iter_eq_size</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rio.toList_iter"><span class="name">Std</span>.<span class="name">Rio</span>.<span class="name">toList_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rio.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Rio</span>.<span class="name">toList_iter_eq_toList</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rio.toArray_iter"><span class="name">Std</span>.<span class="name">Rio</span>.<span class="name">toArray_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rio.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Rio</span>.<span class="name">toArray_iter_eq_toArray</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rio.count_iter"><span class="name">Std</span>.<span class="name">Rio</span>.<span class="name">count_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rio.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Rio</span>.<span class="name">count_iter_eq_size</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rii.toList_iter"><span class="name">Std</span>.<span class="name">Rii</span>.<span class="name">toList_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rii.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Rii</span>.<span class="name">toList_iter_eq_toList</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rii.toArray_iter"><span class="name">Std</span>.<span class="name">Rii</span>.<span class="name">toArray_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rii.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Rii</span>.<span class="name">toArray_iter_eq_toArray</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rii.count_iter"><span class="name">Std</span>.<span class="name">Rii</span>.<span class="name">count_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Rii.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Rii</span>.<span class="name">count_iter_eq_size</span></a></div></nav><main>
+<div class="decl" id="Std.Rcc.toList_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L17-L21">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rcc.toList_iter"><span class="name">Std</span>.<span class="name">Rcc</span>.<span class="name">toList_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rcc">Rcc</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rcc.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rcc.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Rcc.toList_iter_eq_toList"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L23-L27">source</a></div><div class="attributes">@[deprecated Std.Rcc.toList_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rcc.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Rcc</span>.<span class="name">toList_iter_eq_toList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rcc">Rcc</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rcc.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rcc.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Rcc.toArray_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L29-L33">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rcc.toArray_iter"><span class="name">Std</span>.<span class="name">Rcc</span>.<span class="name">toArray_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rcc">Rcc</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rcc.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rcc.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Rcc.toArray_iter_eq_toArray"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L35-L39">source</a></div><div class="attributes">@[deprecated Std.Rcc.toArray_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rcc.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Rcc</span>.<span class="name">toArray_iter_eq_toArray</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rcc">Rcc</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rcc.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rcc.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Rcc.count_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L41-L46">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rcc.count_iter"><span class="name">Std</span>.<span class="name">Rcc</span>.<span class="name">count_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxc.HasSize">Rxc.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxc.LawfulHasSize">Rxc.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rcc">Rcc</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rcc.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rcc.size">size</a></span></div></div></div></div><div class="decl" id="Std.Rcc.count_iter_eq_size"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L48-L54">source</a></div><div class="attributes">@[deprecated Std.Rcc.count_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rcc.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Rcc</span>.<span class="name">count_iter_eq_size</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxc.HasSize">Rxc.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxc.LawfulHasSize">Rxc.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rcc">Rcc</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rcc.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rcc.size">size</a></span></div></div></div></div><div class="decl" id="Std.Rco.toList_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L56-L60">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rco.toList_iter"><span class="name">Std</span>.<span class="name">Rco</span>.<span class="name">toList_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rco">Rco</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rco.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rco.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Rco.toList_iter_eq_toList"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L62-L66">source</a></div><div class="attributes">@[deprecated Std.Rco.toList_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rco.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Rco</span>.<span class="name">toList_iter_eq_toList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rco">Rco</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rco.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rco.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Rco.toArray_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L68-L72">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rco.toArray_iter"><span class="name">Std</span>.<span class="name">Rco</span>.<span class="name">toArray_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rco">Rco</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rco.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rco.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Rco.toArray_iter_eq_toArray"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L74-L78">source</a></div><div class="attributes">@[deprecated Std.Rco.toArray_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rco.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Rco</span>.<span class="name">toArray_iter_eq_toArray</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rco">Rco</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rco.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rco.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Rco.count_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L80-L86">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rco.count_iter"><span class="name">Std</span>.<span class="name">Rco</span>.<span class="name">count_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxo.HasSize">Rxo.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxo.LawfulHasSize">Rxo.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rco">Rco</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rco.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rco.size">size</a></span></div></div></div></div><div class="decl" id="Std.Rco.count_iter_eq_size"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L88-L94">source</a></div><div class="attributes">@[deprecated Std.Rco.count_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rco.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Rco</span>.<span class="name">count_iter_eq_size</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxo.HasSize">Rxo.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxo.LawfulHasSize">Rxo.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rco">Rco</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rco.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rco.size">size</a></span></div></div></div></div><div class="decl" id="Std.Rci.toList_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L96-L100">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rci.toList_iter"><span class="name">Std</span>.<span class="name">Rci</span>.<span class="name">toList_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rci">Rci</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rci.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rci.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Rci.toList_iter_eq_toList"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L102-L106">source</a></div><div class="attributes">@[deprecated Std.Rci.toList_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rci.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Rci</span>.<span class="name">toList_iter_eq_toList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rci">Rci</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rci.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rci.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Rci.toArray_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L108-L112">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rci.toArray_iter"><span class="name">Std</span>.<span class="name">Rci</span>.<span class="name">toArray_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rci">Rci</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rci.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rci.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Rci.toArray_iter_eq_toArray"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L114-L118">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rci.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Rci</span>.<span class="name">toArray_iter_eq_toArray</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rci">Rci</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rci.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rci.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Rci.count_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L120-L126">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rci.count_iter"><span class="name">Std</span>.<span class="name">Rci</span>.<span class="name">count_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxi.HasSize">Rxi.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxi.LawfulHasSize">Rxi.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rci">Rci</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rci.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rci.size">size</a></span></div></div></div></div><div class="decl" id="Std.Rci.count_iter_eq_size"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L128-L134">source</a></div><div class="attributes">@[deprecated Std.Rci.count_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rci.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Rci</span>.<span class="name">count_iter_eq_size</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxi.HasSize">Rxi.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxi.LawfulHasSize">Rxi.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rci">Rci</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rci.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rci.size">size</a></span></div></div></div></div><div class="decl" id="Std.Roc.toList_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L136-L140">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roc.toList_iter"><span class="name">Std</span>.<span class="name">Roc</span>.<span class="name">toList_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roc">Roc</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roc.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roc.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Roc.toList_iter_eq_toList"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L142-L146">source</a></div><div class="attributes">@[deprecated Std.Roc.toList_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roc.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Roc</span>.<span class="name">toList_iter_eq_toList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roc">Roc</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roc.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roc.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Roc.toArray_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L148-L152">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roc.toArray_iter"><span class="name">Std</span>.<span class="name">Roc</span>.<span class="name">toArray_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roc">Roc</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roc.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roc.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Roc.toArray_iter_eq_toArray"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L154-L158">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roc.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Roc</span>.<span class="name">toArray_iter_eq_toArray</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roc">Roc</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roc.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roc.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Roc.count_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L160-L166">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roc.count_iter"><span class="name">Std</span>.<span class="name">Roc</span>.<span class="name">count_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxc.HasSize">Rxc.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxc.LawfulHasSize">Rxc.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roc">Roc</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roc.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roc.size">size</a></span></div></div></div></div><div class="decl" id="Std.Roc.count_iter_eq_size"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L168-L174">source</a></div><div class="attributes">@[deprecated Std.Roc.count_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roc.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Roc</span>.<span class="name">count_iter_eq_size</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxc.HasSize">Rxc.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxc.LawfulHasSize">Rxc.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roc">Roc</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roc.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roc.size">size</a></span></div></div></div></div><div class="decl" id="Std.Roo.toList_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L176-L180">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roo.toList_iter"><span class="name">Std</span>.<span class="name">Roo</span>.<span class="name">toList_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roo">Roo</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roo.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roo.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Roo.toList_iter_eq_toList"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L182-L186">source</a></div><div class="attributes">@[deprecated Std.Roo.toList_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roo.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Roo</span>.<span class="name">toList_iter_eq_toList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roo">Roo</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roo.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roo.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Roo.toArray_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L188-L192">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roo.toArray_iter"><span class="name">Std</span>.<span class="name">Roo</span>.<span class="name">toArray_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roo">Roo</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roo.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roo.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Roo.toArray_iter_eq_toArray"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L194-L198">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roo.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Roo</span>.<span class="name">toArray_iter_eq_toArray</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roo">Roo</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roo.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roo.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Roo.count_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L200-L206">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roo.count_iter"><span class="name">Std</span>.<span class="name">Roo</span>.<span class="name">count_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxo.HasSize">Rxo.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxo.LawfulHasSize">Rxo.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roo">Roo</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roo.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roo.size">size</a></span></div></div></div></div><div class="decl" id="Std.Roo.count_iter_eq_size"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L208-L214">source</a></div><div class="attributes">@[deprecated Std.Roo.count_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roo.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Roo</span>.<span class="name">count_iter_eq_size</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxo.HasSize">Rxo.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxo.LawfulHasSize">Rxo.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roo">Roo</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roo.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roo.size">size</a></span></div></div></div></div><div class="decl" id="Std.Roi.toList_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L216-L220">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roi.toList_iter"><span class="name">Std</span>.<span class="name">Roi</span>.<span class="name">toList_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roi">Roi</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roi.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roi.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Roi.toList_iter_eq_toList"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L222-L226">source</a></div><div class="attributes">@[deprecated Std.Roi.toList_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roi.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Roi</span>.<span class="name">toList_iter_eq_toList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roi">Roi</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roi.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roi.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Roi.toArray_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L228-L232">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roi.toArray_iter"><span class="name">Std</span>.<span class="name">Roi</span>.<span class="name">toArray_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roi">Roi</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roi.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roi.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Roi.toArray_iter_eq_toArray"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L234-L238">source</a></div><div class="attributes">@[deprecated Std.Roi.toArray_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roi.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Roi</span>.<span class="name">toArray_iter_eq_toArray</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roi">Roi</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roi.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roi.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Roi.count_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L240-L246">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roi.count_iter"><span class="name">Std</span>.<span class="name">Roi</span>.<span class="name">count_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxi.HasSize">Rxi.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxi.LawfulHasSize">Rxi.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roi">Roi</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roi.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roi.size">size</a></span></div></div></div></div><div class="decl" id="Std.Roi.count_iter_eq_size"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L248-L254">source</a></div><div class="attributes">@[deprecated Std.Roi.count_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Roi.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Roi</span>.<span class="name">count_iter_eq_size</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxi.HasSize">Rxi.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxi.LawfulHasSize">Rxi.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roi">Roi</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Roi.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roi.size">size</a></span></div></div></div></div><div class="decl" id="Std.Ric.toList_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L256-L260">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Ric.toList_iter"><span class="name">Std</span>.<span class="name">Ric</span>.<span class="name">toList_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Ric">Ric</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Ric.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Ric.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Ric.toList_iter_eq_toList"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L262-L266">source</a></div><div class="attributes">@[deprecated Std.Ric.toList_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Ric.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Ric</span>.<span class="name">toList_iter_eq_toList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Ric">Ric</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Ric.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Ric.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Ric.toArray_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L268-L272">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Ric.toArray_iter"><span class="name">Std</span>.<span class="name">Ric</span>.<span class="name">toArray_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Ric">Ric</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Ric.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Ric.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Ric.toArray_iter_eq_toArray"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L274-L278">source</a></div><div class="attributes">@[deprecated Std.Ric.toArray_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Ric.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Ric</span>.<span class="name">toArray_iter_eq_toArray</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Ric">Ric</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Ric.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Ric.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Ric.count_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L280-L286">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Ric.count_iter"><span class="name">Std</span>.<span class="name">Ric</span>.<span class="name">count_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxc.HasSize">Rxc.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxc.LawfulHasSize">Rxc.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Ric">Ric</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Ric.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Ric.size">size</a></span></div></div></div></div><div class="decl" id="Std.Ric.count_iter_eq_size"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L288-L294">source</a></div><div class="attributes">@[deprecated Std.Ric.count_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Ric.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Ric</span>.<span class="name">count_iter_eq_size</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxc.HasSize">Rxc.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxc.LawfulHasSize">Rxc.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Ric">Ric</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Ric.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Ric.size">size</a></span></div></div></div></div><div class="decl" id="Std.Rio.toList_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L296-L300">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rio.toList_iter"><span class="name">Std</span>.<span class="name">Rio</span>.<span class="name">toList_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rio">Rio</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rio.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rio.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Rio.toList_iter_eq_toList"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L302-L306">source</a></div><div class="attributes">@[deprecated Std.Rio.toList_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rio.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Rio</span>.<span class="name">toList_iter_eq_toList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rio">Rio</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rio.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rio.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Rio.toArray_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L308-L312">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rio.toArray_iter"><span class="name">Std</span>.<span class="name">Rio</span>.<span class="name">toArray_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rio">Rio</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rio.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rio.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Rio.toArray_iter_eq_toArray"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L314-L318">source</a></div><div class="attributes">@[deprecated Std.Rio.toArray_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rio.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Rio</span>.<span class="name">toArray_iter_eq_toArray</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rio">Rio</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rio.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rio.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Rio.count_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L320-L326">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rio.count_iter"><span class="name">Std</span>.<span class="name">Rio</span>.<span class="name">count_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxo.HasSize">Rxo.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxo.LawfulHasSize">Rxo.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rio">Rio</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rio.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rio.size">size</a></span></div></div></div></div><div class="decl" id="Std.Rio.count_iter_eq_size"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L328-L334">source</a></div><div class="attributes">@[deprecated Std.Rio.count_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rio.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Rio</span>.<span class="name">count_iter_eq_size</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxo.HasSize">Rxo.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxo.LawfulHasSize">Rxo.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rio">Rio</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rio.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rio.size">size</a></span></div></div></div></div><div class="decl" id="Std.Rii.toList_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L336-L340">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rii.toList_iter"><span class="name">Std</span>.<span class="name">Rii</span>.<span class="name">toList_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rii">Rii</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rii.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rii.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Rii.toList_iter_eq_toList"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L342-L346">source</a></div><div class="attributes">@[deprecated Std.Rii.toList_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rii.toList_iter_eq_toList"><span class="name">Std</span>.<span class="name">Rii</span>.<span class="name">toList_iter_eq_toList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rii">Rii</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rii.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toList">toList</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rii.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Rii.toArray_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L348-L352">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rii.toArray_iter"><span class="name">Std</span>.<span class="name">Rii</span>.<span class="name">toArray_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rii">Rii</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rii.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rii.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Rii.toArray_iter_eq_toArray"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L354-L358">source</a></div><div class="attributes">@[deprecated Std.Rii.toArray_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rii.toArray_iter_eq_toArray"><span class="name">Std</span>.<span class="name">Rii</span>.<span class="name">toArray_iter_eq_toArray</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rii">Rii</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rii.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iterators.Iter.toArray">toArray</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rii.toArray">toArray</a></span></div></div></div></div><div class="decl" id="Std.Rii.count_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L360-L366">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rii.count_iter"><span class="name">Std</span>.<span class="name">Rii</span>.<span class="name">count_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxi.HasSize">Rxi.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxi.LawfulHasSize">Rxi.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rii">Rii</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rii.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rii.size">size</a></span></div></div></div></div><div class="decl" id="Std.Rii.count_iter_eq_size"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Std/Data/Iterators/Lemmas/Producers/Range.lean#L368-L374">source</a></div><div class="attributes">@[deprecated Std.Rii.count_iter (since := &quot;2025-11-13&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../../.././Std/Data/Iterators/Lemmas/Producers/Range.html#Std.Rii.count_iter_eq_size"><span class="name">Std</span>.<span class="name">Rii</span>.<span class="name">count_iter_eq_size</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxi.HasSize">Rxi.HasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/Basic.html#Std.Rxi.LawfulHasSize">Rxi.LawfulHasSize</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">r</span> : <span class="fn"><a href="../../../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rii">Rii</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><span class="fn">r</span>.<a href="../../../../.././Std/Data/Iterators/Producers/Range.html#Std.Rii.iter">iter</a></span>.<a href="../../../../.././Init/Data/Iterators/Consumers/Loop.html#Std.Iterators.Iter.count">count</a></span> <a href="../../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rii.size">size</a></span></div></div></div></div></main>
+<nav class="nav"><iframe src="../../../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>
