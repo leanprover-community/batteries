@@ -41,3 +41,14 @@ example (P : (Nat → Nat) → Prop) : P (fun n => n - n) := by
     -- and at this point, there should be no goal left
     tactic => sorry
   sorry
+
+/-- warning: declaration uses 'sorry' -/
+#guard_msgs in
+example (P : Nat → Prop) : P 12 := by
+  conv =>
+    enter [1]
+    equals (12 : Fin 37) =>
+      guard_target =ₛ (12 : Nat) = (12 : Fin 37)
+      rfl
+  guard_target =ₛ P (12 : Fin 37)
+  sorry
