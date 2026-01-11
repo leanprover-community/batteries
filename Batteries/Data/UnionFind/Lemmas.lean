@@ -3,7 +3,11 @@ Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Batteries.Data.UnionFind.Basic
+module
+
+public import Batteries.Data.UnionFind.Basic
+
+@[expose] public section
 
 namespace Batteries.UnionFind
 
@@ -18,7 +22,7 @@ namespace Batteries.UnionFind
     parentD (arr.push ⟨arr.size, 0⟩) a = parentD arr a := by
   simp [parentD]; split <;> split <;> try simp [Array.getElem_push, *]
   · next h1 h2 =>
-    simp [Nat.lt_succ] at h1 h2
+    simp [Nat.lt_succ_iff] at h1 h2
     exact Nat.le_antisymm h2 h1
   · next h1 h2 => cases h1 (Nat.lt_succ_of_lt h2)
 
@@ -124,9 +128,9 @@ theorem equiv_link {self : UnionFind} {x y : Fin self.size}
     simp [Equiv, hm, xroot, yroot]
     by_cases h1 : rootD self a = x <;> by_cases h2 : rootD self b = x <;>
       simp [h1, h2, imp_false, Decidable.not_not, -left_eq_ite_iff]
-    · simp [h2, Ne.symm h2, -left_eq_ite_iff]; split <;> simp [@eq_comm _ _ (rootD self b), *]
+    · simp [Ne.symm h2, -left_eq_ite_iff]; split <;> simp [@eq_comm _ _ (rootD self b), *]
     · by_cases h1 : rootD self a = y <;> by_cases h2 : rootD self b = y <;>
-        simp [h1, h2, @eq_comm _ _ (rootD self b), *]
+        simp [@eq_comm _ _ (rootD self b), *]
   obtain ⟨r, ha, hr⟩ := root_link xroot yroot; revert hr
   rw [← rootD_eq_self] at xroot yroot
   obtain rfl | rfl := ha
