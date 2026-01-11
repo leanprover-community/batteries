@@ -26,7 +26,7 @@ One or more Alternatives.
 For example, given a Parser, which implements Alternative, you can use the `many1` combinator
 to parse one or more items.
 -/
-def many1 [Alternative f] [Inhabited (f (List α))]
+def many1 [Alternative f]
     (p : f α) : f (Σ n, Vector α (1 + n)) :=
   let g x xs := ⟨xs.1, Vector.singleton x ++ xs.2⟩
   let toVec (l : List α) : Σ n, Vector α n :=
