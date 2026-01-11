@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 module
 
 public meta import Lean.Elab.Tactic.ElabTerm
+public meta import Lean.Meta.MatchUtil
 
 public meta section
 
@@ -116,6 +117,6 @@ elab (name := Conv.equals) "equals " t:term " => " tac:tacticSeq : conv => do
     let goal ← mvarId.getType
     let some (α, _, rhs) ← matchEq? goal | throwError "invalid 'conv' goal"
     let e ← Term.withSynthesize do
-      Tactic.elabTermEnsuringType t (some α)
+      Term.elabTermEnsuringType t (some α)
     unless ← isDefEq rhs e do throwError m!"failed to resolve{indentExpr rhs}\n=?={indentExpr e}"
     evalTactic <| ← `(conv| tactic => · $tac)
