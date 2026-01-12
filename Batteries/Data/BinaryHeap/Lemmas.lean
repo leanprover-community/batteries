@@ -85,10 +85,8 @@ theorem heapifyDown_preserves_wf_children_of_not_inSubtree [Ord α]
     (hleft_eq : ∀ h : 2 * k.val + 1 < sz, a[2 * k.val + 1] = b[2 * k.val + 1])
     (hright_eq : ∀ h : 2 * k.val + 2 < sz, a[2 * k.val + 2] = b[2 * k.val + 2])
     (hwf : WF.children b k)
-    (hnsub_left : ∀ h : 2 * k.val + 1 < sz, ¬InSubtree i.val (2 * k.val + 1)
-      := by grind only [InSubtree.not_of_lt])
-    (hnsub_right : ∀ h : 2 * k.val + 2 < sz, ¬InSubtree i.val (2 * k.val + 2)
-      := by grind only [InSubtree.not_of_lt])
+    (hnsub_left : i ≠ 2 * k.val + 1 := by omega)
+    (hnsub_right : i ≠ 2 * k.val + 2)
     :
     WF.children (heapifyDown a i) k := by
   obtain ⟨hwf_left, hwf_right⟩ := hwf
@@ -112,13 +110,16 @@ theorem heapifyDown_swap_preserves_wf_children_of_lt [Ord α] {a : Vector α sz}
     (fun _ => Vector.getElem_swap_of_ne (by omega) (by omega))
     (fun _ => Vector.getElem_swap_of_ne (by omega) (by omega))
     hwf
+    (by omega)
+    (by omega)
+
 
 theorem heapifyDown_preserves_wf_children_outside [Ord α] {v : Vector α sz} {i k : Fin sz}
     (hki : k < i) (hwf : WF.children v k)
-    (hleft_ne : 2 * k.val + 1 ≠ i.val) (hright_ne : 2 * k.val + 2 ≠ i.val) :
+    (hleft_ne : i.val ≠ 2 * k.val + 1 ) (hright_ne : i.val ≠ 2 * k.val + 2) :
     WF.children (heapifyDown v i) k :=
   heapifyDown_preserves_wf_children_of_not_inSubtree
-    (InSubtree.not_of_lt hki) rfl (fun _ => rfl) (fun _ => rfl) hwf
+    (InSubtree.not_of_lt hki) rfl (fun _ => rfl) (fun _ => rfl) hwf ‹_› ‹_›
 
 /-- If v dominates all values in the subtree, v dominates the result at root -/
 theorem heapifyDown_root_bounded [Ord α] [Std.TransOrd α]
@@ -145,7 +146,7 @@ theorem heapifyDown_preserves_wf_parent [Ord α] [Std.TransOrd α] [Std.Oriented
     intro hside
     rw [heapifyDown_get_of_not_inSubtree hk_not_sub]
     have : parent.val ≠ i.val := by omega
-    simp_all only [Fin.getElem_fin]
+    simp only [Fin.getElem_fin]
     rw [Vector.getElem_set_ne (i := i.val) (j := parent.val) _ _ (by omega)]
     by_cases heq : childIdx = i.val
     · simp only [parent, heq, childIdx]
@@ -167,19 +168,13 @@ theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} {i j : Fin sz} (h_ij : i < j) (h_lt : (compare a[i] a[j]).isLT)
     (hbelow : WF.below a i) (k : Fin sz) (hsub : InSubtree j k) :
     (compare a[j] (a.swap i j)[k]).isGE := by
-  by_cases hk_eq_j : k = j
+  by_cases hk_eq_j : k.val = j.val
   · unfold Ordering.isGE
     rw [Std.OrientedOrd.eq_swap]
     simp_all
-  · have : (a.swap i j)[k] = a[k] := Vector.getElem_swap_of_ne
-      (by grind only [InSubtree.not_of_lt])
-      (by omega)
-    simp_all [
-      WF.parent_ge_subtree
-      (hwf_at := hbelow j h_ij)
-      (hwf_below := WF.below_mono (by omega) hbelow)
-      (hsub := hsub)
-    ]
+  · have hi' : k.val ≠ i.val := InSubtree.ne_of_lt h_ij hsub
+    simp_all [WF.parent_ge_subtree, hbelow j h_ij, Vector.getElem_swap_of_ne,
+      WF.below_mono (Fin.le_of_lt h_ij) hbelow]
 
 theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} {i : Fin sz}
@@ -208,7 +203,9 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
 
         simp only [heapifyDown_get_of_not_inSubtree hnsub_i, Fin.getElem_fin,
           Vector.getElem_swap_left]
+
         cases hchild
+
       case left.inl | right.inr =>
         grind only [Fin.getElem_fin,
           heapifyDown_root_bounded (swap_child_dominates h_ij h_ai_aj hbelow)]
@@ -417,8 +414,8 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
     · have hk_eq : k = ⟨(i.val - 1) / 2, by omega⟩ := by ext; exact hk_parent.1
       rw [hk_eq]
       exact heapifyDown_preserves_wf_parent htd h_leq hk_parent.2
-    · have hleft_ne : 2 * k.val + 1 ≠ i.val := by omega
-      have hright_ne : 2 * k.val + 2 ≠ i.val := by omega
+    · have hleft_ne : i.val ≠ 2 * k.val + 1 := by omega
+      have hright_ne : i.val ≠ 2 * k.val + 2 := by omega
       have hwf_set : WF.children (heap.vector.set i x) k :=
               WF.set_preserves_wf_children_of_ne (htd k) (by omega) hleft_ne hright_ne
       exact heapifyDown_preserves_wf_children_outside hki hwf_set hleft_ne hright_ne

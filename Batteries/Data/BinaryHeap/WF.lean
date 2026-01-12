@@ -31,6 +31,10 @@ theorem lt_of_ne (hsub : InSubtree j k) (hne : j ≠ k) : j < k := by grind only
 theorem trans (hij : InSubtree i j) (hjk : InSubtree j k) : InSubtree i k := by
   induction hjk with grind only [InSubtree]
 
+theorem ne_of_lt (h: i < j) (hins : InSubtree j k) : k ≠ i := by
+  have : j ≤ k := InSubtree.le hins
+  omega
+
 /-- Every index lies in the subtree rooted at 0. -/
 theorem zero_root (a : Nat) : InSubtree 0 a := by
   induction a using Nat.strongRecOn with
@@ -100,7 +104,7 @@ theorem set_smaller_wf_below [Ord α] {v : Vector α sz} {i : Fin sz} {x : α}
 /-- For k < i where neither child equals i, set at i preserves WF.children at k -/
 theorem set_preserves_wf_children_of_ne [Ord α] {v : Vector α sz} {i k : Fin sz} {x : α}
     (hwf : WF.children v k) (hki : k.val ≠ i.val)
-    (hleft_ne : 2 * k.val + 1 ≠ i.val) (hright_ne : 2 * k.val + 2 ≠ i.val) :
+    (hleft_ne : i.val ≠ 2 * k.val + 1) (hright_ne : i.val ≠ 2 * k.val + 2) :
     WF.children (v.set i x) k := by
   obtain ⟨hwf_left, hwf_right⟩ := hwf
   grind only [Vector.getElem_set, Fin.getElem_fin, WF.children]
