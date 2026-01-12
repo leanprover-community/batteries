@@ -6,7 +6,7 @@ Authors: Leonardo de Moura
 
 module
 public import Batteries.Tactic.Alias
-
+public import Batteries.Tactic.Lint.Misc
 @[expose] public section
 
 namespace List
