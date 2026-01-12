@@ -130,12 +130,11 @@ theorem scanlM_empty [Monad m] {f : β → α → m β} {start stop : Nat} :
     #[].scanlM f init start stop = pure #[init] := by
   simp [scanlM, scanlM.loop]
 
-@[simp, grind=]
+@[grind=]
 theorem scanrM_empty [Monad m] {f : α → β → m β} {start stop : Nat} :
     #[].scanrM f init start stop = pure #[init] := by
   simp [scanrM, scanrM.loop]
 
-@[simp]
 theorem scanlM_reverse [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Array α} :
     as.reverse.scanlM f init = Array.reverse <$> (as.scanrM (flip f) init) := by
   rw [← scanlM_toList, ← scanrM_toList]
@@ -165,13 +164,13 @@ theorem idRun_scanrM {f : α → β → Id β} {as : Array α} :
     (as.scanrM f init).run = as.scanr (f · · |>.run) init :=
   scanrM_pure
 
-@[simp, grind =]
+@[grind =]
 theorem scanlM_map [Monad m] [LawfulMonad m] {f : α₁ → α₂ } {g: β → α₂ → m β} {as : Array α₁} :
     (as.map f).scanlM g init = as.scanlM (g · <| f ·) init := by
   repeat rw [← scanlM_toList]
   simp
 
-@[simp, grind =]
+@[grind =]
 theorem scanrM_map [Monad m] [LawfulMonad m] {f : α₁ → α₂ } {g: α₂ → β → m β} {as : Array α₁} :
     (as.map f).scanrM g init = as.scanrM (fun a b => g (f a) b) init := by
   repeat rw [← scanrM_toList]
@@ -202,13 +201,13 @@ theorem size_scanl {f : β → α → β} (init : β) (as : Array α) :
 
 grind_pattern size_scanl => scanl f init as
 
-@[simp, grind =]
+@[grind =]
 theorem scanl_empty {f : β → α → β} (init : β) :
     scanl f init #[] = #[init] := by
   apply toList_inj.mp
   grind
 
-@[simp, grind =]
+@[grind =]
 theorem scanl_singleton {f : β → α → β} :
     scanl f init #[a] = #[init, f init a] := by
   apply toList_inj.mp
@@ -257,7 +256,7 @@ theorem getElem_succ_scanl {f : β → α → β} (h : i + 1 < (scanl f b as).si
   simp only [← scanl_toList, List.getElem_toArray, List.getElem_succ_scanl]
   simp
 
-@[simp, grind =]
+@[grind =]
 theorem scanl_push {f : β → α → β} {init: β} {a : α} {as : Array α} :
     (as.push a).scanl f init = (as.scanl f init).push (f (as.foldl f init) a) := by
   repeat rw [← scanl_toList]
@@ -301,7 +300,7 @@ theorem size_scanr {f : α → β → β} (init : β) (as : Array α) :
 
 grind_pattern size_scanr => scanr f init as
 
-@[simp, grind =]
+@[grind =]
 theorem scanr_empty {f : α → β → β} {init: β} :
     #[].scanr f init = #[init] := by
   apply toList_inj.mp
@@ -312,7 +311,7 @@ theorem scanr_ne_empty {f : α → β → β} {as : Array α} :
     as.scanr f init ≠ #[] := by
   grind
 
-@[simp, grind =]
+@[grind =]
 theorem scanr_push {f : α → β → β} {as : Array α} :
     (as.push a).scanr f init = (as.scanr f (f a init)).push init := by
   apply toList_inj.mp
@@ -352,7 +351,7 @@ theorem scanr_map {f : β → γ → γ} {g : α → β} (init : γ) (as : Array
   repeat rw [← scanr_toList]
   simp [List.scanr_map]
 
-@[simp, grind =]
+@[grind =]
 theorem scanl_reverse {f : β → α → β} {as : Array α} :
     scanl f init as.reverse = reverse (scanr (flip f) init as) := by
   apply toList_inj.mp
