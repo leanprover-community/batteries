@@ -9,7 +9,7 @@ public import Batteries.Data.Array.Basic
 public import Batteries.Data.Array.Lemmas
 import Batteries.Data.List.Scan
 
-@[expose] public section
+public section
 
 /-!
 # Array
@@ -76,6 +76,7 @@ theorem scanrM_loop_toList [Monad m] [LawfulMonad m] {f : α → β → m β}
         ext a
         rw [ih (start := start - 1) (stop := stop) (acc := acc.push init) (by omega)]
 
+
       have h_list : List.take (n + 1) (List.drop stop as.toList)
         = as[stop] :: List.take n (List.drop (stop + 1) as.toList)
         := by
@@ -125,12 +126,12 @@ theorem scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {as : 
   rw [scanrM_loop_toList, ← scanrM_toList, bind_pure_comp]
   grind [List.take_eq_take_iff, toList_extract]
 
-@[simp, grind=]
+@[simp, grind =]
 theorem scanlM_empty [Monad m] {f : β → α → m β} {start stop : Nat} :
     #[].scanlM f init start stop = pure #[init] := by
   simp [scanlM, scanlM.loop]
 
-@[grind=]
+@[grind =]
 theorem scanrM_empty [Monad m] {f : α → β → m β} {start stop : Nat} :
     #[].scanrM f init start stop = pure #[init] := by
   simp [scanrM, scanrM.loop]
@@ -268,7 +269,7 @@ theorem scanl_map {f : γ → β → γ} {g : α → β} (init : γ) (as : Array
   repeat rw [← scanl_toList]
   simp [List.scanl_map]
 
-@[simp, grind=]
+@[simp, grind =]
 theorem back_scanl {f : β → α → β} {as : Array α} :
     (as.scanl f init).back = as.foldl f init := by
   simp [Array.back_eq_getElem]
@@ -317,16 +318,15 @@ theorem scanr_push {f : α → β → β} {as : Array α} :
   apply toList_inj.mp
   grind
 
-@[simp, grind=]
-theorem back_scanr {f : α → β → β} {as : Array α} :
-    (as.scanr f init).back = init := by
+@[simp, grind =]
+theorem back_scanr {f : α → β → β} {as : Array α} : (as.scanr f init).back = init := by
   simp [←getLast_toList, List.getLast_scanr]
 
 theorem back?_scanr {f : α → β → β} {as : Array α} :
     (as.scanr f init).back? = some init := by
   simp [←getLast?_toList, List.getLast?_scanr]
 
-@[simp, grind=]
+@[simp, grind =]
 theorem getElem_scanr {f : α → β → β} (h : i < (scanr f b l).size) :
     (scanr f b l)[i] = foldr f b (l.drop i) := by
   simp only [← foldr_toList, ← scanr_toList, ←getElem_toList, List.getElem_scanr, toList_drop]
