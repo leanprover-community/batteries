@@ -3,8 +3,13 @@ Copyright (c) 2023 Kim Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
-import Batteries.Tactic.Lint.Misc
-import Batteries.Data.MLList.Basic
+module
+
+public import Batteries.Tactic.Lint.Misc
+public import Batteries.Data.MLList.Basic
+import Lean.Util.MonadBacktrack
+
+@[expose] public section
 
 /-!
 # A nondeterminism monad.

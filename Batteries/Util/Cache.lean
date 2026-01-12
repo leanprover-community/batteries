@@ -3,7 +3,11 @@ Copyright (c) 2021 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
-import Lean.Meta.DiscrTree
+module
+
+public import Lean.Meta.DiscrTree
+
+@[expose] public section
 
 /-!
 # Once-per-file cache for tactics
@@ -143,7 +147,7 @@ def DiscrTreeCache.mk [BEq α] (profilingName : String)
     IO (DiscrTreeCache α) :=
   let updateTree := fun name constInfo tree => do
     return (← processDecl name constInfo).foldl (init := tree) fun t (k, v) =>
-      t.insertCore k v
+      t.insertKeyValue k v
   let addDecl := fun name constInfo (tree₁, tree₂) =>
     return (← updateTree name constInfo tree₁, tree₂)
   let addLibraryDecl := fun name constInfo (tree₁, tree₂) =>

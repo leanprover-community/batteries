@@ -3,7 +3,12 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Elab.Term
+module
+
+public import Lean.Elab.Term
+public import Lean.Elab.Binders
+
+@[expose] public section
 
 /-!
 # Additional operations on Expr and related types
@@ -97,3 +102,14 @@ def intLit! (e : Expr) : Int :=
     .negOfNat e.appArg!.natLit!
   else
     panic! "not a raw integer literal"
+
+
+open Lean Elab Term in
+/-- Annotates a `binderIdent` with the binder information from an `fvar`. -/
+def addLocalVarInfoForBinderIdent (fvar : Expr) (tk : TSyntax ``binderIdent) : MetaM Unit :=
+  -- the only TermElabM thing we do in `addLocalVarInfo` is check inPattern,
+  -- which we assume is always false for this function
+  discard <| TermElabM.run do
+    match tk with
+    | `(binderIdent| $n:ident) => Elab.Term.addLocalVarInfo n fvar
+    | tk => Elab.Term.addLocalVarInfo (Unhygienic.run `(_%$tk)) fvar
