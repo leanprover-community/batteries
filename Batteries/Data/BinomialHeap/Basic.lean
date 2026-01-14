@@ -3,8 +3,12 @@ Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jannis Limperg, Mario Carneiro
 -/
-import Batteries.Classes.Order
-import Batteries.Control.ForInStep.Basic
+module
+
+public import Batteries.Classes.Order
+public import Batteries.Control.ForInStep.Basic
+
+@[expose] public section
 
 namespace Batteries
 namespace BinomialHeap
@@ -51,13 +55,13 @@ def HeapNode.rank : HeapNode α → Nat
   | .node _ _ s => s.rank + 1
 
 /-- Tail-recursive version of `HeapNode.rank`. -/
-@[inline] private def HeapNode.rankTR (s : HeapNode α) : Nat := go s 0 where
+@[inline] def HeapNode.rankTR (s : HeapNode α) : Nat := go s 0 where
   /-- Computes `s.rank + r` -/
   go : HeapNode α → Nat → Nat
   | .nil, r => r
   | .node _ _ s, r => go s (r + 1)
 
-@[csimp] private theorem HeapNode.rankTR_eq : @rankTR = @rank := by
+@[csimp] theorem HeapNode.rankTR_eq : @rankTR = @rank := by
   funext α s; exact go s 0
 where
   go {α} : ∀ s n, @rankTR.go α s n = rank s + n
@@ -532,7 +536,7 @@ def ofArray (le : α → α → Bool) (as : Array α) : BinomialHeap α le := as
   | none => none
   | some (a, tl) => some (a, ⟨tl, b.2.deleteMin eq⟩)
 
-instance : Stream (BinomialHeap α le) α := ⟨deleteMin⟩
+instance : Std.Stream (BinomialHeap α le) α := ⟨deleteMin⟩
 
 /--
 `O(n log n)`. Implementation of `for x in (b : BinomialHeap α le) ...` notation,
@@ -541,7 +545,7 @@ which iterates over the elements in the heap in increasing order.
 protected def forIn [Monad m] (b : BinomialHeap α le) (x : β) (f : α → β → m (ForInStep β)) : m β :=
   ForInStep.run <$> b.1.foldM le (.yield x) fun x a => x.bind (f a)
 
-instance : ForIn m (BinomialHeap α le) α := ⟨BinomialHeap.forIn⟩
+instance [Monad m] : ForIn m (BinomialHeap α le) α := ⟨BinomialHeap.forIn⟩
 
 /-- `O(log n)`. Returns the smallest element in the heap, or `none` if the heap is empty. -/
 @[inline] def head? (b : BinomialHeap α le) : Option α := b.1.head? le

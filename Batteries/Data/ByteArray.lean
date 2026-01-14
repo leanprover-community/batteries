@@ -3,6 +3,9 @@ Copyright (c) 2023 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
+module
+
+@[expose] public section
 
 namespace ByteArray
 
@@ -35,9 +38,6 @@ theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
   Array.getElem_push_lt ..
 
 /-! ### set -/
-
-@[simp] theorem data_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
-    (a.set i v).data = a.data.set i v i.isLt := rfl
 
 @[simp] theorem size_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
     (a.set i v).size = a.size :=
@@ -89,7 +89,7 @@ theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start s
 @[inline] def ofFn (f : Fin n → UInt8) : ByteArray :=
   Fin.foldl n (fun acc i => acc.push (f i)) (emptyWithCapacity n)
 
-@[simp] theorem ofFn_zero (f : Fin 0 → UInt8) : ofFn f = empty := rfl
+@[simp] theorem ofFn_zero (f : Fin 0 → UInt8) : ofFn f = empty := by simp [ofFn]
 
 theorem ofFn_succ (f : Fin (n+1) → UInt8) :
     ofFn f = (ofFn fun i => f i.castSucc).push (f (Fin.last n)) := by
@@ -97,7 +97,7 @@ theorem ofFn_succ (f : Fin (n+1) → UInt8) :
 
 @[simp] theorem data_ofFn (f : Fin n → UInt8) : (ofFn f).data = .ofFn f := by
   induction n with
-  | zero => rfl
+  | zero => simp
   | succ n ih => simp [ofFn_succ, Array.ofFn_succ, ih, Fin.last]
 
 @[simp] theorem size_ofFn (f : Fin n → UInt8) : (ofFn f).size = n := by
