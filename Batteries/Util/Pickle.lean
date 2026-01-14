@@ -23,7 +23,7 @@ If you need to write multiple objects from within a single declaration,
 you will need to provide a unique `key` for each.
 -/
 def pickle {α : Type} (path : FilePath) (x : α) (key : Name := by exact decl_name%) : IO Unit :=
-  saveModuleData path key (unsafe unsafeCast x)
+  saveModuleData path key x
 
 /--
 Load an object from disk.
@@ -36,8 +36,7 @@ This function is unsafe because the data being loaded may not actually have type
 may cause crashes or other bad behavior.
 -/
 unsafe def unpickle (α : Type) (path : FilePath) : IO (α × CompactedRegion) := do
-  let (x, region) ← readModuleData path
-  pure (unsafeCast x, region)
+  readModuleData path
 
 /-- Load an object from disk and run some continuation on it, freeing memory afterwards. -/
 unsafe def withUnpickle [Monad m] [MonadLiftT IO m] {α β : Type}
