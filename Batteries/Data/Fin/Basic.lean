@@ -89,15 +89,15 @@ This is the dependent version of `Fin.foldl`. -/
   dfoldlM (m := Id) n α f init
 
 /-- Sum of a tuple indexed by `Fin n`. -/
-protected def sum [Zero α] [Add α] (x : Fin n → α) : α :=
+@[inline] protected def sum [Zero α] [Add α] (x : Fin n → α) : α :=
   foldr n (x · + ·) 0
 
 /-- Product of a tuple indexed by `Fin n`. -/
-protected def prod [One α] [Mul α] (x : Fin n → α) : α :=
+@[inline] protected def prod [One α] [Mul α] (x : Fin n → α) : α :=
   foldr n (x · * ·) 1
 
 /-- Count the number of true values of a decidable predicate on `Fin n`. -/
-protected def count (p : Fin n → Bool) : Nat :=
+@[inline] protected def countP (p : Fin n → Bool) : Nat :=
   Fin.sum (p · |>.toNat)
 
 /--
@@ -108,11 +108,26 @@ element is found. The function `f` is not evaluated on further inputs after the 
   foldl n (fun r i => r <|> f i) none
 
 /--
+`findSomeRev? f` returns `f i` for the last `i` for which `f i` is `some _`, or `none` if no such
+element is found. The function `f` is not evaluated on further inputs after the first `i` is found.
+-/
+@[inline] def findSomeRev? (f : Fin n → Option α) : Option α :=
+  findSome? (f ·.rev)
+
+
+/--
 `find? p` returns the first `i` for which `p i = true`, or `none` if no such element is found.
 The function `p` is not evaluated on further inputs after the first `i` is found.
 -/
-@[inline] def find? (p : Fin n → Bool) : Option (Fin n) :=
-  findSome? <| Option.guard fun i => p i
+@[inline] abbrev find? (p : Fin n → Bool) : Option (Fin n) :=
+  findSome? <| Option.guard p
+
+/--
+`find? p` returns the first `i` for which `p i = true`, or `none` if no such element is found.
+The function `p` is not evaluated on further inputs after the first `i` is found.
+-/
+@[inline] abbrev findRev? (p : Fin n → Bool) : Option (Fin n) :=
+  findSomeRev? <| Option.guard p
 
 /-- Compute `i / n`, where `n` is a `Nat` and inferred the type of `i`. -/
 def divNat (i : Fin (m * n)) : Fin m :=

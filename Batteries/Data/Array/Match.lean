@@ -58,7 +58,7 @@ def PrefixTable.extend [BEq α] (t : PrefixTable α) (x : α) : PrefixTable α w
     rw [Array.getElem_push]
     split
     · exact t.valid ..
-    · next h => exact Nat.le_trans (Nat.lt_succ.1 <| Fin.isLt ..) (Nat.not_lt.1 h)
+    · next h => exact Nat.le_trans (Nat.lt_succ_iff.1 <| Fin.isLt ..) (Nat.not_lt.1 h)
 
 /-- Make prefix table from a pattern array -/
 def mkPrefixTable [BEq α] (xs : Array α) : PrefixTable α := xs.foldl (·.extend) default
