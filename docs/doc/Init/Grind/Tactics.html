@@ -1,0 +1,198 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../.././style.css"></link><link rel="icon" href="../.././favicon.svg"></link><link rel="mask-icon" href="../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../.././/declarations/declaration-data.bmp" as="image"></link><title>Init.Grind.Tactics</title><script defer="true" src="../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../.././";</script><script>const MODULE_NAME="Init.Grind.Tactics";</script><script type="module" src="../.././jump-src.js"></script><script type="module" src="../.././search.js"></script><script type="module" src="../.././expand-nav.js"></script><script type="module" src="../.././how-about.js"></script><script type="module" src="../.././instances.js"></script><script type="module" src="../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Init</span>.<span class="name">Grind</span>.<span class="name">Tactics</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Tactics.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../.././Init/Core.html">Init.Core</a></li><li><a href="../.././Init/Grind/Config.html">Init.Grind.Config</a></li><li><a href="../.././Init/Grind/Interactive.html">Init.Grind.Interactive</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Init.Grind.Tactics" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Lean.Parser.Tactic.grind"><span class="name">Lean</span>.<span class="name">Parser</span>.<span class="name">Tactic</span>.<span class="name">grind</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Parser.Tactic.grindTrace"><span class="name">Lean</span>.<span class="name">Parser</span>.<span class="name">Tactic</span>.<span class="name">grindTrace</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Parser.Tactic.cutsat"><span class="name">Lean</span>.<span class="name">Parser</span>.<span class="name">Tactic</span>.<span class="name">cutsat</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Parser.Tactic.lia"><span class="name">Lean</span>.<span class="name">Parser</span>.<span class="name">Tactic</span>.<span class="name">lia</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Parser.Tactic.grobner"><span class="name">Lean</span>.<span class="name">Parser</span>.<span class="name">Tactic</span>.<span class="name">grobner</span></a></div></nav><main>
+<div class="decl" id="Lean.Parser.Tactic.grind"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Tactics.lean#L15-L285">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind"><span class="name">Lean</span>.<span class="name">Parser</span>.<span class="name">Tactic</span>.<span class="name">grind</span></a></span><span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Prelude.html#Lean.ParserDescr">ParserDescr</a></div></div><p><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> is a tactic inspired by modern SMT solvers. <strong>Picture a virtual whiteboard</strong>:
+every time grind discovers a new equality, inequality, or logical fact,
+it writes it on the board, groups together terms known to be equal,
+and lets each reasoning engine read from and contribute to the shared workspace.
+These engines work together to handle equality reasoning, apply known theorems,
+propagate new facts, perform case analysis, and run specialized solvers
+for domains like linear arithmetic and commutative rings.</p><p><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> is <em>not</em> designed for goals whose search space explodes combinatorially,
+think large pigeonhole instances, graph‑coloring reductions, high‑order N‑queens boards,
+or a 200‑variable Sudoku encoded as Boolean constraints.  Such encodings require
+thousands (or millions) of case‑splits that overwhelm <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code>’s branching search.</p><p>For <strong>bit‑level or combinatorial problems</strong>, consider using <strong><code>bv_decide</code></strong>.
+<code>bv_decide</code> calls a state‑of‑the‑art SAT solver (CaDiCaL) and then returns a
+<em>compact, machine‑checkable certificate</em>.</p><h3 class="markdown-heading" id="Equality-reasoning">Equality reasoning <a class="hover-link" href="#Equality-reasoning">#</a></h3><p><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> uses <strong>congruence closure</strong> to track equalities between terms.
+When two terms are known to be equal, congruence closure automatically deduces
+equalities between more complex expressions built from them.
+For example, if <code>a = b</code>, then congruence closure will also conclude that <code>f a</code> = <code>f b</code>
+for any function <code>f</code>. This forms the foundation for efficient equality reasoning in <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code>.
+Here is an example:</p><pre><code>example (f : <a href="../.././Init/Prelude.html#Nat">Nat</a> → Nat) (h : a = b) : f (f b) = f (f a) := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+</code></pre><h3 class="markdown-heading" id="Applying-theorems-using-E-matching">Applying theorems using E-matching <a class="hover-link" href="#Applying-theorems-using-E-matching">#</a></h3><p>To apply existing theorems, <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> uses a technique called <strong>E-matching</strong>,
+which finds matches for known theorem patterns while taking equalities into account.
+Combined with congruence closure, E-matching helps <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> discover
+non-obvious consequences of theorems and equalities automatically.</p><p>Consider the following functions and theorems:</p><pre><code>def f (a : Nat) : <a href="../.././Init/Prelude.html#Nat">Nat</a> :=
+  a + 1
+
+def g (a : Nat) : <a href="../.././Init/Prelude.html#Nat">Nat</a> :=
+  a - 1
+
+@[grind =]
+theorem gf (x : Nat) : g (f x) = x := by
+  simp [f, g]
+</code></pre><p>The theorem <code>gf</code> asserts that <code>g (f x) = x</code> for all natural numbers <code>x</code>.
+The attribute <code>[grind =]</code> instructs <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> to use the left-hand side of the equation,
+<code>g (f x)</code>, as a pattern for E-matching.
+Suppose we now have a goal involving:</p><pre><code>example {a b} (h : f b = a) : g a = b := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+</code></pre><p>Although <code>g a</code> is not an instance of the pattern <code>g (f x)</code>,
+it becomes one modulo the equation <code>f b = a</code>. By substituting <code>a</code>
+with <code>f b</code> in <code>g a</code>, we obtain the term <code>g (f b)</code>,
+which matches the pattern <code>g (f x)</code> with the assignment <code>x := b</code>.
+Thus, the theorem <code>gf</code> is instantiated with <code>x := b</code>,
+and the new equality <code>g (f b) = b</code> is asserted.
+<code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> then uses congruence closure to derive the implied equality
+<code>g a = g (f b)</code> and completes the proof.</p><p>The pattern used to instantiate theorems affects the effectiveness of <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code>.
+For example, the pattern <code>g (f x)</code> is too restrictive in the following case:
+the theorem <code>gf</code> will not be instantiated because the goal does not even
+contain the function symbol <code>g</code>.</p><pre><code>example (h₁ : f b = a) (h₂ : f c = a) : b = c := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+</code></pre><p>You can use the command <code>grind_pattern</code> to manually select a pattern for a given theorem.
+In the following example, we instruct <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> to use <code>f x</code> as the pattern,
+allowing it to solve the goal automatically:</p><pre><code>grind_pattern gf =&gt; f x
+
+example {a b c} (h₁ : f b = a) (h₂ : f c = a) : b = c := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+</code></pre><p>You can enable the option <code>trace.grind.ematch.instance</code> to make <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> print a
+trace message for each theorem instance it generates.</p><p>You can also specify a <strong>multi-pattern</strong> to control when <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> should apply a theorem.
+A multi-pattern requires that all specified patterns are matched in the current context
+before the theorem is applied. This is useful for theorems such as transitivity rules,
+where multiple premises must be simultaneously present for the rule to apply.
+The following example demonstrates this feature using a transitivity axiom for a binary relation <code>R</code>:</p><pre><code>opaque R : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a> → <a href="../.././Init/Data/Int/Basic.html#Int">Int</a> → Prop
+axiom Rtrans {x y z : Int} : R x y → R y z → R x z
+
+grind_pattern Rtrans =&gt; R x y, R y z
+
+example {a b c d} : R a b → R b c → R c d → R a d := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+</code></pre><p>By specifying the multi-pattern <code>R x y, R y z</code>, we instruct <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> to
+instantiate <code>Rtrans</code> only when both <code>R x y</code> and <code>R y z</code> are available in the context.
+In the example, <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> applies <code>Rtrans</code> to derive <code>R a c</code> from <code>R a b</code> and <code>R b c</code>,
+and can then repeat the same reasoning to deduce <code>R a d</code> from <code>R a c</code> and <code>R c d</code>.</p><p>Instead of using <code>grind_pattern</code> to explicitly specify a pattern,
+you can use the <code>@[grind]</code> attribute or one of its variants, which will use a heuristic to
+generate a (multi-)pattern. The complete list is available in the reference manual. The main ones are:</p><ul>
+<li><code>@[grind →]</code> will select a multi-pattern from the hypotheses of the theorem (i.e. it will use the theorem for forwards reasoning).
+In more detail, it will traverse the hypotheses of the theorem from left-to-right, and each time it encounters a minimal indexable
+(i.e. has a constant as its head) subexpression which &quot;covers&quot; (i.e. fixes the value of) an argument which was not
+previously covered, it will add that subexpression as a pattern, until all arguments have been covered.</li>
+<li><code>@[grind ←]</code> will select a multi-pattern from the conclusion of theorem (i.e. it will use the theorem for backwards reasoning).
+This may fail if not all the arguments to the theorem appear in the conclusion.</li>
+<li><code>@[grind]</code> will traverse the conclusion and then the hypotheses left-to-right, adding patterns as they increase the coverage,
+stopping when all arguments are covered.</li>
+<li><code>@[grind =]</code> checks that the conclusion of the theorem is an equality, and then uses the left-hand-side of the equality as a pattern.
+This may fail if not all of the arguments appear in the left-hand-side.</li>
+</ul><p>Here is the previous example again but using the attribute <code>[grind →]</code></p><pre><code>opaque R : <a href="../.././Init/Data/Int/Basic.html#Int">Int</a> → <a href="../.././Init/Data/Int/Basic.html#Int">Int</a> → Prop
+@[grind →] axiom Rtrans {x y z : Int} : R x y → R y z → R x z
+
+example {a b c d} : R a b → R b c → R c d → R a d := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+</code></pre><p>To control theorem instantiation and avoid generating an unbounded number of instances,
+<code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> uses a generation counter. Terms in the original goal are assigned generation zero.
+When <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> applies a theorem using terms of generation <code>≤ n n</code>, any new terms it creates
+are assigned generation <code>n + 1 + 1 1</code>. This limits how far the tactic explores when applying
+theorems and helps prevent an excessive number of instantiations.</p><h4 class="markdown-heading" id="Key-options">Key options: <a class="hover-link" href="#Key-options">#</a></h4><ul>
+<li><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> (ematch := &lt;num&gt;)</code> controls the number of E-matching rounds.</li>
+<li><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> [&lt;name&gt;, ...]</code> instructs <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> to use the declaration <code>name</code> during E-matching.</li>
+<li><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> only [&lt;name&gt;, ...]</code> is like <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> [&lt;name&gt;, ...]</code> but does not use theorems tagged with <code>@[grind]</code>.</li>
+<li><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> (gen := &lt;num&gt;)</code> sets the maximum generation.</li>
+</ul><h3 class="markdown-heading" id="Linear-integer-arithmetic-lia">Linear integer arithmetic (<code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.lia">lia</a></code>) <a class="hover-link" href="#Linear-integer-arithmetic-lia">#</a></h3><p><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> can solve goals that reduce to <strong>linear integer arithmetic (LIA)</strong> using an
+integrated decision procedure called <strong><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.lia">lia</a></code></strong>.  It understands</p><ul>
+<li>equalities   <code>p = 0</code></li>
+<li>inequalities  <code>p ≤ 0</code></li>
+<li>disequalities <code>p ≠ 0</code></li>
+<li>divisibility  <code>d ∣ p</code></li>
+</ul><p>The solver incrementally assigns integer values to variables; when a partial
+assignment violates a constraint it adds a new, implied constraint and retries.
+This <em>model-based</em> search is <strong>complete for LIA</strong>.</p><h4 class="markdown-heading" id="Key-options">Key options: <a class="hover-link" href="#Key-options">#</a></h4><ul>
+<li><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> -lia</code> disable the solver (useful for debugging)</li>
+<li><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> +qlia</code> accept rational models (shrinks the search space but is incomplete for ℤ)</li>
+</ul><h4 class="markdown-heading" id="Examples">Examples: <a class="hover-link" href="#Examples">#</a></h4><pre><code>-- Even + even is never odd.
+example {x y : Int} : 2 * x + 4 * y ≠ 5 := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+
+-- Mixing equalities and inequalities.
+example {x y : Int} :
+    2 * x + 3 * y = 0 → 1 ≤ x → y &lt; 1 := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+
+-- Reasoning with divisibility.
+example (a b : Int) :
+    2 ∣ a + 1 → 2 ∣ b + a → ¬ 2 ∣ b + 2 * a := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+
+example (x y : Int) :
+    27 ≤ 11*x + 13*y →
+    11*x + 13*y ≤ 45 →
+    -10 ≤ 7*x - 9*y →
+    7*x - 9*y ≤ 4 → <a href="../.././Init/Prelude.html#False">False</a> := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+
+-- Types that implement the `ToInt` type-class.
+example (a b c : UInt64)
+    : a ≤ 2 → b ≤ 3 → c - a - b = 0 → c ≤ 5 := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+</code></pre><h3 class="markdown-heading" id="Algebraic-solver-ring">Algebraic solver (<code>ring</code>) <a class="hover-link" href="#Algebraic-solver-ring">#</a></h3><p><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> ships with an algebraic solver nick-named <strong><code>ring</code></strong> for goals that can
+be phrased as polynomial equations (or disequations) over commutative rings,
+semirings, or fields.</p><p><em>Works out of the box</em>
+All core numeric types and relevant Mathlib types already provide the required
+type-class instances, so the solver is ready to use in most developments.</p><p>What it can decide:</p><ul>
+<li>equalities of the form <code>p = q</code></li>
+<li>disequalities <code>p ≠ q</code></li>
+<li>basic reasoning under field inverses (<code>a / b := a * b⁻¹</code>)</li>
+<li>goals that mix ring facts with other <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> engines</li>
+</ul><h4 class="markdown-heading" id="Key-options">Key options: <a class="hover-link" href="#Key-options">#</a></h4><ul>
+<li><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> -ring</code> turn the solver off (useful when debugging)</li>
+<li><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> (ringSteps := n)</code> cap the number of steps performed by this procedure.</li>
+</ul><h4 class="markdown-heading" id="Examples">Examples <a class="hover-link" href="#Examples">#</a></h4><pre><code>open Lean Grind
+
+example [CommRing α] (x : α) : (x + 1) * (x - 1) = x^2 - 1 := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+
+-- Characteristic 256 means 16 * 16 = 0.
+example [CommRing α] [IsCharP α 256] (x : α) :
+    (x + 16) * (x - 16) = x^2 := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+
+-- Works on built-in rings such as `UInt8`.
+example (x : UInt8) : (x + 16) * (x - 16) = x^2 := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+
+example [CommRing α] (a b c : α) :
+    a + b + c = 3 →
+    a^2 + b^2 + c^2 = 5 →
+    a^3 + b^3 + c^3 = 7 →
+    a^4 + b^4 = 9 - c^4 := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+
+example [Field α] [NoNatZeroDivisors α] (a : α) :
+    1 / a + 1 / (2 * a) = 3 / (2 * a) := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+</code></pre><h3 class="markdown-heading" id="Other-options">Other options <a class="hover-link" href="#Other-options">#</a></h3><ul>
+<li><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> (splits := &lt;num&gt;)</code> caps the <em>depth</em> of the search tree.  Once a branch performs <code>num</code> splits
+<code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> stops splitting further in that branch.</li>
+<li><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> -splitIte</code> disables case splitting on if-then-else expressions.</li>
+<li><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> -splitMatch</code> disables case splitting on <code>match</code> expressions.</li>
+<li><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> +splitImp</code> instructs <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> to split on any hypothesis <code>A → B</code> whose antecedent <code>A</code> is <strong>propositional</strong>.</li>
+<li><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> -linarith</code> disables the linear arithmetic solver for (ordered) modules and rings.</li>
+</ul><h3 class="markdown-heading" id="Additional-Examples">Additional Examples <a class="hover-link" href="#Additional-Examples">#</a></h3><pre><code>example {a b} {as bs : <a href="../.././Init/Prelude.html#List">List</a> α} : (as ++ bs ++ [b]).getLastD a = b := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+
+example (x : <a href="../.././Init/Prelude.html#BitVec">BitVec</a> (w+1)) : (BitVec.cons x.msb (x.setWidth w)) = x := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+
+example (as : <a href="../.././Init/Prelude.html#Array">Array</a> α) (lo hi i j : Nat) :
+    lo ≤ i → i &lt; j → j ≤ hi → j &lt; as.size → min lo (as.size - 1) ≤ i := by
+  <a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a>
+</code></pre><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Parser.Tactic.grind" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Parser.Tactic.grindTrace"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Tactics.lean#L287-L295">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grindTrace"><span class="name">Lean</span>.<span class="name">Parser</span>.<span class="name">Tactic</span>.<span class="name">grindTrace</span></a></span><span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Prelude.html#Lean.ParserDescr">ParserDescr</a></div></div><p><code>grind?</code> takes the same arguments as <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code>, but reports an equivalent call to <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a> only</code>
+that would be sufficient to close the goal. This is useful for reducing the size of the <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code>
+theorems in a local invocation.</p><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Parser.Tactic.grindTrace" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Parser.Tactic.cutsat"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Tactics.lean#L297-L305">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.cutsat"><span class="name">Lean</span>.<span class="name">Parser</span>.<span class="name">Tactic</span>.<span class="name">cutsat</span></a></span><span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Prelude.html#Lean.ParserDescr">ParserDescr</a></div></div><p><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.cutsat">cutsat</a></code> solves linear integer arithmetic goals.</p><p>It is a implemented as a thin wrapper around the <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> tactic, enabling only the <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.lia">lia</a></code> solver.
+Please use <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> instead if you need additional capabilities.</p><p><strong>Deprecated</strong>: Use <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.lia">lia</a></code> instead.</p><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Parser.Tactic.cutsat" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Parser.Tactic.lia"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Tactics.lean#L307-L313">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.lia"><span class="name">Lean</span>.<span class="name">Parser</span>.<span class="name">Tactic</span>.<span class="name">lia</span></a></span><span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Prelude.html#Lean.ParserDescr">ParserDescr</a></div></div><p><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.lia">lia</a></code> solves linear integer arithmetic goals.</p><p>It is a implemented as a thin wrapper around the <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> tactic, enabling only the <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.lia">lia</a></code> solver.
+Please use <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> instead if you need additional capabilities.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.lia">Lean.Parser.Tactic.lia</a> <a href="../.././Init/Prelude.html#Eq">=</a>   <span class="fn"><a href="../.././Init/Prelude.html#Lean.ParserDescr.node">Lean.ParserDescr.node</a> <span class="fn">`Lean.Parser.Tactic.lia</span> <span class="fn">1022</span>
+    <span class="fn">(<a href="../.././Init/Prelude.html#Lean.ParserDescr.binary">Lean.ParserDescr.binary</a> <span class="fn">`andthen</span> <span class="fn">(<a href="../.././Init/Prelude.html#Lean.ParserDescr.nonReservedSymbol">Lean.ParserDescr.nonReservedSymbol</a> <span class="fn">&quot;lia&quot;</span> <a href="../.././Init/Prelude.html#Bool.false">false</a>)</span> <a href="../.././Init/Tactics.html#Lean.Parser.Tactic.optConfig">Lean.Parser.Tactic.optConfig</a>)</span></span></li></ul></details><details id="instances-for-list-Lean.Parser.Tactic.lia" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Lean.Parser.Tactic.grobner"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Tactics.lean#L315-L322">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grobner"><span class="name">Lean</span>.<span class="name">Parser</span>.<span class="name">Tactic</span>.<span class="name">grobner</span></a></span><span class="decl_args"> :</span><div class="decl_type"><a href="../.././Init/Prelude.html#Lean.ParserDescr">ParserDescr</a></div></div><p><code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grobner">grobner</a></code> solves goals that can be phrased as polynomial equations (with further polynomial equations as hypotheses)
+over commutative (semi)rings, using the Grobner basis algorithm.</p><p>It is a implemented as a thin wrapper around the <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> tactic, enabling only the <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grobner">grobner</a></code> solver.
+Please use <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code> instead if you need additional capabilities.</p><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Lean.Parser.Tactic.grobner" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="mod_doc"><p>Sets symbol priorities for the E-matching pattern inference procedure used in <code><a href="../.././Init/Grind/Tactics.html#Lean.Parser.Tactic.grind">grind</a></code></p></div></main>
+<nav class="nav"><iframe src="../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

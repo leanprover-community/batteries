@@ -1,0 +1,31 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href=".././style.css"></link><link rel="icon" href=".././favicon.svg"></link><link rel="mask-icon" href=".././favicon.svg" color="#000000"></link><link rel="prefetch" href=".././/declarations/declaration-data.bmp" as="image"></link><title>Init.BinderNameHint</title><script defer="true" src=".././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT=".././";</script><script>const MODULE_NAME="Init.BinderNameHint";</script><script type="module" src=".././jump-src.js"></script><script type="module" src=".././search.js"></script><script type="module" src=".././expand-nav.js"></script><script type="module" src=".././how-about.js"></script><script type="module" src=".././instances.js"></script><script type="module" src=".././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Init</span>.<span class="name">BinderNameHint</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/BinderNameHint.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href=".././Init/Tactics.html">Init.Tactics</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Init.BinderNameHint" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#binderNameHint"><span class="name">binderNameHint</span></a></div></nav><main>
+<div class="decl" id="binderNameHint"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/BinderNameHint.lean#L15-L45">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href=".././Init/BinderNameHint.html#binderNameHint"><span class="name">binderNameHint</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href=".././foundational_types.html">Sort</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href=".././foundational_types.html">Sort</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href=".././foundational_types.html">Sort</a> w}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">v</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">binder</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">e</span> : <span class="fn">γ</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">γ</span></div></div><p>The expression <code><a href=".././Init/BinderNameHint.html#binderNameHint">binderNameHint</a> v binder e</code> defined to be <code>e</code>.</p><p>If it is used on the right-hand side of an equation that is used for rewriting by <code>rw</code> or <code>simp</code>,
+and <code>v</code> is a local variable, and <code>binder</code> is an expression that (after beta-reduction) is a binder
+(<code>fun w =&gt; …</code> or <code>∀ w, …</code>), then it will rename <code>v</code> to the name used in that binder, and remove
+the <code><a href=".././Init/BinderNameHint.html#binderNameHint">binderNameHint</a></code>.</p><p>A typical use of this gadget would be as follows; the gadget ensures that after rewriting, the local
+variable is still <code>name</code>, and not <code>x</code>:</p><pre><code>theorem all_eq_not_any_not (l : <a href=".././Init/Prelude.html#List">List</a> α) (p : α → Bool) :
+    l.all p = !l.any fun x =&gt; <a href=".././Init/BinderNameHint.html#binderNameHint">binderNameHint</a> x p (!p x) := sorry
+
+example (names : <a href=".././Init/Prelude.html#List">List</a> String) : names.all (fun name =&gt; &quot;Waldo&quot;.isPrefixOf name) = true := by
+  rw [all_eq_not_any_not]
+  -- ⊢ (!names.any fun name =&gt; !&quot;Waldo&quot;.isPrefixOf name) = true
+</code></pre><p>If <code>binder</code> is not a binder, then the name of <code>v</code> attains a macro scope. This only matters when the
+resulting term is used in a non-hygienic way, e.g. in termination proofs for well-founded recursion.</p><p>This gadget is supported by</p><ul>
+<li><code>simp</code>, <code>dsimp</code> and <code>rw</code> in the right-hand-side of an equation</li>
+<li><code>simp</code> in the assumptions of congruence rules</li>
+</ul><p>It is ineffective in other positions (hypotheses of rewrite rules) or when used by other tactics
+(e.g. <code>apply</code>).</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><a href=".././Init/BinderNameHint.html#binderNameHint">binderNameHint</a> <span class="fn">v</span> <span class="fn">binder</span> <span class="fn">e</span></span> <a href=".././Init/Prelude.html#Eq">=</a> <span class="fn">e</span></li></ul></details><details id="instances-for-list-binderNameHint" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div></main>
+<nav class="nav"><iframe src=".././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

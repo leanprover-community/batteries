@@ -1,0 +1,534 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../.././style.css"></link><link rel="icon" href="../../.././favicon.svg"></link><link rel="mask-icon" href="../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../.././/declarations/declaration-data.bmp" as="image"></link><title>Init.Control.Lawful.Basic</title><script defer="true" src="../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../.././";</script><script>const MODULE_NAME="Init.Control.Lawful.Basic";</script><script type="module" src="../../.././jump-src.js"></script><script type="module" src="../../.././search.js"></script><script type="module" src="../../.././expand-nav.js"></script><script type="module" src="../../.././how-about.js"></script><script type="module" src="../../.././instances.js"></script><script type="module" src="../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Init</span>.<span class="name">Control</span>.<span class="name">Lawful</span>.<span class="name">Basic</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../.././Init/Ext.html">Init.Ext</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Init.Control.Lawful.Basic" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#monadLift_self"><span class="name">monadLift_self</span></a></div><div class="nav_link"><a class="break_within" href="#LawfulFunctor"><span class="name">LawfulFunctor</span></a></div><div class="nav_link"><a class="break_within" href="#id_map'"><span class="name">id_map'</span></a></div><div class="nav_link"><a class="break_within" href="#Functor.map_map"><span class="name">Functor</span>.<span class="name">map_map</span></a></div><div class="nav_link"><a class="break_within" href="#Functor.map_unit"><span class="name">Functor</span>.<span class="name">map_unit</span></a></div><div class="nav_link"><a class="break_within" href="#LawfulApplicative"><span class="name">LawfulApplicative</span></a></div><div class="nav_link"><a class="break_within" href="#pure_id_seq"><span class="name">pure_id_seq</span></a></div><div class="nav_link"><a class="break_within" href="#LawfulMonad"><span class="name">LawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#bind_pure"><span class="name">bind_pure</span></a></div><div class="nav_link"><a class="break_within" href="#map_eq_pure_bind"><span class="name">map_eq_pure_bind</span></a></div><div class="nav_link"><a class="break_within" href="#seq_eq_bind_map"><span class="name">seq_eq_bind_map</span></a></div><div class="nav_link"><a class="break_within" href="#bind_congr"><span class="name">bind_congr</span></a></div><div class="nav_link"><a class="break_within" href="#bind_pure_unit"><span class="name">bind_pure_unit</span></a></div><div class="nav_link"><a class="break_within" href="#map_congr"><span class="name">map_congr</span></a></div><div class="nav_link"><a class="break_within" href="#seq_eq_bind"><span class="name">seq_eq_bind</span></a></div><div class="nav_link"><a class="break_within" href="#seqRight_eq_bind"><span class="name">seqRight_eq_bind</span></a></div><div class="nav_link"><a class="break_within" href="#seqLeft_eq_bind"><span class="name">seqLeft_eq_bind</span></a></div><div class="nav_link"><a class="break_within" href="#map_bind"><span class="name">map_bind</span></a></div><div class="nav_link"><a class="break_within" href="#bind_map_left"><span class="name">bind_map_left</span></a></div><div class="nav_link"><a class="break_within" href="#LawfulMonad.map_pure'"><span class="name">LawfulMonad</span>.<span class="name">map_pure'</span></a></div><div class="nav_link"><a class="break_within" href="#LawfulMonad.map_map"><span class="name">LawfulMonad</span>.<span class="name">map_map</span></a></div><div class="nav_link"><a class="break_within" href="#LawfulMonad.mk'"><span class="name">LawfulMonad</span>.<span class="name">mk'</span></a></div><div class="nav_link"><a class="break_within" href="#Id.ext"><span class="name">Id</span>.<span class="name">ext</span></a></div><div class="nav_link"><a class="break_within" href="#Id.ext_iff"><span class="name">Id</span>.<span class="name">ext_iff</span></a></div><div class="nav_link"><a class="break_within" href="#Id.instLawfulMonad"><span class="name">Id</span>.<span class="name">instLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Id.run_map"><span class="name">Id</span>.<span class="name">run_map</span></a></div><div class="nav_link"><a class="break_within" href="#Id.run_bind"><span class="name">Id</span>.<span class="name">run_bind</span></a></div><div class="nav_link"><a class="break_within" href="#Id.run_pure"><span class="name">Id</span>.<span class="name">run_pure</span></a></div><div class="nav_link"><a class="break_within" href="#Id.pure_run"><span class="name">Id</span>.<span class="name">pure_run</span></a></div><div class="nav_link"><a class="break_within" href="#Id.run_seqRight"><span class="name">Id</span>.<span class="name">run_seqRight</span></a></div><div class="nav_link"><a class="break_within" href="#Id.run_seqLeft"><span class="name">Id</span>.<span class="name">run_seqLeft</span></a></div><div class="nav_link"><a class="break_within" href="#Id.run_seq"><span class="name">Id</span>.<span class="name">run_seq</span></a></div></nav><main>
+<div class="decl" id="monadLift_self"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L15-L16">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#monadLift_self"><span class="name">monadLift_self</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#MonadLiftT.monadLift">monadLift</a> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></div></div></div></div><div class="decl" id="LawfulFunctor"><div class="class"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L18-L39">source</a></div><div class="decl_header"><span class="decl_kind">class</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#LawfulFunctor"><span class="name">LawfulFunctor</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Functor">Functor</a> <span class="fn">f</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><a href="../../.././foundational_types.html">Prop</a></div></div><p>A functor satisfies the functor laws.</p><p>The <code><a href="../../.././Init/Prelude.html#Functor">Functor</a></code> class contains the operations of a functor, but does not require that instances
+prove they satisfy the laws of a functor. A <code><a href="../../.././Init/Control/Lawful/Basic.html#LawfulFunctor">LawfulFunctor</a></code> instance includes proofs that the laws
+are satisfied. Because <code><a href="../../.././Init/Prelude.html#Functor">Functor</a></code> instances may provide optimized implementations of <code>mapConst</code>,
+<code><a href="../../.././Init/Control/Lawful/Basic.html#LawfulFunctor">LawfulFunctor</a></code> instances must also prove that the optimized implementation is equivalent to the
+standard implementation.</p><ul class="structure_fields" id="LawfulFunctor.mk"><li id="LawfulFunctor.map_const" class="structure_field"><div class="structure_field_info">map_const<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span> : <a href="../../.././Init/Prelude.html#Functor.mapConst">Functor.mapConst</a> <a href="../../.././Init/Prelude.html#Eq">=</a> <a href="../../.././Init/Prelude.html#Functor.map">Functor.map</a> <a href="../../.././Init/Prelude.html#Function.comp">∘</a> <span class="fn"><a href="../../.././Init/Prelude.html#Function.const">Function.const</a> <span class="fn">β</span></span></div><div class="structure_field_doc"><p>The <code>mapConst</code> implementation is equivalent to the default implementation.</p></div></li><li id="LawfulFunctor.id_map" class="structure_field"><div class="structure_field_info">id_map<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">f</span> <span class="fn">α</span></span>)</span></span>
+ : <a href="../../.././Init/Prelude.html#id">id</a> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></div><div class="structure_field_doc"><p>The <code>map</code> implementation preserves identity.</p></div></li><li id="LawfulFunctor.comp_map" class="structure_field"><div class="structure_field_info">comp_map<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β </span><span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">β</span> → <span class="fn">γ</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">f</span> <span class="fn">α</span></span>)</span></span>
+ : (<span class="fn">h</span> <a href="../../.././Init/Prelude.html#Function.comp">∘</a> <span class="fn">g</span>) <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">h</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">g</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span></div><div class="structure_field_doc"><p>The <code>map</code> implementation preserves function composition.</p></div></li></ul><details class="instances"><summary>Instances</summary><ul id="instances-list-LawfulFunctor" class="instances-list"></ul></details></div></div><div class="decl" id="id_map'"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L45-L46">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#id_map'"><span class="name">id_map'</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Functor">Functor</a> <span class="fn">f</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulFunctor">LawfulFunctor</a> <span class="fn">f</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">f</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">(fun (<span class="fn">a</span> : <span class="fn">α</span>) =&gt; <span class="fn">a</span>)</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></div></div></div></div><div class="decl" id="Functor.map_map"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L48-L50">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#Functor.map_map"><span class="name">Functor</span>.<span class="name">map_map</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β </span><span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Functor">Functor</a> <span class="fn">f</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulFunctor">LawfulFunctor</a> <span class="fn">f</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">m</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">β</span> → <span class="fn">γ</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">f</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">g</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">m</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">(fun (<span class="fn">a</span> : <span class="fn">α</span>) =&gt; <span class="fn"><span class="fn">g</span> <span class="fn">(<span class="fn">m</span> <span class="fn">a</span>)</span></span>)</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span></div></div></div></div><div class="decl" id="Functor.map_unit"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L52-L53">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#Functor.map_unit"><span class="name">Functor</span>.<span class="name">map_unit</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Functor">Functor</a> <span class="fn">f</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulFunctor">LawfulFunctor</a> <span class="fn">f</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn"><span class="fn">f</span> <a href="../../.././Init/Prelude.html#PUnit">PUnit</a></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">(fun (<span class="fn">x</span> : <a href="../../.././Init/Prelude.html#PUnit">PUnit</a>) =&gt; <a href="../../.././Init/Prelude.html#PUnit.unit">PUnit.unit</a>)</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">a</span></div></div></div></div><div class="decl" id="LawfulApplicative"><div class="class"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L55-L101">source</a></div><div class="decl_header"><span class="decl_kind">class</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#LawfulApplicative"><span class="name">LawfulApplicative</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Applicative">Applicative</a> <span class="fn">f</span></span>]</span></span>
+</span><span class="decl_extends">extends</span> <span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulFunctor">LawfulFunctor</a> <span class="fn">f</span></span><span class="decl_args"> :</span><div class="decl_type"><a href="../../.././foundational_types.html">Prop</a></div></div><p>An applicative functor satisfies the laws of an applicative functor.</p><p>The <code><a href="../../.././Init/Prelude.html#Applicative">Applicative</a></code> class contains the operations of an applicative functor, but does not require that
+instances prove they satisfy the laws of an applicative functor. A <code><a href="../../.././Init/Control/Lawful/Basic.html#LawfulApplicative">LawfulApplicative</a></code> instance
+includes proofs that the laws are satisfied.</p><p>Because <code><a href="../../.././Init/Prelude.html#Applicative">Applicative</a></code> instances may provide optimized implementations of <code>seqLeft</code> and <code>seqRight</code>,
+<code><a href="../../.././Init/Control/Lawful/Basic.html#LawfulApplicative">LawfulApplicative</a></code> instances must also prove that the optimized implementation is equivalent to the
+standard implementation.</p><ul class="structure_fields" id="LawfulApplicative.mk"><li class="structure_field inherited_field"><div class="structure_field_info"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulFunctor.map_const">map_const</a><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span> : <a href="../../.././Init/Prelude.html#Functor.mapConst">Functor.mapConst</a> <a href="../../.././Init/Prelude.html#Eq">=</a> <a href="../../.././Init/Prelude.html#Functor.map">Functor.map</a> <a href="../../.././Init/Prelude.html#Function.comp">∘</a> <span class="fn"><a href="../../.././Init/Prelude.html#Function.const">Function.const</a> <span class="fn">β</span></span></div></li><li class="structure_field inherited_field"><div class="structure_field_info"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulFunctor.id_map">id_map</a><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">f</span> <span class="fn">α</span></span>)</span></span>
+ : <a href="../../.././Init/Prelude.html#id">id</a> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></div></li><li class="structure_field inherited_field"><div class="structure_field_info"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulFunctor.comp_map">comp_map</a><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β </span><span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">β</span> → <span class="fn">γ</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">f</span> <span class="fn">α</span></span>)</span></span>
+ : (<span class="fn">h</span> <a href="../../.././Init/Prelude.html#Function.comp">∘</a> <span class="fn">g</span>) <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">h</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">g</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span></div></li><li id="LawfulApplicative.seqLeft_eq" class="structure_field"><div class="structure_field_info">seqLeft_eq<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">f</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">y</span> : <span class="fn"><span class="fn">f</span> <span class="fn">β</span></span>)</span></span>
+ : <span class="fn"><span class="fn">x</span> &lt;* <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#Function.const">Function.const</a> <span class="fn">β</span></span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> &lt;*&gt; <span class="fn">y</span></span></div><div class="structure_field_doc"><p><code>seqLeft</code> is equivalent to the default implementation.</p></div></li><li id="LawfulApplicative.seqRight_eq" class="structure_field"><div class="structure_field_info">seqRight_eq<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">f</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">y</span> : <span class="fn"><span class="fn">f</span> <span class="fn">β</span></span>)</span></span>
+ : <span class="fn"><span class="fn">x</span> *&gt; <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#Function.const">Function.const</a> <span class="fn">α</span> <a href="../../.././Init/Prelude.html#id">id</a></span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> &lt;*&gt; <span class="fn">y</span></span></div><div class="structure_field_doc"><p><code>seqRight</code> is equivalent to the default implementation.</p></div></li><li id="LawfulApplicative.pure_seq" class="structure_field"><div class="structure_field_info">pure_seq<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">f</span> <span class="fn">α</span></span>)</span></span>
+ : <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">g</span></span> &lt;*&gt; <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">g</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span></div><div class="structure_field_doc"><p><code>pure</code> before <code>seq</code> is equivalent to <code><a href="../../.././Init/Prelude.html#Functor.map">Functor.map</a></code>.</p><p>This means that <code>pure</code> really is pure when occurring immediately prior to <code>seq</code>.</p></div></li><li id="LawfulApplicative.map_pure" class="structure_field"><div class="structure_field_info">map_pure<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn">α</span>)</span></span>
+ : <span class="fn">g</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">(<span class="fn">g</span> <span class="fn">x</span>)</span></span></div><div class="structure_field_doc"><p>Mapping a function over the result of <code>pure</code> is equivalent to applying the function under <code>pure</code>.</p><p>This means that <code>pure</code> really is pure with respect to <code><a href="../../.././Init/Prelude.html#Functor.map">Functor.map</a></code>.</p></div></li><li id="LawfulApplicative.seq_pure" class="structure_field"><div class="structure_field_info">seq_pure<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">f</span> <span class="fn">(<span class="fn">α</span> → <span class="fn">β</span>)</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn">α</span>)</span></span>
+ : <span class="fn"><span class="fn">g</span> &lt;*&gt; <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">x</span></span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">(fun (<span class="fn">h</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>) =&gt; <span class="fn"><span class="fn">h</span> <span class="fn">x</span></span>)</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">g</span></div><div class="structure_field_doc"><p><code>pure</code> after <code>seq</code> is equivalent to <code><a href="../../.././Init/Prelude.html#Functor.map">Functor.map</a></code>.</p><p>This means that <code>pure</code> really is pure when occurring just after <code>seq</code>.</p></div></li><li id="LawfulApplicative.seq_assoc" class="structure_field"><div class="structure_field_info">seq_assoc<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β </span><span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">f</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">f</span> <span class="fn">(<span class="fn">α</span> → <span class="fn">β</span>)</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">f</span> <span class="fn">(<span class="fn">β</span> → <span class="fn">γ</span>)</span></span>)</span></span>
+ : <span class="fn"><span class="fn">h</span> &lt;*&gt; <span class="fn">(<span class="fn">g</span> &lt;*&gt; <span class="fn">x</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#Function.comp">Function.comp</a> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">h</span> &lt;*&gt; <span class="fn">g</span></span> &lt;*&gt; <span class="fn">x</span></span></div><div class="structure_field_doc"><p><code>seq</code> is associative.</p><p>Changing the nesting of <code>seq</code> calls while maintaining the order of computations results in an
+equivalent computation. This means that <code>seq</code> is not doing any more than sequencing.</p></div></li></ul><details class="instances"><summary>Instances</summary><ul id="instances-list-LawfulApplicative" class="instances-list"></ul></details></div></div><div class="decl" id="pure_id_seq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L107-L108">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#pure_id_seq"><span class="name">pure_id_seq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Applicative">Applicative</a> <span class="fn">f</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulApplicative">LawfulApplicative</a> <span class="fn">f</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">f</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <a href="../../.././Init/Prelude.html#id">id</a></span> &lt;*&gt; <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></div></div></div></div><div class="decl" id="LawfulMonad"><div class="class"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L110-L144">source</a></div><div class="decl_header"><span class="decl_kind">class</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad"><span class="name">LawfulMonad</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_extends">extends</span> <span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulApplicative">LawfulApplicative</a> <span class="fn">m</span></span><span class="decl_args"> :</span><div class="decl_type"><a href="../../.././foundational_types.html">Prop</a></div></div><p>Lawful monads are those that satisfy a certain behavioral specification. While all instances of
+<code><a href="../../.././Init/Prelude.html#Monad">Monad</a></code> should satisfy these laws, not all implementations are required to prove this.</p><p><code><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad.mk'">LawfulMonad.mk'</a></code> is an alternative constructor that contains useful defaults for many fields.</p><ul class="structure_fields" id="LawfulMonad.mk"><li class="structure_field inherited_field"><div class="structure_field_info"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulFunctor.map_const">map_const</a><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span> : <a href="../../.././Init/Prelude.html#Functor.mapConst">Functor.mapConst</a> <a href="../../.././Init/Prelude.html#Eq">=</a> <a href="../../.././Init/Prelude.html#Functor.map">Functor.map</a> <a href="../../.././Init/Prelude.html#Function.comp">∘</a> <span class="fn"><a href="../../.././Init/Prelude.html#Function.const">Function.const</a> <span class="fn">β</span></span></div></li><li class="structure_field inherited_field"><div class="structure_field_info"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulFunctor.id_map">id_map</a><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+ : <a href="../../.././Init/Prelude.html#id">id</a> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></div></li><li class="structure_field inherited_field"><div class="structure_field_info"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulFunctor.comp_map">comp_map</a><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β </span><span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">β</span> → <span class="fn">γ</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+ : (<span class="fn">h</span> <a href="../../.././Init/Prelude.html#Function.comp">∘</a> <span class="fn">g</span>) <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">h</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">g</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span></div></li><li class="structure_field inherited_field"><div class="structure_field_info"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulApplicative.seqLeft_eq">seqLeft_eq</a><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">y</span> : <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span>)</span></span>
+ : <span class="fn"><span class="fn">x</span> &lt;* <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#Function.const">Function.const</a> <span class="fn">β</span></span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> &lt;*&gt; <span class="fn">y</span></span></div></li><li class="structure_field inherited_field"><div class="structure_field_info"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulApplicative.seqRight_eq">seqRight_eq</a><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">y</span> : <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span>)</span></span>
+ : <span class="fn"><span class="fn">x</span> *&gt; <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#Function.const">Function.const</a> <span class="fn">α</span> <a href="../../.././Init/Prelude.html#id">id</a></span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> &lt;*&gt; <span class="fn">y</span></span></div></li><li class="structure_field inherited_field"><div class="structure_field_info"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulApplicative.pure_seq">pure_seq</a><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+ : <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">g</span></span> &lt;*&gt; <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">g</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span></div></li><li class="structure_field inherited_field"><div class="structure_field_info"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulApplicative.map_pure">map_pure</a><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn">α</span>)</span></span>
+ : <span class="fn">g</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">(<span class="fn">g</span> <span class="fn">x</span>)</span></span></div></li><li class="structure_field inherited_field"><div class="structure_field_info"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulApplicative.seq_pure">seq_pure</a><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">m</span> <span class="fn">(<span class="fn">α</span> → <span class="fn">β</span>)</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn">α</span>)</span></span>
+ : <span class="fn"><span class="fn">g</span> &lt;*&gt; <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">x</span></span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">(fun (<span class="fn">h</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>) =&gt; <span class="fn"><span class="fn">h</span> <span class="fn">x</span></span>)</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">g</span></div></li><li class="structure_field inherited_field"><div class="structure_field_info"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulApplicative.seq_assoc">seq_assoc</a><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β </span><span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">m</span> <span class="fn">(<span class="fn">α</span> → <span class="fn">β</span>)</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">m</span> <span class="fn">(<span class="fn">β</span> → <span class="fn">γ</span>)</span></span>)</span></span>
+ : <span class="fn"><span class="fn">h</span> &lt;*&gt; <span class="fn">(<span class="fn">g</span> &lt;*&gt; <span class="fn">x</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><a href="../../.././Init/Prelude.html#Function.comp">Function.comp</a> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">h</span> &lt;*&gt; <span class="fn">g</span></span> &lt;*&gt; <span class="fn">x</span></span></div></li><li id="LawfulMonad.bind_pure_comp" class="structure_field"><div class="structure_field_info">bind_pure_comp<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+ : <span class="fn">(do
+    let <span class="fn">a</span> ← <span class="fn">x</span>
+    <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">(<span class="fn">f</span> <span class="fn">a</span>)</span></span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a>   <span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span></div><div class="structure_field_doc"><p>A <code>bind</code> followed by <code>pure</code> composed with a function is equivalent to a functorial map.</p><p>This means that <code>pure</code> really is pure after a <code>bind</code> and has no effects.</p></div></li><li id="LawfulMonad.bind_map" class="structure_field"><div class="structure_field_info">bind_map<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">m</span> <span class="fn">(<span class="fn">α</span> → <span class="fn">β</span>)</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+ : <span class="fn">(do
+    let <span class="fn">x_1</span> ← <span class="fn">f</span>
+    <span class="fn">x_1</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a>   <span class="fn"><span class="fn">f</span> &lt;*&gt; <span class="fn">x</span></span></div><div class="structure_field_doc"><p>A <code>bind</code> followed by a functorial map is equivalent to <code><a href="../../.././Init/Prelude.html#Applicative">Applicative</a></code> sequencing.</p><p>This means that the effect sequencing from <code><a href="../../.././Init/Prelude.html#Monad">Monad</a></code> and <code><a href="../../.././Init/Prelude.html#Applicative">Applicative</a></code> are the same.</p></div></li><li id="LawfulMonad.pure_bind" class="structure_field"><div class="structure_field_info">pure_bind<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span>)</span></span>
+ : <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">f</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span></div><div class="structure_field_doc"><p><code>pure</code> followed by <code>bind</code> is equivalent to function application.</p><p>This means that <code>pure</code> really is pure before a <code>bind</code> and has no effects.</p></div></li><li id="LawfulMonad.bind_assoc" class="structure_field"><div class="structure_field_info">bind_assoc<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β </span><span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">γ</span></span></span>)</span></span>
+ : <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">f</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">g</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">g</span></span></div><div class="structure_field_doc"><p><code>bind</code> is associative.</p><p>Changing the nesting of <code>bind</code> calls while maintaining the order of computations results in an
+equivalent computation. This means that <code>bind</code> is not doing more than data-dependent sequencing.</p></div></li></ul><details class="instances"><summary>Instances</summary><ul id="instances-list-LawfulMonad" class="instances-list"></ul></details></div></div><div class="decl" id="bind_pure"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L150-L152">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#bind_pure"><span class="name">bind_pure</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">x</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></div></div></div></div><div class="decl" id="map_eq_pure_bind"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L154-L159">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#map_eq_pure_bind"><span class="name">map_eq_pure_bind</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">do
+  let <span class="fn">a</span> ← <span class="fn">x</span>
+  <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">(<span class="fn">f</span> <span class="fn">a</span>)</span></span></span></div></div><p>Use <code>simp [← bind_pure_comp]</code> rather than <code>simp [map_eq_pure_bind]</code>,
+as <code><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad.bind_pure_comp">bind_pure_comp</a></code> is in the default simp set, so also using <code><a href="../../.././Init/Control/Lawful/Basic.html#map_eq_pure_bind">map_eq_pure_bind</a></code> would cause a loop.</p></div></div><div class="decl" id="seq_eq_bind_map"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L161-L162">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#seq_eq_bind_map"><span class="name">seq_eq_bind_map</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> u_1</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">m</span> <span class="fn">(<span class="fn">α</span> → <span class="fn">β</span>)</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> &lt;*&gt; <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">do
+  let <span class="fn">x_1</span> ← <span class="fn">f</span>
+  <span class="fn">x_1</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span></span></div></div></div></div><div class="decl" id="bind_congr"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L164-L165">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#bind_congr"><span class="name">bind_congr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Bind">Bind</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f </span><span class="fn">g</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">∀ (<span class="fn">a</span> : <span class="fn">α</span>), <span class="fn"><span class="fn">f</span> <span class="fn">a</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">g</span> <span class="fn">a</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">x</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">f</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">g</span></div></div></div></div><div class="decl" id="bind_pure_unit"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L167-L168">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#bind_pure_unit"><span class="name">bind_pure_unit</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <a href="../../.././Init/Prelude.html#PUnit">PUnit</a></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">(do
+    <span class="fn">x</span>
+    <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <a href="../../.././Init/Prelude.html#PUnit.unit">PUnit.unit</a></span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a>   <span class="fn">x</span></div></div></div></div><div class="decl" id="map_congr"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L170-L171">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#map_congr"><span class="name">map_congr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Functor">Functor</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f </span><span class="fn">g</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">∀ (<span class="fn">a</span> : <span class="fn">α</span>), <span class="fn"><span class="fn">f</span> <span class="fn">a</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">g</span> <span class="fn">a</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">g</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span></div></div></div></div><div class="decl" id="seq_eq_bind"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L173-L175">source</a></div><div class="attributes">@[deprecated seq_eq_bind_map (since := &quot;2025-10-26&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#seq_eq_bind"><span class="name">seq_eq_bind</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> u_1</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">mf</span> : <span class="fn"><span class="fn">m</span> <span class="fn">(<span class="fn">α</span> → <span class="fn">β</span>)</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">mf</span> &lt;*&gt; <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">do
+  let <span class="fn">f</span> ← <span class="fn">mf</span>
+  <span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span></span></div></div></div></div><div class="decl" id="seqRight_eq_bind"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L177-L179">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#seqRight_eq_bind"><span class="name">seqRight_eq_bind</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">y</span> : <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">x</span> *&gt; <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">do
+  let _ ← <span class="fn">x</span>
+  <span class="fn">y</span></span></div></div></div></div><div class="decl" id="seqLeft_eq_bind"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L181-L183">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#seqLeft_eq_bind"><span class="name">seqLeft_eq_bind</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">y</span> : <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">x</span> &lt;* <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">do
+  let <span class="fn">a</span> ← <span class="fn">x</span>
+  let _ ← <span class="fn">y</span>
+  <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="map_bind"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L185-L188">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#map_bind"><span class="name">map_bind</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β </span><span class="fn">γ </span><span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">β</span> → <span class="fn">γ</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> (<span class="fn">x</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">g</span>) <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">do
+  let <span class="fn">a</span> ← <span class="fn">x</span>
+  <span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn"><span class="fn">g</span> <span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="bind_map_left"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L190-L193">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#bind_map_left"><span class="name">bind_map_left</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β </span><span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">g</span> : <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">γ</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">(do
+    let <span class="fn">b</span> ← <span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span>
+    <span class="fn"><span class="fn">g</span> <span class="fn">b</span></span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a>   <span class="fn">do
+  let <span class="fn">a</span> ← <span class="fn">x</span>
+  <span class="fn"><span class="fn">g</span> <span class="fn">(<span class="fn">f</span> <span class="fn">a</span>)</span></span></span></div></div></div></div><div class="decl" id="LawfulMonad.map_pure'"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L195-L203">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad.map_pure'"><span class="name">LawfulMonad</span>.<span class="name">map_pure'</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">a</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">(<span class="fn">f</span> <span class="fn">a</span>)</span></span></div></div><p>This is just a duplicate of <code><a href="../../.././Init/Control/Lawful/Basic.html#LawfulApplicative.map_pure">LawfulApplicative.map_pure</a></code>,
+but sometimes applies when that doesn't.</p><p>It is named with a prime to avoid conflict with the inherited field <code>LawfulMonad.<a href="../../.././Init/Control/Lawful/Basic.html#LawfulApplicative.map_pure">map_pure</a></code>.</p></div></div><div class="decl" id="LawfulMonad.map_map"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L205-L210">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad.map_map"><span class="name">LawfulMonad</span>.<span class="name">map_map</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">α✝ </span><span class="fn">a✝</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">g</span> : <span class="fn"><span class="fn">α✝</span> → <span class="fn">a✝</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">α✝</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">g</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">(fun (<span class="fn">a</span> : <span class="fn">α</span>) =&gt; <span class="fn"><span class="fn">g</span> <span class="fn">(<span class="fn">f</span> <span class="fn">a</span>)</span></span>)</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span></div></div><p>This is just a duplicate of <code><a href="../../.././Init/Control/Lawful/Basic.html#Functor.map_map">Functor.map_map</a></code>, but sometimes applies when that doesn't.</p></div></div><div class="decl" id="LawfulMonad.mk'"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L212-L240">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad.mk'"><span class="name">LawfulMonad</span>.<span class="name">mk'</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">id_map</span> : <span class="fn">∀ {<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u} (<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>), <a href="../../.././Init/Prelude.html#id">id</a> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">pure_bind</span> : <span class="fn">∀ {<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u} (<span class="fn">x</span> : <span class="fn">α</span>) (<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span>), <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">f</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">bind_assoc</span> : <span class="fn">∀ {<span class="fn">α </span><span class="fn">β </span><span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> u} (<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>) (<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span>) (<span class="fn">g</span> : <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">γ</span></span></span>), <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">f</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">g</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">g</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">map_const</span> : <span class="fn">∀ {<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u} (<span class="fn">x</span> : <span class="fn">α</span>) (<span class="fn">y</span> : <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span>), <span class="fn"><a href="../../.././Init/Prelude.html#Functor.mapConst">Functor.mapConst</a> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Function.const">Function.const</a> <span class="fn">β</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">y</span></span> := by intros; rfl)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">seqLeft_eq</span> :
+  <span class="fn">∀ {<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u} (<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>) (<span class="fn">y</span> : <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span>),
+    <span class="fn"><span class="fn">x</span> &lt;* <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">do
+      let <span class="fn">a</span> ← <span class="fn">x</span>
+      let _ ← <span class="fn">y</span>
+      <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">a</span></span></span></span> := by
+  intros; rfl)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">seqRight_eq</span> :
+  <span class="fn">∀ {<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u} (<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>) (<span class="fn">y</span> : <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span>),
+    <span class="fn"><span class="fn">x</span> *&gt; <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">do
+      let _ ← <span class="fn">x</span>
+      <span class="fn">y</span></span></span> := by
+  intros; rfl)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">bind_pure_comp</span> :
+  <span class="fn">∀ {<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u} (<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>) (<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>),
+    <span class="fn">(do
+        let <span class="fn">y</span> ← <span class="fn">x</span>
+        <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">(<span class="fn">f</span> <span class="fn">y</span>)</span></span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a>       <span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span></span> := by
+  intros; rfl)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">bind_map</span> :
+  <span class="fn">∀ {<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u} (<span class="fn">f</span> : <span class="fn"><span class="fn">m</span> <span class="fn">(<span class="fn">α</span> → <span class="fn">β</span>)</span></span>) (<span class="fn">x</span> : <span class="fn"><span class="fn">m</span> <span class="fn">α</span></span>),
+    <span class="fn">(do
+        let <span class="fn">x_1</span> ← <span class="fn">f</span>
+        <span class="fn">x_1</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span>)</span> <a href="../../.././Init/Prelude.html#Eq">=</a>       <span class="fn"><span class="fn">f</span> &lt;*&gt; <span class="fn">x</span></span></span> := by
+  intros; rfl)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span></div></div><p>An alternative constructor for <code><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a></code> which has more
+defaultable fields in the common case.</p></div></div><div class="mod_doc"><h1 class="markdown-heading" id="Id">Id <a class="hover-link" href="#Id">#</a></h1></div><div class="decl" id="Id.ext"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L246-L246">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#Id.ext"><span class="name">Id</span>.<span class="name">ext</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn"><a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">x</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">y</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">x</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">y</span></div></div></div></div><div class="decl" id="Id.ext_iff"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L246-L246">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#Id.ext_iff"><span class="name">Id</span>.<span class="name">ext_iff</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn"><a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">α</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">x</span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">y</span> <a href="../../.././Init/Core.html#Iff">↔</a> <span class="fn"><span class="fn">x</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">y</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span></div></div></div></div><div class="decl" id="Id.instLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L248-L249">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#Id.instLawfulMonad"><span class="name">Id</span>.<span class="name">instLawfulMonad</span></a></span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <a href="../../.././Init/Control/Id.html#Id">Id</a></span></div></div></div></div><div class="decl" id="Id.run_map"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L251-L251">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#Id.run_map"><span class="name">Id</span>.<span class="name">run_map</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">(<span class="fn">f</span> <a href="../../.././Init/Prelude.html#Functor.map">&lt;$&gt;</a> <span class="fn">x</span>).<a href="../../.././Init/Control/Id.html#Id.run">run</a></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">f</span> <span class="fn"><span class="fn">x</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span></span></div></div></div></div><div class="decl" id="Id.run_bind"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L252-L252">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#Id.run_bind"><span class="name">Id</span>.<span class="name">run_bind</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">(<span class="fn">x</span> <a href="../../.././Init/Prelude.html#Bind.bind">&gt;&gt;=</a> <span class="fn">f</span>).<a href="../../.././Init/Control/Id.html#Id.run">run</a></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<span class="fn">f</span> <span class="fn"><span class="fn">x</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span>)</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span></div></div></div></div><div class="decl" id="Id.run_pure"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L253-L253">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#Id.run_pure"><span class="name">Id</span>.<span class="name">run_pure</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">a</span>)</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">a</span></div></div></div></div><div class="decl" id="Id.pure_run"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L254-L254">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#Id.pure_run"><span class="name">Id</span>.<span class="name">pure_run</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn"><a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn"><span class="fn">a</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">a</span></div></div></div></div><div class="decl" id="Id.run_seqRight"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L255-L255">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#Id.run_seqRight"><span class="name">Id</span>.<span class="name">run_seqRight</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x </span><span class="fn">y</span> : <span class="fn"><a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn">x</span> *&gt; <span class="fn">y</span>)</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">y</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span></div></div></div></div><div class="decl" id="Id.run_seqLeft"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L256-L256">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#Id.run_seqLeft"><span class="name">Id</span>.<span class="name">run_seqLeft</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x </span><span class="fn">y</span> : <span class="fn"><a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn">x</span> &lt;* <span class="fn">y</span>)</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">x</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span></div></div></div></div><div class="decl" id="Id.run_seq"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Control/Lawful/Basic.lean#L257-L257">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Control/Lawful/Basic.html#Id.run_seq"><span class="name">Id</span>.<span class="name">run_seq</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">(<span class="fn">α</span> → <span class="fn">β</span>)</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn"><a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">(<span class="fn">f</span> &lt;*&gt; <span class="fn">x</span>)</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">f</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span> <span class="fn"><span class="fn">x</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span></span></div></div></div></div></main>
+<nav class="nav"><iframe src="../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

@@ -1,0 +1,668 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../.././style.css"></link><link rel="icon" href="../../.././favicon.svg"></link><link rel="mask-icon" href="../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../.././/declarations/declaration-data.bmp" as="image"></link><title>Init.Grind.Ordered.Ring</title><script defer="true" src="../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../.././";</script><script>const MODULE_NAME="Init.Grind.Ordered.Ring";</script><script type="module" src="../../.././jump-src.js"></script><script type="module" src="../../.././search.js"></script><script type="module" src="../../.././expand-nav.js"></script><script type="module" src="../../.././how-about.js"></script><script type="module" src="../../.././instances.js"></script><script type="module" src="../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Init</span>.<span class="name">Grind</span>.<span class="name">Ordered</span>.<span class="name">Ring</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../.././Init/Grind/Ordered/Module.html">Init.Grind.Ordered.Module</a></li><li><a href="../../.././Init/Grind/Ring/Basic.html">Init.Grind.Ring.Basic</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Init.Grind.Ordered.Ring" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.neg_one_lt_zero"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">neg_one_lt_zero</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.ofNat_nonneg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">ofNat_nonneg</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.le_of_natCast_le_natCast"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">le_of_natCast_le_natCast</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.le_of_intCast_le_intCast"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">le_of_intCast_le_intCast</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.lt_of_natCast_lt_natCast"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">lt_of_natCast_lt_natCast</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.lt_of_intCast_lt_intCast"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">lt_of_intCast_lt_intCast</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.natCast_le_natCast_of_le"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">natCast_le_natCast_of_le</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.natCast_nonneg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">natCast_nonneg</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.natCast_lt_natCast_of_lt"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">natCast_lt_natCast_of_lt</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.pos_natCast_of_pos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">pos_natCast_of_pos</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.pos_intCast_of_pos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">pos_intCast_of_pos</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.neg_intCast_of_neg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">neg_intCast_of_neg</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.nonneg_intCast_of_nonneg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">nonneg_intCast_of_nonneg</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.nonpos_intCast_of_nonpos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">nonpos_intCast_of_nonpos</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.instIsCharPOfNatNatOfLawfulOrderLT"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">instIsCharPOfNatNatOfLawfulOrderLT</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_pos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_pos</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.zero_le_one"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">zero_le_one</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.not_one_lt_zero"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">not_one_lt_zero</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_le_mul_of_nonneg_left"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_le_mul_of_nonneg_left</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_le_mul_of_nonneg_right"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_le_mul_of_nonneg_right</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_le_mul_of_nonpos_left"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_le_mul_of_nonpos_left</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_le_mul_of_nonpos_right"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_le_mul_of_nonpos_right</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_lt_mul_of_neg_left"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_lt_mul_of_neg_left</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_lt_mul_of_neg_right"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_lt_mul_of_neg_right</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_nonneg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_nonneg</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_nonneg_of_nonpos_of_nonpos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_nonneg_of_nonpos_of_nonpos</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_nonpos_of_nonneg_of_nonpos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_nonpos_of_nonneg_of_nonpos</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_nonpos_of_nonpos_of_nonneg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_nonpos_of_nonpos_of_nonneg</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_pos_of_neg_of_neg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_pos_of_neg_of_neg</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_neg_of_pos_of_neg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_neg_of_pos_of_neg</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_neg_of_neg_of_pos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_neg_of_neg_of_pos</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_nonneg_iff"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_nonneg_iff</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.mul_pos_iff"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_pos_iff</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.sq_nonneg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">sq_nonneg</span></a></div><div class="nav_link"><a class="break_within" href="#Lean.Grind.OrderedRing.sq_pos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">sq_pos</span></a></div></nav><main>
+<div class="decl" id="Lean.Grind.OrderedRing"><div class="class"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L17-L29">source</a></div><div class="decl_header"><span class="decl_kind">class</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Semiring">Semiring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_extends">extends</span> <span class="fn"><a href="../../.././Init/Grind/Ordered/Module.html#Lean.Grind.OrderedAdd">Lean.Grind.OrderedAdd</a> <span class="fn">R</span></span><span class="decl_args"> :</span><div class="decl_type"><a href="../../.././foundational_types.html">Prop</a></div></div><p>A ring which is also equipped with a preorder is considered a strict ordered ring if addition, negation,
+and multiplication are compatible with the preorder, and <code>0 &lt; 1</code>.</p><ul class="structure_fields" id="Lean.Grind.OrderedRing.mk"><li class="structure_field inherited_field"><div class="structure_field_info"><a href="../../.././Init/Grind/Ordered/Module.html#Lean.Grind.OrderedAdd.add_le_left_iff">add_le_left_iff</a><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">c</span> : <span class="fn">R</span>)</span></span>
+ : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span> <a href="../../.././Init/Core.html#Iff">↔</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">c</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">c</span></div></li><li id="Lean.Grind.OrderedRing.zero_lt_one" class="structure_field"><div class="structure_field_info">zero_lt_one : <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">1</span></div><div class="structure_field_doc"><p>In a strict ordered semiring, we have <code>0 &lt; 1</code>.</p></div></li><li id="Lean.Grind.OrderedRing.mul_lt_mul_of_pos_left" class="structure_field"><div class="structure_field_info">mul_lt_mul_of_pos_left<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b </span><span class="fn">c</span> : <span class="fn">R</span>}</span></span>
+</span> : <span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">b</span> → <span class="fn"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">c</span> → <span class="fn">c</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">c</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span></span></span></div><div class="structure_field_doc"><p>In a strict ordered semiring, we can multiply an inequality <code>a &lt; b</code> on the left
+by a positive element <code>0 &lt; c</code> to obtain <code>c * a &lt; c * b</code>.</p></div></li><li id="Lean.Grind.OrderedRing.mul_lt_mul_of_pos_right" class="structure_field"><div class="structure_field_info">mul_lt_mul_of_pos_right<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b </span><span class="fn">c</span> : <span class="fn">R</span>}</span></span>
+</span> : <span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">b</span> → <span class="fn"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">c</span> → <span class="fn">a</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">c</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">c</span></span></span></div><div class="structure_field_doc"><p>In a strict ordered semiring, we can multiply an inequality <code>a &lt; b</code> on the right
+by a positive element <code>0 &lt; c</code> to obtain <code>a * c &lt; b * c</code>.</p></div></li></ul><details class="instances"><summary>Instances</summary><ul id="instances-list-Lean.Grind.OrderedRing" class="instances-list"></ul></details></div></div><div class="decl" id="Lean.Grind.OrderedRing.neg_one_lt_zero"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L39-L43">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.neg_one_lt_zero"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">neg_one_lt_zero</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">-<span class="fn">1</span></span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">0</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.ofNat_nonneg"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L45-L54">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.ofNat_nonneg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">ofNat_nonneg</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#OfNat.ofNat">OfNat.ofNat</a> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#GE.ge">≥</a> <span class="fn">0</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.le_of_natCast_le_natCast"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L58-L82">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.le_of_natCast_le_natCast"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">le_of_natCast_le_natCast</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a </span><span class="fn">b</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">↑<span class="fn">a</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">↑<span class="fn">b</span></span> → <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span></span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.le_of_intCast_le_intCast"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L84-L96">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.le_of_intCast_le_intCast"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">le_of_intCast_le_intCast</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a </span><span class="fn">b</span> : <a href="../../.././Init/Data/Int/Basic.html#Int">Int</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">↑<span class="fn">a</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">↑<span class="fn">b</span></span> → <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span></span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.lt_of_natCast_lt_natCast"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L98-L118">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.lt_of_natCast_lt_natCast"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">lt_of_natCast_lt_natCast</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a </span><span class="fn">b</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">↑<span class="fn">a</span></span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">↑<span class="fn">b</span></span> → <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">b</span></span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.lt_of_intCast_lt_intCast"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L120-L134">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.lt_of_intCast_lt_intCast"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">lt_of_intCast_lt_intCast</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a </span><span class="fn">b</span> : <a href="../../.././Init/Data/Int/Basic.html#Int">Int</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">↑<span class="fn">a</span></span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">↑<span class="fn">b</span></span> → <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">b</span></span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.natCast_le_natCast_of_le"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L136-L152">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.natCast_le_natCast_of_le"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">natCast_le_natCast_of_le</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a </span><span class="fn">b</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span> → <span class="fn">↑<span class="fn">a</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">↑<span class="fn">b</span></span></span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.natCast_nonneg"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L154-L155">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.natCast_nonneg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">natCast_nonneg</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">↑<span class="fn">a</span></span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.natCast_lt_natCast_of_lt"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L157-L171">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.natCast_lt_natCast_of_lt"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">natCast_lt_natCast_of_lt</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a </span><span class="fn">b</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">b</span> → <span class="fn">↑<span class="fn">a</span></span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">↑<span class="fn">b</span></span></span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.pos_natCast_of_pos"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L173-L183">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.pos_natCast_of_pos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">pos_natCast_of_pos</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">a</span> → <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">↑<span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.pos_intCast_of_pos"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L185-L193">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.pos_intCast_of_pos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">pos_intCast_of_pos</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <a href="../../.././Init/Data/Int/Basic.html#Int">Int</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">a</span> → <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">↑<span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.neg_intCast_of_neg"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L195-L200">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.neg_intCast_of_neg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">neg_intCast_of_neg</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <a href="../../.././Init/Data/Int/Basic.html#Int">Int</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">0</span> → <span class="fn">↑<span class="fn">a</span></span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">0</span></span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.nonneg_intCast_of_nonneg"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L202-L209">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.nonneg_intCast_of_nonneg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">nonneg_intCast_of_nonneg</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <a href="../../.././Init/Data/Int/Basic.html#Int">Int</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">a</span> → <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">↑<span class="fn">a</span></span></span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.nonpos_intCast_of_nonpos"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L211-L216">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.nonpos_intCast_of_nonpos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">nonpos_intCast_of_nonpos</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <a href="../../.././Init/Data/Int/Basic.html#Int">Int</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span> → <span class="fn">↑<span class="fn">a</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span></span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.instIsCharPOfNatNatOfLawfulOrderLT"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L218-L238">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.instIsCharPOfNatNatOfLawfulOrderLT"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">instIsCharPOfNatNatOfLawfulOrderLT</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.IsCharP">IsCharP</a> <span class="fn">R</span> <span class="fn">0</span></span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_pos"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L242-L243">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_pos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_pos</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">a</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">b</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.zero_le_one"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L245-L246">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.zero_le_one"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">zero_le_one</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">1</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.not_one_lt_zero"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L248-L249">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.not_one_lt_zero"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">not_one_lt_zero</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPreorder">Std.IsPreorder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><a href="../../.././Init/Prelude.html#Not">¬</a><span class="fn">1</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">0</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_le_mul_of_nonneg_left"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L257-L266">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_le_mul_of_nonneg_left"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_le_mul_of_nonneg_left</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPartialOrder">Std.IsPartialOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b </span><span class="fn">c</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h'</span> : <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">c</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">c</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">c</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_le_mul_of_nonneg_right"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L268-L277">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_le_mul_of_nonneg_right"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_le_mul_of_nonneg_right</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPartialOrder">Std.IsPartialOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b </span><span class="fn">c</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h'</span> : <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">c</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">c</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">c</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_le_mul_of_nonpos_left"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L281-L283">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_le_mul_of_nonpos_left"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_le_mul_of_nonpos_left</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPartialOrder">Std.IsPartialOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b </span><span class="fn">c</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h'</span> : <span class="fn">c</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">c</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">c</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">a</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_le_mul_of_nonpos_right"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L285-L287">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_le_mul_of_nonpos_right"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_le_mul_of_nonpos_right</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPartialOrder">Std.IsPartialOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b </span><span class="fn">c</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h'</span> : <span class="fn">c</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">b</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">c</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">c</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_lt_mul_of_neg_left"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L289-L291">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_lt_mul_of_neg_left"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_lt_mul_of_neg_left</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPartialOrder">Std.IsPartialOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b </span><span class="fn">c</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">b</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h'</span> : <span class="fn">c</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">0</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">c</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">c</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">a</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_lt_mul_of_neg_right"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L293-L295">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_lt_mul_of_neg_right"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_lt_mul_of_neg_right</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPartialOrder">Std.IsPartialOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b </span><span class="fn">c</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">b</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h'</span> : <span class="fn">c</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">0</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">b</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">c</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">c</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_nonneg"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L297-L298">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_nonneg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_nonneg</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPartialOrder">Std.IsPartialOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">a</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_nonneg_of_nonpos_of_nonpos"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L300-L302">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_nonneg_of_nonpos_of_nonpos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_nonneg_of_nonpos_of_nonpos</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPartialOrder">Std.IsPartialOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <span class="fn">b</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_nonpos_of_nonneg_of_nonpos"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L304-L306">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_nonpos_of_nonneg_of_nonpos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_nonpos_of_nonneg_of_nonpos</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPartialOrder">Std.IsPartialOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">a</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <span class="fn">b</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_nonpos_of_nonpos_of_nonneg"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L308-L310">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_nonpos_of_nonpos_of_nonneg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_nonpos_of_nonpos_of_nonneg</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPartialOrder">Std.IsPartialOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_pos_of_neg_of_neg"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L312-L314">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_pos_of_neg_of_neg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_pos_of_neg_of_neg</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPartialOrder">Std.IsPartialOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <span class="fn">b</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">0</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_neg_of_pos_of_neg"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L316-L318">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_neg_of_pos_of_neg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_neg_of_pos_of_neg</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPartialOrder">Std.IsPartialOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">a</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <span class="fn">b</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">0</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">0</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_neg_of_neg_of_pos"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L320-L322">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_neg_of_neg_of_pos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_neg_of_neg_of_pos</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsPartialOrder">Std.IsPartialOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h₁</span> : <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h₂</span> : <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">b</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">a</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">0</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_nonneg_iff"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L330-L344">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_nonneg_iff"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_nonneg_iff</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsLinearOrder">Std.IsLinearOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span> <a href="../../.././Init/Core.html#Iff">↔</a> <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#And">∧</a> <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#Or">∨</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span> <a href="../../.././Init/Prelude.html#And">∧</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">0</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.mul_pos_iff"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L346-L360">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.mul_pos_iff"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">mul_pos_iff</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsLinearOrder">Std.IsLinearOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a </span><span class="fn">b</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#HMul.hMul">*</a> <span class="fn">b</span> <a href="../../.././Init/Core.html#Iff">↔</a> <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#And">∧</a> <span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#Or">∨</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">0</span> <a href="../../.././Init/Prelude.html#And">∧</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">0</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.sq_nonneg"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L362-L366">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.sq_nonneg"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">sq_nonneg</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsLinearOrder">Std.IsLinearOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#HPow.hPow">^</a> <span class="fn">2</span></div></div></div></div><div class="decl" id="Lean.Grind.OrderedRing.sq_pos"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/2fcce7258eeb6e324366bc25f9058293b04b7547/src/Init/Grind/Ordered/Ring.lean#L368-L373">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing.sq_pos"><span class="name">Lean</span>.<span class="name">Grind</span>.<span class="name">OrderedRing</span>.<span class="name">sq_pos</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ring/Basic.html#Lean.Grind.Ring">Ring</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsLinearOrder">Std.IsLinearOrder</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Grind/Ordered/Ring.html#Lean.Grind.OrderedRing">OrderedRing</a> <span class="fn">R</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">a</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">a</span> <a href="../../.././Init/Core.html#Ne">≠</a> <span class="fn">0</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">0</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">a</span> <a href="../../.././Init/Prelude.html#HPow.hPow">^</a> <span class="fn">2</span></div></div></div></div></main>
+<nav class="nav"><iframe src="../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>
