@@ -75,14 +75,14 @@ def encodeBool : Bool → Fin 2
 
 /-- Encode `Ordering` into `Fin 3`. -/
 def encodeOrdering : Ordering → Fin 3
-  | .eq => 0
-  | .lt => 1
+  | .lt => 0
+  | .eq => 1
   | .gt => 2
 
 /-- Decode `Ordering` from `Fin 3`. -/
 @[pp_nodot] def decodeOrdering : Fin 3 → Ordering
-  | 0 => .eq
-  | 1 => .lt
+  | 0 => .lt
+  | 1 => .eq
   | 2 => .gt
 
 @[simp] theorem encodeOrdering_decodeOrdering : (x : Fin 3) → encodeOrdering (decodeOrdering x) = x
@@ -346,58 +346,61 @@ def decodePi (f : Fin n → Nat) (x : Fin (Fin.prod f)) : (i : Fin n) → Fin (f
       conv => rhs; rw [← h]
       congr; simp [encodePi, Nat.mul_add_div h0, Nat.div_eq_of_lt (x 0).is_lt]; rfl
 
-/-- Encode `{ i : Fin n // P i }` into `Fin (Fin.count P)` where `P` is a decidable predicate. -/
+/-- Encode `{ i : Fin n // P i }` into `Fin (Fin.countP P)` where `P` is a decidable predicate. -/
 def encodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (i : { i // P i }) :
-    Fin (Fin.count (P ·)) :=
+    Fin (Fin.countP (P ·)) :=
   match n, P, inst, i with
   | n+1, P, inst, ⟨0, hp⟩ =>
-    have : Fin.count (P ·) > 0 := by grind [count_succ]
+    have : Fin.countP (P ·) > 0 := by grind [countP_succ]
     ⟨0, this⟩
   | n+1, P, inst, ⟨⟨i+1, hi⟩, hp⟩ =>
     match encodeSubtype (fun i => P i.succ) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, hp⟩ with
     | ⟨k, hk⟩ =>
       if h0 : P 0 then
-        have : (Fin.count fun i => P i.succ) + 1 = Fin.count (P ·) := by
-          grind [count_succ]
+        have : (Fin.countP fun i => P i.succ) + 1 = Fin.countP (P ·) := by
+          grind [countP_succ]
         Fin.cast this ⟨k+1, Nat.succ_lt_succ hk⟩
       else
-        have : (Fin.count fun i => P i.succ) = Fin.count (P ·) := by simp [count_succ, h0]
+        have : (Fin.countP fun i => P i.succ) = Fin.countP (P ·) := by
+          simp [-countP_eq_countP_map_finRange, countP_succ, h0]
         Fin.cast this ⟨k, hk⟩
 
-/-- Decode `{ i : Fin n // P i }` from `Fin (Fin.count P)` where `P` is a decidable predicate. -/
-def decodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (k : Fin (Fin.count (P ·))) :
+/-- Decode `{ i : Fin n // P i }` from `Fin (Fin.countP P)` where `P` is a decidable predicate. -/
+def decodeSubtype (P : Fin n → Prop) [inst : DecidablePred P] (k : Fin (Fin.countP (P ·))) :
     { i // P i } :=
   match n, P, inst, k with
   | 0, _, _, ⟨_, h⟩ => False.elim (by simp at h)
   | n+1, P, inst, ⟨k, hk⟩ =>
     if h0 : P 0 then
-      have : Fin.count (P ·) = (Fin.count fun i => P i.succ) + 1 := by grind [count_succ]
+      have : Fin.countP (P ·) = (Fin.countP fun i => P i.succ) + 1 := by grind [countP_succ]
       match k with
       | 0 => ⟨0, h0⟩
       | k + 1 =>
         match decodeSubtype (fun i => P i.succ) ⟨k, Nat.lt_of_add_lt_add_right (this ▸ hk)⟩ with
         | ⟨⟨i, hi⟩, hp⟩ => ⟨⟨i+1, Nat.succ_lt_succ hi⟩, hp⟩
     else
-      have : Fin.count (P ·) = Fin.count fun i => P i.succ := by simp [count_succ, h0]
+      have : Fin.countP (P ·) = Fin.countP fun i => P i.succ := by
+        simp [-countP_eq_countP_map_finRange, countP_succ, h0]
       match decodeSubtype (fun i => P (succ i)) ⟨k, this ▸ hk⟩ with
       | ⟨⟨i, hi⟩, hp⟩ => ⟨⟨i+1, Nat.succ_lt_succ hi⟩, hp⟩
 
 theorem encodeSubtype_zero_pos {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ : P 0) :
-    encodeSubtype P ⟨0, h₀⟩ = ⟨0, by grind [count_succ]⟩ := by
+    encodeSubtype P ⟨0, h₀⟩ = ⟨0, by grind [countP_succ]⟩ := by
   ext; rw [encodeSubtype.eq_def]; rfl
 
 theorem encodeSubtype_succ_pos {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ : P 0) {i : Fin n}
     (h : P i.succ) : encodeSubtype P ⟨i.succ, h⟩ =
-      (encodeSubtype (fun i => P i.succ) ⟨i, h⟩).succ.cast (by grind [count_succ]) := by
+      (encodeSubtype (fun i => P i.succ) ⟨i, h⟩).succ.cast (by grind [countP_succ]) := by
   ext; rw [encodeSubtype.eq_def]; simp [Fin.succ, *]
 
 theorem encodeSubtype_succ_neg {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ : ¬ P 0) {i : Fin n}
     (h : P i.succ) : encodeSubtype P ⟨i.succ, h⟩ =
-      (encodeSubtype (fun i => P i.succ) ⟨i, h⟩).cast (by simp [count_succ, *]) := by
+      (encodeSubtype (fun i => P i.succ) ⟨i, h⟩).cast
+        (by simp [-countP_eq_countP_map_finRange, countP_succ, *]) := by
   ext; rw [encodeSubtype.eq_def]; simp [Fin.succ, *]
 
 @[simp] theorem encodeSubtype_decodeSubtype (P : Fin n → Prop) [DecidablePred P]
-    (x : Fin (Fin.count (P ·))) : encodeSubtype P (decodeSubtype P x) = x := by
+    (x : Fin (Fin.countP (P ·))) : encodeSubtype P (decodeSubtype P x) = x := by
   induction n with
   | zero => absurd x.is_lt; simp
   | succ n ih =>
@@ -419,7 +422,7 @@ theorem encodeSubtype_succ_neg {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ 
         | zero => rw [encodeSubtype_zero_pos h₀]
         | succ i =>
           rw [encodeSubtype_succ_pos h₀]
-          simp only [coe_cast, val_succ, Subtype.mk.injEq]
+          simp only [val_cast, val_succ, Fin.eta, Subtype.mk.injEq]
           congr
           rw [ih (fun i => P i.succ) ⟨i, h⟩]
       else
@@ -428,7 +431,7 @@ theorem encodeSubtype_succ_neg {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ 
         | zero => contradiction
         | succ i =>
           rw [encodeSubtype_succ_neg h₀]
-          simp only [coe_cast, Subtype.mk.injEq]
+          simp only [val_cast, Fin.eta, Subtype.mk.injEq]
           congr
           rw [ih (fun i => P i.succ) ⟨i, h⟩]
 
@@ -493,7 +496,7 @@ theorem getRepr_eq_getRepr_of_equiv (s : Setoid (Fin n)) [DecidableRel s.r] (h :
 
 /-- Encode `Quotient s` into `Fin m` where `s` is a decidable setoid on `Fin n`. -/
 def encodeQuotient (s : Setoid (Fin n)) [DecidableRel s.r] (x : Quotient s) :
-    Fin (Fin.count fun i => getRepr s i = i) :=
+    Fin (Fin.countP fun i => getRepr s i = i) :=
   encodeSubtype _ <| Quotient.liftOn x (fun i => ⟨getRepr s i, getRepr_getRepr s i⟩) <| by
     intro _ _ h
     simp only [Subtype.mk.injEq]
@@ -501,7 +504,7 @@ def encodeQuotient (s : Setoid (Fin n)) [DecidableRel s.r] (x : Quotient s) :
 
 /-- Decode `Quotient s` from `Fin m` where `s` is a decidable setoid on `Fin n`. -/
 def decodeQuotient (s : Setoid (Fin n)) [DecidableRel s.r]
-    (i : Fin (Fin.count fun i => getRepr s i = i)) : Quotient s :=
+    (i : Fin (Fin.countP fun i => getRepr s i = i)) : Quotient s :=
   Quotient.mk s (decodeSubtype _ i)
 
 @[simp] theorem encodeQuotient_decodeQuotient (s : Setoid (Fin n)) [DecidableRel s.r] (x) :
