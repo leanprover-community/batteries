@@ -211,3 +211,4 @@ unsafe def main (args : List String) : IO Unit := do
   let modulesToLint ← determineModulesToLint mod?
 
   modulesToLint.forM <| runLinterOnModule cfg
+  IO.Process.exit 0
