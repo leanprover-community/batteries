@@ -211,3 +211,7 @@ unsafe def main (args : List String) : IO Unit := do
   let modulesToLint ← determineModulesToLint mod?
 
   modulesToLint.forM <| runLinterOnModule cfg
+  -- TODO: Remove manual Process.exit
+  -- We are doing this to shortcut around a race in Lean's IO finalizers that we have observed in Mathlib CI
+  -- (https://leanprover.zulipchat.com/#narrow/channel/287929-mathlib4/topic/slow.20linting.20step.20CI.3F/with/568830914)
+  IO.Process.exit 0
