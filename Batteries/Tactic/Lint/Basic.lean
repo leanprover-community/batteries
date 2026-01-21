@@ -8,6 +8,7 @@ module
 public meta import Lean.Structure
 public meta import Lean.Elab.InfoTree.Main
 public meta import Lean.Elab.Exception
+public meta import Lean.ExtraModUses
 
 public meta section
 
@@ -105,15 +106,28 @@ initialize registerBuiltinAttribute {
   descr := "Use this declaration as a linting test in #lint"
   add   := fun decl stx kind => do
     let dflt := stx[1].isNone
-    unless kind == .global do throwError "invalid attribute 'env_linter', must be global"
+    unless kind == .global do throwError "invalid attribute `env_linter`, must be global"
     let shortName := decl.updatePrefix .anonymous
     if let some (declName, _) := (batteriesLinterExt.getState (← getEnv)).find? shortName then
       Elab.addConstInfo stx declName
       throwError
-        "invalid attribute 'env_linter', linter '{shortName}' has already been declared"
+        "invalid attribute `env_linter`, linter `{shortName}` has already been declared"
+    /- Just as `env_linter`s must be `global`, they also must be accessible from `#lint`, and thus
+    must be `public` and `meta`.
+
+    `Linter.mk` is already `meta` and thus will likely cause an error anyway, but the explicit
+    instruction to mark this declaration `meta` might help the user resolve that and similar
+    errors. -/
+    let isPublic := !isPrivateName decl; let isMeta := isMarkedMeta (← getEnv) decl
+    unless isPublic && isMeta do
+      throwError "invalid attribute `env_linter`, \
+        declaration `{.ofConstName decl}` must be marked as `public` and `meta`\
+        {if isPublic then " but is only marked `public`" else ""}\
+        {if isMeta then " but is only marked `meta`" else ""}"
     let constInfo ← getConstInfo decl
     unless ← (isDefEq constInfo.type (mkConst ``Linter)).run' do
-      throwError "must have type Linter, got {constInfo.type}"
+      throwError "`{.ofConstName decl}` must have type `{.ofConstName ``Linter}`, got \
+        `{constInfo.type}`"
     modifyEnv fun env => batteriesLinterExt.addEntry env (decl, dflt)
 }
 
@@ -132,6 +146,7 @@ initialize nolintAttr : ParametricAttribute (Array Name) ←
         let some (declName, _) := (batteriesLinterExt.getState (← getEnv)).find? shortName
           | throwError "linter '{shortName}' not found"
         Elab.addConstInfo id declName
+        recordExtraModUseFromDecl (isMeta := false) declName
         pure shortName
       | _ => Elab.throwUnsupportedSyntax
   }

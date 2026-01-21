@@ -135,7 +135,7 @@ instance [Monad n] [BEq α] (m : Matcher α) [Iterator σ n α] :
 
 private def finitenessRelation [Monad n] [BEq α] (m : Matcher α) [Iterator σ n α] [Finite σ n] :
     FinitenessRelation (m.Iterator σ n α) n where
-  rel := InvImage IterM.IsPlausibleSuccessorOf fun it => it.internalState.inner
+  Rel := InvImage IterM.IsPlausibleSuccessorOf fun it => it.internalState.inner
   wf := InvImage.wf _ Finite.wf
   subrelation {it it'} h := by
     obtain ⟨_, hsucc, step, rfl⟩ := h
