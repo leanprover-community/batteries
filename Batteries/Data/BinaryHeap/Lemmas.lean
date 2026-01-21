@@ -85,9 +85,8 @@ theorem heapifyDown_preserves_wf_children_of_not_inSubtree [Ord α]
     (hleft_eq : ∀ h : 2 * k.val + 1 < sz, a[2 * k.val + 1] = b[2 * k.val + 1])
     (hright_eq : ∀ h : 2 * k.val + 2 < sz, a[2 * k.val + 2] = b[2 * k.val + 2])
     (hwf : WF.children b k)
-    (hnsub_left : i ≠ 2 * k.val + 1 := by omega)
-    (hnsub_right : i ≠ 2 * k.val + 2)
-    :
+    (hnsub_left : i ≠ 2 * k.val + 1)
+    (hnsub_right : i ≠ 2 * k.val + 2) : 
     WF.children (heapifyDown a i) k := by
   obtain ⟨hwf_left, hwf_right⟩ := hwf
   constructor
