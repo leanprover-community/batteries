@@ -506,7 +506,7 @@ end BinaryHeap
 public section
 open Batteries.BinaryHeap
 
-theorem Array.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Array α} :
+theorem Array.toBinaryHeap_wf [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Array α} :
     WF (a.toBinaryHeap) := by
   simp [WF.topDown_toArray, Array.toBinaryHeap]
 
@@ -552,9 +552,9 @@ theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.Oriented
   unfold Array.heapSort
   have h := heapSort_loop_sorted
     (instOrd := instOrd.opposite)
-    (@Array.toBinaryHeap _ instOrd.opposite _)
+    (Array.toBinaryHeap (instOrd := instOrd.opposite) a)
     #[]
-    (@Array.toBinaryHeap_wf _ instOrd.opposite _ _ a)
+    (Array.toBinaryHeap_wf (instOrd := instOrd.opposite))
     (by simp)
     (by simp)
   apply List.Pairwise.imp _ h

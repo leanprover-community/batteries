@@ -173,15 +173,15 @@ def Batteries.Vector.toBinaryHeap [Ord α] (v : Vector α n) :
 
 open Batteries in
 /-- `O(n)`. Convert an unsorted array to a `BinaryHeap`. -/
-def Array.toBinaryHeap [Ord α] (a : Array α) : Batteries.BinaryHeap α where
+def Array.toBinaryHeap [instOrd : Ord α] (a : Array α) : Batteries.BinaryHeap α where
   arr := BinaryHeap.mkHeap ⟨a, rfl⟩ |>.toArray
 
 open Batteries in
 
 /-- `O(n log n)`. Sort an array using a `BinaryHeap`. -/
 @[inline, specialize]
-def Array.heapSort [instOrd: Ord α] (a : Array α) : Array α :=
-  loop (instOrd := instOrd.opposite) (@Array.toBinaryHeap _ instOrd.opposite a ) #[]
+def Array.heapSort [instOrd : Ord α] (a : Array α) : Array α :=
+  loop (instOrd := instOrd.opposite) (a.toBinaryHeap (instOrd := instOrd.opposite)) #[]
 where
   /-- Inner loop for `heapSort`. -/
   loop [instOrd : Ord α] (a : Batteries.BinaryHeap α) (out : Array α) : Array α :=
