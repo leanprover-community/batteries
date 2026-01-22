@@ -150,7 +150,7 @@ theorem heapifyDown_preserves_wf_parent [Ord α] [Std.TransOrd α] [Std.Oriented
     by_cases heq : childIdx = i.val
     · simp only [parent, heq, childIdx]
       apply heapifyDown_root_bounded
-      exact WF.parent_dominates_set_subtree ‹_› ‹_› ‹_›
+      apply WF.parent_dominates_set_subtree <;> assumption
     . have hsub : ¬InSubtree i.val childIdx :=  by grind only [InSubtree.not_of_lt]
       rw [heapifyDown_get_of_not_inSubtree' hside hsub]
       rw [Vector.getElem_set_ne _ _ (by simp_all only [ne_eq]; omega)]
@@ -341,9 +341,6 @@ theorem mkHeap.loop_perm [Ord α] {a : Vector α sz} {h : n ≤ sz} :
     simp only [mkHeap.loop]
     exact ih.trans heapifyDown_perm
 
-theorem mkHeap_perm [instOrd : Ord α] {a : Vector α sz} : (mkHeap a).Perm a :=
-  mkHeap.loop_perm
-
 end perm
 
 theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
@@ -383,6 +380,9 @@ theorem singleton_wf [Ord α] {x : α} : WF (singleton x) := by
     apply mkHeap.loop_wf
     intro k hk
     constructor <;> intro h <;> omega
+
+theorem mkHeap_perm [instOrd : Ord α] {a : Vector α sz} : (mkHeap a).toList.Perm a.toList :=
+  mkHeap.loop_perm |>.toList
 
 @[simp]
 theorem size_insert [Ord α] (heap : BinaryHeap α) (x : α) :
@@ -523,13 +523,13 @@ theorem Array.heapSort_perm [instOrd : Ord α] {a : Array α} :
     #[]
   simp only [List.append_nil] at h
   apply h.trans
-  exact mkHeap_perm (instOrd := instOrd.opposite) (a := ⟨a, _⟩) |>.toList
+  exact mkHeap_perm (instOrd := instOrd.opposite)
 
 /-- The inner loop of heapSort produces a sorted list (descending in the Ord instance used).
 -/
 private theorem heapSort_loop_sorted [instOrd : Ord α] [Std.TransOrd α]
   [Std.OrientedOrd α] (heap : BinaryHeap α) (out : Array α)
-    (hwf : WF heap) (h_out_sorted : out.toList.Pairwise (fun a b => compare a b |>.isGE))
+    (hwf : WF heap) (h_out_sorted : out.toList.Pairwise (compare · · |>.isGE))
     (h_heap_le_out : ∀ x ∈ heap, ∀ y ∈ out, compare x y |>.isLE) :
     (Array.heapSort.loop heap out).toList.Pairwise (compare · · |>.isGE) := by
   unfold Array.heapSort.loop
