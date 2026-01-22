@@ -58,12 +58,14 @@ theorem heapifyDown_get_of_not_inSubtree [Ord α] {a : Vector α sz} {i : Fin sz
   -- some dependence issue relating to getElem.
   -- this is a workaround
   cases hmc : maxChild a i
-  all_goals unfold heapifyDown; conv => lhs; arg 1; simp only; rw [hmc]; simp only;
+    <;> unfold heapifyDown
+    <;> simp only
+    <;> conv => lhs; arg 1; rw [hmc]
 
+  simp only
   rename_i j
   split <;> try rfl
   have hij : i < j := by grind only [maxChild_gt]
-
   have hnsub_j : ¬InSubtree j k := by
     grind only [InSubtree.not_of_lt, maxChild_isChild,
       InSubtree.lt_of_ne, InSubtree.trans, InSubtree]
@@ -90,8 +92,6 @@ theorem heapifyDown_preserves_wf_children_of_not_inSubtree [Ord α]
     WF.children (heapifyDown a i) k := by
   obtain ⟨hwf_left, hwf_right⟩ := hwf
   constructor
-  case' left =>  let childIdx := 2 * k.val + 1
-  case' right => let childIdx := 2 * k.val + 2
   all_goals
     intro hbound
     rw [heapifyDown_get_of_not_inSubtree hnsub_k,
@@ -118,7 +118,7 @@ theorem heapifyDown_preserves_wf_children_outside [Ord α] {v : Vector α sz} {i
     (hleft_ne : i.val ≠ 2 * k.val + 1 ) (hright_ne : i.val ≠ 2 * k.val + 2) :
     WF.children (heapifyDown v i) k :=
   heapifyDown_preserves_wf_children_of_not_inSubtree
-    (InSubtree.not_of_lt hki) rfl (fun _ => rfl) (fun _ => rfl) hwf ‹_› ‹_›
+    (InSubtree.not_of_lt hki) rfl (fun _ => rfl) (fun _ => rfl) hwf hleft_ne hright_ne
 
 /-- If v dominates all values in the subtree, v dominates the result at root -/
 theorem heapifyDown_root_bounded [Ord α] [Std.TransOrd α]
@@ -227,11 +227,10 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
 
     exact ⟨hchildren, hbelow⟩
   | case3 a i j hmaxChild hij h_lt =>
-    have h_ge : (compare a[i] a[j]).isGE
-      := by grind only [Ordering.isGE, Ordering.isLT]
-    grind only [heapifyDown, WF.children, = Fin.getElem_fin,
-      InSubtree.not_of_lt, !Std.TransOrd.isGE_trans, = maxChild_ge_left,
-      = maxChild_ge_right]
+      grind only [heapifyDown, WF.children, Ordering.isGE, Ordering.isLT,
+        = Fin.getElem_fin, InSubtree.not_of_lt, !Std.TransOrd.isGE_trans,
+        = maxChild_ge_left, = maxChild_ge_right]
+
 
 end heapifyDown
 
@@ -310,16 +309,12 @@ theorem singleton_wf [Ord α] {x : α} : WF (singleton x) := by
   simp [WF, singleton, vector, WF.topDown_singleton]
 
 @[simp, grind .]
-theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α sz} :
-    WF.topDown (mkHeap a) := by
-  unfold mkHeap
-  apply mkHeap.loop_wf
-  intro _ _
-  constructor
-  all_goals
-    intro _
-    exfalso
-    omega
+  theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α sz} :
+      WF.topDown (mkHeap a) := by
+    unfold mkHeap
+    apply mkHeap.loop_wf
+    intro k hk
+    constructor <;> intro h <;> omega
 
 @[simp]
 theorem size_insert [Ord α] (heap : BinaryHeap α) (x : α) :
@@ -360,12 +355,7 @@ theorem mem_insert [Ord α] {heap : BinaryHeap α} :
 
 theorem mem_iff_get {heap : BinaryHeap α} :
     a ∈ heap ↔ ∃ i : Fin heap.size, heap.get i = a := by
-  simp_all [mem_def, get, Array.mem_iff_getElem, size]
-  constructor
-  . rintro ⟨x, y, z⟩
-    exact ⟨⟨x, y⟩, z⟩
-  . rintro ⟨⟨x, y⟩, z⟩
-    exact ⟨x, y, z⟩
+  simp_all [mem_def, get, Array.mem_iff_getElem, size, Fin.exists_iff]
 
 @[grind .]
 theorem max_ge_all [Ord α] [Std.TransOrd α]
