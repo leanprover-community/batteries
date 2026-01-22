@@ -74,7 +74,7 @@ private def elabHelpOption (id : Option Ident) : CommandElabM Unit := do
     | .ofNat val => s!"Nat := {repr val}"
     | .ofInt val => s!"Int := {repr val}"
     | .ofSyntax val => s!"Syntax := {repr val}"
-    if let some val := opts.find (.mkSimple name) then
+    if let some val := opts.find? (.mkSimple name) then
       msg1 := s!"{msg1} (currently: {val})"
     msg := msg ++ .nest 2 (f!"option {name} : {msg1}" ++ .line ++ decl.descr) ++ .line ++ .line
   logInfo msg
@@ -317,7 +317,10 @@ elab "#help " colGt &"note" colGt ppSpace name:strLit : command => do
     logInfo <| "\n\n".intercalate <|
       ← valid_entries.filterMapM
         fun x => do
-          let some doc ← findDocString? env <| (`LibraryNote).eraseMacroScopes.append x |
+          -- Use encoded name (spaces → underscores) for docstring lookup,
+          -- matching the declaration name created by `library_note`
+          let encodedName := encodeNameForExport x
+          let some doc ← findDocString? env <| (`LibraryNote).eraseMacroScopes.append encodedName |
             return none
           return "library_note " ++ x.toString (escape := true) ++ "\n" ++
             "/-- " ++ doc.trimAscii ++ " -/"

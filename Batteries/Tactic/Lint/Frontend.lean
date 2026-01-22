@@ -157,7 +157,9 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
       if let some msg := msg?.get then
         msgs := msgs.insert declName msg
     traceLint
-      s!"(2/2) {if msgs.isEmpty then "Passed!" else s!"Failed with {msgs.size} messages."}"
+      s!"(2/2) {if msgs.isEmpty then "Passed!" else
+        s!"Failed with {msgs.size} messages\
+        {if inIO then ", but these may include declarations in `nolints.json`" else ""}."}"
       inIO currentModule linter.name
     pure (linter, msgs)
   traceLint "Completed linting!" inIO currentModule

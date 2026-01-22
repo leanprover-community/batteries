@@ -49,3 +49,31 @@ and the previously added note. -/
 -/
 #guard_msgs in
 #help note "te"
+
+/-! ## Tests for space-to-underscore encoding in declaration names
+
+Library notes with spaces in their names should create declarations with underscores,
+for compatibility with the Lean export format (which doesn't support whitespace in names).
+-/
+
+-- Test that a note with spaces creates a declaration with underscores
+library_note «note with spaces» /--
+This note has spaces in its name to test export format compatibility.
+-/
+
+-- Verify the declaration name has underscores, not spaces
+#check LibraryNote.note_with_spaces
+
+-- Test that a note with multiple consecutive spaces works
+library_note «note  with   multiple    spaces» /--
+This note has multiple consecutive spaces.
+-/
+
+#check LibraryNote.note__with___multiple____spaces
+
+/--
+info: library_note «note with spaces»
+/-- This note has spaces in its name to test export format compatibility. -/
+-/
+#guard_msgs in
+#help note "note with"
