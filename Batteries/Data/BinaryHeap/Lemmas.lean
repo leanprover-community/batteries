@@ -531,7 +531,7 @@ private theorem heapSort_loop_sorted [instOrd : Ord α] [Std.TransOrd α]
   [Std.OrientedOrd α] (heap : BinaryHeap α) (out : Array α)
     (hwf : WF heap) (h_out_sorted : out.toList.Pairwise (fun a b => compare a b |>.isGE))
     (h_heap_le_out : ∀ x ∈ heap, ∀ y ∈ out, compare x y |>.isLE) :
-    (Array.heapSort.loop heap out).toList.Pairwise (fun a b => compare a b |>.isGE) := by
+    (Array.heapSort.loop heap out).toList.Pairwise (compare · · |>.isGE) := by
   unfold Array.heapSort.loop
   split <;> try assumption
   rename_i x _
@@ -551,7 +551,7 @@ private theorem heapSort_loop_sorted [instOrd : Ord α] [Std.TransOrd α]
 
 theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Array α} :
-    a.heapSort.toList.Pairwise (fun x y => compare x y |>.isLE) := by
+    a.heapSort.toList.Pairwise (compare · · |>.isLE) := by
   unfold Array.heapSort
   have h := heapSort_loop_sorted
     (instOrd := instOrd.opposite)
