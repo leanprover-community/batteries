@@ -149,7 +149,8 @@ theorem heapifyDown_preserves_wf_parent [Ord α] [Std.TransOrd α] [Std.Oriented
     rw [Vector.getElem_set_ne (i := i.val) (j := parent.val) _ _ (by omega)]
     by_cases heq : childIdx = i.val
     · simp only [parent, heq, childIdx]
-      exact heapifyDown_root_bounded (WF.parent_dominates_set_subtree htd h_le hi)
+      apply heapifyDown_root_bounded
+      exact WF.parent_dominates_set_subtree ‹_› ‹_› ‹_›
     . have hsub : ¬InSubtree i.val childIdx :=  by grind only [InSubtree.not_of_lt]
       rw [heapifyDown_get_of_not_inSubtree' hside hsub]
       rw [Vector.getElem_set_ne _ _ (by simp_all only [ne_eq]; omega)]
@@ -185,10 +186,8 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     obtain ⟨ih_at, ih_below⟩ := ih (WF.below_swap (hbelow := hbelow) (hij := h_ij))
     have hnsub_i : ¬InSubtree j.val i.val := InSubtree.not_of_lt h_ij
     have hchild := maxChild_isChild a i j hmaxChild
-
-    have hchildren : WF.children (heapifyDown a i) i := by
-      constructor
-
+    constructor
+    . constructor
       all_goals
         intro hside
         unfold heapifyDown
@@ -216,16 +215,12 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
         have hnsub_r : ¬InSubtree j.val (2 * i.val + 2) := by grind only [InSubtree.not_of_lt]
         grind only [Fin.getElem_fin, = Vector.getElem_swap,
           InSubtree, = maxChild_ge_right, heapifyDown_get_of_not_inSubtree' hside hnsub_r]
-
-    have hbelow : WF.below (heapifyDown a i) i  := by
-      unfold heapifyDown
+    . unfold heapifyDown
       intro k
       split
       . grind only
       . cases Nat.lt_trichotomy j k <;> grind only [heapifyDown_swap_preserves_wf_children_of_lt,
         WF.children, WF.below, = Fin.getElem_fin]
-
-    exact ⟨hchildren, hbelow⟩
   | case3 a i j hmaxChild hij h_lt =>
       grind only [heapifyDown, WF.children, Ordering.isGE, Ordering.isLT,
         = Fin.getElem_fin, InSubtree.not_of_lt, !Std.TransOrd.isGE_trans,
@@ -415,8 +410,6 @@ theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : Binary
   rw [← Vector.mk_toArray (xs := (heapifyUp _ _))] at this
   grind only [vector, size]
 
-theorem mem_def {x : α} {h : BinaryHeap α} : x ∈ h ↔ x ∈ h.arr := Iff.rfl
-
 theorem mem_insert [Ord α] {heap : BinaryHeap α} :
     y ∈ heap.insert x ↔ y = x ∨ y ∈ heap := by
   unfold insert
@@ -454,6 +447,18 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       simp_all [WF.topDown_iff_at_below_zero.mp, heapifyDown_wf (i := ⟨0, by omega⟩) hbelow]
     . grind only [WF.children, WF.topDown]
 
+/-- Elements in popMax were in the original heap -/
+theorem popMax_subset [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ heap.popMax) :
+    x ∈ heap := by
+  have hperm := popMax_perm (heap := heap)
+  by_cases h_sz : heap.size = 0
+  · simp_all [popMax, mem_def]
+  · have h_pos : 0 < heap.size := by omega
+    have := (hperm h_pos).mem_iff (a := x)
+    grind only [List.mem_cons, Array.mem_toList_iff, mem_def]
+
+
+
 @[grind .]
 theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_leq : compare x (heap.get i) |>.isLE) :
@@ -476,7 +481,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
       have hright_ne : i.val ≠ 2 * k.val + 2 := by omega
       have hwf_set : WF.children (heap.vector.set i x) k :=
               WF.set_preserves_wf_children_of_ne (htd k) (by omega) hleft_ne hright_ne
-      exact heapifyDown_preserves_wf_children_outside hki hwf_set hleft_ne hright_ne
+      apply heapifyDown_preserves_wf_children_outside <;> assumption
   · exact Fin.ext hki_eq ▸ hchildren_i
   · exact hbelow_i k hik
 
@@ -509,12 +514,51 @@ theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {
     WF (Batteries.Vector.toBinaryHeap a) := by
   simp [WF.topDown_toArray, Vector.toBinaryHeap]
 
-theorem Array.heapSort_perm [Ord α] {a : Array α} :
+theorem Array.heapSort_perm [instOrd : Ord α] {a : Array α} :
     a.heapSort.toList.Perm a.toList := by
   unfold Array.heapSort
-  have h := @heapSort_loop_perm _ revOrd (@Array.toBinaryHeap _ revOrd a) #[]
+  have h := @heapSort_loop_perm _ instOrd.opposite (@Array.toBinaryHeap _ instOrd.opposite a) #[]
   simp only [List.append_nil] at h
   apply h.trans
-  exact @mkHeap_perm _ _ revOrd ⟨a, _⟩ |>.toList
+  exact @mkHeap_perm _ _ instOrd.opposite ⟨a, _⟩ |>.toList
 
+/-- The inner loop of heapSort produces a sorted list (descending in the Ord instance used).
+-/
+private theorem heapSort_loop_sorted [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    (heap : BinaryHeap α) (out : Array α)
+    (hwf : WF heap)
+    (h_out_sorted : out.toList.Pairwise (fun a b => compare a b |>.isGE))
+    (h_heap_le_out : ∀ x ∈ heap, ∀ y ∈ out, compare x y |>.isLE) :
+    (Array.heapSort.loop heap out).toList.Pairwise (fun a b => compare a b |>.isGE) := by
+  unfold Array.heapSort.loop
+  split <;> try assumption
+  rename_i x _
+  have h_pos : 0 < heap.size := size_pos_of_max ‹_›
+  apply heapSort_loop_sorted
+  . exact popMax_wf hwf
+  . have : x ∈ heap := by grind only [BinaryHeap.mem_def, Array.getElem_mem, BinaryHeap.max,
+  getElem?_def]
+    grind only [= Array.toList_push, = List.pairwise_append, = List.pairwise_middle, ←
+    List.pairwise_singleton, Std.OrientedOrd.eq_swap, = Array.mem_toList_iff, = List.mem_cons,
+    !Ordering.isLE_swap]
+  . have : ∀ y ∈ heap, compare x y |>.isGE := by
+      intro y hy
+      have := max_ge_all hwf hy h_pos
+      simp_all [Option.get_some]
+    grind only [Std.OrientedOrd.eq_swap, Array.mem_push, popMax_subset, !Ordering.isGE_swap]
+
+theorem Array.heapSort_sorted [instOrd : Ord α] [instTransOrd : Std.TransOrd α] [instOrientedOrd : Std.OrientedOrd α] {a : Array α} :
+    a.heapSort.toList.Pairwise (fun x y => compare x y |>.isLE) := by
+  unfold Array.heapSort
+  have h := @heapSort_loop_sorted α instOrd.opposite instTransOrd.opposite instOrientedOrd.opposite
+    (@Array.toBinaryHeap α instOrd.opposite a)
+    #[]
+    (@Array.toBinaryHeap_wf _ instOrd.opposite instTransOrd.opposite instOrientedOrd.opposite a)
+    (by simp)
+    (by simp)
+  apply List.Pairwise.imp _ h
+  intro a b hge
+  rw [show instOrd.opposite.compare a b = instOrd.compare b a by rfl, Std.OrientedOrd.eq_swap,
+    Ordering.isGE_swap] at hge
+  assumption
 end

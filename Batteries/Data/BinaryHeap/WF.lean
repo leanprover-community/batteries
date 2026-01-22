@@ -68,8 +68,8 @@ public def WF.topDown [Ord α] (v : Vector α sz) : Prop :=
 
 /-- The well-formedness property of a binary heap -/
 @[expose]
-public def WF [Ord α] (self : BinaryHeap α) : Prop :=
-  WF.topDown self.vector
+public def WF [Ord α] (heap : BinaryHeap α) : Prop :=
+  WF.topDown heap.vector
 
 namespace WF
 variable {α : Type w} {sz : Nat}

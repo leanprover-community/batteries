@@ -80,6 +80,8 @@ instance : EmptyCollection (BinaryHeap α) := ⟨empty⟩
 instance : Membership α (BinaryHeap α) where
   mem h x := x ∈ h.arr
 
+theorem mem_def {x : α} {h : BinaryHeap α} : x ∈ h ↔ x ∈ h.arr := Iff.rfl
+
 /-- `O(1)`. Build a one-element heap. -/
 def singleton (x : α) : BinaryHeap α := ⟨#[x]⟩
 
@@ -176,13 +178,10 @@ def Array.toBinaryHeap [Ord α] (a : Array α) : Batteries.BinaryHeap α where
 
 open Batteries in
 
-private def revOrd [Ord α] : Ord α where
-  compare x y := compare y x
-
 /-- `O(n log n)`. Sort an array using a `BinaryHeap`. -/
 @[inline, specialize]
-def Array.heapSort [Ord α] (a : Array α) : Array α :=
-  loop (instOrd := revOrd) (@Array.toBinaryHeap _ revOrd a ) #[]
+def Array.heapSort [instOrd: Ord α] (a : Array α) : Array α :=
+  loop (instOrd := instOrd.opposite) (@Array.toBinaryHeap _ instOrd.opposite a ) #[]
 where
   /-- Inner loop for `heapSort`. -/
   loop [instOrd : Ord α] (a : Batteries.BinaryHeap α) (out : Array α) : Array α :=
