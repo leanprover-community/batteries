@@ -319,7 +319,7 @@ theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
     simp_all [Vector.cast, vector, size, Vector.swap_same]
 
 /-- The inner loop of heapSort produces a permutation of heap ++ out -/
-theorem heapSort_loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α) :
+theorem heapSort_loop_perm [instOrd : Ord α] (heap : BinaryHeap α) (out : Array α) :
     (Array.heapSort.loop heap out).toList.Perm (heap.arr.toList ++ out.toList) := by
   unfold Array.heapSort.loop
   split
@@ -341,7 +341,7 @@ theorem mkHeap.loop_perm [Ord α] {a : Vector α sz} {h : n ≤ sz} :
     simp only [mkHeap.loop]
     exact ih.trans heapifyDown_perm
 
-theorem mkHeap_perm [Ord α] {a : Vector α sz} : (mkHeap a).Perm a :=
+theorem mkHeap_perm [instOrd : Ord α] {a : Vector α sz} : (mkHeap a).Perm a :=
   mkHeap.loop_perm
 
 end perm
@@ -517,10 +517,13 @@ theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {
 theorem Array.heapSort_perm [instOrd : Ord α] {a : Array α} :
     a.heapSort.toList.Perm a.toList := by
   unfold Array.heapSort
-  have h := @heapSort_loop_perm _ instOrd.opposite (@Array.toBinaryHeap _ instOrd.opposite a) #[]
+  have h := heapSort_loop_perm
+    (instOrd := instOrd.opposite)
+    (Array.toBinaryHeap (instOrd := instOrd.opposite) a)
+    #[]
   simp only [List.append_nil] at h
   apply h.trans
-  exact @mkHeap_perm _ _ instOrd.opposite ⟨a, _⟩ |>.toList
+  exact mkHeap_perm (instOrd := instOrd.opposite) (a := ⟨a, _⟩) |>.toList
 
 /-- The inner loop of heapSort produces a sorted list (descending in the Ord instance used).
 -/
@@ -559,7 +562,7 @@ theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.Oriented
     (by simp)
   apply List.Pairwise.imp _ h
   intro a b hge
-  rw [show instOrd.opposite.compare a b = instOrd.compare b a by rfl, Std.OrientedOrd.eq_swap,
-    Ordering.isGE_swap] at hge
-  assumption
+  have : instOrd.opposite.compare a b = instOrd.compare b a := rfl
+  rw [this, Std.OrientedOrd.eq_swap, Ordering.isGE_swap] at hge
+  exact hge
 end
