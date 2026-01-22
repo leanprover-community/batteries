@@ -277,6 +277,80 @@ theorem heapifyUp_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
       grind only [Vector.Perm.trans, Vector.swap_perm, heapifyUp, Vector.Perm.rfl]
 end heapifyUp
 
+section perm
+
+/-- x :: l is a permutation of l ++ [x] -/
+theorem List.cons_perm_append_singleton (x : α) (l : List α) : (x :: l).Perm (l ++ [x]) := by
+  induction l with
+  | nil => rfl
+  | cons y ys ih => exact (List.Perm.swap y x ys).trans (ih.cons y)
+
+/-- For a vector, the last element cons'd with pop.toList is a permutation of toList -/
+theorem Vector.last_cons_pop_perm {v : Vector α (n+1)} :
+    (v[n] :: v.pop.toList).Perm v.toList := by
+  have hne : v.toList ≠ [] := by simp
+  grind only [!List.cons_perm_append_singleton, =_ Vector.toList_toArray, = List.getLast_eq_getElem,
+    = Array.getElem_toList, = Vector.toArray_pop,
+    = Vector.getElem_toArray, = Array.toList_pop, = Vector.length_toList,
+    List.dropLast_concat_getLast hne]
+
+theorem Vector.swap_same {v : Vector α n} {i : Nat} (hi : i < n) :
+    v.swap i i hi hi = v := by
+  ext k hk
+  simp_all [Vector.getElem_swap]
+
+
+/-- Swapping element i with the last and popping gives a permutation with v[i] prepended -/
+theorem Vector.swap_last_pop_perm {v : Vector α (n+1)} {i : Fin (n+1)} (hi : i.val < n) :
+    (v[i] :: (v.swap i n |>.pop).toList).Perm v.toList := by
+  have : (v.swap i n).toList.Perm v.toList := Vector.swap_perm (by omega) (by omega) |>.toList
+  grind only [!Vector.getElem_swap_right, = Fin.getElem_fin, !Vector.last_cons_pop_perm,
+    List.Perm.trans]
+
+/-- popMax returns a permutation: the original is a perm of max :: popMax -/
+theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
+    (heap.arr[0] :: heap.popMax.arr.toList).Perm heap.arr.toList := by
+  have hne : heap.size ≠ 0 := by omega
+  unfold popMax
+  simp only [hne, reduceDIte]
+  split <;> rename_i hsz
+  · have hdown := heapifyDown_perm (a := heap.vector.swap 0 (heap.size - 1) |>.pop) (i := ⟨0, hsz⟩)
+    have hswap := Vector.swap_last_pop_perm (n := heap.size - 1)
+      (v := heap.vector.cast (by omega)) (i := ⟨0, by omega⟩) (hi := by omega)
+    simp only [vector, size]
+    exact (hdown.toList.cons _).trans hswap
+  · have : heap.size = 1 := by omega
+    have hswap := Vector.last_cons_pop_perm (n := 0) (v := heap.vector.cast (by omega))
+    simp_all [Vector.cast, vector, size, Vector.swap_same]
+
+/-- The inner loop of heapSort produces a permutation of heap ++ out -/
+theorem heapSort_loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α) :
+    (Array.heapSort.loop heap out).toList.Perm (heap.arr.toList ++ out.toList) := by
+  unfold Array.heapSort.loop
+  split
+  · simp_all [size]
+  · -- max = some x
+    rename_i x h_some
+    have h_pos : 0 < heap.size := size_pos_of_max h_some
+    have h_x : x = heap.arr[0] := by
+      grind only [max, getElem?_def]
+    have ih := heapSort_loop_perm heap.popMax (out.push x)
+    grind only [List.Perm.trans, !List.perm_append_comm, = Array.toList_push, List.Perm.symm,
+      List.append_assoc, = List.cons_append, List.Perm.append_left, !popMax_perm]
+
+theorem mkHeap.loop_perm [Ord α] {a : Vector α sz} {h : n ≤ sz} :
+    (mkHeap.loop n a h).Perm a := by
+  induction n generalizing a with
+  | zero => simp [mkHeap.loop]
+  | succ i ih =>
+    simp only [mkHeap.loop]
+    exact ih.trans heapifyDown_perm
+
+theorem mkHeap_perm [Ord α] {a : Vector α sz} : (mkHeap a).Perm a :=
+  mkHeap.loop_perm
+
+end perm
+
 theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {n : Nat} {a : Vector α sz} {h : n ≤ sz}
     (hinv : ∀ k : Fin sz, n ≤ k.val → WF.children a k) :
@@ -290,15 +364,14 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       intro k hk
       by_cases hk_eq : k = i
       · grind only
-      · have hlt : i < k := by omega
-        exact hwf_below k hlt
+      · exact hwf_below k (by omega : i < k)
     exact ih hinv'
 
 public section
 
 @[simp]
 theorem size_empty : (@empty α).size = 0 := by
-  simp_all [empty, size]
+  simp [empty, size]
 
 @[simp, grind .]
 theorem empty_wf [Ord α] :  WF (empty : BinaryHeap α) := by
@@ -325,7 +398,6 @@ theorem size_insert [Ord α] (heap : BinaryHeap α) (x : α) :
 theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
     {x : α} (h_wf : heap.WF) :
     (heap.insert x).WF := by
-  skip
   unfold insert
   have h_sz : heap.vector.size < (heap.vector.push x).size := by grind only [size_insert]
   have h_ea : WF.exceptAt (heap.vector.push x) ⟨heap.vector.size, h_sz⟩ := by
@@ -366,9 +438,6 @@ theorem max_ge_all [Ord α] [Std.TransOrd α]
   have :=  WF.root_ge_all hwf h_ne ⟨idx, h_sz⟩
   simp_all [vector, max]
 
-@[simp]
-theorem max_eq_none_iff {heap : BinaryHeap α} : heap.max = none ↔ heap.size = 0 := by
-  simp [max, size]
 
 @[grind .]
 theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
@@ -439,4 +508,13 @@ theorem Array.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a
 theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α sz} :
     WF (Batteries.Vector.toBinaryHeap a) := by
   simp [WF.topDown_toArray, Vector.toBinaryHeap]
+
+theorem Array.heapSort_perm [Ord α] {a : Array α} :
+    a.heapSort.toList.Perm a.toList := by
+  unfold Array.heapSort
+  have h := @heapSort_loop_perm _ revOrd (@Array.toBinaryHeap _ revOrd a) #[]
+  simp only [List.append_nil] at h
+  apply h.trans
+  exact @mkHeap_perm _ _ revOrd ⟨a, _⟩ |>.toList
+
 end

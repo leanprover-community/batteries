@@ -317,17 +317,15 @@ theorem childLeParent_set_larger [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       grind only [!Std.TransOrd.isLE_trans, Std.OrientedOrd.eq_swap, !Ordering.isGE_swap,
         WF.parent, Vector.getElem_set]
 
-theorem below_swap_pop [Ord α] {a : Vector α sz} (wf : WF.topDown a)
-    (h0 : 0 < sz) :
-    WF.below (a.swap 0 (sz - 1)|>.pop) 0 := by
-  intro j hj
-  constructor
-  · intro hleft
-    have := (wf ⟨j.val, by omega⟩).1 (by omega : 2 * j.val + 1 < sz)
-    grind only [Vector.getElem_swap, Vector.getElem_pop, Fin.getElem_fin]
-  · intro hright
-    have := (wf ⟨j.val, by omega⟩).2 (by omega : 2 * j.val + 2 < sz)
-    grind only [Vector.getElem_swap, Vector.getElem_pop, Fin.getElem_fin]
+  theorem below_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.topDown a)
+      (h0 : 0 < sz) :
+      WF.below (a.swap 0 (sz - 1)|>.pop) 0 := by
+    intro j _
+    obtain ⟨hwf_l, hwf_r⟩ := hwf ⟨j.val, by omega⟩
+    constructor <;> intro _
+    case' left =>  have := hwf_l (by omega : 2 * j.val + 1 < sz)
+    case' left =>  have := hwf_r (by omega : 2 * j.val + 2 < sz)
+    all_goals grind only [Vector.getElem_swap, Vector.getElem_pop, Fin.getElem_fin]
 
 end WF
 end Batteries.BinaryHeap

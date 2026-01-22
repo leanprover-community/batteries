@@ -125,6 +125,11 @@ def popMax [Ord α] (self : BinaryHeap α) : BinaryHeap α :=
 def extractMax [Ord α] (self : BinaryHeap α) : Option α × BinaryHeap α :=
   (self.max, self.popMax)
 
+
+@[simp]
+public theorem max_eq_none_iff {heap : BinaryHeap α} : heap.max = none ↔ heap.size = 0 := by
+  simp [max, size]
+
 theorem size_pos_of_max {self : BinaryHeap α} (h : self.max = some x) : 0 < self.size := by
   simp only [max, getElem?_def] at h
   split at h
