@@ -524,10 +524,9 @@ theorem Array.heapSort_perm [instOrd : Ord α] {a : Array α} :
 
 /-- The inner loop of heapSort produces a sorted list (descending in the Ord instance used).
 -/
-private theorem heapSort_loop_sorted [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
-    (heap : BinaryHeap α) (out : Array α)
-    (hwf : WF heap)
-    (h_out_sorted : out.toList.Pairwise (fun a b => compare a b |>.isGE))
+private theorem heapSort_loop_sorted [instOrd : Ord α] [Std.TransOrd α]
+  [Std.OrientedOrd α] (heap : BinaryHeap α) (out : Array α)
+    (hwf : WF heap) (h_out_sorted : out.toList.Pairwise (fun a b => compare a b |>.isGE))
     (h_heap_le_out : ∀ x ∈ heap, ∀ y ∈ out, compare x y |>.isLE) :
     (Array.heapSort.loop heap out).toList.Pairwise (fun a b => compare a b |>.isGE) := by
   unfold Array.heapSort.loop
@@ -547,13 +546,15 @@ private theorem heapSort_loop_sorted [Ord α] [Std.TransOrd α] [Std.OrientedOrd
       simp_all [Option.get_some]
     grind only [Std.OrientedOrd.eq_swap, Array.mem_push, popMax_subset, !Ordering.isGE_swap]
 
-theorem Array.heapSort_sorted [instOrd : Ord α] [instTransOrd : Std.TransOrd α] [instOrientedOrd : Std.OrientedOrd α] {a : Array α} :
+theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {a : Array α} :
     a.heapSort.toList.Pairwise (fun x y => compare x y |>.isLE) := by
   unfold Array.heapSort
-  have h := @heapSort_loop_sorted α instOrd.opposite instTransOrd.opposite instOrientedOrd.opposite
-    (@Array.toBinaryHeap α instOrd.opposite a)
+  have h := heapSort_loop_sorted
+    (instOrd := instOrd.opposite)
+    (@Array.toBinaryHeap _ instOrd.opposite _)
     #[]
-    (@Array.toBinaryHeap_wf _ instOrd.opposite instTransOrd.opposite instOrientedOrd.opposite a)
+    (@Array.toBinaryHeap_wf _ instOrd.opposite _ _ a)
     (by simp)
     (by simp)
   apply List.Pairwise.imp _ h
