@@ -15,7 +15,6 @@ inductive InSubtree (root : Nat) : Nat → Prop
   | left : InSubtree root k → InSubtree root (2 * k + 1)
   | right : InSubtree root k → InSubtree root (2 * k + 2)
 
-
 namespace InSubtree
 
 theorem le  (ins : InSubtree j k) : j ≤ k := by
@@ -49,7 +48,6 @@ theorem zero_root (a : Nat) : InSubtree 0 a := by
         have : n + 1 = 2 * (n / 2) + 2 := by omega
         exact this ▸ .right (ih (n / 2) (by omega))
 end InSubtree
-
 
 /-- The primary local correctness property for the heap. A node should be >= both its children
     (if it has them).
@@ -112,10 +110,8 @@ theorem set_preserves_wf_children_of_ne [Ord α] {v : Vector α sz} {i k : Fin s
 theorem topDown_empty [Ord α] : WF.topDown (#v[] : Vector α 0) := by
   simp [topDown]
 
-
 theorem topDown_singleton [Ord α] {x : α} : WF.topDown #v[x] := by
   simp [topDown, children]
-
 
 /-- WF.topDown follows from WF.children at 0 and WF.below at 0 -/
 theorem topDown_iff_at_below_zero [Ord α] {a : Vector α sz} {h0 : 0 < sz} :
@@ -190,7 +186,6 @@ def childLeParent [Ord α] (a: Vector α sz) (i : Fin sz) : Prop :=
   let right := left + 1
   (∀ _ : left < sz, compare a[left] a[parent] |>.isLE) ∧
   (∀ _ : right < sz, compare a[right] a[parent] |>.isLE)
-
 
 /-- Every other node (except possibly i) is <= its parent (if it has one)
     Part of the invariant required/maintained by heapifyUp
@@ -275,7 +270,6 @@ theorem bottomUp_of_exceptAt_and_parent [Ord α] (a : Vector α sz) (i : Fin sz)
     WF.bottomUp a := by
   grind only [bottomUp, parent, exceptAt]
 
-
 theorem topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.topDown v) : WF ⟨v.toArray⟩ := by
   rintro ⟨ival, _⟩
   obtain ⟨hleft, hright⟩ := h_td ⟨ival, by simp_all [size]⟩
@@ -317,15 +311,15 @@ theorem childLeParent_set_larger [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       grind only [!Std.TransOrd.isLE_trans, Std.OrientedOrd.eq_swap, !Ordering.isGE_swap,
         WF.parent, Vector.getElem_set]
 
-  theorem below_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.topDown a)
-      (h0 : 0 < sz) :
-      WF.below (a.swap 0 (sz - 1)|>.pop) 0 := by
-    intro j _
-    obtain ⟨hwf_l, hwf_r⟩ := hwf ⟨j.val, by omega⟩
-    constructor <;> intro _
-    case' left =>  have := hwf_l (by omega : 2 * j.val + 1 < sz)
-    case' left =>  have := hwf_r (by omega : 2 * j.val + 2 < sz)
-    all_goals grind only [Vector.getElem_swap, Vector.getElem_pop, Fin.getElem_fin]
+theorem below_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.topDown a)
+    (h0 : 0 < sz) :
+    WF.below (a.swap 0 (sz - 1)|>.pop) 0 := by
+  intro j _
+  obtain ⟨hwf_l, hwf_r⟩ := hwf ⟨j.val, by omega⟩
+  constructor <;> intro _
+  case' left  => have := hwf_l (by omega : 2 * j.val + 1 < sz)
+  case' right => have := hwf_r (by omega : 2 * j.val + 2 < sz)
+  all_goals grind only [Vector.getElem_swap, Vector.getElem_pop, Fin.getElem_fin]
 
 end WF
 end Batteries.BinaryHeap
