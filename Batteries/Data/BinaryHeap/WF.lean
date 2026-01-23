@@ -165,8 +165,10 @@ theorem parent_dominates_set_subtree [Ord α] [Std.TransOrd α] [Std.OrientedOrd
   obtain ⟨hwf_parent_l, hwf_parent_r⟩ := htd parent
   have h_parent_ge_i : (compare v[parent] v[i]).isGE := by grind only [= Fin.getElem_fin]
   by_cases hm_eq : m.val = i.val
-  · grind only [Std.OrientedOrd.eq_swap, = Fin.getElem_fin, !Std.TransOrd.isGE_trans,
-    = Vector.getElem_set, !Ordering.isGE_swap]
+  · simp_all only [Fin.getElem_fin, Vector.getElem_set_self]
+    apply Std.TransOrd.isGE_trans h_parent_ge_i
+    rw [Std.OrientedOrd.eq_swap]
+    simp_all
   · have : i.val ≠ m.val := by omega
     simp_all only [Fin.getElem_fin, ne_eq, not_false_eq_true, Vector.getElem_set_ne]
     have h_parent_to_i : InSubtree parent.val i.val := by grind only [InSubtree]
@@ -229,6 +231,7 @@ theorem exceptAt_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       · simp_all [show 2 * i.val + 1 < sz by omega]
       · simp_all [show 2 * i.val + 2 < sz by omega]
     · unfold exceptAt parent at *
+      simp_all only [Fin.getElem_fin]
       grind only [Fin.ext_iff, Fin.isLt, = Fin.getElem_fin, = Vector.getElem_swap,
         !Std.TransOrd.isLE_trans]
 
