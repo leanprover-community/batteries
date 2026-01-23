@@ -64,8 +64,8 @@ theorem heapifyDown_get_of_not_inSubtree [Ord α] {a : Vector α sz} {i : Fin sz
   split <;> try rfl
   have hij : i < j := by grind only [maxChild_gt]
   have hnsub_j : ¬InSubtree j k := by
-    grind only [InSubtree.not_of_lt, maxChild_isChild,
-      InSubtree.lt_of_ne, InSubtree.trans, InSubtree]
+    intro hsub_jk
+    exact hnsub ((InSubtree.of_child (maxChild_isChild a i j hmc)).trans hsub_jk)
 
   rw [heapifyDown_get_of_not_inSubtree hnsub_j]
   grind only [= Fin.getElem_fin, Vector.getElem_swap_of_ne, InSubtree]
@@ -217,10 +217,14 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       . grind only
       . cases Nat.lt_trichotomy j k <;> grind only [heapifyDown_swap_preserves_wf_children_of_lt,
         WF.children, WF.below, = Fin.getElem_fin]
-  | case3 a i j hmaxChild hij h_lt =>
-      grind only [heapifyDown, WF.children, Ordering.isGE, Ordering.isLT,
-        = Fin.getElem_fin, InSubtree.not_of_lt, !Std.TransOrd.isGE_trans,
-        = maxChild_ge_left, = maxChild_ge_right]
+  | case3 a i j hmaxChild hij h_nlt =>
+      simp only [show heapifyDown a i = a by grind only [heapifyDown]]
+      have h_ge : (compare a[i] a[j]).isGE := by grind only [Ordering.isGE, Ordering.isLT]
+      constructor
+      · constructor <;> intro hbound <;> apply Std.TransOrd.isGE_trans h_ge
+        · apply maxChild_ge_left <;> assumption
+        · apply maxChild_ge_right <;> assumption
+      · exact hbelow
 
 end heapifyDown
 
@@ -281,10 +285,15 @@ theorem List.cons_perm_append_singleton (x : α) (l : List α) : (x :: l).Perm (
 theorem Vector.last_cons_pop_perm {v : Vector α (n+1)} :
     (v[n] :: v.pop.toList).Perm v.toList := by
   have hne : v.toList ≠ [] := by simp
-  grind only [!List.cons_perm_append_singleton, =_ Vector.toList_toArray, = List.getLast_eq_getElem,
-    = Array.getElem_toList, = Vector.toArray_pop,
-    = Vector.getElem_toArray, = Array.toList_pop, = Vector.length_toList,
-    List.dropLast_concat_getLast hne]
+  have hdrop : v.pop.toList = v.toList.dropLast := by
+    rw [← Vector.toList_toArray]
+    simp only [Vector.toArray_pop, Array.toList_pop, Vector.toList_toArray]
+  have hlast : v[n] = v.toList.getLast hne := by
+    simp [List.getLast_eq_getElem, Vector.length_toList, Vector.getElem_toList]
+  rw [hdrop, hlast]
+  apply List.cons_perm_append_singleton _ _ |>.trans
+  rw [List.dropLast_concat_getLast hne]
+
 
 theorem Vector.swap_same {v : Vector α n} {i : Nat} (hi : i < n) :
     v.swap i i hi hi = v := by
@@ -320,14 +329,16 @@ theorem heapSort_loop_perm [instOrd : Ord α] (heap : BinaryHeap α) (out : Arra
   unfold Array.heapSort.loop
   split
   · simp_all [size]
-  · -- max = some x
-    rename_i x h_some
+  · rename_i x h_some
     have h_pos : 0 < heap.size := size_pos_of_max h_some
-    have h_x : x = heap.arr[0] := by
-      grind only [max, getElem?_def]
-    have ih := heapSort_loop_perm heap.popMax (out.push x)
-    grind only [List.Perm.trans, !List.perm_append_comm, = Array.toList_push, List.Perm.symm,
-      List.append_assoc, = List.cons_append, List.Perm.append_left, !popMax_perm]
+    have h_x : x = heap.arr[0] := by grind only [max, getElem?_def]
+    apply heapSort_loop_perm heap.popMax (out.push x) |>.trans
+    simp only [Array.toList_push]
+    apply (List.perm_append_comm.append_left _).trans
+    simp only [← List.append_assoc]
+    apply List.Perm.append_right
+    apply List.cons_perm_append_singleton x _ |>.symm.trans
+    simp_all [popMax_perm]
 
 theorem mkHeap.loop_perm [Ord α] {a : Vector α sz} {h : n ≤ sz} :
     (mkHeap.loop n a h).Perm a := by
@@ -446,8 +457,8 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     . grind only [WF.children, WF.topDown]
 
 /-- Elements in popMax were in the original heap -/
-theorem popMax_subset [Ord α] {heap : BinaryHeap α} :
-    heap.popMax ⊆ heap := by
+theorem popMax_subset [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ heap.popMax) :
+    x ∈ heap := by
   have hperm := popMax_perm (heap := heap)
   by_cases h_sz : heap.size = 0
   · simp_all [popMax, mem_def]

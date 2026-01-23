@@ -80,6 +80,11 @@ theorem zero_root (a : Nat) : InSubtree 0 a := by
       else
         have : n + 1 = 2 * (n / 2) + 2 := by omega
         exact this ▸ .right (ih (n / 2) (by omega))
+
+/-- A child index is in the subtree of its parent. -/
+theorem of_child (h : j = 2 * i + 1 ∨ j = 2 * i + 2) : InSubtree i j := by
+  rcases h with h | h <;> (simp only [h]; constructor; exact .refl)
+
 end InSubtree
 
 namespace WF
