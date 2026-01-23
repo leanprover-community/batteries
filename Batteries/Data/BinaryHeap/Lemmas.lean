@@ -525,13 +525,11 @@ theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
 
 theorem Array.heapSort_perm [instOrd : Ord α] {a : Array α} :
     a.heapSort.toList.Perm a.toList := by
-  unfold Array.heapSort
-  have h := heapSort_loop_perm
+  apply heapSort_loop_perm
     (instOrd := instOrd.opposite)
     (Array.toBinaryHeap (instOrd := instOrd.opposite) a)
-    #[]
-  simp only [List.append_nil] at h
-  apply h.trans
+    #[] |>.trans
+  simp only [List.append_nil]
   exact mkHeap_perm (instOrd := instOrd.opposite)
 
 /-- The inner loop of heapSort produces a sorted list (descending in the Ord instance used). -/
@@ -547,7 +545,7 @@ private theorem heapSort_loop_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.O
   apply heapSort_loop_sorted
   · exact popMax_wf hwf
   · have hx_in_heap : x ∈ heap := by
-      grind only [BinaryHeap.mem_def, Array.getElem_mem, BinaryHeap.max, getElem?_def]
+      simp_all [BinaryHeap.mem_def, BinaryHeap.max, Array.mem_of_getElem? ‹_›]
     rw [Array.toList_push, List.pairwise_append]
     refine ⟨by assumption, by simp, ?_⟩
     intro _ _ _ _
