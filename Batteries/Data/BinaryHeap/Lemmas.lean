@@ -427,8 +427,7 @@ theorem mem_insert [Ord α] {heap : BinaryHeap α} :
   unfold insert
   simp only [mem_def, Vector.mem_toArray_iff]
   rw [Vector.Perm.mem_iff heapifyUp_perm]
-  simp_all only [vector, Vector.push_mk, Vector.mem_mk, Array.mem_push, or_comm]
-
+  simp_all [vector, or_comm]
 
 theorem mem_iff_get {heap : BinaryHeap α} :
     a ∈ heap ↔ ∃ i : Fin heap.size, heap.get i = a := by
