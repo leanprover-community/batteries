@@ -121,7 +121,7 @@ private def elabHelpAttr (id : Option Ident) : CommandElabM Unit := do
   for (name, decl) in decls do
     let mut msg1 := s!"[{name}]: {decl.descr}"
     if let some doc ← findDocString? env decl.ref then
-      msg1 := s!"{msg1}\n{doc.trim}"
+      msg1 := s!"{msg1}\n{doc.trimAscii}"
     msg := msg ++ .nest 2 msg1 ++ .line ++ .line
   logInfo msg
 
@@ -199,7 +199,7 @@ private def elabHelpCats (id : Option Ident) : CommandElabM Unit := do
   for (name, cat) in decls do
     let mut msg1 := m!"category {name} [{mkConst cat.declName}]"
     if let some doc ← findDocString? env cat.declName then
-      msg1 := msg1 ++ Format.line ++ doc.trim
+      msg1 := msg1 ++ Format.line ++ doc.trimAscii.copy
     msg := msg ++ .nest 2 msg1 ++ (.line ++ .line : Format)
   logInfo msg
 
@@ -235,12 +235,12 @@ private def elabHelpCat (more : Option Syntax) (catStx : Ident) (id : Option Str
   for (k, _) in cat.kinds do
     let mut used := false
     if let some tk := do getHeadTk (← (← env.find? k).value?) then
-      let tk := tk.trim
+      let tk := tk.trimAscii
       if let some id := id then
-        if !id.isPrefixOf tk then
+        if !tk.startsWith id then
           continue
       used := true
-      decls := decls.insert tk ((decls.getD tk #[]).push k)
+      decls := decls.insert tk.copy ((decls.getD tk.copy #[]).push k)
     if !used && id.isNone then
       rest := rest.insert (k.toString false) k
   let mut msg := MessageData.nil
@@ -252,7 +252,7 @@ private def elabHelpCat (more : Option Syntax) (catStx : Ident) (id : Option Str
   let addMsg (k : SyntaxNodeKind) (msg msg1 : MessageData) : CommandElabM MessageData := do
     let mut msg1 := msg1
     if let some doc ← findDocString? env k then
-      msg1 := msg1 ++ Format.line ++ doc.trim
+      msg1 := msg1 ++ Format.line ++ doc.trimAscii.copy
     msg1 := .nest 2 msg1
     if more.isSome then
       let addElabs {α} (type : String) (attr : KeyedDeclsAttribute α)
@@ -262,7 +262,7 @@ private def elabHelpCat (more : Option Syntax) (catStx : Ident) (id : Option Str
           let x := e.declName
           msg := msg ++ Format.line ++ m!"+ {type} {mkConst x}"
           if let some doc ← findDocString? env x then
-            msg := msg ++ .nest 2 (Format.line ++ doc.trim)
+            msg := msg ++ .nest 2 (Format.line ++ doc.trimAscii.copy)
         pure msg
       msg1 ← addElabs "macro" macroAttribute msg1
       match catName with
@@ -282,11 +282,6 @@ elab_rules : command
   | `(#help cat $[+%$more]? $cat) => elabHelpCat more cat none
   | `(#help cat $[+%$more]? $cat $id:ident) => elabHelpCat more cat (id.getId.toString false)
   | `(#help cat $[+%$more]? $cat $id:str) => elabHelpCat more cat id.getString
-
-/--
-format the string to be included in a single markdown bullet
--/
-def _root_.String.makeBullet (s:String) := "* " ++ ("\n  ").intercalate (s.splitOn "\n")
 
 open Lean Parser Batteries.Util.LibraryNote in
 /--
@@ -322,10 +317,13 @@ elab "#help " colGt &"note" colGt ppSpace name:strLit : command => do
     logInfo <| "\n\n".intercalate <|
       ← valid_entries.filterMapM
         fun x => do
-          let some doc ← findDocString? env <| (`LibraryNote).eraseMacroScopes.append x |
+          -- Use encoded name (spaces → underscores) for docstring lookup,
+          -- matching the declaration name created by `library_note`
+          let encodedName := encodeNameForExport x
+          let some doc ← findDocString? env <| (`LibraryNote).eraseMacroScopes.append encodedName |
             return none
           return "library_note " ++ x.toString (escape := true) ++ "\n" ++
-            "/-- " ++ doc.trim ++ " -/"
+            "/-- " ++ doc.trimAscii ++ " -/"
 
 /--
 The command `#help term` shows all term syntaxes that have been defined in the current environment.
