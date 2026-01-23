@@ -298,9 +298,9 @@ theorem childLeParent_set_larger [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   unfold WF.childLeParent
   let parent := (i.val - 1) / 2
   obtain ⟨htd_left, htd_right⟩ := htd i
-  constructor
-  case' left  => intro hchild; have h_child := htd_left hchild
-  case' right => intro hchild; have h_child := htd_right hchild
+  constructor <;> intro hchild
+  case' left  => have := htd_left hchild
+  case' right => have := htd_right hchild
   all_goals
     by_cases hi : i.val = 0
     · -- i = 0, so parent = 0 = i

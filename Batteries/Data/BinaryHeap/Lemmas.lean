@@ -469,7 +469,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
     · have hleft_ne : i.val ≠ 2 * k.val + 1 := by omega
       have hright_ne : i.val ≠ 2 * k.val + 2 := by omega
       have hwf_set : WF.children (heap.vector.set i x) k :=
-              WF.set_preserves_wf_children_of_ne (htd k) (by omega) hleft_ne hright_ne
+              WF.set_preserves_wf_children_of_ne (htd k) (by omega) ‹_› ‹_›
       apply heapifyDown_preserves_wf_children_outside <;> assumption
   · exact Fin.ext hki_eq ▸ hchildren_i
   · exact hbelow_i k hik
@@ -535,7 +535,7 @@ private theorem heapSort_loop_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.O
   · have : ∀ y ∈ heap, compare x y |>.isGE := by
       intro y hy
       have := max_ge_all hwf hy h_pos
-      simp_all [Option.get_some]
+      simp_all
     grind only [Std.OrientedOrd.eq_swap, Array.mem_push, popMax_subset, !Ordering.isGE_swap]
 
 theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
