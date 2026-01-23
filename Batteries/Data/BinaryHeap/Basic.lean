@@ -61,7 +61,6 @@ where
 
 /-- Core operation for binary heaps, expressed directly on arrays.
 Given an array which is a max-heap, push item `i` up to restore the max-heap property. -/
-@[expose]
 def heapifyUp [Ord α] (a : Vector α sz) (i : Fin sz) :
     Vector α sz :=
   match i with
@@ -86,11 +85,9 @@ theorem mem_def {x : α} {h : BinaryHeap α} : x ∈ h ↔ x ∈ h.arr := Iff.rf
 def singleton (x : α) : BinaryHeap α := ⟨#[x]⟩
 
 /-- `O(1)`. Get the number of elements in a `BinaryHeap`. -/
-@[expose]
 def size (self : BinaryHeap α) : Nat := self.1.size
 
 /-- `O(1)`. Get data vector of a `BinaryHeap`. -/
-@[expose]
 def vector (self : BinaryHeap α) : Vector α self.size := ⟨self.1, rfl⟩
 
 /-- `O(1)`. Get an element in the heap by index. -/
@@ -105,7 +102,6 @@ def max (self : BinaryHeap α) : Option α := self.1[0]?
 
 /-- `O(log n)`. Remove the maximum element from a `BinaryHeap`
 Call `max` first to actually retrieve the maximum element. -/
-@[expose]
 def popMax [Ord α] (self : BinaryHeap α) : BinaryHeap α :=
   if h0 : self.size = 0 then self else
     have hs : self.size - 1 < self.size := Nat.pred_lt h0

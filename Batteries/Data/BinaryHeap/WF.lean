@@ -1,12 +1,13 @@
 module
 public import Batteries.Data.BinaryHeap.Basic
+import all Batteries.Data.BinaryHeap.Basic
 
 namespace Batteries.BinaryHeap
 
 /-- The size of the underlying vector is preserved when constructing a `BinaryHeap`. -/
 theorem vector_size {v : Vector α sz} :
     (BinaryHeap.mk v.toArray).vector.size = sz := by
-  simp [Vector.size, Vector.size_toArray, size]
+  simp [Vector.size, Vector.size_toArray, BinaryHeap.size]
 
 /-- Index `k` lies in the subtree rooted at index `root` in the implicit binary heap tree. -/
 @[grind]
