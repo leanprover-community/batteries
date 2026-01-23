@@ -386,21 +386,17 @@ theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : Binary
     {x : α} (h_wf : heap.WF) :
     (heap.insert x).WF := by
   unfold insert
-  have h_sz : heap.vector.size < (heap.vector.push x).size := by grind only [size_insert]
-  have h_ea : WF.exceptAt (heap.vector.push x) ⟨heap.vector.size, h_sz⟩ := by
-    intro i _
+  apply WF.topDown_toArray
+  rw [WF.iff_bottomUp]
+  apply heapifyUp_wf_bottomUp
+  . intro i _
     unfold WF at h_wf
     rw [WF.iff_bottomUp] at h_wf
     unfold WF.bottomUp at h_wf
     have : i < heap.vector.size := by grind only
     intro h_nz
     grind [h_wf ⟨i.val, by omega⟩ h_nz]
-  have h_clp : WF.childLeParent (heap.vector.push x) ⟨heap.vector.size, h_sz⟩ := by
-    grind only [WF.childLeParent]
-  simp only [WF, WF.iff_bottomUp]
-  have := heapifyUp_wf_bottomUp h_ea h_clp
-  rw [← Vector.mk_toArray (xs := (heapifyUp _ _))] at this
-  grind only [vector, size]
+  . grind only [WF.childLeParent]
 
 theorem mem_insert [Ord α] {heap : BinaryHeap α} :
     y ∈ heap.insert x ↔ y = x ∨ y ∈ heap := by
@@ -535,7 +531,7 @@ private theorem heapSort_loop_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.O
   · have : ∀ y ∈ heap, compare x y |>.isGE := by
       intro y hy
       have := max_ge_all hwf hy h_pos
-      simp_all
+      simp_all [Option.get_some]
     grind only [Std.OrientedOrd.eq_swap, Array.mem_push, popMax_subset, !Ordering.isGE_swap]
 
 theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
