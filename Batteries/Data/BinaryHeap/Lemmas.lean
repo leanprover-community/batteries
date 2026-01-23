@@ -220,11 +220,12 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   | case3 a i j hmaxChild hij h_nlt =>
       simp only [show heapifyDown a i = a by grind only [heapifyDown]]
       have h_ge : (compare a[i] a[j]).isGE := by grind only [Ordering.isGE, Ordering.isLT]
+      refine ⟨?_, by assumption⟩
       constructor
-      · constructor <;> intro hbound <;> apply Std.TransOrd.isGE_trans h_ge
-        · apply maxChild_ge_left <;> assumption
-        · apply maxChild_ge_right <;> assumption
-      · exact hbelow
+        <;> intros
+        <;> apply Std.TransOrd.isGE_trans h_ge
+        <;> (first | apply maxChild_ge_left | apply maxChild_ge_right)
+        <;> assumption
 
 end heapifyDown
 
@@ -548,7 +549,7 @@ private theorem heapSort_loop_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.O
       simp_all [BinaryHeap.mem_def, BinaryHeap.max, Array.mem_of_getElem? ‹_›]
     rw [Array.toList_push, List.pairwise_append]
     refine ⟨by assumption, by simp, ?_⟩
-    intro _ _ _ _
+    intros
     rw [Std.OrientedOrd.eq_swap, Ordering.isGE_swap]
     simp_all [Array.mem_toList_iff]
   · have hx_ge_heap : ∀ y ∈ heap, compare x y |>.isGE := by
