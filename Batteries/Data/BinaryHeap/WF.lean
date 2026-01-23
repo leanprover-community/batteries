@@ -294,9 +294,10 @@ theorem bottomUp_of_exceptAt_and_parent [Ord α] (a : Vector α sz) (i : Fin sz)
 theorem topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.topDown v) : WF ⟨v.toArray⟩ := by
   rintro ⟨ival, _⟩
   obtain ⟨hleft, hright⟩ := h_td ⟨ival, by simp_all [size]⟩
-  constructor <;> intro _
-  . exact hleft (by grind only [!vector_size])
-  . exact hright (by grind only [!vector_size])
+  constructor
+    <;> intros
+    <;> (first | apply hleft | apply hright)
+    <;> grind only [!vector_size]
 
 /-- Setting a larger value preserves WF.exceptAt -/
 theorem exceptAt_set_larger [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]

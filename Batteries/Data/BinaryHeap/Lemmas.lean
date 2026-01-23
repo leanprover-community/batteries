@@ -425,10 +425,10 @@ theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : Binary
 theorem mem_insert [Ord α] {heap : BinaryHeap α} :
     y ∈ heap.insert x ↔ y = x ∨ y ∈ heap := by
   unfold insert
-  simp [mem_def]
-  have := heapifyUp_perm (a := heap.vector.push x) (i := ⟨heap.size, by omega⟩)
-  rw [Vector.Perm.mem_iff this]
-  grind only [vector, Vector.push_mk, Vector.mem_mk, Array.mem_push]
+  simp only [mem_def, Vector.mem_toArray_iff]
+  rw [Vector.Perm.mem_iff heapifyUp_perm]
+  simp_all only [vector, Vector.push_mk, Vector.mem_mk, Array.mem_push, or_comm]
+
 
 theorem mem_iff_get {heap : BinaryHeap α} :
     a ∈ heap ↔ ∃ i : Fin heap.size, heap.get i = a := by
