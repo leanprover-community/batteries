@@ -21,22 +21,23 @@ The syntax `match ⋯ with.` has been deprecated in favor of `nomatch ⋯`.
 
 Both now support multiple discriminants.
 -/
-elab (name := matchWithDot) tk:"match " t:term,* " with" "." : term <= expectedType? => do
+elab (name := matchWithDot) (priority := low)
+    tk:"match " t:term,* " with" "." : term <= expectedType? => do
   logWarningAt tk (← findDocString? (← getEnv) ``matchWithDot).get!
   elabTerm (← `(nomatch%$tk $[$t],*)) expectedType?
 
 /-- The syntax `fun.` has been deprecated in favor of `nofun`. -/
-elab (name := funDot) tk:"fun" "." : term <= expectedType? => do
+elab (name := funDot) (priority := low) tk:"fun" "." : term <= expectedType? => do
   logWarningAt tk (← findDocString? (← getEnv) ``funDot).get!
   elabTerm (← `(nofun)) expectedType?
 
 /-- The syntax `λ.` has been deprecated in favor of `nofun`. -/
-elab (name := lambdaDot) tk:"fun" "." : term <= expectedType? => do
+elab (name := lambdaDot) (priority := low) tk:"fun" "." : term <= expectedType? => do
   logWarningAt tk (← findDocString? (← getEnv) ``lambdaDot).get!
   elabTerm (← `(nofun)) expectedType?
 
 @[inherit_doc matchWithDot]
-macro "match " discrs:term,* " with" "." : tactic =>
+macro (priority := low) "match " discrs:term,* " with" "." : tactic =>
   `(tactic| exact match $discrs,* with.)
 
 /--
