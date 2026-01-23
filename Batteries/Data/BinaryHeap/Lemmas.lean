@@ -506,11 +506,13 @@ end BinaryHeap
 public section
 open Batteries.BinaryHeap
 
-theorem Array.toBinaryHeap_wf [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Array α} :
+theorem Array.toBinaryHeap_wf [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {a : Array α} :
     WF (a.toBinaryHeap) := by
   simp [WF.topDown_toArray, Array.toBinaryHeap]
 
-theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α sz} :
+theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {a : Vector α sz} :
     WF (Batteries.Vector.toBinaryHeap a) := by
   simp [WF.topDown_toArray, Vector.toBinaryHeap]
 
