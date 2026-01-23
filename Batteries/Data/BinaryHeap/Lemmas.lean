@@ -6,6 +6,7 @@ import all Batteries.Data.BinaryHeap.Basic
 
 namespace Batteries.BinaryHeap
 
+
 /-- If maxChild returns none, there are no children in bounds. -/
 theorem maxChild_none_iff [Ord α] (a : Vector α sz) (i : Fin sz) :
     maxChild a i = none ↔ sz ≤ 2 * i.val + 1 := by
@@ -465,7 +466,7 @@ theorem popMax_subset [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ heap.p
   · simp_all [popMax, mem_def]
   · have h_pos : 0 < heap.size := by omega
     have := (hperm h_pos).mem_iff (a := x)
-    grind only [List.mem_cons, Array.mem_toList_iff, mem_def]
+    simp_all [mem_def]
 
 @[grind .]
 theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
