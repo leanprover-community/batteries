@@ -303,9 +303,10 @@ theorem Vector.swap_same {v : Vector α n} {i : Nat} (hi : i < n) :
 /-- Swapping element i with the last and popping gives a permutation with v[i] prepended -/
 theorem Vector.swap_last_pop_perm {v : Vector α (n+1)} {i : Fin (n+1)} (hi : i.val < n) :
     (v[i] :: (v.swap i n |>.pop).toList).Perm v.toList := by
-  have : (v.swap i n).toList.Perm v.toList := Vector.swap_perm (by omega) (by omega) |>.toList
-  grind only [!Vector.getElem_swap_right, = Fin.getElem_fin, !Vector.last_cons_pop_perm,
-    List.Perm.trans]
+  have h_swap_last : (v.swap i n)[n] = v[i] := Vector.getElem_swap_right (by omega) (by omega)
+  rw [← h_swap_last]
+  apply Vector.last_cons_pop_perm.trans
+  exact (Vector.swap_perm (by omega) (by omega)).toList
 
 /-- popMax returns a permutation: the original is a perm of max :: popMax -/
 theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
@@ -545,16 +546,22 @@ private theorem heapSort_loop_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.O
   have h_pos : 0 < heap.size := size_pos_of_max ‹_›
   apply heapSort_loop_sorted
   · exact popMax_wf hwf
-  · have : x ∈ heap := by
+  · have hx_in_heap : x ∈ heap := by
       grind only [BinaryHeap.mem_def, Array.getElem_mem, BinaryHeap.max, getElem?_def]
-    grind only [= Array.toList_push, = List.pairwise_append, = List.pairwise_middle,
-      ← List.pairwise_singleton, Std.OrientedOrd.eq_swap, = Array.mem_toList_iff,
-      = List.mem_cons, !Ordering.isLE_swap]
-  · have : ∀ y ∈ heap, compare x y |>.isGE := by
+    rw [Array.toList_push, List.pairwise_append]
+    refine ⟨by assumption, by simp, ?_⟩
+    intro _ _ _ _
+    rw [Std.OrientedOrd.eq_swap, Ordering.isGE_swap]
+    simp_all [Array.mem_toList_iff]
+  · have hx_ge_heap : ∀ y ∈ heap, compare x y |>.isGE := by
       intro y hy
       have := max_ge_all hwf hy h_pos
       simp_all [Option.get_some]
-    grind only [Std.OrientedOrd.eq_swap, Array.mem_push, popMax_subset, !Ordering.isGE_swap]
+    intro _ _ _ hy
+    rw [Array.mem_push] at hy
+    cases hy
+    case' inr => rw [Std.OrientedOrd.eq_swap, Ordering.isLE_swap]
+    all_goals simp_all [popMax_subset]
 
 theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Array α} :
