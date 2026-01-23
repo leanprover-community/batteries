@@ -85,20 +85,20 @@ theorem mem_def {x : α} {h : BinaryHeap α} : x ∈ h ↔ x ∈ h.arr := Iff.rf
 def singleton (x : α) : BinaryHeap α := ⟨#[x]⟩
 
 /-- `O(1)`. Get the number of elements in a `BinaryHeap`. -/
-def size (self : BinaryHeap α) : Nat := self.1.size
+def size (self : BinaryHeap α) : Nat := self.arr.size
 
 /-- `O(1)`. Get data vector of a `BinaryHeap`. -/
-def vector (self : BinaryHeap α) : Vector α self.size := ⟨self.1, rfl⟩
+def vector (self : BinaryHeap α) : Vector α self.size := ⟨self.arr, rfl⟩
 
 /-- `O(1)`. Get an element in the heap by index. -/
-def get (self : BinaryHeap α) (i : Fin self.size) : α := self.1[i]'(i.2)
+def get (self : BinaryHeap α) (i : Fin self.size) : α := self.arr[i]'(i.2)
 
 /-- `O(log n)`. Insert an element into a `BinaryHeap`, preserving the max-heap property. -/
 def insert [Ord α] (self : BinaryHeap α) (x : α) : BinaryHeap α where
   arr := heapifyUp (self.vector.push x) ⟨_, Nat.lt_succ_self _⟩ |>.toArray
 
 /-- `O(1)`. Get the maximum element in a `BinaryHeap`. -/
-def max (self : BinaryHeap α) : Option α := self.1[0]?
+def max (self : BinaryHeap α) : Option α := self.arr[0]?
 
 /-- `O(log n)`. Remove the maximum element from a `BinaryHeap`
 Call `max` first to actually retrieve the maximum element. -/

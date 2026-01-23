@@ -168,8 +168,10 @@ theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     simp_all
   · have hi' : k.val ≠ i.val := InSubtree.ne_of_lt h_ij hsub
     simp_all [WF.parent_ge_subtree, hbelow j h_ij, Vector.getElem_swap_of_ne,
-      WF.below_mono (Fin.le_of_lt h_ij) hbelow]
+      WF.below_of_le (Fin.le_of_lt h_ij) hbelow]
 
+/-- `heapifyDown` restores the heap property at node `i` and below, given that all nodes
+below `i` already satisfy `WF.children`. -/
 theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} {i : Fin sz}
     (hbelow : WF.below a i) :
@@ -250,6 +252,8 @@ theorem heapifyUp_wf_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       (by grind only)
       (by grind only [Ordering.isLT, Ordering.isGE])
 
+/-- `heapifyUp` restores the full heap property, given that all nodes except `i` satisfy
+the parent property and `i`'s children are ≤ `i`'s parent. -/
 theorem heapifyUp_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} {i : Fin sz} (hexcept : WF.exceptAt a i) (hchildren : WF.childLeParent a i) :
     WF.topDown (heapifyUp a i) := by
@@ -335,6 +339,8 @@ theorem mkHeap.loop_perm [Ord α] {a : Vector α sz} {h : n ≤ sz} :
 
 end perm
 
+/-- The inner loop of `mkHeap` establishes `WF.children` for all nodes, given that
+nodes at index ≥ n already satisfy the invariant. -/
 theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {n : Nat} {a : Vector α sz} {h : n ≤ sz}
     (hinv : ∀ k : Fin sz, n ≤ k.val → WF.children a k) :
@@ -356,6 +362,10 @@ public section
 @[simp]
 theorem size_empty : (@empty α).size = 0 := by
   simp [empty, size]
+
+@[simp]
+theorem size_singleton {x : α} : (singleton x).size = 1 := by
+  simp [singleton, size]
 
 @[simp, grind .]
 theorem empty_wf [Ord α] : WF (empty : BinaryHeap α) := by
@@ -393,9 +403,10 @@ theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : Binary
     unfold WF at h_wf
     rw [WF.iff_bottomUp] at h_wf
     unfold WF.bottomUp at h_wf
-    have : i < heap.vector.size := by grind only
     intro h_nz
-    grind [h_wf ⟨i.val, by omega⟩ h_nz]
+    simp only [Fin.getElem_fin]
+    rw [Vector.getElem_push_lt, Vector.getElem_push_lt]
+    exact h_wf ⟨i.val, by grind only⟩ h_nz
   . grind only [WF.childLeParent]
 
 theorem mem_insert [Ord α] {heap : BinaryHeap α} :
@@ -403,7 +414,7 @@ theorem mem_insert [Ord α] {heap : BinaryHeap α} :
   unfold insert
   simp [mem_def]
   have := heapifyUp_perm (a := heap.vector.push x) (i := ⟨heap.size, by omega⟩)
-  rw [Vector.Perm.mem_iff this (a := y)]
+  rw [Vector.Perm.mem_iff this]
   grind only [vector, Vector.push_mk, Vector.mem_mk, Array.mem_push]
 
 theorem mem_iff_get {heap : BinaryHeap α} :

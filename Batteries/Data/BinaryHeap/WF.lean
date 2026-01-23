@@ -4,6 +4,37 @@ import all Batteries.Data.BinaryHeap.Basic
 
 namespace Batteries.BinaryHeap
 
+public section
+/-- The primary local correctness property for the heap. A node should be >= both its children
+    (if it has them).
+-/
+@[expose]
+def WF.children [Ord α] (a : Vector α sz) (i : Fin sz) : Prop :=
+  let left := 2 * i.val + 1
+  let right := left + 1
+  (∀ _ : left < sz, compare a[i] a[left] |>.isGE) ∧
+  (∀ _ : right < sz, compare a[i] a[right] |>.isGE)
+
+/-- The vector underlying a `BinaryHeap` is well-formed iff every node is ≥ any children it has -/
+@[expose]
+def WF.topDown [Ord α] (v : Vector α sz) : Prop :=
+  ∀ i : Fin sz, WF.children v i
+
+/-- The well-formedness property of a binary heap -/
+@[expose]
+def WF [Ord α] (heap : BinaryHeap α) : Prop :=
+  WF.topDown heap.vector
+
+instance [Ord α] {a : Vector α sz} {i : Fin sz} : Decidable (WF.children a i) :=
+  instDecidableAnd
+
+instance [Ord α] {v : Vector α sz} : Decidable (WF.topDown v) :=
+  Nat.decidableForallFin (WF.children v)
+
+instance [Ord α] {heap : BinaryHeap α} : Decidable (WF heap) := instDecidableTopDown
+
+end
+
 /-- The size of the underlying vector is preserved when constructing a `BinaryHeap`. -/
 theorem vector_size {v : Vector α sz} :
     (BinaryHeap.mk v.toArray).vector.size = sz := by
@@ -18,7 +49,8 @@ inductive InSubtree (root : Nat) : Nat → Prop
 
 namespace InSubtree
 
-theorem le  (ins : InSubtree j k) : j ≤ k := by
+@[simp]
+theorem le (ins : InSubtree j k) : j ≤ k := by
   induction ins <;> omega
 
 theorem not_of_lt (hlt : k < j): ¬InSubtree j k := by
@@ -50,26 +82,6 @@ theorem zero_root (a : Nat) : InSubtree 0 a := by
         exact this ▸ .right (ih (n / 2) (by omega))
 end InSubtree
 
-/-- The primary local correctness property for the heap. A node should be >= both its children
-    (if it has them).
--/
-@[expose]
-public def WF.children [Ord α] (a : Vector α sz) (i : Fin sz) : Prop :=
-  let left := 2 * i.val + 1
-  let right := left + 1
-  (∀ _ : left < sz, compare a[i] a[left] |>.isGE) ∧
-  (∀ _ : right < sz, compare a[i] a[right] |>.isGE)
-
-/-- The vector underlying a `BinaryHeap` is well-formed iff every node is ≥ any children it has -/
-@[expose]
-public def WF.topDown [Ord α] (v : Vector α sz) : Prop :=
-  ∀ i : Fin sz, WF.children v i
-
-/-- The well-formedness property of a binary heap -/
-@[expose]
-public def WF [Ord α] (heap : BinaryHeap α) : Prop :=
-  WF.topDown heap.vector
-
 namespace WF
 variable {α : Type w} {sz : Nat}
 /-- All nodes at indices greater than `i` are well-formed (according to WF.children)
@@ -78,7 +90,7 @@ def below [Ord α] (a : Vector α sz) (i : Nat) : Prop :=
   ∀ j : Fin sz, i < j.val → WF.children a j
 
 /-- WF.below is monotone: larger threshold means weaker condition. -/
-theorem below_mono {a : Vector α sz} {i j : Nat}  [Ord α]
+theorem below_of_le {a : Vector α sz} {i j : Nat}  [Ord α]
     (hij : i ≤ j) (hbelow : WF.below a i) : WF.below a j := by
   grind only [WF.below]
 
