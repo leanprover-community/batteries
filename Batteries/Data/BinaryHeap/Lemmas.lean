@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2026 Chad Sharp. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chad Sharp
+-/
 module
 public import Batteries.Data.BinaryHeap.Basic
 public import Batteries.Data.BinaryHeap.WF
