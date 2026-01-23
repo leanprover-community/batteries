@@ -446,8 +446,8 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     . grind only [WF.children, WF.topDown]
 
 /-- Elements in popMax were in the original heap -/
-theorem popMax_subset [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ heap.popMax) :
-    x ∈ heap := by
+theorem popMax_subset [Ord α] {heap : BinaryHeap α} :
+    heap.popMax ⊆ heap := by
   have hperm := popMax_perm (heap := heap)
   by_cases h_sz : heap.size = 0
   · simp_all [popMax, mem_def]

@@ -249,7 +249,7 @@ theorem childLeParent_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       by_cases hj_pos : 0 < j <;>
         grind only [= Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isLE_trans]
 
-/- Dual global correctness property to `WF`. The vector underlying a BinomialHeap is well-formed
+/- Dual global correctness property to `WF`. The vector underlying a BinaryHeap is well-formed
   iff all nodes are ≤ their parent.
   Used when verifying heapifyUp.
 -/
