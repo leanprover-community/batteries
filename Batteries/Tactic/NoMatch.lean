@@ -32,7 +32,7 @@ elab (name := funDot) (priority := low) tk:"fun" "." : term <= expectedType? => 
   elabTerm (← `(nofun)) expectedType?
 
 /-- The syntax `λ.` has been deprecated in favor of `nofun`. -/
-elab (name := lambdaDot) (priority := low) tk:"fun" "." : term <= expectedType? => do
+elab (name := lambdaDot) (priority := low) tk:"λ" "." : term <= expectedType? => do
   logWarningAt tk (← findDocString? (← getEnv) ``lambdaDot).get!
   elabTerm (← `(nofun)) expectedType?
 
