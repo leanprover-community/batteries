@@ -19,7 +19,8 @@ namespace BitVec
 theorem toNat_pow (b : BitVec w) (n : Nat) : (b ^ n).toNat = (b.toNat ^ n) % (2 ^ w) := by
   induction n <;> simp_all [Lean.Grind.Semiring.pow_succ]
 
-theorem ofNat_pow (n : Nat) (x d : Nat) : BitVec.ofNat n (x ^ d) = BitVec.ofNat n x ^ d := by
+@[simp]
+theorem ofNat_pow (w x n : Nat) : BitVec.ofNat w (x ^ n) = BitVec.ofNat w x ^ n := by
   rw [← toNat_inj, toNat_ofNat, toNat_pow, toNat_ofNat, Nat.pow_mod]
 
 @[simp] theorem toNat_ofFnLEAux (m : Nat) (f : Fin n → Bool) :
