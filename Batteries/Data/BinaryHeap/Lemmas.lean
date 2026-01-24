@@ -499,9 +499,7 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   split
   . simp_all [WF]
   . split <;> apply WF.topDown_toArray
-    . have hbelow : WF.below (heap.vector.swap 0 (heap.size - 1)
-          (by omega) (by omega) |>.pop) 0 := by
-        grind only [WF.below_swap_pop htd]
+    . have hbelow := WF.below_swap_pop htd (by omega)
       simp_all [WF.topDown_iff_at_below_zero.mp, heapifyDown_wf (i := ⟨0, by omega⟩) hbelow]
     . grind only [WF.children, WF.topDown]
 
