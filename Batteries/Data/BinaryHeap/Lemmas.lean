@@ -13,23 +13,23 @@ namespace Batteries.BinaryHeap
 
 
 /-- If maxChild returns none, there are no children in bounds. -/
-theorem maxChild_none_iff [Ord α] (a : Vector α sz) (i : Fin sz) :
+theorem maxChild_none_iff [Ord α] {a : Vector α sz} {i : Fin sz} :
     maxChild a i = none ↔ sz ≤ 2 * i.val + 1 := by
   grind only [maxChild]
 
 /-- maxChild returns some iff there is at least one child. -/
-theorem maxChild_some_iff [Ord α] (a : Vector α sz) (i : Fin sz) :
+theorem maxChild_some_iff [Ord α] {a : Vector α sz} {i : Fin sz} :
     (maxChild a i).isSome ↔ 2 * i.val + 1 < sz := by
-  grind only [maxChild, = Option.isSome_none, = Option.isSome_some]
+  grind only [maxChild, = Option.isSome]
 
 /-- If maxChild returns some j, then j is a child of i. -/
-theorem maxChild_isChild [Ord α] (a : Vector α sz) (i : Fin sz) (j : Fin sz)
+theorem maxChild_isChild [Ord α] {a : Vector α sz} {i : Fin sz} {j : Fin sz}
     (h : maxChild a i = some j) :
     j.val = 2 * i.val + 1 ∨ j.val = 2 * i.val + 2 := by
-  grind only [maxChild, = Option.isSome_none, = Option.isSome_some]
+  grind only [maxChild, = Option.isSome]
 
 /-- maxChild returns an index greater than i. -/
-theorem maxChild_gt [Ord α] (a : Vector α sz) (i : Fin sz) (j : Fin sz)
+theorem maxChild_gt [Ord α] {a : Vector α sz} {i : Fin sz} {j : Fin sz}
     (h : maxChild a i = some j) : i < j := by
   grind only [maxChild, Lean.Grind.toInt_fin]
 
@@ -45,36 +45,50 @@ theorem maxChild_ge_right [Ord α] [Std.OrientedOrd α] (a : Vector α sz)
   grind only [= Fin.getElem_fin, Std.OrientedOrd.eq_swap, Ordering.swap_lt,
     Ordering.isGE, Ordering.isLT, maxChild]
 
+section heapifyDown
+
 /-- heapifyDown doesn't modify positions before the starting index. -/
 theorem heapifyDown_preserves_prefix [Ord α] (a : Vector α sz) (i k : Fin sz) (hk : k < ↑i) :
     (heapifyDown a i)[k] = a[k] := by
   induction a, i using heapifyDown.induct
     <;> grind only [heapifyDown, = Fin.getElem_fin, = Vector.getElem_swap]
 
-section heapifyDown
+/-- When maxChild returns none, heapifyDown is the identity. -/
+@[simp]
+theorem heapifyDown_eq_of_maxChild_none [Ord α] {a : Vector α sz} {i : Fin sz}
+    (h : maxChild a i = none) :
+    heapifyDown a i = a := by
+  grind only [heapifyDown]
+
+/-- When maxChild returns some and the parent is less than the child, heapifyDown swaps and recurses. -/
+theorem heapifyDown_eq_of_lt [Ord α] {a : Vector α sz} {i j : Fin sz}
+    (hmaxChild : maxChild a i = some j) (h_lt : (compare a[i] a[j]).isLT) :
+    heapifyDown a i = heapifyDown (a.swap i j) j := by
+  grind only [heapifyDown]
+
+/-- When maxChild returns some but parent is not less than child, heapifyDown is the identity. -/
+@[simp]
+theorem heapifyDown_eq_of_not_lt [Ord α] {a : Vector α sz} {i j : Fin sz}
+    (hmaxChild : maxChild a i = some j) (h_not_lt : ¬(compare a[i] a[j]).isLT) :
+    heapifyDown a i = a := by
+  grind only [heapifyDown]
 
 /-- `heapifyDown` does not modify elements outside the subtree rooted at `i`. -/
 theorem heapifyDown_get_of_not_inSubtree [Ord α] {a : Vector α sz} {i : Fin sz}
     {k : Fin sz} (hnsub : ¬InSubtree i k) :
     (heapifyDown a i)[k] = a[k] := by
-  -- I cannot split on the result of the maxChild call inside of heapifyDown directly because of
-  -- some dependence issue relating to getElem.
-  -- this is a workaround
-  cases hmc : maxChild a i
-    <;> unfold heapifyDown
-    <;> simp only
-    <;> conv => lhs; arg 1; rw [hmc]
-
-  simp only
-  rename_i j
-  split <;> try rfl
-  have hij : i < j := by grind only [maxChild_gt]
-  have hnsub_j : ¬InSubtree j k := by
-    intro hsub_jk
-    exact hnsub ((InSubtree.of_child (maxChild_isChild a i j hmc)).trans hsub_jk)
-
-  rw [heapifyDown_get_of_not_inSubtree hnsub_j]
-  grind only [= Fin.getElem_fin, Vector.getElem_swap_of_ne, InSubtree]
+  cases hmc : maxChild a i with
+  | none => simp_all
+  | some j =>
+    have hij : i < j := by grind only [maxChild_gt]
+    by_cases h_lt : (compare a[i] a[j]).isLT
+    · rw [heapifyDown_eq_of_lt ‹_› ‹_›]
+      have hnsub_j : ¬InSubtree j k := by
+        intro hsub_jk
+        exact hnsub (InSubtree.of_child (maxChild_isChild hmc) |>.trans hsub_jk)
+      rw [heapifyDown_get_of_not_inSubtree hnsub_j]
+      grind only [= Fin.getElem_fin, Vector.getElem_swap_of_ne, InSubtree]
+    · simp_all
 termination_by sz - i
 
 /-- `heapifyDown` preserves `WF.children` for nodes completely outside the affected subtree. -/
@@ -176,6 +190,50 @@ theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     simp_all [WF.parent_ge_subtree, hbelow j h_ij, Vector.getElem_swap_of_ne,
       WF.below_of_le (Fin.le_of_lt h_ij) hbelow]
 
+/-- After swapping with maxChild and heapifying, WF.children holds at the original position i. -/
+theorem heapifyDown_swap_wf_children [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {a : Vector α sz} {i j : Fin sz}
+    (hmaxChild : maxChild a i = some j)
+    (h_lt : (compare a[i] a[j]).isLT)
+    (hbelow : WF.below a i) :
+    WF.children (heapifyDown (a.swap i j) j) i := by
+  have h_ij : i < j := maxChild_gt hmaxChild
+  have hnsub_i : ¬InSubtree j.val i.val := InSubtree.not_of_lt h_ij
+  have hchild := maxChild_isChild hmaxChild
+  constructor
+  all_goals
+    intro hside
+    simp only [heapifyDown_get_of_not_inSubtree hnsub_i, Fin.getElem_fin,
+      Vector.getElem_swap_left]
+    cases hchild
+  -- j is the child we're proving about
+  case left.inl | right.inr =>
+    have : (compare a[j] (heapifyDown (a.swap i j) j)[j]).isGE = true := by
+      apply heapifyDown_root_bounded
+      apply swap_child_dominates <;> assumption
+    simp_all
+  -- j is the sibling of the child we're proving about
+  case' left.inr  => let childIdx := 2 * i.val + 1
+  case' right.inl => let childIdx := 2 * i.val + 2
+  all_goals
+    have hnsub : ¬InSubtree j.val childIdx := by grind only [InSubtree.not_of_lt]
+    rw [heapifyDown_get_of_not_inSubtree' hside ‹_›]
+    rw [Vector.getElem_swap_of_ne (by omega) (by omega)]
+    first | apply maxChild_ge_left | apply maxChild_ge_right
+    assumption
+
+/-- If parent >= maxChild, then WF.children holds at that position. -/
+theorem wf_children_of_ge_maxChild [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {a : Vector α sz} {i j : Fin sz}
+    (hmaxChild : maxChild a i = some j)
+    (h_ge : (compare a[i] a[j]).isGE) :
+    WF.children a i := by
+  constructor
+    <;> intros
+    <;> apply Std.TransOrd.isGE_trans h_ge
+    <;> (first | apply maxChild_ge_left | apply maxChild_ge_right)
+    <;> assumption
+
 /-- `heapifyDown` restores the heap property at node `i` and below, given that all nodes
 below `i` already satisfy `WF.children`. -/
 theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
@@ -185,53 +243,18 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   induction a, i using heapifyDown.induct with
   | case1 a i h => grind only [WF.children, WF.below, maxChild]
   | case2 a i j hmaxChild h_ij h_ai_aj ih =>
+    rw [heapifyDown_eq_of_lt ‹_› ‹_›]
     obtain ⟨ih_at, ih_below⟩ := ih (WF.below_swap (hbelow := hbelow) (hij := h_ij))
-    have hnsub_i : ¬InSubtree j.val i.val := InSubtree.not_of_lt h_ij
-    have hchild := maxChild_isChild a i j hmaxChild
+    have hchild := maxChild_isChild hmaxChild
     constructor
-    . constructor
-      all_goals
-        intro hside
-        unfold heapifyDown
-
-        -- I cannot reduce the match statement inside heapifyDown directly via hmaxChild
-        -- because of some dependence issue. This is a workaround
-        simp only
-        conv => lhs; arg 1; arg 1; arg 1; rw [hmaxChild]
-        conv => lhs; arg 1; arg 2; arg 1; rw [hmaxChild]
-        simp only [h_ai_aj, ↓reduceIte]
-
-        simp only [heapifyDown_get_of_not_inSubtree hnsub_i, Fin.getElem_fin,
-          Vector.getElem_swap_left]
-
-        cases hchild
-
-      case left.inl | right.inr =>
-        grind only [Fin.getElem_fin,
-          heapifyDown_root_bounded (swap_child_dominates h_ij h_ai_aj hbelow)]
-      case left.inr =>
-        have hnsub_l : ¬InSubtree j.val (2 * i.val + 1) := InSubtree.not_of_lt (by omega)
-        grind only [Fin.getElem_fin, = Vector.getElem_swap,
-          InSubtree, = maxChild_ge_left, heapifyDown_get_of_not_inSubtree' hside hnsub_l]
-      case right.inl =>
-        have hnsub_r : ¬InSubtree j.val (2 * i.val + 2) := by grind only [InSubtree.not_of_lt]
-        grind only [Fin.getElem_fin, = Vector.getElem_swap,
-          InSubtree, = maxChild_ge_right, heapifyDown_get_of_not_inSubtree' hside hnsub_r]
-    . unfold heapifyDown
-      intro k
-      split
-      . grind only
-      . cases Nat.lt_trichotomy j k <;> grind only [heapifyDown_swap_preserves_wf_children_of_lt,
+    · apply heapifyDown_swap_wf_children <;> assumption
+    · intro k hik
+      cases Nat.lt_trichotomy j k <;> grind only [heapifyDown_swap_preserves_wf_children_of_lt,
         WF.children, WF.below, = Fin.getElem_fin]
   | case3 a i j hmaxChild hij h_nlt =>
-      simp only [show heapifyDown a i = a by grind only [heapifyDown]]
+      rw [heapifyDown_eq_of_not_lt ‹_› ‹_›]
       have h_ge : (compare a[i] a[j]).isGE := by grind only [Ordering.isGE, Ordering.isLT]
-      refine ⟨?_, by assumption⟩
-      constructor
-        <;> intros
-        <;> apply Std.TransOrd.isGE_trans h_ge
-        <;> (first | apply maxChild_ge_left | apply maxChild_ge_right)
-        <;> assumption
+      simp_all [wf_children_of_ge_maxChild]
 
 end heapifyDown
 
@@ -301,7 +324,7 @@ theorem Vector.last_cons_pop_perm {v : Vector α (n+1)} :
   apply List.cons_perm_append_singleton _ _ |>.trans
   rw [List.dropLast_concat_getLast hne]
 
-
+@[simp]
 theorem Vector.swap_same {v : Vector α n} {i : Nat} (hi : i < n) :
     v.swap i i hi hi = v := by
   ext k hk
@@ -329,7 +352,7 @@ theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
     exact (hdown.toList.cons _).trans hswap
   · have : heap.size = 1 := by omega
     have hswap := Vector.last_cons_pop_perm (n := 0) (v := heap.vector.cast (by omega))
-    simp_all [Vector.cast, vector, size, Vector.swap_same]
+    simp_all [Vector.cast, vector, size]
 
 /-- The inner loop of heapSort produces a permutation of heap ++ out -/
 theorem heapSort_loop_perm [instOrd : Ord α] (heap : BinaryHeap α) (out : Array α) :
@@ -399,8 +422,8 @@ theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α
     WF.topDown (mkHeap a) := by
   unfold mkHeap
   apply mkHeap.loop_wf
-  intro k hk
-  constructor <;> intro h <;> omega
+  intros
+  constructor <;> intro <;> omega
 
 theorem mkHeap_perm [instOrd : Ord α] {a : Vector α sz} : (mkHeap a).toList.Perm a.toList :=
   mkHeap.loop_perm |>.toList
