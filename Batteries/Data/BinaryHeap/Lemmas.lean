@@ -11,7 +11,6 @@ import all Batteries.Data.BinaryHeap.Basic
 
 namespace Batteries.BinaryHeap
 
-
 /-- If maxChild returns none, there are no children in bounds. -/
 theorem maxChild_none_iff [Ord α] {a : Vector α sz} {i : Fin sz} :
     maxChild a i = none ↔ sz ≤ 2 * i.val + 1 := by
@@ -80,7 +79,7 @@ theorem heapifyDown_get_of_not_inSubtree [Ord α] {a : Vector α sz} {i : Fin sz
   cases hmc : maxChild a i with
   | none => simp_all
   | some j =>
-    have hij : i < j := by grind only [maxChild_gt]
+    have hij : i < j := maxChild_gt hmc
     by_cases h_lt : (compare a[i] a[j]).isLT
     · rw [heapifyDown_eq_of_lt ‹_› ‹_›]
       have hnsub_j : ¬InSubtree j k := by
@@ -190,7 +189,12 @@ theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     simp_all [WF.parent_ge_subtree, hbelow j h_ij, Vector.getElem_swap_of_ne,
       WF.below_of_le (Fin.le_of_lt h_ij) hbelow]
 
-/-- After swapping with maxChild and heapifying, WF.children holds at the original position i. -/
+/-- After swapping with maxChild and heapifying, WF.children holds at the original position i.
+
+We show a[j] (now at position i after swap) dominates both children of i.
+Four cases arise from: (proving left vs right child) × (j is left vs right child).
+- left.inl, right.inr: j equals the child we're proving about → use heapifyDown_root_bounded
+- left.inr, right.inl: j is the sibling → sibling unchanged, use maxChild_ge_left/right -/
 theorem heapifyDown_swap_wf_children [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} {i j : Fin sz}
     (hmaxChild : maxChild a i = some j)
@@ -203,21 +207,22 @@ theorem heapifyDown_swap_wf_children [Ord α] [Std.TransOrd α] [Std.OrientedOrd
   constructor
   all_goals
     intro hside
+    -- Position i now contains a[j] (via swap), unchanged by heapifyDown (i outside j's subtree)
     simp only [heapifyDown_get_of_not_inSubtree hnsub_i, Fin.getElem_fin,
       Vector.getElem_swap_left]
     cases hchild
-  -- j is the child we're proving about
+  -- j equals the child we're proving about: a[j] dominates the heapified result at j
   case left.inl | right.inr =>
     have : (compare a[j] (heapifyDown (a.swap i j) j)[j]).isGE = true := by
       apply heapifyDown_root_bounded
       apply swap_child_dominates <;> assumption
     simp_all
-  -- j is the sibling of the child we're proving about
+  -- j is the sibling: sibling is outside j's subtree, unchanged; maxChild guarantees a[j] >= sibling
   case' left.inr  => let childIdx := 2 * i.val + 1
   case' right.inl => let childIdx := 2 * i.val + 2
   all_goals
     have hnsub : ¬InSubtree j.val childIdx := by grind only [InSubtree.not_of_lt]
-    rw [heapifyDown_get_of_not_inSubtree' hside ‹_›]
+    rw [heapifyDown_get_of_not_inSubtree' hside hnsub]
     rw [Vector.getElem_swap_of_ne (by omega) (by omega)]
     first | apply maxChild_ge_left | apply maxChild_ge_right
     assumption
@@ -253,7 +258,8 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
         WF.children, WF.below, = Fin.getElem_fin]
   | case3 a i j hmaxChild hij h_nlt =>
       rw [heapifyDown_eq_of_not_lt ‹_› ‹_›]
-      have h_ge : (compare a[i] a[j]).isGE := by grind only [Ordering.isGE, Ordering.isLT]
+      have h_ge : (compare a[i] a[j]).isGE := by
+        simp_all [Ordering.isGE_iff_ne_lt]
       simp_all [wf_children_of_ge_maxChild]
 
 end heapifyDown
@@ -273,7 +279,7 @@ theorem heapifyUp_wf_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     exact WF.bottomUp_of_exceptAt_zero a (by omega) hexcept
   | case2 a i hisucc j h_lt ih =>
     have h_le : compare a[j] a[i+1] |>.isLE := by
-      grind only [Ordering.isLT, Ordering.isLE, = Fin.getElem_fin]
+      simp_all [Ordering.isLE_eq_isLT_or_isEq]
     simp only [heapifyUp, h_lt, ↓reduceIte, j]
     apply ih
     · exact WF.exceptAt_swap a ⟨i+1, by omega⟩ h_le hexcept hchildren
@@ -284,7 +290,7 @@ theorem heapifyUp_wf_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     exact WF.parent_of_isGE a
       ⟨i+1, by omega⟩
       (by grind only)
-      (by grind only [Ordering.isLT, Ordering.isGE])
+      (by simp_all [Ordering.isGE_iff_ne_lt])
 
 /-- `heapifyUp` restores the full heap property, given that all nodes except `i` satisfy
 the parent property and `i`'s children are ≤ `i`'s parent. -/
@@ -354,6 +360,13 @@ theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
     have hswap := Vector.last_cons_pop_perm (n := 0) (v := heap.vector.cast (by omega))
     simp_all [Vector.cast, vector, size]
 
+/-- When max returns some, the value equals arr[0]. -/
+theorem max_eq_arr_zero {heap : BinaryHeap α} {x : α} (h : heap.max = some x) :
+    x = heap.arr[0]'(size_pos_of_max h) := by
+  unfold max at h
+  have := Array.getElem_eq_iff (x := x) (h := size_pos_of_max h)
+  simp_all
+
 /-- The inner loop of heapSort produces a permutation of heap ++ out -/
 theorem heapSort_loop_perm [instOrd : Ord α] (heap : BinaryHeap α) (out : Array α) :
     (Array.heapSort.loop heap out).toList.Perm (heap.arr.toList ++ out.toList) := by
@@ -362,7 +375,7 @@ theorem heapSort_loop_perm [instOrd : Ord α] (heap : BinaryHeap α) (out : Arra
   · simp_all [size]
   · rename_i x h_some
     have h_pos : 0 < heap.size := size_pos_of_max h_some
-    have h_x : x = heap.arr[0] := by grind only [max, getElem?_def]
+    have h_x : x = heap.arr[0] := max_eq_arr_zero h_some
     apply heapSort_loop_perm heap.popMax (out.push x) |>.trans
     simp only [Array.toList_push]
     apply (List.perm_append_comm.append_left _).trans
