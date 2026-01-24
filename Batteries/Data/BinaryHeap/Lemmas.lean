@@ -173,8 +173,14 @@ theorem heapifyDown_preserves_wf_parent [Ord α] [Std.TransOrd α] [Std.Oriented
 
 theorem heapifyDown_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
     (heapifyDown a i).Perm a := by
-  induction a, i using heapifyDown.induct with grind only
-    [Vector.swap_perm, heapifyDown, Vector.Perm.rfl, Vector.Perm.trans]
+  induction a, i using heapifyDown.induct with
+    | case1 => simp_all [heapifyDown_eq_of_maxChild_none]
+    | case2 a i j hmaxChild hij hlt ih =>
+      rw [heapifyDown_eq_of_lt ‹_› ‹_›]
+      apply ih.trans
+      simp_all [Vector.swap_perm]
+    | case3 =>
+      simp_all [heapifyDown_eq_of_not_lt]
 
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
 theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
@@ -519,9 +525,9 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
     · have hk_eq : k = ⟨(i.val - 1) / 2, by omega⟩ := by ext; exact hk_parent.1
       rw [hk_eq]
       exact heapifyDown_preserves_wf_parent htd h_leq hk_parent.2
-    · have hleft_ne : i.val ≠ 2 * k.val + 1 := by omega
-      have hright_ne : i.val ≠ 2 * k.val + 2 := by omega
-      have hwf_set : WF.children (heap.vector.set i x) k :=
+    · have : i.val ≠ 2 * k.val + 1 := by omega
+      have : i.val ≠ 2 * k.val + 2 := by omega
+      have : WF.children (heap.vector.set i x) k :=
               WF.set_preserves_wf_children_of_ne (htd k) (by omega) ‹_› ‹_›
       apply heapifyDown_preserves_wf_children_outside <;> assumption
   · exact Fin.ext hki_eq ▸ hchildren_i
@@ -534,9 +540,8 @@ theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
   unfold increaseKey
   generalize hv : heap.vector = v
   have htd : WF.topDown v := by simp_all [WF]
-  have hbu : WF.bottomUp v := by rw [← WF.iff_bottomUp]; exact htd
-  have h_ge' : compare x v[i] |>.isGE := by
-    simp_all [get, ← hv, vector]
+  have hbu : WF.bottomUp v := by simpa [← WF.iff_bottomUp]
+  have h_ge' : compare x v[i] |>.isGE := by simp_all [get, vector]
   apply WF.topDown_toArray
   rw [WF.iff_bottomUp]
   simp_all [WF.exceptAt_set_larger, WF.childLeParent_set_larger, heapifyUp_wf_bottomUp]
@@ -574,12 +579,12 @@ private theorem heapSort_loop_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.O
     (Array.heapSort.loop heap out).toList.Pairwise (compare · · |>.isGE) := by
   unfold Array.heapSort.loop
   split <;> try assumption
-  rename_i x _
-  have h_pos : 0 < heap.size := size_pos_of_max ‹_›
+  rename_i x h
+  have h_pos : 0 < heap.size := size_pos_of_max h
   apply heapSort_loop_sorted
   · exact popMax_wf hwf
   · have hx_in_heap : x ∈ heap := by
-      simp_all [BinaryHeap.mem_def, BinaryHeap.max, Array.mem_of_getElem? ‹_›]
+      simp_all [BinaryHeap.mem_def, BinaryHeap.max, Array.mem_of_getElem? h]
     rw [Array.toList_push, List.pairwise_append]
     refine ⟨by assumption, by simp, ?_⟩
     intros

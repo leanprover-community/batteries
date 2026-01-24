@@ -302,7 +302,7 @@ theorem topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.topDown v) : WF �
   constructor
     <;> intros
     <;> (first | apply hleft | apply hright)
-    <;> grind only [!vector_size]
+    <;> simp_all [vector_size]
 
 /-- Setting a larger value preserves WF.exceptAt -/
 theorem exceptAt_set_larger [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
