@@ -310,7 +310,7 @@ theorem heapifyUp_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
   induction a, i using heapifyUp.induct
   all_goals
     unfold heapifyUp
-    grind only [Vector.Perm.trans, Vector.swap_perm, heapifyUp, Vector.Perm.rfl]
+    grind only [Vector.Perm.trans, Vector.swap_perm, Vector.Perm.rfl]
 
 end heapifyUp
 
