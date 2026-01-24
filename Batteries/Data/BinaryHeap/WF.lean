@@ -164,7 +164,7 @@ theorem parent_dominates_set_subtree [Ord α] [Std.TransOrd α] [Std.OrientedOrd
     {v : Vector α sz} {i : Fin sz} {x : α}
     (htd : WF.topDown v) (h_le : compare x v[i] |>.isLE) (hi : 0 < i.val)
     (m : Fin sz) (hsub : InSubtree i.val m.val) :
-    (compare v[(i.val - 1) / 2] (v.set i x)[m]).isGE := by
+    (compare v[(i.val - 1) / 2] (v.set i x i.isLt)[m]).isGE := by
   let parent : Fin sz := ⟨(i.val - 1) / 2, by omega⟩
   have h_parent_child : i.val = 2 * parent.val + 1 ∨ i.val = 2 * parent.val + 2 := by grind only
   obtain ⟨hwf_parent_l, hwf_parent_r⟩ := htd parent
@@ -245,7 +245,8 @@ theorem childLeParent_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     (a : Vector α sz) (i : Fin sz)
     (h_le : compare a[(i.val - 1) / 2] a[i] |>.isLE)
     (hexcept : WF.exceptAt a i) :
-    WF.childLeParent (a.swap i ((i.val - 1) / 2)) ⟨(i.val - 1) / 2, by omega⟩ := by
+    WF.childLeParent
+      (a.swap i ((i.val - 1) / 2) i.isLt (by omega)) ⟨(i.val - 1) / 2, by omega⟩ := by
   unfold WF.childLeParent at *
   let j := (i.val - 1) / 2
   constructor
@@ -331,7 +332,7 @@ theorem childLeParent_set_larger [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   all_goals
     by_cases hi : i.val = 0
     · -- i = 0, so parent = 0 = i
-      have hset_parent : (v.set i x)[parent] = x := by simp_all [parent]
+      have hset_parent : (v.set i x i.isLt)[parent] = x := by simp_all [parent]
       grind only [!Std.TransOrd.isLE_trans, Std.OrientedOrd.eq_swap, !Ordering.isGE_swap,
         Vector.getElem_set]
     · -- i ≠ 0, so parent ≠ i
