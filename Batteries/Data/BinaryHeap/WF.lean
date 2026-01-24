@@ -258,7 +258,8 @@ theorem childLeParent_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     · have hji : j ≠ i.val := by omega
       grind only [= Fin.getElem_fin, = Vector.getElem_swap]
     · have hparent_eq : (targetIdx - 1) / 2 = j := by omega
-      have h1 := hexcept ⟨targetIdx, hside⟩ (by grind only [Fin.ext_iff]) (by grind only)
+      simp_all only [Fin.getElem_fin]
+      have h1 := hexcept ⟨targetIdx, hside⟩ (by grind only) (by grind only)
       by_cases hj_pos : 0 < j <;>
         grind only [= Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isLE_trans]
 
@@ -308,7 +309,7 @@ theorem topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.topDown v) : WF �
 theorem exceptAt_set_larger [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {v : Vector α sz} {i : Fin sz} {x : α}
     (hbu : WF.bottomUp v) (h_ge : compare x v[i] |>.isGE) :
-    WF.exceptAt (v.set i x) i := by
+    WF.exceptAt (v.set i x i.isLt) i := by
   intro j hji hj_pos
   by_cases hparent_eq : (j.val - 1) / 2 = i.val
   all_goals
@@ -320,7 +321,7 @@ theorem exceptAt_set_larger [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
 theorem childLeParent_set_larger [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {v : Vector α sz} {i : Fin sz} {x : α}
     (htd : WF.topDown v) (hbu : WF.bottomUp v) (h_ge : compare x v[i] |>.isGE) :
-    WF.childLeParent (v.set i x) i := by
+    WF.childLeParent (v.set i x i.isLt) i := by
   unfold WF.childLeParent
   let parent := (i.val - 1) / 2
   obtain ⟨htd_left, htd_right⟩ := htd i
@@ -340,7 +341,7 @@ theorem childLeParent_set_larger [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
 
 theorem below_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.topDown a)
     (h0 : 0 < sz) :
-    WF.below (a.swap 0 (sz - 1)|>.pop) 0 := by
+    WF.below (a.swap 0 (sz - 1) h0 (by omega) |>.pop) 0 := by
   intro j _
   obtain ⟨hwf_l, hwf_r⟩ := hwf ⟨j.val, by omega⟩
   constructor <;> intro _

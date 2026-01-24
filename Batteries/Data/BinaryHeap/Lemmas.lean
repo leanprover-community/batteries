@@ -186,7 +186,7 @@ theorem heapifyDown_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
 theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} {i j : Fin sz} (h_ij : i < j) (h_lt : (compare a[i] a[j]).isLT)
     (hbelow : WF.below a i) (k : Fin sz) (hsub : InSubtree j k) :
-    (compare a[j] (a.swap i j)[k]).isGE := by
+    (compare a[j] (a.swap i j i.isLt j.isLt)[k]).isGE := by
   by_cases hk_eq_j : k.val = j.val
   · unfold Ordering.isGE
     rw [Std.OrientedOrd.eq_swap]
@@ -337,8 +337,9 @@ theorem Vector.swap_same {v : Vector α n} {i : Nat} (hi : i < n) :
 
 /-- Swapping element i with the last and popping gives a permutation with v[i] prepended -/
 theorem Vector.swap_last_pop_perm {v : Vector α (n+1)} {i : Fin (n+1)} (hi : i.val < n) :
-    (v[i] :: (v.swap i n |>.pop).toList).Perm v.toList := by
-  have h_swap_last : (v.swap i n)[n] = v[i] := Vector.getElem_swap_right (by omega) (by omega)
+    (v[i] :: (v.swap i n (by omega) (by omega) |>.pop).toList).Perm v.toList := by
+  have h_swap_last : (v.swap i n (by omega) (by omega))[n] = v[i] :=
+    Vector.getElem_swap_right (by omega) (by omega)
   rw [← h_swap_last]
   apply Vector.last_cons_pop_perm.trans
   exact (Vector.swap_perm (by omega) (by omega)).toList
@@ -482,7 +483,6 @@ theorem max_ge_all [Ord α] [Std.TransOrd α]
   have := WF.root_ge_all hwf h_ne ⟨idx, h_sz⟩
   simp_all [vector, max]
 
-@[grind .]
 theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {heap : BinaryHeap α} (h_wf : WF heap) :
     WF (heap.popMax) := by
@@ -492,7 +492,7 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   split
   . simp_all [WF]
   . split <;> apply WF.topDown_toArray
-    . have hbelow : WF.below (heap.vector.swap 0 (heap.size - 1) |>.pop) 0 := by
+    . have hbelow : WF.below (heap.vector.swap 0 (heap.size - 1) (by omega) (by omega) |>.pop) 0 := by
         grind only [WF.below_swap_pop htd]
       simp_all [WF.topDown_iff_at_below_zero.mp, heapifyDown_wf (i := ⟨0, by omega⟩) hbelow]
     . grind only [WF.children, WF.topDown]
@@ -507,7 +507,6 @@ theorem popMax_subset [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ heap.p
     have := (hperm h_pos).mem_iff (a := x)
     simp_all [mem_def]
 
-@[grind .]
 theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_leq : compare x (heap.get i) |>.isLE) :
     WF (heap.decreaseKey i x) := by
@@ -516,7 +515,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
   apply WF.topDown_toArray
   have htd : WF.topDown heap.vector := by simp_all [WF]
 
-  have hbelow : WF.below (heap.vector.set i x) i := WF.set_smaller_wf_below htd
+  have hbelow : WF.below (heap.vector.set i x i.isLt) i := WF.set_smaller_wf_below htd
   have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_wf hbelow
 
   intro k
