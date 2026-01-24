@@ -257,10 +257,7 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       cases Nat.lt_trichotomy j k <;> grind only [heapifyDown_swap_preserves_wf_children_of_lt,
         WF.children, WF.below, = Fin.getElem_fin]
   | case3 a i j hmaxChild hij h_nlt =>
-      rw [heapifyDown_eq_of_not_lt ‹_› ‹_›]
-      have h_ge : (compare a[i] a[j]).isGE := by
-        simp_all [Ordering.isGE_iff_ne_lt]
-      simp_all [wf_children_of_ge_maxChild]
+      simp_all [wf_children_of_ge_maxChild, Ordering.isGE_iff_ne_lt, heapifyDown_eq_of_not_lt]
 
 end heapifyDown
 
@@ -278,8 +275,7 @@ theorem heapifyUp_wf_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     simp only [heapifyUp]
     exact WF.bottomUp_of_exceptAt_zero a (by omega) hexcept
   | case2 a i hisucc j h_lt ih =>
-    have h_le : compare a[j] a[i+1] |>.isLE := by
-      simp_all [Ordering.isLE_eq_isLT_or_isEq]
+    have h_le : compare a[j] a[i+1] |>.isLE := by simp_all [Ordering.isLE_eq_isLT_or_isEq]
     simp only [heapifyUp, h_lt, ↓reduceIte, j]
     apply ih
     · exact WF.exceptAt_swap a ⟨i+1, by omega⟩ h_le hexcept hchildren
@@ -287,10 +283,7 @@ theorem heapifyUp_wf_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   | case3 a i hisucc j h_nlt =>
     simp_all only [heapifyUp, j]
     apply WF.bottomUp_of_exceptAt_and_parent a ⟨i+1, by omega⟩ hexcept
-    exact WF.parent_of_isGE a
-      ⟨i+1, by omega⟩
-      (by grind only)
-      (by simp_all [Ordering.isGE_iff_ne_lt])
+    apply WF.parent_of_isGE a ⟨i + 1, by omega⟩ <;> simp_all [Ordering.isGE_iff_ne_lt]
 
 /-- `heapifyUp` restores the full heap property, given that all nodes except `i` satisfy
 the parent property and `i`'s children are ≤ `i`'s parent. -/
@@ -405,12 +398,11 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   | succ i ih =>
     have hi_lt : i < sz := by omega
     obtain ⟨hwf_at, hwf_below⟩:= heapifyDown_wf (a := a) (i := ⟨i, hi_lt⟩) hinv
-    have hinv' : ∀ k : Fin sz, i ≤ k.val → WF.children (heapifyDown a ⟨i, hi_lt⟩) k := by
-      intro k hk
-      by_cases hk_eq : k = i
-      · grind only
-      · exact hwf_below k (by omega : i < k)
-    exact ih hinv'
+    apply ih
+    intro k hk
+    by_cases hk_eq : k = i
+    · grind only
+    · exact hwf_below k (by omega : i < k)
 
 public section
 
