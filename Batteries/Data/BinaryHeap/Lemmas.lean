@@ -67,7 +67,6 @@ theorem heapifyDown_eq_of_lt [Ord α] {a : Vector α sz} {i j : Fin sz}
   grind only [heapifyDown]
 
 /-- When maxChild returns some but parent is not less than child, heapifyDown is the identity. -/
-@[simp]
 theorem heapifyDown_eq_of_not_lt [Ord α] {a : Vector α sz} {i j : Fin sz}
     (hmaxChild : maxChild a i = some j) (h_not_lt : ¬(compare a[i] a[j]).isLT) :
     heapifyDown a i = a := by
@@ -88,7 +87,7 @@ theorem heapifyDown_get_of_not_inSubtree [Ord α] {a : Vector α sz} {i : Fin sz
         exact hnsub (InSubtree.of_child (maxChild_isChild hmc) |>.trans hsub_jk)
       rw [heapifyDown_get_of_not_inSubtree hnsub_j]
       grind only [= Fin.getElem_fin, Vector.getElem_swap_of_ne, InSubtree]
-    · simp_all
+    · simp_all [heapifyDown_eq_of_not_lt]
 termination_by sz - i
 
 /-- `heapifyDown` preserves `WF.children` for nodes completely outside the affected subtree. -/
