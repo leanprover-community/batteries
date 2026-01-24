@@ -219,7 +219,7 @@ theorem heapifyDown_swap_wf_children [Ord α] [Std.TransOrd α] [Std.OrientedOrd
     cases hchild
   -- j equals the child we're proving about: a[j] dominates the heapified result at j
   case left.inl | right.inr =>
-    have : (compare a[j] (heapifyDown (a.swap i j) j)[j]).isGE = true := by
+    have : (compare a[j] (heapifyDown (a.swap i j i.isLt j.isLt) j)[j]).isGE = true := by
       apply heapifyDown_root_bounded
       apply swap_child_dominates <;> assumption
     simp_all
@@ -519,7 +519,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
   unfold decreaseKey
   apply WF.topDown_toArray
   have htd : WF.topDown heap.vector := by simp_all [WF]
-  have hbelow : WF.below (heap.vector.set i x i.isLt) i := WF.set_smaller_wf_below htd
+  have hbelow : WF.below (heap.vector.set i x _) i := WF.set_smaller_wf_below htd
   have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_wf hbelow
   intro k
   rcases Nat.lt_trichotomy k.val i.val with hki | hki_eq | hik
