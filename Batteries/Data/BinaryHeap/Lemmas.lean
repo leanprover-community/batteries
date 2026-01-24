@@ -59,7 +59,8 @@ theorem heapifyDown_eq_of_maxChild_none [Ord α] {a : Vector α sz} {i : Fin sz}
     heapifyDown a i = a := by
   grind only [heapifyDown]
 
-/-- When maxChild returns some and the parent is less than the child, heapifyDown swaps and recurses. -/
+/-- When maxChild returns some and the parent is less than the child,
+  heapifyDown swaps and recurses. -/
 theorem heapifyDown_eq_of_lt [Ord α] {a : Vector α sz} {i j : Fin sz}
     (hmaxChild : maxChild a i = some j) (h_lt : (compare a[i] a[j]).isLT) :
     heapifyDown a i = heapifyDown (a.swap i j) j := by
