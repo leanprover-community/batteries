@@ -79,6 +79,7 @@ def heapifyUp [Ord α] (a : Vector α sz) (i : Fin sz) :
     else a
 
 /-- `O(1)`. Build a new empty heap. -/
+@[inline]
 def empty : BinaryHeap α := ⟨#[]⟩
 
 instance : Inhabited (BinaryHeap α) := ⟨empty⟩
@@ -89,15 +90,19 @@ instance : Membership α (BinaryHeap α) where
 theorem mem_def {x : α} {h : BinaryHeap α} : x ∈ h ↔ x ∈ h.arr := Iff.rfl
 
 /-- `O(1)`. Build a one-element heap. -/
+@[inline]
 def singleton (x : α) : BinaryHeap α := ⟨#[x]⟩
 
 /-- `O(1)`. Get the number of elements in a `BinaryHeap`. -/
+@[inline]
 def size (self : BinaryHeap α) : Nat := self.arr.size
 
 /-- `O(1)`. Get data vector of a `BinaryHeap`. -/
+@[inline]
 def vector (self : BinaryHeap α) : Vector α self.size := ⟨self.arr, rfl⟩
 
 /-- `O(1)`. Get an element in the heap by index. -/
+@[inline]
 def get (self : BinaryHeap α) (i : Fin self.size) : α := self.arr[i]'(i.2)
 
 /-- `O(log n)`. Insert an element into a `BinaryHeap`, preserving the max-heap property. -/
@@ -145,6 +150,7 @@ theorem size_pos_of_max {self : BinaryHeap α} (h : self.max = some x) : 0 < sel
   · contradiction
 
 /-- `O(log n)`. Equivalent to `extractMax (self.insert x)`, except that extraction cannot fail. -/
+@[inline]
 def insertExtractMax [Ord α] (self : BinaryHeap α) (x : α) : α × BinaryHeap α :=
   match e : self.max with
   | none => (x, self)
@@ -155,6 +161,7 @@ def insertExtractMax [Ord α] (self : BinaryHeap α) (x : α) : α × BinaryHeap
     else (x, self)
 
 /-- `O(log n)`. Equivalent to `(self.max, self.popMax.insert x)`. -/
+@[inline]
 def replaceMax [Ord α] (self : BinaryHeap α) (x : α) : Option α × BinaryHeap α :=
   match e : self.max with
   | none => (none, ⟨self.vector.push x |>.toArray⟩)
