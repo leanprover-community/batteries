@@ -363,11 +363,10 @@ theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
   unfold popMax
   simp only [hne, reduceDIte]
   split <;> rename_i hsz
-  · have hdown := heapifyDown_perm
-      (a := heap.vector.swap 0 (heap.size - 1) (by omega) (by omega) |>.pop) (i := ⟨0, hsz⟩)
-    have hswap := Vector.swap_last_pop_perm (n := heap.size - 1)
-      (v := heap.vector.cast (by omega)) (i := ⟨0, by omega⟩) (hi := by omega)
-    simp only [vector, size]
+  · let n := heap.size - 1
+    let v : Vector α (n + 1) := heap.vector.cast (by omega)
+    have hdown := heapifyDown_perm (a := v.swap 0 n |>.pop) (i := ⟨0, hsz⟩)
+    have hswap := Vector.swap_last_pop_perm (v := v) (i := ⟨0, by omega⟩) (hi := by omega)
     exact (hdown.toList.cons _).trans hswap
   · have : heap.size = 1 := by omega
     have hswap := Vector.last_cons_pop_perm (n := 0) (v := heap.vector.cast (by omega))
