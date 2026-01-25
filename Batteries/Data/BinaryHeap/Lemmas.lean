@@ -266,12 +266,11 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     constructor
     · apply heapifyDown_swap_wf_children <;> assumption
     · intro k hik
-      rcases Nat.lt_trichotomy j.val k.val with hlt | heq | hgt <;> grind [Fin.ext,
-      heapifyDown_swap_preserves_wf_children_of_lt hchild, ih_below k, hbelow k]
-      --· exact ih_below k hlt
-      --· exact Fin.ext heq ▸ ih_at
-      --· exact heapifyDown_swap_preserves_wf_children_of_lt hchild
-      --    (by omega) (by omega) (hbelow k hik)
+      rcases Nat.lt_trichotomy j.val k.val with hlt | heq | hgt
+      · exact ih_below k hlt
+      · exact Fin.ext heq ▸ ih_at
+      · exact heapifyDown_swap_preserves_wf_children_of_lt hchild
+          (by omega) (by omega) (hbelow k hik)
   | case3 a i j hmaxChild hij h_nlt =>
       simp_all [wf_children_of_ge_maxChild, Ordering.isGE_iff_ne_lt, heapifyDown_eq_of_not_lt]
 
