@@ -41,7 +41,7 @@ instance [Ord α] {heap : BinaryHeap α} : Decidable (WF heap) := instDecidableT
 end
 
 /-- The size of the underlying vector is preserved when constructing a `BinaryHeap`. -/
-theorem vector_size {v : Vector α sz} :
+theorem vector_size [Ord α] {v : Vector α sz} :
     (BinaryHeap.mk v.toArray).vector.size = sz := by
   simp [Vector.size, Vector.size_toArray, BinaryHeap.size]
 

@@ -184,11 +184,11 @@ def increaseKey [Ord α] (self : BinaryHeap α) (i : Fin self.size) (x : α) : B
 
 /-- `O(n log n)`. Return the contents of `self` as a sorted array -/
 @[inline]
-def toSortedArray [instOrd : Ord α] (self : BinaryHeap α) : Array α :=
+def toSortedArray [Ord α] (self : BinaryHeap α) : Array α :=
   loop self #[]
 where
   @[specialize]
-  loop [instOrd : Ord α] (a : BinaryHeap α) (out : Array α) : Array α :=
+  loop [Ord α] (a : BinaryHeap α) (out : Array α) : Array α :=
     match _: a.max with
     | none => out
     | some x => loop a.popMax (out.push x)
@@ -210,10 +210,11 @@ def Batteries.Vector.toBinaryHeap [Ord α] (v : Vector α n) :
 open Batteries in
 /-- `O(n)`. Convert an unsorted array to a `BinaryHeap`. -/
 @[inline]
-def Array.toBinaryHeap [instOrd : Ord α] (a : Array α) : Batteries.BinaryHeap α where
+def Array.toBinaryHeap [Ord α] (a : Array α) : Batteries.BinaryHeap α where
   arr := BinaryHeap.mkHeap ⟨a, rfl⟩ |>.toArray
 
 /-- `O(n log n)`. Sort an array using a `BinaryHeap`. -/
 @[inline]
 def Array.heapSort [instOrd : Ord α] (a : Array α) : Array α :=
-  a.toBinaryHeap (instOrd := instOrd.opposite) |>.toSortedArray (instOrd := instOrd.opposite)
+  letI := instOrd.opposite
+  a.toBinaryHeap |>.toSortedArray
