@@ -615,9 +615,7 @@ theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.Oriented
     {a : Array α} :
     a.heapSort.toList.Pairwise (compare · · |>.isLE) := by
   letI := instOrd.opposite
-  unfold Array.heapSort
-  have hToSorted:= toSortedArray_sorted (Array.toBinaryHeap_wf (a := a))
-  apply List.Pairwise.imp _ hToSorted
+  apply List.Pairwise.imp _ (toSortedArray_sorted Array.toBinaryHeap_wf)
   intro a b hge
   rw [Std.OrientedOrd.eq_swap] at hge
   simp_all [show instOrd.compare a b = instOrd.opposite.compare b a from rfl]
