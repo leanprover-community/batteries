@@ -101,14 +101,17 @@ def vector (self : BinaryHeap α) : Vector α self.size := ⟨self.arr, rfl⟩
 def get (self : BinaryHeap α) (i : Fin self.size) : α := self.arr[i]'(i.2)
 
 /-- `O(log n)`. Insert an element into a `BinaryHeap`, preserving the max-heap property. -/
+@[inline]
 def insert [Ord α] (self : BinaryHeap α) (x : α) : BinaryHeap α where
   arr := heapifyUp (self.vector.push x) ⟨_, Nat.lt_succ_self _⟩ |>.toArray
 
 /-- `O(1)`. Get the maximum element in a `BinaryHeap`. -/
+@[inline]
 def max (self : BinaryHeap α) : Option α := self.arr[0]?
 
 /-- `O(log n)`. Remove the maximum element from a `BinaryHeap`
 Call `max` first to actually retrieve the maximum element. -/
+@[inline]
 def popMax [Ord α] (self : BinaryHeap α) : BinaryHeap α :=
   if h0 : self.size = 0 then self else
     have hs : self.size - 1 < self.size := Nat.pred_lt h0
@@ -160,10 +163,12 @@ def replaceMax [Ord α] (self : BinaryHeap α) (x : α) : Option α × BinaryHea
     (some m, ⟨heapifyDown v ⟨0, size_pos_of_max e⟩ |>.toArray⟩)
 
 /-- `O(log n)`. Replace the value at index `i` by `x`. Assumes that `x ≤ self.get i`. -/
+@[inline]
 def decreaseKey [Ord α] (self : BinaryHeap α) (i : Fin self.size) (x : α) : BinaryHeap α where
   arr := heapifyDown (self.vector.set i x) i |>.toArray
 
 /-- `O(log n)`. Replace the value at index `i` by `x`. Assumes that `self.get i ≤ x`. -/
+@[inline]
 def increaseKey [Ord α] (self : BinaryHeap α) (i : Fin self.size) (x : α) : BinaryHeap α where
   arr := heapifyUp (self.vector.set i x) i |>.toArray
 
