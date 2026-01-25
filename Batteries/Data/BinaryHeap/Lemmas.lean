@@ -41,7 +41,6 @@ theorem maxChild_ge_right [Ord α] [Std.OrientedOrd α] (a : Vector α sz)
 
 section heapifyDown
 
-
 /-- When maxChild returns none, heapifyDown is the identity. -/
 @[simp]
 theorem heapifyDown_eq_of_maxChild_none [Ord α] {a : Vector α sz} {i : Fin sz}
@@ -369,7 +368,7 @@ theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
     simp_all [Vector.cast, vector, size]
 
 /-- When max returns some, the value equals arr[0]. -/
-theorem max_eq_arr_zero {heap : BinaryHeap α} {x : α} (h : heap.max = some x) :
+theorem max_eq_arr_zero [Ord α] {heap : BinaryHeap α} {x : α} (h : heap.max = some x) :
     x = heap.arr[0]'(size_pos_of_max h) := by
   unfold max at h
   have := Array.getElem_eq_iff (x := x) (h := size_pos_of_max h)
@@ -429,11 +428,11 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
 public section
 
 @[simp]
-theorem size_empty : (@empty α).size = 0 := by
+theorem size_empty [Ord α] : (@empty α).size = 0 := by
   simp [empty, size]
 
 @[simp]
-theorem size_singleton {x : α} : (singleton x).size = 1 := by
+theorem size_singleton [Ord α] {x : α} : (singleton x).size = 1 := by
   simp [singleton, size]
 
 @[simp, grind .]
@@ -485,7 +484,7 @@ theorem mem_insert [Ord α] {heap : BinaryHeap α} :
   rw [Vector.Perm.mem_iff heapifyUp_perm]
   simp_all [vector, or_comm]
 
-theorem mem_iff_get {heap : BinaryHeap α} :
+theorem mem_iff_get [Ord α] {heap : BinaryHeap α} :
     a ∈ heap ↔ ∃ i : Fin heap.size, heap.get i = a := by
   simp_all [mem_def, get, Array.mem_iff_getElem, size, Fin.exists_iff]
 

@@ -10,7 +10,7 @@ public section
 namespace Batteries
 
 /-- A max-heap data structure. -/
-structure BinaryHeap (α: Type w) where
+structure BinaryHeap (α: Type w) [Ord α] where
   /-- `O(1)`. Get data array for a `BinaryHeap`. -/
   arr : Array α
 
@@ -81,30 +81,30 @@ def heapifyUp [Ord α] (a : Vector α sz) (i : Fin sz) :
 
 /-- `O(1)`. Build a new empty heap. -/
 @[inline]
-def empty : BinaryHeap α := ⟨#[]⟩
+def empty [Ord α] : BinaryHeap α := ⟨#[]⟩
 
-instance : Inhabited (BinaryHeap α) := ⟨empty⟩
-instance : EmptyCollection (BinaryHeap α) := ⟨empty⟩
-instance : Membership α (BinaryHeap α) where
+instance [Ord α] : Inhabited (BinaryHeap α) := ⟨empty⟩
+instance [Ord α] : EmptyCollection (BinaryHeap α) := ⟨empty⟩
+instance [Ord α] : Membership α (BinaryHeap α) where
   mem h x := x ∈ h.arr
 
-theorem mem_def {x : α} {h : BinaryHeap α} : x ∈ h ↔ x ∈ h.arr := Iff.rfl
+theorem mem_def [Ord α] {x : α} {h : BinaryHeap α} : x ∈ h ↔ x ∈ h.arr := Iff.rfl
 
 /-- `O(1)`. Build a one-element heap. -/
 @[inline]
-def singleton (x : α) : BinaryHeap α := ⟨#[x]⟩
+def singleton [Ord α] (x : α) : BinaryHeap α := ⟨#[x]⟩
 
 /-- `O(1)`. Get the number of elements in a `BinaryHeap`. -/
 @[inline]
-def size (self : BinaryHeap α) : Nat := self.arr.size
+def size [Ord α] (self : BinaryHeap α) : Nat := self.arr.size
 
 /-- `O(1)`. Get data vector of a `BinaryHeap`. -/
 @[inline]
-def vector (self : BinaryHeap α) : Vector α self.size := ⟨self.arr, rfl⟩
+def vector [Ord α] (self : BinaryHeap α) : Vector α self.size := ⟨self.arr, rfl⟩
 
 /-- `O(1)`. Get an element in the heap by index. -/
 @[inline]
-def get (self : BinaryHeap α) (i : Fin self.size) : α := self.arr[i]'(i.2)
+def get [Ord α] (self : BinaryHeap α) (i : Fin self.size) : α := self.arr[i]'(i.2)
 
 /-- `O(log n)`. Insert an element into a `BinaryHeap`, preserving the max-heap property. -/
 @[inline]
@@ -113,7 +113,7 @@ def insert [Ord α] (self : BinaryHeap α) (x : α) : BinaryHeap α where
 
 /-- `O(1)`. Get the maximum element in a `BinaryHeap`. -/
 @[inline]
-def max (self : BinaryHeap α) : Option α := self.arr[0]?
+def max [Ord α] (self : BinaryHeap α) : Option α := self.arr[0]?
 
 /-- `O(log n)`. Remove the maximum element from a `BinaryHeap`
 Call `max` first to actually retrieve the maximum element. -/
@@ -142,10 +142,11 @@ def extractMax [Ord α] (self : BinaryHeap α) : Option α × BinaryHeap α :=
 
 
 @[simp]
-public theorem max_eq_none_iff {heap : BinaryHeap α} : heap.max = none ↔ heap.size = 0 := by
+theorem max_eq_none_iff [Ord α] {heap : BinaryHeap α} :
+    heap.max = none ↔ heap.size = 0 := by
   simp [max, size]
 
-theorem size_pos_of_max {self : BinaryHeap α} (h : self.max = some x) : 0 < self.size := by
+theorem size_pos_of_max [Ord α] {self : BinaryHeap α} (h : self.max = some x) : 0 < self.size := by
   simp only [max, getElem?_def] at h
   split at h
   · assumption
