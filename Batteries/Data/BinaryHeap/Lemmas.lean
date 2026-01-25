@@ -379,22 +379,29 @@ theorem max_eq_arr_zero {heap : BinaryHeap α} {x : α} (h : heap.max = some x) 
   have := Array.getElem_eq_iff (x := x) (h := size_pos_of_max h)
   simp_all
 
-/-- The inner loop of heapSort produces a permutation of heap ++ out -/
-theorem heapSort_loop_perm [instOrd : Ord α] (heap : BinaryHeap α) (out : Array α) :
-    (Array.heapSort.loop heap out).toList.Perm (heap.arr.toList ++ out.toList) := by
-  unfold Array.heapSort.loop
+/-- The inner loop of toSortedArray produces a permutation of heap ++ out -/
+theorem toSortedArray_loop_perm [instOrd : Ord α] (heap : BinaryHeap α) (out : Array α) :
+    (toSortedArray.loop heap out).toList.Perm (heap.arr.toList ++ out.toList) := by
+  unfold toSortedArray.loop
   split
   · simp_all [size]
   · rename_i x h_some
     have h_pos : 0 < heap.size := size_pos_of_max h_some
     have h_x : x = heap.arr[0] := max_eq_arr_zero h_some
-    apply heapSort_loop_perm heap.popMax (out.push x) |>.trans
+    apply toSortedArray_loop_perm heap.popMax (out.push x) |>.trans
     simp only [Array.toList_push]
     apply (List.perm_append_comm.append_left _).trans
     simp only [← List.append_assoc]
     apply List.Perm.append_right
     apply List.cons_perm_append_singleton x _ |>.symm.trans
     simp_all [popMax_perm]
+
+theorem toSortedArray_perm [instOrd : Ord α] (heap : BinaryHeap α) :
+    heap.toSortedArray.Perm heap.arr := by
+  unfold toSortedArray
+  apply Array.Perm.of_toList_perm
+  apply toSortedArray_loop_perm heap #[] |>.trans
+  simp
 
 theorem mkHeap.loop_perm [Ord α] {a : Vector α sz} {h : n ≤ sz} :
     (mkHeap.loop n a h).Perm a := by
@@ -449,8 +456,8 @@ theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α
   intros
   constructor <;> intro <;> omega
 
-theorem mkHeap_perm [instOrd : Ord α] {a : Vector α sz} : (mkHeap a).toList.Perm a.toList :=
-  mkHeap.loop_perm |>.toList
+theorem mkHeap_perm [instOrd : Ord α] {a : Vector α sz} : (mkHeap a).toArray.Perm a.toArray :=
+  mkHeap.loop_perm |>.toArray
 
 @[simp]
 theorem size_insert [Ord α] (heap : BinaryHeap α) (x : α) :
@@ -552,42 +559,17 @@ theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
   rw [WF.iff_bottomUp]
   simp_all [WF.exceptAt_set_larger, WF.childLeParent_set_larger, heapifyUp_wf_bottomUp]
 
-end
-end BinaryHeap
-
-public section
-open Batteries.BinaryHeap
-
-theorem Array.toBinaryHeap_wf [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
-    {a : Array α} :
-    WF (a.toBinaryHeap) := by
-  simp [WF.topDown_toArray, Array.toBinaryHeap]
-
-theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
-    {a : Vector α sz} :
-    WF (Batteries.Vector.toBinaryHeap a) := by
-  simp [WF.topDown_toArray, Vector.toBinaryHeap]
-
-theorem Array.heapSort_perm [instOrd : Ord α] {a : Array α} :
-    a.heapSort.toList.Perm a.toList := by
-  apply heapSort_loop_perm
-    (instOrd := instOrd.opposite)
-    (Array.toBinaryHeap (instOrd := instOrd.opposite) a)
-    #[] |>.trans
-  simp only [List.append_nil]
-  exact mkHeap_perm (instOrd := instOrd.opposite)
-
-/-- The inner loop of heapSort produces a sorted list (descending in the Ord instance used). -/
-private theorem heapSort_loop_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+/-- The inner loop of toSortedArray produces a sorted array -/
+private theorem toSortedArray_loop_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     (heap : BinaryHeap α) (out : Array α)
     (hwf : WF heap) (h_out_sorted : out.toList.Pairwise (compare · · |>.isGE))
     (h_heap_le_out : ∀ x ∈ heap, ∀ y ∈ out, compare x y |>.isLE) :
-    (Array.heapSort.loop heap out).toList.Pairwise (compare · · |>.isGE) := by
-  unfold Array.heapSort.loop
+    (toSortedArray.loop heap out).toList.Pairwise (compare · · |>.isGE) := by
+  unfold toSortedArray.loop
   split <;> try assumption
   rename_i x h
   have h_pos : 0 < heap.size := size_pos_of_max h
-  apply heapSort_loop_sorted
+  apply toSortedArray_loop_sorted
   · exact popMax_wf hwf
   · have hx_in_heap : x ∈ heap := by
       simp_all [BinaryHeap.mem_def, BinaryHeap.max, Array.mem_of_getElem? h]
@@ -606,18 +588,45 @@ private theorem heapSort_loop_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.O
     case' inr => rw [Std.OrientedOrd.eq_swap, Ordering.isLE_swap]
     all_goals simp_all [popMax_subset]
 
+
+/-- toSortedArray produces a sorted array if the heap is well-formed -/
+theorem toSortedArray_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {heap : BinaryHeap α} (hwf : WF heap) :
+    heap.toSortedArray.toList.Pairwise (compare · · |>.isGE) := by
+  simp_all [toSortedArray, toSortedArray_loop_sorted]
+
+end
+end BinaryHeap
+
+public section
+open Batteries.BinaryHeap
+
+theorem Array.toBinaryHeap_wf [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {a : Array α} :
+    WF (a.toBinaryHeap) := by
+  simp [WF.topDown_toArray, Array.toBinaryHeap]
+
+theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {a : Vector α sz} :
+    WF (Batteries.Vector.toBinaryHeap a) := by
+  simp [WF.topDown_toArray, Vector.toBinaryHeap]
+
+theorem Array.heapSort_perm [instOrd : Ord α] {a : Array α} :
+    a.heapSort.Perm a := by
+  apply toSortedArray_perm
+    (instOrd := instOrd.opposite)
+    (a.toBinaryHeap (instOrd := instOrd.opposite))
+    |>.trans
+  exact mkHeap_perm (instOrd := instOrd.opposite)
+
 theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Array α} :
     a.heapSort.toList.Pairwise (compare · · |>.isLE) := by
   unfold Array.heapSort
-  have h := heapSort_loop_sorted
+  have hToSorted:= toSortedArray_sorted
     (instOrd := instOrd.opposite)
-    (Array.toBinaryHeap (instOrd := instOrd.opposite) a)
-    #[]
-    (Array.toBinaryHeap_wf (instOrd := instOrd.opposite))
-    (by simp)
-    (by simp)
-  apply List.Pairwise.imp _ h
+    (Array.toBinaryHeap_wf (instOrd := instOrd.opposite) (a := a))
+  apply List.Pairwise.imp _ hToSorted
   intro a b hge
   have : instOrd.opposite.compare a b = instOrd.compare b a := rfl
   rw [this, Std.OrientedOrd.eq_swap, Ordering.isGE_swap] at hge

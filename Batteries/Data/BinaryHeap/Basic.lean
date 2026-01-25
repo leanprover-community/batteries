@@ -39,7 +39,7 @@ theorem maxChild_gt [Ord α] {a : Vector α sz} {i : Fin sz} {j : Fin sz}
 
 /-- Core operation for binary heaps, expressed directly on arrays.
 Given an array which is a max-heap, push item `i` down to restore the max-heap property. -/
-@[expose]
+@[expose, specialize]
 def heapifyDown [Ord α] (a : Vector α sz) (i : Fin sz) :
     Vector α sz :=
   match h : maxChild a i with
@@ -58,6 +58,7 @@ def mkHeap [Ord α] (a : Vector α sz) : Vector α sz :=
   loop (sz / 2) a (Nat.div_le_self ..)
 where
   /-- Inner loop for `mkHeap`. -/
+  @[specialize]
   loop : (i : Nat) → (a : Vector α sz) → i ≤ sz → Vector α sz
   | 0, a, _ => a
   | i+1, a, h =>
@@ -66,6 +67,7 @@ where
 
 /-- Core operation for binary heaps, expressed directly on arrays.
 Given an array which is a max-heap, push item `i` up to restore the max-heap property. -/
+@[specialize]
 def heapifyUp [Ord α] (a : Vector α sz) (i : Fin sz) :
     Vector α sz :=
   match i with
@@ -165,6 +167,24 @@ def decreaseKey [Ord α] (self : BinaryHeap α) (i : Fin self.size) (x : α) : B
 def increaseKey [Ord α] (self : BinaryHeap α) (i : Fin self.size) (x : α) : BinaryHeap α where
   arr := heapifyUp (self.vector.set i x) i |>.toArray
 
+
+/-- `O(n log n)`. Return the contents of `self` as a sorted array -/
+@[inline]
+def toSortedArray [instOrd : Ord α] (self : BinaryHeap α) : Array α :=
+  loop self #[]
+where
+  @[specialize]
+  loop [instOrd : Ord α] (a : BinaryHeap α) (out : Array α) : Array α :=
+    match _: a.max with
+    | none => out
+    | some x => loop a.popMax (out.push x)
+  termination_by a.size
+  decreasing_by
+    have := size_pos_of_max ‹_›
+    simp only [size_popMax]
+    omega
+
+
 end Batteries.BinaryHeap
 
 /-- `O(n)`. Convert an unsorted vector to a `BinaryHeap`. -/
@@ -177,19 +197,7 @@ open Batteries in
 def Array.toBinaryHeap [instOrd : Ord α] (a : Array α) : Batteries.BinaryHeap α where
   arr := BinaryHeap.mkHeap ⟨a, rfl⟩ |>.toArray
 
-open Batteries in
-
 /-- `O(n log n)`. Sort an array using a `BinaryHeap`. -/
-@[inline, specialize]
+@[inline]
 def Array.heapSort [instOrd : Ord α] (a : Array α) : Array α :=
-  loop (instOrd := instOrd.opposite) (a.toBinaryHeap (instOrd := instOrd.opposite)) #[]
-where
-  /-- Inner loop for `heapSort`. -/
-  loop [instOrd : Ord α] (a : Batteries.BinaryHeap α) (out : Array α) : Array α :=
-    match e: a.max with
-    | none => out
-    | some x =>
-      have : a.popMax.size < a.size := by
-        simp; exact Nat.sub_lt (Batteries.BinaryHeap.size_pos_of_max e) Nat.zero_lt_one
-      loop a.popMax (out.push x)
-  termination_by a.size
+  a.toBinaryHeap (instOrd := instOrd.opposite) |>.toSortedArray (instOrd := instOrd.opposite)
