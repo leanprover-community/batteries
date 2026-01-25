@@ -19,6 +19,7 @@ variable {α : Type w}
 
 
 /-- Given a node, return the index of its larger child, if it exists -/
+@[inline]
 def maxChild [Ord α] (a : Vector α sz) (i : Fin sz) : Option (Fin sz) :=
   let left := 2 * i.1 + 1
   let right := left + 1
