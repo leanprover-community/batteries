@@ -41,11 +41,6 @@ theorem maxChild_ge_right [Ord α] [Std.OrientedOrd α] (a : Vector α sz)
 
 section heapifyDown
 
-/-- heapifyDown doesn't modify positions before the starting index. -/
-theorem heapifyDown_preserves_prefix [Ord α] (a : Vector α sz) (i k : Fin sz) (hk : k < ↑i) :
-    (heapifyDown a i)[k] = a[k] := by
-  induction a, i using heapifyDown.induct
-    <;> grind only [heapifyDown, = Fin.getElem_fin, = Vector.getElem_swap]
 
 /-- When maxChild returns none, heapifyDown is the identity. -/
 @[simp]
@@ -66,6 +61,16 @@ theorem heapifyDown_eq_of_not_lt [Ord α] {a : Vector α sz} {i j : Fin sz}
     (hmaxChild : maxChild a i = some j) (h_not_lt : ¬(compare a[i] a[j]).isLT) :
     heapifyDown a i = a := by
   grind only [heapifyDown]
+
+/-- heapifyDown doesn't modify positions before the starting index. -/
+theorem heapifyDown_preserves_prefix [Ord α] (a : Vector α sz) (i k : Fin sz) (hk : k < ↑i) :
+    (heapifyDown a i)[k] = a[k] := by
+  induction a, i using heapifyDown.induct with
+    | case1 => simp_all [heapifyDown_eq_of_maxChild_none]
+    | case2 a i j hmaxChild hij hlt ih  =>
+      rw [heapifyDown_eq_of_lt hmaxChild hlt, ih (by omega)]
+      apply Vector.getElem_swap_of_ne <;> omega
+    | case3 =>  simp_all [heapifyDown_eq_of_not_lt]
 
 /-- `heapifyDown` does not modify elements outside the subtree rooted at `i`. -/
 theorem heapifyDown_get_of_not_inSubtree [Ord α] {a : Vector α sz} {i : Fin sz}
@@ -135,8 +140,15 @@ theorem heapifyDown_root_bounded [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {j : Fin sz} {v : α}
     (hge : ∀ k : Fin sz, InSubtree j.val k.val → (compare v a[k]).isGE) :
     (compare v (heapifyDown a j)[j]).isGE := by
-  grind only [heapifyDown, InSubtree, Fin.getElem_fin, maxChild_isChild,
-    = heapifyDown_preserves_prefix, = Vector.getElem_swap]
+  -- this proof isn't really inductive, heapifyDown.induct is just a convenient way to split the
+  -- cases
+  induction a, j using heapifyDown.induct with
+  | case1 a j h => simp_all [heapifyDown_eq_of_maxChild_none, InSubtree.refl]
+  | case2 a j child hmaxChild _ h_lt _ =>
+    have := InSubtree.of_child (maxChild_isChild hmaxChild)
+    simp only [heapifyDown_preserves_prefix, heapifyDown_eq_of_lt hmaxChild h_lt, *]
+    simp_all [Vector.getElem_swap_left]
+  | case3 a j child hmaxChild _ h_nlt => simp_all [heapifyDown_eq_of_not_lt, InSubtree.refl]
 
 /-- heapifyDown at i preserves WF.children at parent of i when value decreased -/
 theorem heapifyDown_preserves_wf_parent [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
@@ -339,9 +351,8 @@ theorem Vector.swap_same {v : Vector α n} {i : Nat} (hi : i < n) :
 /-- Swapping element i with the last and popping gives a permutation with v[i] prepended -/
 theorem Vector.swap_last_pop_perm {v : Vector α (n+1)} {i : Fin (n+1)} (hi : i.val < n) :
     (v[i] :: (v.swap i n (by omega) (by omega) |>.pop).toList).Perm v.toList := by
-  have h_swap_last : (v.swap i n (by omega) (by omega))[n] = v[i] :=
-    Vector.getElem_swap_right (by omega) (by omega)
-  rw [← h_swap_last]
+  simp only [Fin.getElem_fin]
+  rw [← Vector.getElem_swap_right]
   apply Vector.last_cons_pop_perm.trans
   exact (Vector.swap_perm (by omega) (by omega)).toList
 
