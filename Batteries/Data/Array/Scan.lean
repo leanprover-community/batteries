@@ -21,9 +21,9 @@ Prove basic results about `Array.scanl`, `Array.scanr`, `Array.scanlM` and `Arra
 namespace Array
 
 theorem scanlM_loop_toList [Monad m] [LawfulMonad m]
-    {f : β → α → m β} {stop : Nat} (h : stop ≤ as.size)
-    : scanlM.loop f init as start stop h acc
-      = return acc.toList
+    {f : β → α → m β} {stop : Nat} (h : stop ≤ as.size) :
+    scanlM.loop f init as start stop h acc =
+      return acc.toList
                ++ (← as.toList.drop start
                   |>.take (stop - start)
                   |>.scanlM f init)
@@ -45,20 +45,18 @@ theorem scanlM_toList [Monad m] [LawfulMonad m] {f : β → α → m β} {as : A
   unfold scanlM
   simp [Array.scanlM_loop_toList, ←Array.length_toList]
 
-
 @[simp, grind =]
 theorem toList_scanlM [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Array α} :
     toList <$> as.scanlM f init = as.toList.scanlM f init := by
   rw [← scanlM_toList]
   simp
 
-
 -- TODO: come back and simplify this proof? And/or simplify the structure of Arrat.scacnrM to make
 -- it more amenable
 theorem scanrM_loop_toList [Monad m] [LawfulMonad m] {f : α → β → m β}
-    {start : Nat} {h : start ≤ as.size}
-    : scanrM.loop f init as start stop h acc
-      = return (← as.toList.drop stop
+    {start : Nat} {h : start ≤ as.size} :
+    scanrM.loop f init as start stop h acc =
+      return (← as.toList.drop stop
                   |>.take (start - stop)
                   |>.scanrM f init)
                 ++ acc.toList.reverse
@@ -75,7 +73,6 @@ theorem scanrM_loop_toList [Monad m] [LawfulMonad m] {f : α → β → m β}
         arg 2
         ext a
         rw [ih (start := start - 1) (stop := stop) (acc := acc.push init) (by omega)]
-
 
       have h_list : List.take (n + 1) (List.drop stop as.toList)
         = as[stop] :: List.take n (List.drop (stop + 1) as.toList)
@@ -95,12 +92,10 @@ theorem scanrM_loop_toList [Monad m] [LawfulMonad m] {f : α → β → m β}
         Functor.map_map , List.scanrM_eq_scanlM_reverse]
       simp_all [flip]
 
-
 theorem scanrM_toList [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Array α} :
     List.toArray <$> as.toList.scanrM f init = as.scanrM f init := by
   unfold scanrM
   simp [Array.scanrM_loop_toList, ← Array.length_toList]
-
 
 @[simp, grind =]
 theorem toList_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Array α} :
@@ -116,7 +111,6 @@ theorem scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {as : 
   rw [scanlM_loop_toList, ← scanlM_toList, bind_pure_comp]
   simp_all [← length_toList]
   grind [List.take_eq_take_iff, List.drop_eq_drop_iff]
-
 
 -- TODO: rewrite without requiring LawfulMonad?
 -- In principle it probably shouldn't require it its just that scanlM_loop_toList does
@@ -176,7 +170,6 @@ theorem scanrM_map [Monad m] [LawfulMonad m] {f : α₁ → α₂ } {g: α₂ �
     (as.map f).scanrM g init = as.scanrM (fun a b => g (f a) b) init := by
   repeat rw [← scanrM_toList]
   simp
-
 
 /-- ### Array.scanl -/
 

@@ -136,8 +136,6 @@ This will perform the update destructively provided that `a` has a reference cou
 abbrev setN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) : Array α :=
   a.set i x
 
-
-
 /--
   This is guaranteed by the Array docs but it is unprovable.
   May be asserted to be true in an unsafe context via `Array.unsafe_size_fits_usize
@@ -147,18 +145,16 @@ private abbrev size_fits_usize {a : Array α}: Prop := a.size < USize.size
 @[grind .]
 private theorem nat_index_eq_usize_index {n : Nat} {a : Array α}
     {h : a.size_fits_usize} {hn : n ≤ a.size}
-  : (USize.ofNat n).toNat = n
-  := USize.toNat_ofNat_of_lt' (Nat.lt_of_le_of_lt ‹_› ‹_›)
-
+  : (USize.ofNat n).toNat = n :=
+  USize.toNat_ofNat_of_lt' (Nat.lt_of_le_of_lt ‹_› ‹_›)
 
 /--
   This is guaranteed by the Array docs but it is unprovable.
   Can be used in unsafe functions to write more efficient implementations
   that avoid boxed integer arithmetic.
 -/
-private unsafe def unsafe_size_fits_usize {a: Array α} : Array.size_fits_usize (a := a) :=
+private unsafe def unsafe_size_fits_usize {a : Array α} : Array.size_fits_usize (a := a) :=
   lcProof
-
 
 @[inline]
 private def scanlMFast [Monad m] (f : β → α → m β) (init : β) (as : Array α)
@@ -183,7 +179,6 @@ where
   decreasing_by
       have : start < (start + 1) := by grind only [USize.size_eq]
       grind only [Nat.min_def, USize.lt_iff_toNat_lt]
-
 
 /--
 Fold an effectful function `f` over the array from the left, returning the list of partial results.
@@ -234,8 +229,7 @@ private theorem scanlM_eq_scanlMFast [Monad m]
     {f : β → α → m β} {init : β} {as : Array α}
     {h_size : as.size_fits_usize}
     {start stop : Nat}
-  : scanlM f init as start stop = scanlMFast f init as start stop
-  := by
+  : scanlM f init as start stop = scanlMFast f init as start stop := by
     unfold scanlM scanlMFast
     apply scanlM_loop_eq_scanlMFast_loop
     simp_all only [gt_iff_lt]
@@ -285,7 +279,6 @@ where
   decreasing_by
     grind only [USize.lt_iff_toNat_lt, USize.toNat_sub,
       USize.toNat_sub_of_le, USize.le_iff_toNat_le]
-
 
 @[inline]
 private unsafe def scanrMUnsafe [Monad m] (f : α → β → m β) (init : β) (as : Array α)
@@ -337,8 +330,8 @@ where
       loop f next as i stop (by omega) (acc.push init)
     else
       pure <| acc.push init |>.reverse
-/--
 
+/--
 Fold a function `f` over the list from the left, returning the list of partial results.
 ```
 scanl (· + ·) 0 #[1, 2, 3] = #[0, 1, 3, 6]
@@ -349,7 +342,6 @@ def scanl (f : β → α → β) (init : β) (as : Array α) (start := 0) (stop 
   Id.run <| as.scanlM (pure <| f · ·) init start stop
 
 /--
-
 Fold a function `f` over the list from the right, returning the list of partial results.
 ```
 scanl (+) 0 #[1, 2, 3] = #[0, 1, 3, 6]
@@ -360,7 +352,6 @@ def scanr (f : α → β → β) (init : β) (as : Array α) (start := as.size) 
   Id.run <| as.scanrM (pure <| f · ·) init start stop
 
 end Array
-
 
 namespace Subarray
 
