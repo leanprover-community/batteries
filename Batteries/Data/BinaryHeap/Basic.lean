@@ -193,12 +193,14 @@ where
 end Batteries.BinaryHeap
 
 /-- `O(n)`. Convert an unsorted vector to a `BinaryHeap`. -/
+@[inline]
 def Batteries.Vector.toBinaryHeap [Ord α] (v : Vector α n) :
     Batteries.BinaryHeap α where
   arr := BinaryHeap.mkHeap v |>.toArray
 
 open Batteries in
 /-- `O(n)`. Convert an unsorted array to a `BinaryHeap`. -/
+@[inline]
 def Array.toBinaryHeap [instOrd : Ord α] (a : Array α) : Batteries.BinaryHeap α where
   arr := BinaryHeap.mkHeap ⟨a, rfl⟩ |>.toArray
 
