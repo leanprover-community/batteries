@@ -27,11 +27,6 @@ theorem maxChild_isChild [Ord α] {a : Vector α sz} {i : Fin sz} {j : Fin sz}
     j.val = 2 * i.val + 1 ∨ j.val = 2 * i.val + 2 := by
   grind only [maxChild, = Option.isSome]
 
-/-- maxChild returns an index greater than i. -/
-theorem maxChild_gt [Ord α] {a : Vector α sz} {i : Fin sz} {j : Fin sz}
-    (h : maxChild a i = some j) : i < j := by
-  grind only [maxChild, Lean.Grind.toInt_fin]
-
 theorem maxChild_ge_left [Ord α] [Std.OrientedOrd α] (a : Vector α sz) (i j : Fin sz)
     (hmc : maxChild a i = some j) (hleft : 2 * i.val + 1 < sz) :
     compare a[j] a[2 * i.val + 1] |>.isGE := by

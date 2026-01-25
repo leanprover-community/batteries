@@ -32,6 +32,11 @@ def maxChild [Ord α] (a : Vector α sz) (i : Fin sz) : Option (Fin sz) :=
       some ⟨left, hleft⟩
   else none
 
+/-- maxChild returns an index greater than i. -/
+theorem maxChild_gt [Ord α] {a : Vector α sz} {i : Fin sz} {j : Fin sz}
+    (h : maxChild a i = some j) : i < j := by
+  grind only [maxChild, Lean.Grind.toInt_fin]
+
 /-- Core operation for binary heaps, expressed directly on arrays.
 Given an array which is a max-heap, push item `i` down to restore the max-heap property. -/
 @[expose]
@@ -40,7 +45,7 @@ def heapifyDown [Ord α] (a : Vector α sz) (i : Fin sz) :
   match h : maxChild a i with
   | none => a
   | some j =>
-    have : i < j := by grind [maxChild]
+    have : i < j := maxChild_gt h
     if compare a[i] a[j] |>.isLT then
       heapifyDown (a.swap i j) j
     else a
