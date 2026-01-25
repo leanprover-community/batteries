@@ -182,12 +182,8 @@ theorem heapifyDown_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
     (heapifyDown a i).Perm a := by
   induction a, i using heapifyDown.induct with
     | case1 => simp_all [heapifyDown_eq_of_maxChild_none]
-    | case2 a i j hmaxChild hij hlt ih =>
-      rw [heapifyDown_eq_of_lt ‹_› ‹_›]
-      apply ih.trans
-      simp_all [Vector.swap_perm]
-    | case3 =>
-      simp_all [heapifyDown_eq_of_not_lt]
+    | case2 _ _ _ _ _ _ ih => simp_all [heapifyDown_eq_of_lt, ih.trans, Vector.swap_perm]
+    | case3 => simp_all [heapifyDown_eq_of_not_lt]
 
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
 theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
@@ -536,14 +532,12 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
   intro k
   rcases Nat.lt_trichotomy k.val i.val with hki | hki_eq | hik
   · by_cases hk_parent : k.val = (i.val - 1) / 2 ∧ 0 < i.val
-    · have hk_eq : k = ⟨(i.val - 1) / 2, by omega⟩ := by ext; exact hk_parent.1
-      rw [hk_eq]
+    · rw [show k = ⟨_, _⟩ from Fin.ext hk_parent.1]
       exact heapifyDown_preserves_wf_parent htd h_leq hk_parent.2
-    · have : i.val ≠ 2 * k.val + 1 := by omega
-      have : i.val ≠ 2 * k.val + 2 := by omega
-      have : WF.children (heap.vector.set i x i.isLt) k :=
-              WF.set_preserves_wf_children_of_ne (htd k) (by omega) ‹_› ‹_›
-      apply heapifyDown_preserves_wf_children_outside <;> assumption
+    · have hleft : i.val ≠ 2 * k.val + 1 := by omega
+      have hright : i.val ≠ 2 * k.val + 2 := by omega
+      apply heapifyDown_preserves_wf_children_outside hki _ hleft hright
+      apply WF.set_preserves_wf_children_of_ne (htd k) (by omega) <;> assumption
   · exact Fin.ext hki_eq ▸ hchildren_i
   · exact hbelow_i k hik
 
@@ -587,7 +581,6 @@ private theorem toSortedArray_loop_sorted [instOrd : Ord α] [Std.TransOrd α] [
     cases hy
     case' inr => rw [Std.OrientedOrd.eq_swap, Ordering.isLE_swap]
     all_goals simp_all [popMax_subset]
-
 
 /-- toSortedArray produces a sorted array if the heap is well-formed -/
 theorem toSortedArray_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]

@@ -136,6 +136,7 @@ def popMax [Ord α] (self : BinaryHeap α) : BinaryHeap α :=
   · split <;> simp
 
 /-- `O(log n)`. Return and remove the maximum element from a `BinaryHeap`. -/
+@[inline]
 def extractMax [Ord α] (self : BinaryHeap α) : Option α × BinaryHeap α :=
   (self.max, self.popMax)
 
