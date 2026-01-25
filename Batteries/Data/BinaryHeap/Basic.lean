@@ -182,7 +182,6 @@ def decreaseKey [Ord α] (self : BinaryHeap α) (i : Fin self.size) (x : α) : B
 def increaseKey [Ord α] (self : BinaryHeap α) (i : Fin self.size) (x : α) : BinaryHeap α where
   arr := heapifyUp (self.vector.set i x) i |>.toArray
 
-
 /-- `O(n log n)`. Return the contents of `self` as a sorted array -/
 @[inline]
 def toSortedArray [Ord α] (self : BinaryHeap α) : Array α :=
@@ -198,8 +197,6 @@ where
     have := size_pos_of_max ‹_›
     simp only [size_popMax]
     omega
-
-
 end Batteries.BinaryHeap
 
 /-- `O(n)`. Convert an unsorted vector to a `BinaryHeap`. -/
@@ -218,4 +215,4 @@ def Array.toBinaryHeap [Ord α] (a : Array α) : Batteries.BinaryHeap α where
 @[inline]
 def Array.heapSort [instOrd : Ord α] (a : Array α) : Array α :=
   letI := instOrd.opposite
-  a.toBinaryHeap |>.toSortedArray
+  a.toBinaryHeap.toSortedArray
