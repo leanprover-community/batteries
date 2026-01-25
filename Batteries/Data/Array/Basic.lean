@@ -144,8 +144,8 @@ private abbrev size_fits_usize {a : Array α}: Prop := a.size < USize.size
 
 @[grind .]
 private theorem nat_index_eq_usize_index {n : Nat} {a : Array α}
-    {h : a.size_fits_usize} {hn : n ≤ a.size}
-  : (USize.ofNat n).toNat = n :=
+    {h : a.size_fits_usize} {hn : n ≤ a.size} :
+    (USize.ofNat n).toNat = n :=
   USize.toNat_ofNat_of_lt' (Nat.lt_of_le_of_lt ‹_› ‹_›)
 
 /--
@@ -227,14 +227,12 @@ private theorem scanlM_loop_eq_scanlMFast_loop [Monad m]
 -- the scanlMFast and scanlM are equivalent
 private theorem scanlM_eq_scanlMFast [Monad m]
     {f : β → α → m β} {init : β} {as : Array α}
-    {h_size : as.size_fits_usize}
-    {start stop : Nat}
-  : scanlM f init as start stop = scanlMFast f init as start stop := by
+    {h_size : as.size_fits_usize} {start stop : Nat} :
+    scanlM f init as start stop = scanlMFast f init as start stop := by
     unfold scanlM scanlMFast
     apply scanlM_loop_eq_scanlMFast_loop
     simp_all only [gt_iff_lt]
     apply Nat.min_le_right
-
 
 @[inline]
 private def scanrMFast [Monad m] (f : α → β → m β) (init : β) (as : Array α)
