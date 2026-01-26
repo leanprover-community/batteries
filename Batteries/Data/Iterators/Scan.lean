@@ -8,7 +8,7 @@ module
 
 public section
 
-namespace Std.Iterators
+namespace Std.Iterators.Types
 
 
 /--
@@ -96,10 +96,6 @@ instance [Monad n] [MonadLiftT m n] :
     IteratorLoop (ScanM α m n β γ f) n n :=
   .defaultImplementation
 
-instance {o : Type w → Type x} [Monad n] [MonadLiftT m n] [Monad o] :
-    IteratorCollect (ScanM α m n β γ f) n o :=
-  .defaultImplementation
-
 /-- Finiteness relation for `ScanM`-/
 private def finRel (scanIt' scanIt : @IterM (ScanM α m n β γ f) n γ) : Prop :=
   match scanIt.internalState.emittedInit, scanIt'.internalState.emittedInit with
@@ -139,7 +135,7 @@ private theorem acc_finRel [Finite α m (β := β)] (scanIt : @IterM (ScanM α m
 
 private def instFinRel [Monad m] [Monad n] [MonadLiftT m n] [Finite α m (β := β)] :
     FinitenessRelation (ScanM α m n β γ f) n where
-  rel := finRel
+  Rel := finRel
   wf := ⟨acc_finRel⟩
   subrelation := by
     rintro _ _ ⟨_, hsucc_eq, hplaus⟩
@@ -167,7 +163,7 @@ private theorem acc_prodRel [Productive α m (β := β)]
 
 private def instProdRel [Monad m] [Monad n] [MonadLiftT m n] [Productive α m (β := β)] :
     ProductivenessRelation (ScanM α m n β γ f) n where
-  rel := prodRel
+  Rel := prodRel
   wf := ⟨acc_prodRel⟩
   subrelation := by
     intro _ _ hsucc
@@ -178,6 +174,10 @@ instance [Productive α m (β := β)] [Monad m] [Monad n] [MonadLiftT m n] :
   .of_productivenessRelation instProdRel
 
 end ScanM
+end Std.Iterators.Types
+
+namespace Std
+open Std.Iterators.Types
 
 section Combinators
 variable {α β γ : Type w}
@@ -214,7 +214,7 @@ For each value emitted by the base iterator `it`, this combinator calls `f`.
 -/
 @[inline, expose]
 def IterM.scanM {n : Type w → Type w''} (f : γ → β → n γ) (init : γ) (it : IterM (α := α) m β) :=
-  toIterM { inner := it.internalState, acc := init, emittedInit := false : ScanM α m n β γ f } n γ
+  IterM.mk (ScanM.mk (f := f) (m := m) it.internalState init false) n γ
 
 /--
 If `it` is an iterator, then `it.scan f init` is another iterator that folds a
@@ -257,4 +257,4 @@ def Iter.scan (f : γ → β → γ) (init : γ) (it : Iter (α := α) β) :=
   Iter.scanM (n := Id) (pure <| f · ·) init it |>.toIter
 
 end Combinators
-end Std.Iterators
+end Std
