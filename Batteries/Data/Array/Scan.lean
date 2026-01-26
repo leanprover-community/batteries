@@ -16,8 +16,6 @@ public section
 
 Prove basic results about `Array.scanl`, `Array.scanr`, `Array.scanlM` and `Array.scanrM`.
 -/
-
-
 namespace Array
 
 theorem scanlM_loop_toList [Monad m] [LawfulMonad m]
