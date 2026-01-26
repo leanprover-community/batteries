@@ -11,7 +11,6 @@ public import Batteries.Data.Array.Scan
 
 public section
 
-
 namespace Std.Iterators
 
 private theorem toIterM_eq_mk {state : ScanM α m n β γ f} :
@@ -25,18 +24,21 @@ private theorem toList_scanM_emittedTrue [Iterator α Id β] [Finite α Id] [Mon
   induction it using IterM.inductSteps generalizing acc
   rename_i it ihy ihs
   repeat rw [IterM.toList_eq_match_step]
-  simp_all [ScanM.instIterator, IterM.step, Iterator.step]
+  simp_all only [ScanM.instIterator, IterM.step, internalState_toIterM, Bool.true_eq_false,
+    ↓reduceDIte, bind_assoc, liftM_bind]
   apply bind_congr
   intro step
   match hstep : step.inflate with
   | ⟨.yield inner' out, hp⟩ =>
-    simp_all [liftM, monadLift, Id.run, toIterM, Functor.map]
+    simp_all only [liftM, monadLift, Id.run, toIterM, bind_pure_comp, pure_bind,
+      bind_map_left, Shrink.inflate_deflate, Functor.map, List.scanlM_cons,
+      map_bind, Functor.map_map, List.tail_cons]
     apply bind_congr
     intro a
     rw [ihy hp, ← List.scanlM_cons_head_tail]
     simp
   | ⟨.skip inner', hp⟩ =>
-    simp_all [liftM, monadLift, Id.run, toIterM];
+    simp_all [liftM, monadLift, Id.run, toIterM]
   | ⟨.done, hp⟩ =>
     simp_all
 
@@ -48,7 +50,8 @@ theorem IterM.toList_scanM [Iterator α Id β] [Finite α Id] [Monad m] [LawfulM
   simp only [IterM.scanM]
   rw [IterM.toList_eq_match_step]
   simp only [Iterator.step, ScanM.instIterator, IterM.step]
-  simp_all [liftM, monadLift, Id.run, ←toIterM_eq_mk, toList_scanM_emittedTrue]
+  simp_all only [← toIterM_eq_mk, liftM, monadLift, Id.run, internalState_toIterM, ↓reduceDIte,
+     pure_bind, Shrink.inflate_deflate, toList_scanM_emittedTrue]
   rw [← List.scanlM_cons_head_tail]
   simp
 
