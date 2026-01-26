@@ -229,10 +229,10 @@ private theorem scanlM_eq_scanlMFast [Monad m]
     {f : β → α → m β} {init : β} {as : Array α}
     {h_size : as.size_fits_usize} {start stop : Nat} :
     scanlM f init as start stop = scanlMFast f init as start stop := by
-    unfold scanlM scanlMFast
-    apply scanlM_loop_eq_scanlMFast_loop
-    simp_all only [gt_iff_lt]
-    apply Nat.min_le_right
+  unfold scanlM scanlMFast
+  apply scanlM_loop_eq_scanlMFast_loop
+  simp_all only [gt_iff_lt]
+  apply Nat.min_le_right
 
 @[inline]
 private def scanrMFast [Monad m] (f : α → β → m β) (init : β) (as : Array α)
