@@ -3,7 +3,9 @@ Copyright (c) 2018 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-import Batteries.Tactic.Alias
+module
+
+@[expose] public section
 
 namespace Batteries
 /--
@@ -78,8 +80,6 @@ instance : Append (DList α) := ⟨DList.append⟩
 /-- Convert a lazily-evaluated `List` to a `DList` -/
 def ofThunk (l : Thunk (List α)) : DList α :=
   ⟨fun xs => l.get ++ xs, fun t => by simp⟩
-
-@[deprecated (since := "2024-10-16")] alias lazy_ofList := ofThunk
 
 /-- Concatenates a list of difference lists to form a single difference list. Similar to
 `List.join`. -/

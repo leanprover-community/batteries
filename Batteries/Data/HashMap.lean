@@ -1,3 +1,3 @@
-import Batteries.Data.HashMap.Basic
-import Batteries.Data.HashMap.Lemmas
-import Batteries.Data.HashMap.WF
+module
+
+public import Batteries.Data.HashMap.Basic

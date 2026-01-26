@@ -3,9 +3,13 @@ Copyright (c) 2021 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Elab.Command
-import Lean.Util.FoldConsts
-import Lean.Parser.Module
+module
+
+public meta import Lean.Elab.Command
+public meta import Lean.Util.FoldConsts
+public meta import Lean.Parser.Module
+
+public meta section
 
 open Lean Parser.Tactic Elab Command
 
@@ -24,7 +28,7 @@ def Meta.collectPrivateIn [Monad m] [MonadEnv m] [MonadError m]
 
 /-- Get the module index given a module name. -/
 def Environment.moduleIdxForModule? (env : Environment) (mod : Name) : Option ModuleIdx :=
-  (env.allImportedModuleNames.indexOf? mod).map fun idx => idx.val
+  (env.allImportedModuleNames.idxOf? mod).map fun idx => idx
 
 instance : DecidableEq ModuleIdx := instDecidableEqNat
 
@@ -51,17 +55,20 @@ def elabOpenPrivateLike (ids : Array Ident) (tgts mods : Option (Array Ident))
   for tgt in tgts.getD #[] do
     let n ← liftCoreM <| realizeGlobalConstNoOverloadWithInfo tgt
     names ← Meta.collectPrivateIn n names
+  let env ← getEnv
   for mod in mods.getD #[] do
-    let some modIdx := (← getEnv).moduleIdxForModule? mod.getId
+    let some modIdx := env.moduleIdxForModule? mod.getId
       | throwError "unknown module {mod}"
     addModuleInfo mod
-    for declName in (← getEnv).declsInModuleIdx modIdx do
+    for declName in env.declsInModuleIdx modIdx do
       if isPrivateName declName then
         names := names.insert declName
-  let appendNames (msg : String) : String := Id.run do
+  let appendNames (msg : MessageData) : MessageData := Id.run do
     let mut msg := msg
     for c in names do
-      if let some name := privateToUserName? c then
+      if let some info := env.findConstVal? c then
+        msg := msg ++ m!"{mkConst c (info.levelParams.map mkLevelParam)}\n"
+      else if let some name := privateToUserName? c then
         msg := msg ++ s!"{name}\n"
     msg
   if ids.isEmpty && !names.isEmpty then
@@ -69,19 +76,36 @@ def elabOpenPrivateLike (ids : Array Ident) (tgts mods : Option (Array Ident))
   let mut decls := #[]
   for id in ids do
     let n := id.getId
-    let mut found := []
-    for c in names do
-      if n.isSuffixOf c then
-        addConstInfo id c
-        found := c::found
-    match found with
-    | [] => throwError appendNames s!"'{n}' not found in the provided declarations:\n"
+    let rec
+      /-- finds private declarations `n ++ suff` where `n` resolves and `n ++ suff` realizes -/
+      findAll n suff := do
+        let mut found := []
+        for c in names do
+          if n.isSuffixOf c then
+            let (c', ok) ← if suff.isAnonymous then
+              pure (c, true)
+            else
+              let c' := c ++ suff
+              if (← getEnv).contains c' then pure (c', true)
+              else try
+                liftCoreM (executeReservedNameAction c')
+                pure (c', (← getEnv).containsOnBranch c')
+              catch _ => pure (c', false)
+            if ok then
+              addConstInfo id c'
+              found := c'::found
+        unless found = [] do return found
+        match n with
+        | .str p s => findAll p (Name.mkSimple s ++ suff)
+        | _ => pure []
+    match ← findAll n .anonymous with
+    | [] => throwError appendNames m!"'{n}' not found in the provided declarations:\n"
     | [c] =>
       if let some name := privateToUserName? c then
         let new ← f c name n
-        decls := decls.push (OpenDecl.explicit n new)
+        decls := decls.push (.explicit n new)
       else unreachable!
-    | _ => throwError s!"provided name is ambiguous: found {found.map privateToUserName?}"
+    | found => throwError s!"provided name is ambiguous: found {found.map privateToUserName?}"
   modifyScope fun scope => Id.run do
     let mut openDecls := scope.openDecls
     for decl in decls do

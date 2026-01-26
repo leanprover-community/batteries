@@ -3,6 +3,9 @@
  Released under Apache 2.0 license as described in the file LICENSE.
  Authors: Mario Carneiro
 -/
+module
+
+@[expose] public section
 
 namespace Float
 
@@ -67,8 +70,8 @@ def toStringFull (f : Float) : String :=
         Nat.repr intPart
       else
         let rem := Nat.repr ((2^e + v' % 2^e) * 5^e)
-        let rem := rem.dropRightWhile (· == '0')
-        s!"{intPart}.{rem.extract ⟨1⟩ rem.endPos}"
+        let rem := rem.dropEndWhile (· == '0')
+        s!"{intPart}.{rem.drop 1}"
     if v < 0 then s!"-{s}" else s
   else f.toString -- inf, -inf, nan
 

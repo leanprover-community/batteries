@@ -3,8 +3,12 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import Batteries.Tactic.Alias
-import Batteries.Data.Nat.Basic
+module
+
+public import Batteries.Tactic.Alias
+public import Batteries.Data.Nat.Basic
+
+@[expose] public section
 
 /-! # Basic lemmas about natural numbers
 
@@ -159,9 +163,8 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 
 /-! ### sum -/
 
-
-@[simp] theorem sum_append {l₁ l₂ : List Nat}: (l₁ ++ l₂).sum = l₁.sum + l₂.sum := by
-  induction l₁ <;> simp [*, Nat.add_assoc]
+@[deprecated (since := "2025-07-31")]
+alias sum_append := List.sum_append_nat
 
 /-! ### ofBits -/
 
@@ -197,10 +200,27 @@ theorem ofBits_lt_two_pow (f : Fin n → Bool) : ofBits f < 2 ^ n := by
   apply testBit_lt_two_pow
   apply Nat.lt_of_lt_of_le
   · exact ofBits_lt_two_pow f
-  · exact pow_le_pow_of_le_right Nat.zero_lt_two h
+  · exact Nat.pow_le_pow_right Nat.zero_lt_two h
 
 theorem testBit_ofBits (f : Fin n → Bool) :
     (ofBits f).testBit i = if h : i < n then f ⟨i, h⟩ else false := by
   cases Nat.lt_or_ge i n with
   | inl h => simp [h]
   | inr h => simp [h, Nat.not_lt_of_ge h]
+
+theorem ofBits_testBit (x n) : ofBits (fun i : Fin n => x.testBit i) = x % 2 ^ n := by
+  apply eq_of_testBit_eq; simp [testBit_ofBits]
+
+/-! ### Misc -/
+
+theorem mul_add_lt_mul_of_lt_of_lt {m n x y : Nat} (hx : x < m) (hy : y < n) :
+    n * x + y < m * n := calc
+  _ < n * x + n := Nat.add_lt_add_left hy _
+  _ = n * (x + 1) := Nat.mul_add_one .. |>.symm
+  _ ≤ n * m := Nat.mul_le_mul_left _ hx
+  _ = m * n := Nat.mul_comm ..
+
+theorem add_mul_lt_mul_of_lt_of_lt {m n x y : Nat} (hx : x < m) (hy : y < n) :
+    x + m * y < m * n := by
+  rw [Nat.add_comm, Nat.mul_comm _ n]
+  exact mul_add_lt_mul_of_lt_of_lt hy hx

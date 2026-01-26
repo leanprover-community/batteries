@@ -3,8 +3,12 @@ Copyright (c) 2022 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
-import Lean.Meta.Instances
-import Batteries.Tactic.Lint.Basic
+module
+
+public meta import Lean.Meta.Instances
+public meta import Batteries.Tactic.Lint.Basic
+
+public meta section
 
 namespace Batteries.Tactic.Lint
 open Lean Meta
@@ -24,7 +28,7 @@ another instance-implicit argument or the return type."
     unless ← isInstance declName do return none
     forallTelescopeReducing (← inferType (← mkConstWithLevelParams declName)) fun args ty => do
     let argTys ← args.mapM inferType
-    let impossibleArgs ← args.zipWithIndex.filterMapM fun (arg, i) => do
+    let impossibleArgs ← args.zipIdx.filterMapM fun (arg, i) => do
       let fv := arg.fvarId!
       if (← fv.getDecl).binderInfo.isInstImplicit then return none
       if ty.containsFVar fv then return none

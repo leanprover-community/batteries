@@ -3,8 +3,11 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-import Batteries.Data.List.Init.Lemmas
-import Batteries.Tactic.Alias
+
+module
+public import Batteries.Tactic.Alias
+
+@[expose] public section
 
 namespace List
 
@@ -31,15 +34,6 @@ open Option Nat
 @[inline] def next? : List α → Option (α × List α)
   | [] => none
   | a :: l => some (a, l)
-
-/-- Monadic variant of `mapIdx`. -/
-@[inline] def mapIdxM {m : Type v → Type w} [Monad m]
-    (as : List α) (f : Nat → α → m β) : m (List β) := go as #[] where
-  /-- Auxiliary for `mapIdxM`:
-  `mapIdxM.go as f acc = acc.toList ++ [← f acc.size a₀, ← f (acc.size + 1) a₁, ...]` -/
-  @[specialize] go : List α → Array β → m (List β)
-  | [], acc => pure acc.toList
-  | a :: as, acc => do go as (acc.push (← f acc.size a))
 
 /--
 `after p xs` is the suffix of `xs` after the first element that satisfies
@@ -148,9 +142,6 @@ Split a list at every occurrence of a separator element. The separators are not 
 -/
 @[inline] def splitOn [BEq α] (a : α) (as : List α) : List (List α) := as.splitOnP (· == a)
 
-@[deprecated (since := "2024-10-21")] alias modifyNthTail := modifyTailIdx
-@[deprecated (since := "2024-10-21")] alias modifyNth := modify
-
 /-- Apply `f` to the last element of `l`, if it exists. -/
 @[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
   /-- Auxiliary for `modifyLast`: `modifyLast.go f l acc = acc.toList ++ modifyLast f l`. -/
@@ -158,8 +149,6 @@ Split a list at every occurrence of a separator element. The separators are not 
   | [], _ => []
   | [x], acc => acc.toListAppend [f x]
   | x :: xs, acc => go xs (acc.push x)
-
-@[deprecated (since := "2024-10-21")] alias insertNth := insertIdx
 
 theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l <;> rfl
 
@@ -194,29 +183,42 @@ theorem takeDTR_go_eq : ∀ n l, takeDTR.go dflt n l acc = acc.toList ++ takeD n
 @[csimp] theorem takeD_eq_takeDTR : @takeD = @takeDTR := by
   funext α f n l; simp [takeDTR, takeDTR_go_eq]
 
+
+/-- Tail-recursive helper function for `scanlM` and `scanrM` -/
+@[inline]
+def scanAuxM [Monad m] (f : β → α → m β) (init : β) (l : List α) : m (List β) :=
+  go l init []
+where
+  /-- Auxiliary for `scanAuxM` -/
+  @[specialize] go : List α → β → List β → m (List β)
+    | [], last, acc => pure <| last :: acc
+    | x :: xs, last, acc => do go xs (← f last x) (last :: acc)
+
+/--
+Folds a monadic function over a list from the left, accumulating partial results starting with
+`init`. The accumulated values are combined with the each element of the list in order, using `f`.
+-/
+@[inline]
+def scanlM [Monad m] (f : β → α → m β) (init : β) (l : List α) : m (List β) :=
+  List.reverse <$> scanAuxM f init l
+
+/--
+Folds a monadic function over a list from the right, accumulating partial results starting with
+`init`. The accumulated values are combined with the each element of the list in order, using `f`.
+-/
+@[inline]
+def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) :=
+  scanAuxM (flip f) init xs.reverse
+
 /--
 Fold a function `f` over the list from the left, returning the list of partial results.
 ```
 scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]
 ```
 -/
-@[simp] def scanl (f : α → β → α) (a : α) : List β → List α
-  | [] => [a]
-  | b :: l => a :: scanl f (f a b) l
-
-/-- Tail-recursive version of `scanl`. -/
-@[inline] def scanlTR (f : α → β → α) (a : α) (l : List β) : List α := go l a #[] where
-  /-- Auxiliary for `scanlTR`: `scanlTR.go f l a acc = acc.toList ++ scanl f a l`. -/
-  @[specialize] go : List β → α → Array α → List α
-  | [], a, acc => acc.toListAppend [a]
-  | b :: l, a, acc => go l (f a b) (acc.push a)
-
-theorem scanlTR_go_eq : ∀ l, scanlTR.go f l a acc = acc.toList ++ scanl f a l
-  | [] => by simp [scanlTR.go, scanl]
-  | a :: l => by simp [scanlTR.go, scanl, scanlTR_go_eq l]
-
-@[csimp] theorem scanl_eq_scanlTR : @scanl = @scanlTR := by
-  funext α f n l; simp (config := { unfoldPartialApp := true }) [scanlTR, scanlTR_go_eq]
+@[inline]
+def scanl (f : β → α → β) (init : β) (as : List α) : List β :=
+  Id.run <| as.scanlM (pure <| f · ·) init
 
 /--
 Fold a function `f` over the list from the right, returning the list of partial results.
@@ -224,46 +226,71 @@ Fold a function `f` over the list from the right, returning the list of partial 
 scanr (+) 0 [1, 2, 3] = [6, 5, 3, 0]
 ```
 -/
-def scanr (f : α → β → β) (b : β) (l : List α) : List β :=
-  let (b', l') := l.foldr (fun a (b', l') => (f a b', b' :: l')) (b, [])
-  b' :: l'
+@[inline]
+def scanr (f : α → β → β) (init : β) (as : List α) : List β :=
+  Id.run <| as.scanrM (pure <| f · ·) init
 
 /--
 Fold a list from left to right as with `foldl`, but the combining function
-also receives each element's index.
+also receives each element's index added to an optional parameter `start`
+(i.e. the numbers that `f` takes as its first argument will be greater than or equal to `start` and
+less than `start + l.length`).
 -/
-@[simp, specialize] def foldlIdx (f : Nat → α → β → α) (init : α) : List β → (start : _ := 0) → α
+@[specialize] def foldlIdx (f : Nat → α → β → α) (init : α) : List β → (start : Nat := 0) → α
   | [], _ => init
-  | b :: l, i => foldlIdx f (f i init b) l (i+1)
+  | b :: l, s => foldlIdx f (f s init b) l (s + 1)
 
 /--
 Fold a list from right to left as with `foldr`, but the combining function
-also receives each element's index.
+also receives each element's index added to an optional parameter `start`
+(i.e. the numbers that `f` takes as its first argument will be greater than or equal to `start` and
+less than `start + l.length`).
 -/
--- TODO(Mario): tail recursive / array-based implementation
-@[simp, specialize] def foldrIdx (f : Nat → α → β → β) (init : β) :
-    (l : List α) → (start : _ := 0) → β
+def foldrIdx {α : Type u} {β : Type v} (f : Nat → α → β → β) (init : β) :
+    (l : List α) → (start : Nat := 0) → β
   | [], _ => init
-  | a :: l, i => f i a (foldrIdx f init l (i+1))
+  | a :: l, s => f s a (foldrIdx f init l (s + 1))
 
-/-- `findIdxs p l` is the list of indexes of elements of `l` that satisfy `p`. -/
-@[inline] def findIdxs (p : α → Bool) (l : List α) : List Nat :=
-  foldrIdx (fun i a is => if p a then i :: is else is) [] l
+/-- A tail-recursive version of `foldrIdx`. -/
+@[inline] def foldrIdxTR (f : Nat → α → β → β) (init : β) (l : List α) (start : Nat := 0) : β :=
+  l.foldr (fun a (acc, n) => (f (n - 1) a acc, n - 1)) (init, start + l.length) |>.1
+
+@[csimp] theorem foldrIdx_eq_foldrIdxTR : @foldrIdx = @foldrIdxTR := by
+  funext _ _ f
+  have go i xs s : xs.foldr (fun a xa => (f (xa.2 - 1) a xa.1, xa.2 - 1)) (i, s + xs.length) =
+    (foldrIdx f i xs s, s) := by induction xs generalizing s <;> grind [foldrIdx]
+  grind [foldrIdxTR]
+
+/-- `findIdxs p l` is the list of indexes of elements of `l` that satisfy `p`, added to an
+optional parameter `start` (so that the members of `findIdxs p l` will be greater than or
+equal to `start` and less than `l.length + start`).  -/
+@[inline] def findIdxs (p : α → Bool) (l : List α) (start : Nat := 0) : List Nat :=
+  foldrIdx (fun i a is => bif p a then i :: is else is) [] l start
 
 /--
 Returns the elements of `l` that satisfy `p` together with their indexes in
-`l`. The returned list is ordered by index.
+`l` added to an optional parameter `start`. The returned list is ordered by index.
+We have `l.findIdxsValues p s = (l.findIdxs p s).zip (l.filter p)`.
 -/
-@[inline] def indexesValues (p : α → Bool) (l : List α) : List (Nat × α) :=
-  foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l
+@[inline] def findIdxsValues (p : α → Bool) (l : List α) (start : Nat := 0) : List (Nat × α) :=
+  foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l start
+
+@[deprecated (since := "2025-11-06")]
+alias indexsValues := findIdxsValues
 
 /--
-`indexesOf a l` is the list of all indexes of `a` in `l`. For example:
+`idxsOf a l` is the list of all indexes of `a` in `l`,  added to an
+optional parameter `start`. For example:
 ```
-indexesOf a [a, b, a, a] = [0, 2, 3]
+idxsOf b [a, b, a, a] = [1]
+idxsOf a [a, b, a, a] 5 = [5, 7, 8]
 ```
 -/
-@[inline] def indexesOf [BEq α] (a : α) : List α → List Nat := findIdxs (· == a)
+@[inline] def idxsOf [BEq α] (a : α) (xs : List α) (start : Nat := 0) : List Nat :=
+  xs.findIdxs (· == a) start
+
+@[deprecated (since := "2025-11-06")]
+alias indexesOf := idxsOf
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
@@ -348,11 +375,10 @@ def sublistsFast (l : List α) : List (List α) :=
     fun r l => (r.push l).push (a :: l)
   (l.foldr f #[[]]).toList
 
--- The fact that this transformation is safe is proved in mathlib4 as `sublists_eq_sublistsFast`.
--- Using a `csimp` lemma here is impractical as we are missing a lot of lemmas about lists.
--- TODO(batteries#307): upstream the necessary results about `sublists` and put the `csimp` lemma in
--- `Batteries/Data/List/Lemmas.lean`.
-attribute [implemented_by sublistsFast] sublists
+@[csimp] theorem sublists_eq_sublistsFast : @sublists = @sublistsFast :=
+    funext <| fun _ => funext fun _ => foldr_hom Array.toList fun _ r =>
+  flatMap_eq_foldl.trans <| (foldl_toArray _ _ _).symm.trans <|
+  r.foldl_hom Array.toList <| fun r _ => r.toList_append.symm
 
 section Forall₂
 
@@ -453,7 +479,7 @@ where
 
 theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L = []
   | l :: L, h => by
-    simp only [any, foldr, Bool.or_eq_true] at h
+    simp only [any, Bool.or_eq_true] at h
     match l, h with
     | [], .inl rfl => simp
     | l, .inr h => simp [sections, sections_eq_nil_of_isEmpty h]
@@ -463,8 +489,7 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
   cases e : L.any isEmpty <;> simp [sections_eq_nil_of_isEmpty, *]
   clear e; induction L with | nil => rfl | cons l L IH => ?_
   simp [IH, sectionsTR.go]
-  rw [← Array.foldl_toList, Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
+  rfl
 
 /--
 `extractP p l` returns a pair of an element `a` of `l` satisfying the predicate
@@ -500,9 +525,9 @@ def productTR (l₁ : List α) (l₂ : List β) : List (α × β) :=
   l₁.foldl (fun acc a => l₂.foldl (fun acc b => acc.push (a, b)) acc) #[] |>.toList
 
 @[csimp] theorem product_eq_productTR : @product = @productTR := by
-  funext α β l₁ l₂; simp [product, productTR]
+  funext α β l₁ l₂; simp only [product, productTR]
   rw [Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
+  simp
 
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 ```
@@ -516,15 +541,15 @@ def sigmaTR {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : 
   l₁.foldl (fun acc a => (l₂ a).foldl (fun acc b => acc.push ⟨a, b⟩) acc) #[] |>.toList
 
 @[csimp] theorem sigma_eq_sigmaTR : @List.sigma = @sigmaTR := by
-  funext α β l₁ l₂; simp [List.sigma, sigmaTR]
+  funext α β l₁ l₂; simp only [List.sigma, sigmaTR]
   rw [Array.foldl_toList_eq_flatMap]; rfl
-  intros; apply Array.foldl_toList_eq_map
+  simp
 
 /-- `ofFnNthVal f i` returns `some (f i)` if `i < n` and `none` otherwise. -/
 def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
   if h : i < n then some (f ⟨i, h⟩) else none
 
-/-- `disjoint l₁ l₂` means that `l₁` and `l₂` have no elements in common. -/
+/-- `Disjoint l₁ l₂` means that `l₁` and `l₂` have no elements in common. -/
 def Disjoint (l₁ l₂ : List α) : Prop :=
   ∀ ⦃a⦄, a ∈ l₁ → a ∈ l₂ → False
 
@@ -563,7 +588,7 @@ where
 
 /--
 `pwFilter R l` is a maximal sublist of `l` which is `Pairwise R`.
-`pwFilter (·≠·)` is the erase duplicates function (cf. `eraseDup`), and `pwFilter (·<·)` finds
+`pwFilter (·≠·)` is the erase duplicates function (cf. `eraseDups`), and `pwFilter (·<·)` finds
 a maximal increasing subsequence in `l`. For example,
 ```
 pwFilter (·<·) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4]
@@ -572,35 +597,59 @@ pwFilter (·<·) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4]
 def pwFilter (R : α → α → Prop) [DecidableRel R] (l : List α) : List α :=
   l.foldr (fun x IH => if ∀ y ∈ IH, R x y then x :: IH else IH) []
 
-section Chain
+/-- `IsChain R l` means that `R` holds between adjacent elements of `l`.
+```
+IsChain R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
+``` -/
+inductive IsChain (R : α → α → Prop) : List α → Prop where
+  /-- A list of length 0 is a chain. -/
+  | nil : IsChain R []
+  /-- A list of length 1 is a chain. -/
+  | singleton (a : α) : IsChain R [a]
+  /-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
+  | cons_cons (hr : R a b) (h : IsChain R (b :: l)) : IsChain R (a :: b :: l)
 
-variable (R : α → α → Prop)
+attribute [simp, grind ←] IsChain.nil
+attribute [simp, grind ←] IsChain.singleton
+
+@[simp, grind =] theorem isChain_cons_cons : IsChain R (a :: b :: l) ↔ R a b ∧ IsChain R (b :: l) :=
+  ⟨fun | .cons_cons hr h => ⟨hr, h⟩, fun ⟨hr, h⟩ => .cons_cons hr h⟩
+
+instance instDecidableIsChain {R : α → α → Prop} [h : DecidableRel R] (l : List α) :
+    Decidable (l.IsChain R) := match l with | [] => isTrue .nil | a :: l => go a l
+  where
+    go (a : α) (l : List α) : Decidable ((a :: l).IsChain R) :=
+      match l with
+      | [] => isTrue <| .singleton a
+      | b :: l => haveI := (go b l); decidable_of_iff' _ isChain_cons_cons
 
 /-- `Chain R a l` means that `R` holds between adjacent elements of `a::l`.
 ```
 Chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d
 ``` -/
-inductive Chain : α → List α → Prop
-  /-- A chain of length 1 is trivially a chain. -/
-  | nil {a : α} : Chain a []
-  /-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
-  | cons : ∀ {a b : α} {l : List α}, R a b → Chain b l → Chain a (b :: l)
+@[deprecated IsChain (since := "2025-09-19")]
+def Chain : (α → α → Prop) → α → List α → Prop := (IsChain · <| · :: ·)
+
+set_option linter.deprecated false in
+/-- A list of length 1 is a chain. -/
+@[deprecated IsChain.singleton (since := "2025-09-19")]
+theorem Chain.nil {a : α} : Chain R a [] := IsChain.singleton a
+
+set_option linter.deprecated false in
+/-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
+@[deprecated IsChain.cons_cons (since := "2025-09-19")]
+theorem Chain.cons : R a b → Chain R b l → Chain R a (b :: l)  := IsChain.cons_cons
 
 /-- `Chain' R l` means that `R` holds between adjacent elements of `l`.
 ```
 Chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
 ``` -/
-def Chain' : List α → Prop
-  | [] => True
-  | a :: l => Chain R a l
+@[deprecated IsChain (since := "2025-09-19")]
+def Chain' : (α → α → Prop) → List α → Prop := (IsChain · ·)
 
-end Chain
-
-/-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
-Defined as `pwFilter (≠)`.
-
-    eraseDup [1, 0, 2, 2, 1] = [0, 2, 1] -/
-@[inline] def eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
+/-- **Deprecated:** Use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups` instead. -/
+@[deprecated "use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups`" (since := "2026-01-03")]
+abbrev eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
 
 /--
 `rotate l n` rotates the elements of `l` to the left by `n`
@@ -718,9 +767,9 @@ zipWithLeft' prod.mk [1] ['a', 'b'] = ([(1, some 'a')], ['b'])
   let rec go (acc) : ∀ as bs, zipWithLeft'TR.go f as bs acc =
       let (l, r) := as.zipWithLeft' f bs; (acc.toList ++ l, r)
   | [], bs => by simp [zipWithLeft'TR.go]
-  | _::_, [] => by simp [zipWithLeft'TR.go, Array.foldl_toList_eq_map]
+  | _::_, [] => by simp [zipWithLeft'TR.go]
   | a::as, b::bs => by simp [zipWithLeft'TR.go, go _ as bs]
-  simp [zipWithLeft'TR, go]
+  simp [go]
 
 /--
 Right-biased version of `List.zipWith`. `zipWithRight' f as bs` applies `f` to each
@@ -787,9 +836,9 @@ zipWithLeft f as bs = (zipWithLeft' f as bs).fst
   funext α β γ f as bs; simp [zipWithLeftTR]
   let rec go (acc) : ∀ as bs, zipWithLeftTR.go f as bs acc = acc.toList ++ as.zipWithLeft f bs
   | [], bs => by simp [zipWithLeftTR.go]
-  | _::_, [] => by simp [zipWithLeftTR.go, Array.foldl_toList_eq_map]
+  | _::_, [] => by simp [zipWithLeftTR.go]
   | a::as, b::bs => by simp [zipWithLeftTR.go, go _ as bs]
-  simp [zipWithLeftTR, go]
+  simp [go]
 
 /--
 Right-biased version of `List.zipWith`. `zipWithRight f as bs` applies `f` to each
@@ -846,29 +895,12 @@ dropped from `xs`.
 fillNones [none, some 1, none, none] [2, 3] = [2, 1, 3]
 ```
 -/
-@[simp] def fillNones {α} : List (Option α) → List α → List α
+@[simp, deprecated "Deprecated without replacement." (since := "2025-08-07")]
+def fillNones {α} : List (Option α) → List α → List α
   | [], _ => []
   | some a :: as, as' => a :: fillNones as as'
   | none :: as, [] => as.reduceOption
   | none :: as, a :: as' => a :: fillNones as as'
-
-/-- Tail-recursive version of `fillNones`. -/
-@[inline] def fillNonesTR (as : List (Option α)) (as' : List α) : List α := go as as' #[] where
-  /-- Auxiliary for `fillNonesTR`: `fillNonesTR.go as as' acc = acc.toList ++ fillNones as as'`. -/
-  go : List (Option α) → List α → Array α → List α
-  | [], _, acc => acc.toList
-  | some a :: as, as', acc => go as as' (acc.push a)
-  | none :: as, [], acc => filterMapTR.go id as acc
-  | none :: as, a :: as', acc => go as as' (acc.push a)
-
-@[csimp] theorem fillNones_eq_fillNonesTR : @fillNones = @fillNonesTR := by
-  funext α as as'; simp [fillNonesTR]
-  let rec go (acc) : ∀ as as', @fillNonesTR.go α as as' acc = acc.toList ++ as.fillNones as'
-  | [], _ => by simp [fillNonesTR.go]
-  | some a :: as, as' => by simp [fillNonesTR.go, go _ as as']
-  | none :: as, [] => by simp [fillNonesTR.go, reduceOption, filterMap_eq_filterMapTR.go]
-  | none :: as, a :: as' => by simp [fillNonesTR.go, go _ as as']
-  simp [fillNonesTR, go]
 
 /--
 `takeList as ns` extracts successive sublists from `as`. For `ns = n₁ ... nₘ`,
@@ -904,7 +936,7 @@ def takeList {α} : List α → List Nat → List (List α) × List α
       let (l, r) := xs.takeList ns; (acc.toList ++ l, r)
   | [], xs => by simp [takeListTR.go, takeList]
   | n::ns, xs => by simp [takeListTR.go, takeList, go _ ns]
-  simp [takeListTR, go]
+  simp [go]
 
 /-- Auxliary definition used to define `toChunks`.
   `toChunksAux n xs i` returns `(xs.take i, (xs.drop i).toChunks (n+1))`,
@@ -1064,3 +1096,36 @@ where
   | a :: as, acc => match (a :: as).dropPrefix? i with
     | none => go as (a :: acc)
     | some s => (acc.reverse, s)
+
+/--
+Computes the product of the elements of a list.
+
+Examples:
+
+[a, b, c].prod = a * (b * (c * 1))
+[2, 3, 5].prod = 30
+-/
+@[expose] def prod [Mul α] [One α] (xs : List α) : α :=
+  xs.foldr (· * ·) 1
+
+/--
+Computes the partial sums of the elements of a list.
+
+Examples:
+
+`[a, b, c].partialSums = [0, 0 + a, (0 + a) + b, ((0 + a) + b) + c]`
+`[1, 2, 3].partialSums = [0, 1, 3, 6]`
+-/
+def partialSums [Add α] [Zero α] (l : List α) : List α :=
+  l.scanl (· + ·) 0
+
+/--
+Computes the partial products of the elements of a list.
+
+Examples:
+
+`[a, b, c].partialProds = [1, 1 * a, (1 * a) * b, ((1 * a) * b) * c]`
+`[2, 3, 5].partialProds = [1, 2, 6, 30]`
+-/
+def partialProds [Mul α] [One α] (l : List α) : List α :=
+  l.scanl (· * ·) 1

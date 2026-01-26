@@ -3,10 +3,12 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
-import Lean.Util.Paths
-import Lean.Elab.Command
-import Batteries.Tactic.Lint.Basic
-import Batteries.Tactic.OpenPrivate
+module
+
+public meta import Lean.Elab.Command
+public meta import Batteries.Tactic.Lint.Basic
+
+public meta section
 
 /-!
 # Linter frontend and commands
@@ -89,21 +91,61 @@ def getChecks (slow : Bool) (runOnly : Option (List Name)) (runAlways : Option (
         result := result.binInsert (·.name.lt ·.name) linter
   pure result
 
+/-- Traces via `IO.println` if `inIO` is `true`, and via `trace[...]` otherwise. It seems that
+`trace` messages in a running `CoreM` are not propagated through to `IO` in the current setup. We
+use `IO.println` directly instead of running `printTraces` at the end of our `CoreM` action so that
+trace messages are printed to stdout immediately, and are not lost if any part of the action hangs.
+
+This declaration is `macro_inline`, so it should have the same thunky behavior as `trace[...]`. -/
+@[macro_inline, expose]
+def traceLintCore (msg : String) (inIO : Bool) : CoreM Unit := do
+  if inIO then
+    if ← getBoolOption `trace.Batteries.Lint then
+      IO.println msg
+  else
+    trace[Batteries.Lint] msg
+
+/-- Traces via `IO.println` if `inIO` is `true`, and via `trace[...]` otherwise. Prepends
+`currentModule` and `linter` (if present).
+
+This declaration is `macro_inline`, so it should have the same thunky behavior as `trace[...]`. -/
+@[macro_inline, expose]
+def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Name := none) :
+    CoreM Unit :=
+  traceLintCore (inIO := inIO)
+    s!"{if let some m := currentModule then s!"[{m}] " else ""}\
+      {if let some l := linterName then s!"- {l}: " else ""}\
+      {msg}"
+
 /--
 Runs all the specified linters on all the specified declarations in parallel,
 producing a list of results.
 -/
-def lintCore (decls : Array Name) (linters : Array NamedLinter) :
+def lintCore (decls : Array Name) (linters : Array NamedLinter)
+    -- For tracing:
+    (currentModule : Option Name := none) (inIO : Bool := false) :
     CoreM (Array (NamedLinter × Std.HashMap Name MessageData)) := do
+  let env ← getEnv
+  let options ← getOptions -- TODO: sanitize options?
+  traceLint
+      s!"Running linters:\n  {"\n  ".intercalate <| linters.map (s!"{·.name}") |>.toList}"
+      inIO currentModule
+
   let tasks : Array (NamedLinter × Array (Name × Task (Except Exception <| Option MessageData))) ←
     linters.mapM fun linter => do
+      traceLint "(0/2) Starting..." inIO currentModule linter.name
       let decls ← decls.filterM (shouldBeLinted linter.name)
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
-        EIO.asTask <| ← Lean.Core.wrapAsync fun _ => do
-          (linter.test decl) |>.run' mkMetaContext
-          -- We use the context used by `Command.liftTermElabM`
+        let act := MetaM (Option MessageData) := doc
+          let result ← linter.test decl
+          if inIO then
+            -- Ensure any trace messages are propagated to stdout
+            printTraces
+          return result
+        EIO.asTask <| ← Lean.Core.wrapAsync fun _ => act
 
-  tasks.mapM fun (linter, decls) => do
+  let result ← tasks.mapM fun (linter, decls) => do
+    traceLint "(1/2) Getting..." inIO currentModule linter.name
     let mut msgs : Std.HashMap Name MessageData := {}
     for (declName, msgTask) in decls do
       let msg? ← match msgTask.get with
@@ -112,7 +154,15 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter) :
 
       if let .some msg := msg? then
         msgs := msgs.insert declName msg
+    traceLint
+      s!"(2/2) {if msgs.isEmpty then "Passed!" else
+        s!"Failed with {msgs.size} messages\
+        {if inIO then ", but these may include declarations in `nolints.json`" else ""}."}"
+      inIO currentModule linter.name
     pure (linter, msgs)
+  traceLint "Completed linting!" inIO currentModule
+  return result
+
 
 /-- Sorts a map with declaration keys as names by line number. -/
 def sortResults (results : Std.HashMap Name α) : CoreM <| Array (Name × α) := do
@@ -146,7 +196,7 @@ The first `drop_fn_chars` characters are stripped from the filename.
 -/
 def groupedByFilename (results : Std.HashMap Name MessageData) (useErrorFormat : Bool := false) :
     CoreM MessageData := do
-  let sp ← if useErrorFormat then initSrcSearchPath ["."] else pure {}
+  let sp ← if useErrorFormat then getSrcSearchPath else pure {}
   let grouped : Std.HashMap Name (System.FilePath × Std.HashMap Name MessageData) ←
     results.foldM (init := {}) fun grouped declName msg => do
       let mod ← findModuleOf? declName
@@ -273,3 +323,5 @@ elab "#list_linters" : command => do
   for (name, dflt) in result do
     msg := msg ++ m!"\n{name}{if dflt then " (*)" else ""}"
   logInfo msg
+
+initialize registerTraceClass `Batteries.Lint

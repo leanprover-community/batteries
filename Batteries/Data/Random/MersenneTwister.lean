@@ -3,7 +3,9 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
-import Batteries.Data.Vector
+module
+
+public section
 
 /-! # Mersenne Twister
 
@@ -130,7 +132,7 @@ where
       let x := x ^^^ x <<< t &&& c
       x ^^^ x >>> l
 
-instance (cfg) : Stream (State cfg) (BitVec cfg.wordSize) where
+instance (cfg) : Std.Stream (State cfg) (BitVec cfg.wordSize) where
   next? s := s.next
 
 /-- 32 bit Mersenne Twister (MT19937) configuration. -/
