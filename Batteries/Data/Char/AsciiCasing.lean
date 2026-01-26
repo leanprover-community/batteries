@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
 module
+/- Failing on nightly-2025-12-18
 
 public import Batteries.Data.Char.Basic
 public import Batteries.Tactic.Basic
@@ -200,3 +201,4 @@ ASCII-case insensitive implementation comparison returning an `Ordering`. Useful
 -/
 def cmpCaseInsensitiveAsciiOnly (c₁ c₂ : Char) : Ordering :=
   compare c₁.caseFoldAsciiOnly c₂.caseFoldAsciiOnly
+-/

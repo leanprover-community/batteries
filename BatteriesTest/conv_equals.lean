@@ -10,7 +10,7 @@ import Batteries.Tactic.Basic
 -- and keeping the doc up-to-date
 -- (only `guard_target` added)
 
-/-- warning: declaration uses 'sorry' -/
+/-- warning: declaration uses `sorry` -/
 #guard_msgs in
 example (P : (Nat → Nat) → Prop) : P (fun n => n - n) := by
   conv in (_ - _) => equals 0 =>
