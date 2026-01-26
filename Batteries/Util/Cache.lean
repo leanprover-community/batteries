@@ -51,11 +51,11 @@ instance : Nonempty (Cache α) := inferInstanceAs <| Nonempty (IO.Ref _)
 def Cache.mk (init : MetaM α) : IO (Cache α) := IO.mkRef <| Sum.inl init
 
 @[inherit_doc Core.wrapAsync]
-def _root_.Lean.Meta.wrapAsync (act : Unit → MetaM α) : MetaM (EIO Exception α) := do
+def _root_.Lean.Meta.wrapAsync {α : Type} (act : α → MetaM β)  (cancelTk? : Option IO.CancelToken) :
+    MetaM (α → EIO Exception β) := do
   let metaCtx ← readThe Meta.Context
   let metaSt ← getThe Meta.State
-  Core.wrapAsync fun _ =>
-    act () |>.run' metaCtx metaSt
+  Core.wrapAsync (fun a => act a |>.run' metaCtx metaSt) cancelTk?
 
 /--
 Access the cache. Calling this function for the first time will initialize the cache
@@ -65,7 +65,7 @@ def Cache.get (cache : Cache α) : MetaM α := do
   let t ← match ← ST.Ref.get (m := BaseIO) cache with
     | .inr t => pure t
     | .inl init =>
-      let res ← EIO.asTask <| ← Meta.wrapAsync fun _ => init
+      let res ← EIO.asTask <| (← Meta.wrapAsync (fun _ => init) (cancelTk? := none)) ()
       cache.set (m := BaseIO) (.inr res)
       pure res
   match t.get with
