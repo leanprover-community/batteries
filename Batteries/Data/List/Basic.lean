@@ -184,40 +184,31 @@ theorem takeDTR_go_eq : ∀ n l, takeDTR.go dflt n l acc = acc.toList ++ takeD n
   funext α f n l; simp [takeDTR, takeDTR_go_eq]
 
 
+/-- Tail-recursive helper function for `scanlM` and `scanrM` -/
+@[inline]
+def scanAuxM [Monad m] (f : β → α → m β) (init : β) (l : List α) : m (List β) :=
+  go l init []
+where
+  /-- Auxiliary for `scanAuxM` -/
+  @[specialize] go : List α → β → List β → m (List β)
+    | [], last, acc => pure <| last :: acc
+    | x :: xs, last, acc => do go xs (← f last x) (last :: acc)
+
 /--
 Folds a monadic function over a list from the left, accumulating partial results starting with
 `init`. The accumulated values are combined with the each element of the list in order, using `f`.
-
-This is a tail-recursive implementation. For an easier-to-reason-about version please see the
-non-tail-recursive `List.scanlM'. These cannot be shown to be equivalent to one another without
-a `LawfulMonad` constraint on `m`
 -/
 @[inline]
-def scanlM [Monad m] (f : α → β → m α) (init : α) (l : List β) : m (List α) :=
-  go l init (#[])
-where
-  @[specialize] go : List β → α → Array α → m (List α)
-    | [], a, acc => pure $ acc.toListAppend [a]
-    | b :: l, prev, acc => do
-      let next ← f prev b
-      go l next (acc.push prev)
-
+def scanlM [Monad m] (f : β → α → m β) (init : β) (l : List α) : m (List β) :=
+  List.reverse <$> scanAuxM f init l
 
 /--
-Folds a monadic function over a list from the left, accumulating partial results starting with
+Folds a monadic function over a list from the right, accumulating partial results starting with
 `init`. The accumulated values are combined with the each element of the list in order, using `f`.
-
-Unlike `List.scanr` this function _is_ stack safe.
 -/
-@[inline, specialize]
-def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) := do
-    List.reverse <$> scanlM (flip f) init xs.reverse
-
-
--- TODO: determine if scanl, scanlTR, and scanr should just be implemented in terms of scanlM',
--- scanlM, and scanrM save duplicated code/theorems on the one hand. On the other, you lose some of
--- the simple-to-reason about structure standard library does not implement map in terms of mapM or
--- fold in terms of foldM (for List, it does for Array)
+@[inline]
+def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) :=
+  scanAuxM (flip f) init xs.reverse
 
 /--
 Fold a function `f` over the list from the left, returning the list of partial results.
@@ -225,7 +216,7 @@ Fold a function `f` over the list from the left, returning the list of partial r
 scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]
 ```
 -/
--- This could be defined in terms of scanlM' but this has a very easy to reason about structure...
+@[inline]
 def scanl (f : β → α → β) (init : β) (as : List α) : List β :=
   Id.run <| as.scanlM (pure <| f · ·) init
 
@@ -235,7 +226,6 @@ Fold a function `f` over the list from the right, returning the list of partial 
 scanr (+) 0 [1, 2, 3] = [6, 5, 3, 0]
 ```
 -/
--- Should this just be defined in terms of scanrM?
 @[inline]
 def scanr (f : α → β → β) (init : β) (as : List α) : List β :=
   Id.run <| as.scanrM (pure <| f · ·) init
@@ -598,7 +588,7 @@ where
 
 /--
 `pwFilter R l` is a maximal sublist of `l` which is `Pairwise R`.
-`pwFilter (·≠·)` is the erase duplicates function (cf. `eraseDup`), and `pwFilter (·<·)` finds
+`pwFilter (·≠·)` is the erase duplicates function (cf. `eraseDups`), and `pwFilter (·<·)` finds
 a maximal increasing subsequence in `l`. For example,
 ```
 pwFilter (·<·) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4]
@@ -657,11 +647,9 @@ Chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
 @[deprecated IsChain (since := "2025-09-19")]
 def Chain' : (α → α → Prop) → List α → Prop := (IsChain · ·)
 
-/-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
-Defined as `pwFilter (≠)`.
-
-    eraseDup [1, 0, 2, 2, 1] = [0, 2, 1] -/
-@[inline] def eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
+/-- **Deprecated:** Use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups` instead. -/
+@[deprecated "use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups`" (since := "2026-01-03")]
+abbrev eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
 
 /--
 `rotate l n` rotates the elements of `l` to the left by `n`
