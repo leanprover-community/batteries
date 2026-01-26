@@ -110,27 +110,26 @@ private def finRel (scanIt' scanIt : @IterM (ScanM α m n β γ f) n γ) : Prop 
 
 private theorem acc_finRel_emittedTrue [Finite α m (β := β)]
     (scanIt : @IterM (ScanM α m n β γ f) n γ)
-    (hemit : scanIt.internalState.emittedInit = true)
-  : Acc finRel scanIt
-  := by
-    generalize hgen : (⟨scanIt.internalState.inner⟩ : IterM m β) = innerIt
-    induction Finite.wf.apply innerIt generalizing scanIt
-    rename_i ih
-    constructor
-    intro scanIt' _
-    by_cases scanIt'.internalState.emittedInit <;> simp_all only [finRel]
-    exact ih ⟨scanIt'.internalState.inner⟩ ‹_› scanIt' ‹_› rfl
+    (hemit : scanIt.internalState.emittedInit = true) :
+    Acc finRel scanIt := by
+  generalize hgen : (⟨scanIt.internalState.inner⟩ : IterM m β) = innerIt
+  induction Finite.wf.apply innerIt generalizing scanIt
+  rename_i ih
+  constructor
+  intro scanIt' _
+  by_cases scanIt'.internalState.emittedInit <;> simp_all only [finRel]
+  exact ih ⟨scanIt'.internalState.inner⟩ ‹_› scanIt' ‹_› rfl
 
 private theorem acc_finRel_emittedFalse [Finite α m (β := β)]
     (scanIt : @IterM (ScanM α m n β γ f) n γ)
-    (hemit : scanIt.internalState.emittedInit = false)
-  : Acc finRel scanIt := by
-    constructor
-    intro iter' _
-    by_cases iter'.internalState.emittedInit
-    . exact acc_finRel_emittedTrue _ ‹_›
-    -- this leads to a contradiction
-    . simp_all [finRel]
+    (hemit : scanIt.internalState.emittedInit = false) :
+    Acc finRel scanIt := by
+  constructor
+  intro iter' _
+  by_cases iter'.internalState.emittedInit
+  . exact acc_finRel_emittedTrue _ ‹_›
+  -- this leads to a contradiction
+  . simp_all [finRel]
 
 private theorem acc_finRel [Finite α m (β := β)] (scanIt : @IterM (ScanM α m n β γ f) n γ) :
     Acc finRel scanIt :=
@@ -157,7 +156,8 @@ instance [Finite α m (β := β)] [Monad m] [Monad n] [MonadLiftT m n] :
 
 /-- Productiveness relation for ScanM -/
 private def prodRel (scanIt' scanIt : @IterM (ScanM α m n β γ f) n γ) : Prop :=
-  (⟨scanIt'.internalState.inner⟩ : IterM m β).IsPlausibleSkipSuccessorOf ⟨scanIt.internalState.inner⟩
+  (⟨scanIt'.internalState.inner⟩ : IterM m β).IsPlausibleSkipSuccessorOf
+    ⟨scanIt.internalState.inner⟩
 
 private theorem acc_prodRel [Productive α m (β := β)]
     (scanIt : @IterM (ScanM α m n β γ f) n γ) :
