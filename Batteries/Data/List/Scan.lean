@@ -10,7 +10,6 @@ public import Batteries.Data.List.Lemmas
 
 @[expose] public section
 
-
 /-!
 # List scan
 
