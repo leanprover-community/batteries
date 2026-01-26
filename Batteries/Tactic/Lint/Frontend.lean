@@ -125,8 +125,6 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
     -- For tracing:
     (currentModule : Option Name := none) (inIO : Bool := false) :
     CoreM (Array (NamedLinter × Std.HashMap Name MessageData)) := do
-  let env ← getEnv
-  let options ← getOptions -- TODO: sanitize options?
   traceLint
       s!"Running linters:\n  {"\n  ".intercalate <| linters.map (s!"{·.name}") |>.toList}"
       inIO currentModule
@@ -136,13 +134,15 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
       traceLint "(0/2) Starting..." inIO currentModule linter.name
       let decls ← decls.filterM (shouldBeLinted linter.name)
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
-        let act := MetaM (Option MessageData) := doc
+        let act : MetaM (Option MessageData) := do
           let result ← linter.test decl
           if inIO then
             -- Ensure any trace messages are propagated to stdout
             printTraces
           return result
-        EIO.asTask <| ← Lean.Core.wrapAsync fun _ => act
+        EIO.asTask <| (← Core.wrapAsync (fun _ =>
+          act |>.run' mkMetaContext -- We use the context used by `Command.liftTermElabM`
+        ) (cancelTk? := none)) ()
 
   let result ← tasks.mapM fun (linter, decls) => do
     traceLint "(1/2) Getting..." inIO currentModule linter.name
