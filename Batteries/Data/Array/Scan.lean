@@ -364,4 +364,3 @@ theorem scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {as : 
   unfold scanrM
   apply Array.scanrM_extract
 end Subarray
-
