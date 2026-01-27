@@ -70,8 +70,7 @@ inductive IsPlausibleStep (it : IterM (α := ScanM α m f) n γ) :
       it.internalState.inner.IsPlausibleStep .done →
       IsPlausibleStep it .done
 
-instance instIterator [Monad m] [Iterator α m β] [MonadLiftT m n] [Monad n] :
-    Iterator (ScanM α m f) n γ where
+instance instIterator [MonadLiftT m n] : Iterator (ScanM α m f) n γ where
   IsPlausibleStep := ScanM.IsPlausibleStep
   step it := do
       if h : it.internalState.yieldAcc = true then
@@ -118,8 +117,7 @@ private theorem Rel.of_inner [Finite α m]
     Rel it' it := by
   simp_all [Rel, InvImage, Prod.Lex.right]
 
-private def instFinitenessRelation [Monad m] [Monad n] [Iterator α m β] [MonadLiftT m n]
-    [Finite α m] {f : γ → β → PostconditionT n γ} :
+private def instFinitenessRelation [MonadLiftT m n] [Finite α m] :
     FinitenessRelation (ScanM α m f) n where
   Rel := Rel
   wf := by
