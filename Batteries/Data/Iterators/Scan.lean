@@ -93,7 +93,8 @@ instance instIterator : Iterator (ScanM α m f) n γ where
         | .done hp =>
           pure <| .deflate <| .done (by exact .done (by simpa using h) hp)
 
-private def FinRel [Finite α m] : IterM (α := ScanM α m f) n γ → IterM (α := ScanM α m f) n γ → Prop :=
+private def FinRel [Finite α m] :
+    IterM (α := ScanM α m f) n γ → IterM (α := ScanM α m f) n γ → Prop :=
   InvImage
     (Prod.Lex
       (· < ·)
