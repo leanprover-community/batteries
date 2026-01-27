@@ -111,12 +111,11 @@ private def Rel [Monad n] [Finite α m] :
 
 private theorem rel_of_needsInit [Monad n] [Finite α m]
     {it it' : IterM (α := ScanM α m n β γ lift f) n γ}
-    (h : it'.internalState.needsInit < it.internalState.needsInit) :
+    (h' : it'.internalState.needsInit = false)
+    (h : it.internalState.needsInit = true) :
     Rel it' it := by
   apply Prod.Lex.left
-  cases h1 : it.internalState.needsInit <;> cases h2 : it'.internalState.needsInit
-  case h.true.false => simp_all
-  all_goals simp_all [LT.lt]
+  simp_all
 
 private theorem rel_of_inner [Monad n] [Finite α m]
     {it it' : IterM (α := ScanM α m n β γ lift f) n γ}
@@ -140,8 +139,7 @@ private def instFinitenessRelation {α β γ : Type w} {m : Type w → Type w'}
     obtain ⟨step, hstep, hplaus⟩ := h
     cases hplaus <;> cases hstep
     case yieldInit =>
-      apply rel_of_needsInit
-      simp_all [IterM.InternalCombinators.scanM, LT.lt]
+      apply rel_of_needsInit <;> simp_all [IterM.InternalCombinators.scanM]
     all_goals
       apply rel_of_inner <;> simp_all only [IterM.InternalCombinators.scanM, IterM.mk]
     . exact IterM.isPlausibleSuccessorOf_of_yield ‹_›
