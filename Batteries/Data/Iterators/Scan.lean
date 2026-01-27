@@ -249,7 +249,7 @@ def IterM.scan [Iterator α m β] [Monad m] (f : γ → β → γ) (acc : γ) (i
   (it.scanWithPostcondition (pure <| f · ·) acc : IterM m γ)
 
 
-@[inline, expose, inherit_doc IterM.scanM]
+@[inline, expose, inherit_doc IterM.scanWithPostcondition]
 def Iter.scanWithPostcondition [Monad m] [Iterator α Id β]
     (f : γ → β → PostconditionT m γ) (acc : γ) (it : Iter (α := α) β) :=
   it.toIterM.scanWithPostcondition f acc
