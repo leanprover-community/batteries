@@ -276,7 +276,8 @@ def IterM.scan {α β γ : Type w} {m : Type w → Type w'}
 def Iter.scanWithPostcondition {α β γ : Type w} {m : Type w → Type w'}
     [Monad m] (f : γ → β → PostconditionT m γ) (acc : γ)
     (it : Iter (α := α) β) :=
-  (letI : MonadLift Id m := ⟨pure⟩; it.toIterM.scanWithPostcondition f acc : IterM m γ)
+  letI : MonadLift Id m := ⟨pure⟩;
+  it.toIterM.scanWithPostcondition f acc
 
 @[inline, expose, inherit_doc IterM.scanM]
 def Iter.scanM {α β γ : Type w} {n : Type w → Type w''}
