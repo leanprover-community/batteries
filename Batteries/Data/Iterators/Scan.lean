@@ -93,30 +93,27 @@ instance instIterator : Iterator (ScanM α m f) n γ where
         | .done hp =>
           pure <| .deflate <| .done (by exact .done (by simpa using h) hp)
 
-namespace Finite
-private def Rel [Finite α m] : IterM (α := ScanM α m f) n γ → IterM (α := ScanM α m f) n γ → Prop :=
+private def FinRel [Finite α m] : IterM (α := ScanM α m f) n γ → IterM (α := ScanM α m f) n γ → Prop :=
   InvImage
     (Prod.Lex
       (· < ·)
       IterM.IsPlausibleSuccessorOf)
     (fun it => (it.internalState.yieldAcc.toNat, it.internalState.inner))
 
-private theorem Rel.of_yieldAcc [Finite α m] {it it' : IterM (α := ScanM α m f) n γ}
+private theorem FinRel.of_yieldAcc [Finite α m] {it it' : IterM (α := ScanM α m f) n γ}
     (h' : it'.internalState.yieldAcc = false) (h : it.internalState.yieldAcc = true) :
-    Rel it' it := by
+    FinRel it' it := by
   apply Prod.Lex.left
   simp_all
 
-private theorem Rel.of_inner [Finite α m]
-    {it it' : IterM (α := ScanM α m f) n γ}
+private theorem FinRel.of_inner [Finite α m] {it it' : IterM (α := ScanM α m f) n γ}
     (h : it'.internalState.yieldAcc = it.internalState.yieldAcc)
     (h' : it'.internalState.inner.IsPlausibleSuccessorOf it.internalState.inner) :
-    Rel it' it := by
-  simp_all [Rel, InvImage, Prod.Lex.right]
+    FinRel it' it := by
+  simp_all [FinRel, InvImage, Prod.Lex.right]
 
-private def instFinitenessRelation [Finite α m] :
-    FinitenessRelation (ScanM α m f) n where
-  Rel := Rel
+private def instFinitenessRelation [Finite α m] : FinitenessRelation (ScanM α m f) n where
+  Rel := FinRel
   wf := by
     apply InvImage.wf
     refine ⟨fun (a, b) => Prod.lexAccessible (WellFounded.apply ?_ a) (WellFounded.apply ?_) b⟩
@@ -126,16 +123,14 @@ private def instFinitenessRelation [Finite α m] :
     obtain ⟨step, hstep, hplaus⟩ := h
     cases hplaus <;> cases hstep
     case yieldInit =>
-      simp_all [Rel.of_yieldAcc, IterM.InternalCombinators.scanM]
+      simp_all [FinRel.of_yieldAcc, IterM.InternalCombinators.scanM]
     all_goals
-      apply Rel.of_inner <;> simp_all only [IterM.InternalCombinators.scanM, IterM.mk]
+      apply FinRel.of_inner <;> simp_all only [IterM.InternalCombinators.scanM, IterM.mk]
     . exact IterM.isPlausibleSuccessorOf_of_yield ‹_›
     . exact IterM.isPlausibleSuccessorOf_of_skip ‹_›
-end Finite
 
-instance instFinite [Finite α m (β := β)] :
-    Finite (ScanM α m f) n :=
-  .of_finitenessRelation Finite.instFinitenessRelation
+instance instFinite [Finite α m (β := β)] : Finite (ScanM α m f) n :=
+  .of_finitenessRelation instFinitenessRelation
 
 private def instProductivenessRelation [Productive α m] :
     ProductivenessRelation (ScanM α m f) n where
