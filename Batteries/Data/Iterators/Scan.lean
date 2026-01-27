@@ -19,16 +19,15 @@ structure ScanM (α : Type w) (m : Type w → Type w') (n : Type w → Type w'')
   inner : IterM (α := α) m β
   /-- Current accumulated value -/
   acc : γ
-  /-- Whether we need to emit the initial value
-    (and therefore have not yet begun yielding from the iterator) -/
-  needsInit : Bool
+  /-- Whether we need to emit the accumulator (i.e. whether this is the first step)-/
+  yieldAcc : Bool
 
 /-- Internal implementation of the `scanM` combinator. See `IterM.scanM` for the public API. -/
 @[expose]
 public def IterM.InternalCombinators.scanM (lift : ⦃α : Type w⦄ → m α → n α )
-    (f : γ → β → PostconditionT n γ) (acc : γ) (needsInit : Bool) (it : IterM (α := α) m β) :
+    (f : γ → β → PostconditionT n γ) (acc : γ) (yieldAcc : Bool) (it : IterM (α := α) m β) :
     IterM (α := ScanM α m n β γ lift f) n γ :=
-  .mk ⟨it, acc, needsInit⟩ n γ
+  .mk ⟨it, acc, yieldAcc⟩ n γ
 
 namespace ScanM
 variable {α β γ : Type w} {m : Type w → Type w'} {n : Type w → Type w''}
@@ -40,34 +39,34 @@ iterator `it`. This is mostly an internal implementation detail used to prove te
 -/
 inductive IsPlausibleStep (it : @IterM (ScanM α m n β γ lift f) n γ) :
     IterStep (@IterM (ScanM α m n β γ lift f) n γ) γ → Prop where
-  /-- If we haven't emitted anything yet (needsInit is true),
+  /-- If we haven't emitted anything yet (yieldAcc is true),
       we set it to false and do not update the internal iterator state
   -/
   | yieldInit :
-      it.internalState.needsInit = true →
+      it.internalState.yieldAcc = true →
       IsPlausibleStep it (.yield
         (IterM.InternalCombinators.scanM
          lift f it.internalState.acc false it.internalState.inner)
          it.internalState.acc)
-  /-- After `needsInit` is set to false, we yield when the inner iterator does.
-      The resulting state has needsInit set to false and the updated internal iterator state.
+  /-- After `yieldAcc` is set to false, we yield when the inner iterator does.
+      The resulting state has yieldAcc set to false and the updated internal iterator state.
   -/
   | yieldNext : ∀ {it' b out},
-      it.internalState.needsInit = false →
+      it.internalState.yieldAcc = false →
       it.internalState.inner.IsPlausibleStep (.yield it' b) →
       (f it.internalState.acc b).Property out →
       IsPlausibleStep it (.yield (IterM.InternalCombinators.scanM lift f out false it') out)
-  /-- After `needsInit` is set to false, we skip when the inner iterator does.
+  /-- After `yieldAcc` is set to false, we skip when the inner iterator does.
       Our resulting state is identical, except with an updated inner iterator
   -/
   | skip : ∀ {it'},
-      it.internalState.needsInit = false →
+      it.internalState.yieldAcc = false →
       it.internalState.inner.IsPlausibleStep (.skip it') →
       IsPlausibleStep it
       (.skip (IterM.InternalCombinators.scanM lift f it.internalState.acc false it'))
-  /-- We are done when needsInit is false and the internal iterator is done -/
+  /-- We are done when yieldAcc is false and the internal iterator is done -/
   | done :
-      it.internalState.needsInit = false →
+      it.internalState.yieldAcc = false →
       it.internalState.inner.IsPlausibleStep .done →
       IsPlausibleStep it .done
 
@@ -79,7 +78,7 @@ instance instIterator {α β γ : Type w} {m : Type w → Type w'}
   step it :=
     letI : MonadLift m n := ⟨lift (α := _)⟩
     do
-      if h : it.internalState.needsInit = true then
+      if h : it.internalState.yieldAcc = true then
         pure <| .deflate <| .yield
           (IterM.InternalCombinators.scanM lift f it.internalState.acc false it.internalState.inner)
           it.internalState.acc
@@ -107,19 +106,19 @@ private def Rel [Monad n] [Finite α m] :
     (Prod.Lex
       (· < ·)
       IterM.IsPlausibleSuccessorOf)
-    (fun it => (it.internalState.needsInit.toNat, it.internalState.inner))
+    (fun it => (it.internalState.yieldAcc.toNat, it.internalState.inner))
 
-private theorem Rel.of_needsInit [Monad n] [Finite α m]
+private theorem Rel.of_yieldAcc [Monad n] [Finite α m]
     {it it' : IterM (α := ScanM α m n β γ lift f) n γ}
-    (h' : it'.internalState.needsInit = false)
-    (h : it.internalState.needsInit = true) :
+    (h' : it'.internalState.yieldAcc = false)
+    (h : it.internalState.yieldAcc = true) :
     Rel it' it := by
   apply Prod.Lex.left
   simp_all
 
 private theorem Rel.of_inner [Monad n] [Finite α m]
     {it it' : IterM (α := ScanM α m n β γ lift f) n γ}
-    (h : it'.internalState.needsInit = it.internalState.needsInit)
+    (h : it'.internalState.yieldAcc = it.internalState.yieldAcc)
     (h' : it'.internalState.inner.IsPlausibleSuccessorOf it.internalState.inner) :
     Rel it' it := by
   simp_all [Rel, InvImage, Prod.Lex.right]
@@ -138,7 +137,7 @@ private def instFinitenessRelation {α β γ : Type w} {m : Type w → Type w'}
     obtain ⟨step, hstep, hplaus⟩ := h
     cases hplaus <;> cases hstep
     case yieldInit =>
-      simp_all [Rel.of_needsInit, IterM.InternalCombinators.scanM]
+      simp_all [Rel.of_yieldAcc, IterM.InternalCombinators.scanM]
     all_goals
       apply Rel.of_inner <;> simp_all only [IterM.InternalCombinators.scanM, IterM.mk]
     . exact IterM.isPlausibleSuccessorOf_of_yield ‹_›
@@ -273,7 +272,7 @@ def IterM.scan {α β γ : Type w} {m : Type w → Type w'}
 def Iter.scanWithPostcondition {α β γ : Type w} {m : Type w → Type w'}
     [Monad m] (f : γ → β → PostconditionT m γ) (acc : γ)
     (it : Iter (α := α) β) :=
-  letI : MonadLift Id m := ⟨pure⟩;
+  letI : MonadLift Id m := ⟨pure⟩
   it.toIterM.scanWithPostcondition f acc
 
 @[inline, expose, inherit_doc IterM.scanM]

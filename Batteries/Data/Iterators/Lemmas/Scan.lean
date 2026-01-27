@@ -17,11 +17,11 @@ open Std.Iterators Std.Iterators.Types
 theorem IterM.InternalCombinators.step_scanM {α β γ : Type w} {m : Type w → Type w'}
     {n : Type w → Type w''} {lift : ⦃α : Type w⦄ → m α → n α}
     {f : γ → β → PostconditionT n γ} [Iterator α m β] [Monad n]
-    {it : IterM (α := α) m β} {acc : γ} {needsInit : Bool} :
-    (IterM.InternalCombinators.scanM lift f acc needsInit it).step = (
+    {it : IterM (α := α) m β} {acc : γ} {yieldAcc : Bool} :
+    (IterM.InternalCombinators.scanM lift f acc yieldAcc it).step = (
       letI : MonadLift m n := ⟨lift (α := _)⟩
       do
-        if h : needsInit = true then
+        if h : yieldAcc = true then
           return .deflate <| .yield
             (IterM.InternalCombinators.scanM lift f acc false it)
             acc
@@ -41,7 +41,7 @@ theorem IterM.InternalCombinators.step_scanM {α β γ : Type w} {m : Type w →
           | .done hp =>
             return .deflate <|
               .done (.done (by simp [IterM.InternalCombinators.scanM, h]) hp)) := by
-  cases h: needsInit
+  cases h: yieldAcc
   case true => rfl
   apply bind_congr
   intro step
