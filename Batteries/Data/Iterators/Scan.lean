@@ -142,6 +142,9 @@ private def instProductivenessRelation [Productive α m] :
 instance instProductive [Productive α m] : Productive (ScanM α m f) n :=
   Productive.of_productivenessRelation instProductivenessRelation
 
+instance instIteratorLoop : IteratorLoop (ScanM α m f) n m :=
+  .defaultImplementation
+
 end ScanM
 end Std.Iterators.Types
 
