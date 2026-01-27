@@ -197,10 +197,8 @@ it.scanWithPostcondition    -i -a'-ab'-abc'---⊥
 For each value emitted by the base iterator `it`, this combinator calls `f`.
 -/
 @[inline, expose]
-def IterM.scanWithPostcondition {α β γ : Type w} {m : Type w → Type w'} {n : Type w → Type w''}
-    [Monad m] [Monad n] [MonadLiftT m n] [Iterator α m β]
-    (f : γ → β → PostconditionT n γ) (acc : γ)
-    (it : IterM (α := α) m β) :=
+def IterM.scanWithPostcondition [Monad m] [Monad n] [MonadLiftT m n] [Iterator α m β]
+    (f : γ → β → PostconditionT n γ) (acc : γ) (it : IterM (α := α) m β) :=
   IterM.InternalCombinators.scanM (n := n) f acc true it
 
 /--
@@ -232,8 +230,7 @@ it.scanM     -i -a'-ab'-abc'---⊥
 For each value emitted by the base iterator `it`, this combinator calls `f`.
 -/
 @[inline, expose]
-def IterM.scanM {α β γ : Type w} {m : Type w → Type w'} {n : Type w → Type w''}
-    [MonadAttach n] [Monad m] [Monad n] [MonadLiftT m n] [Iterator α m β]
+def IterM.scanM [MonadAttach n] [Monad m] [Monad n] [MonadLiftT m n] [Iterator α m β]
     (f : γ → β → n γ) (acc : γ) (it : IterM (α := α) m β) :=
   it.scanWithPostcondition (fun a b => PostconditionT.attachLift (f a b)) acc
 
@@ -263,8 +260,7 @@ it.scan    -i -a'-ab'-abc'---⊥
 For each value emitted by the base iterator `it`, this combinator calls `f`.
 -/
 @[inline, expose]
-def IterM.scan {α β γ : Type w} {m : Type w → Type w'}
-    [Iterator α m β] [Monad m] (f : γ → β → γ) (acc : γ) (it : IterM (α := α) m β) :=
+def IterM.scan [Iterator α m β] [Monad m] (f : γ → β → γ) (acc : γ) (it : IterM (α := α) m β) :=
   (it.scanWithPostcondition (fun a b => pure (f a b)) acc : IterM m γ)
 
 
@@ -276,12 +272,11 @@ def Iter.scanWithPostcondition {α β γ : Type w} {m : Type w → Type w'}
   it.toIterM.scanWithPostcondition f acc
 
 @[inline, expose, inherit_doc IterM.scanM]
-def Iter.scanM {α β γ : Type w} {n : Type w → Type w''}
-    [MonadAttach n] [Monad n] [Iterator α Id β]
+def Iter.scanM [MonadAttach n] [Monad n] [Iterator α Id β]
     (f : γ → β → n γ) (acc : γ) (it : Iter (α := α) β) :=
   it.toIterM.scanM f acc
 
 @[inline, expose, inherit_doc IterM.scan]
-def Iter.scan {α β γ : Type w} [Iterator α Id β] (f : γ → β → γ) (acc : γ) (it : Iter (α := α) β) :=
+def Iter.scan [Iterator α Id β] (f : γ → β → γ) (acc : γ) (it : Iter (α := α) β) :=
   it.toIterM.scan f acc |>.toIter
 end Std
