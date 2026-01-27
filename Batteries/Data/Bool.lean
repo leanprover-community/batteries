@@ -3,7 +3,7 @@ module
 @[expose] public section
 
 /-- Well-formedness relation for Bool.lt -/
-instance Bool.lt_wfRel : WellFoundedRelation Bool where
+def Bool.lt_wfRel : WellFoundedRelation Bool where
   rel := (· < ·)
   wf := by
     apply WellFounded.intro
@@ -25,7 +25,7 @@ instance Bool.lt_wfRel : WellFoundedRelation Bool where
         contradiction
 
 /-- Well-formedness for Bool.gt -/
-instance Bool.gt_wfRel : WellFoundedRelation Bool where
+def Bool.gt_wfRel : WellFoundedRelation Bool where
   rel := (· > ·)
   wf := by
     apply WellFounded.intro
