@@ -109,7 +109,7 @@ private def Rel [Monad n] [Finite α m] :
       IterM.IsPlausibleSuccessorOf)
     (fun it => (it.internalState.needsInit.toNat, it.internalState.inner))
 
-private theorem rel_of_needsInit [Monad n] [Finite α m]
+private theorem Rel.of_needsInit [Monad n] [Finite α m]
     {it it' : IterM (α := ScanM α m n β γ lift f) n γ}
     (h' : it'.internalState.needsInit = false)
     (h : it.internalState.needsInit = true) :
@@ -117,7 +117,7 @@ private theorem rel_of_needsInit [Monad n] [Finite α m]
   apply Prod.Lex.left
   simp_all
 
-private theorem rel_of_inner [Monad n] [Finite α m]
+private theorem Rel.of_inner [Monad n] [Finite α m]
     {it it' : IterM (α := ScanM α m n β γ lift f) n γ}
     (h : it'.internalState.needsInit = it.internalState.needsInit)
     (h' : it'.internalState.inner.IsPlausibleSuccessorOf it.internalState.inner) :
@@ -139,9 +139,9 @@ private def instFinitenessRelation {α β γ : Type w} {m : Type w → Type w'}
     obtain ⟨step, hstep, hplaus⟩ := h
     cases hplaus <;> cases hstep
     case yieldInit =>
-      simp_all [rel_of_needsInit, IterM.InternalCombinators.scanM]
+      simp_all [Rel.of_needsInit, IterM.InternalCombinators.scanM]
     all_goals
-      apply rel_of_inner <;> simp_all only [IterM.InternalCombinators.scanM, IterM.mk]
+      apply Rel.of_inner <;> simp_all only [IterM.InternalCombinators.scanM, IterM.mk]
     . exact IterM.isPlausibleSuccessorOf_of_yield ‹_›
     . exact IterM.isPlausibleSuccessorOf_of_skip ‹_›
 end Finite
