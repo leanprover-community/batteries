@@ -108,13 +108,16 @@ private def Rel [Monad n] [Finite α m] :
     (Prod.Lex
       (· < ·)
       IterM.IsPlausibleSuccessorOf)
-    (fun it => (it.internalState.needsInit, it.internalState.inner))
+    (fun it => (it.internalState.needsInit.toNat, it.internalState.inner))
 
 private theorem rel_of_needsInit [Monad n] [Finite α m]
     {it it' : IterM (α := ScanM α m n β γ lift f) n γ}
     (h : it'.internalState.needsInit < it.internalState.needsInit) :
-    Rel it' it :=
-  Prod.Lex.left _ _ h
+    Rel it' it := by
+  apply Prod.Lex.left
+  cases h1 : it.internalState.needsInit <;> cases h2 : it'.internalState.needsInit
+  case h.true.false => simp_all
+  all_goals simp_all [LT.lt]
 
 private theorem rel_of_inner [Monad n] [Finite α m]
     {it it' : IterM (α := ScanM α m n β γ lift f) n γ}
@@ -128,20 +131,18 @@ private def instFinitenessRelation {α β γ : Type w} {m : Type w → Type w'}
     {n : Type w → Type w''} [Monad n] [Iterator α m β] {lift : ⦃α : Type w⦄ → m α → n α}
     {f : γ → β → PostconditionT n γ} [Finite α m] :
     FinitenessRelation (ScanM α m n β γ lift f) n where
-  Rel := InvImage
-    (Prod.Lex
-      (· < ·)
-      IterM.IsPlausibleSuccessorOf)
-    (fun it => (it.internalState.needsInit, it.internalState.inner))
+  Rel := Rel
   wf := by
     apply InvImage.wf
     refine ⟨fun (a, b) => Prod.lexAccessible (WellFounded.apply ?_ a) (WellFounded.apply ?_) b⟩
-    · exact Bool.lt_wfRel.wf
+    · exact Nat.lt_wfRel.wf
     · exact Finite.wf
   subrelation {it it'} h := by
     obtain ⟨step, hstep, hplaus⟩ := h
     cases hplaus <;> cases hstep
-    case yieldInit => apply Prod.Lex.left _ _ ‹_›
+    case yieldInit =>
+      apply rel_of_needsInit
+      simp_all [IterM.InternalCombinators.scanM, LT.lt]
     all_goals
       apply rel_of_inner <;> simp_all only [IterM.InternalCombinators.scanM, IterM.mk]
     . exact IterM.isPlausibleSuccessorOf_of_yield ‹_›
