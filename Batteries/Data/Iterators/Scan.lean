@@ -5,7 +5,6 @@ Authors: Chad Sharp
 -/
 
 module
-import Batteries.Data.Bool
 
 public section
 namespace Std.Iterators.Types
