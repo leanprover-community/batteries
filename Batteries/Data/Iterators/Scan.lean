@@ -39,32 +39,32 @@ iterator `it`. This is mostly an internal implementation detail used to prove te
 -/
 inductive IsPlausibleStep (it : IterM (α := ScanM α m f) n γ) :
     IterStep (IterM (α := ScanM α m f) n γ) γ → Prop where
-  /-- If we haven't emitted anything yet (yieldAcc is true),
-      we set it to false and do not update the internal iterator state
+  /-- When `yieldAcc` is true, the step yields the current accumulator and
+      the successor iterator is identical except with `yieldAcc` set to false.
   -/
   | yieldInit :
       it.internalState.yieldAcc = true →
       IsPlausibleStep it (.yield
-        (IterM.InternalCombinators.scanM
-         f it.internalState.acc false it.internalState.inner)
+        (IterM.InternalCombinators.scanM f it.internalState.acc false it.internalState.inner)
          it.internalState.acc)
-  /-- After `yieldAcc` is set to false, we yield when the inner iterator does.
-      The resulting state has yieldAcc set to false and the updated internal iterator state.
+  /-- When `yieldAcc` is false and the inner iterator yields `b` with successor `it'`,
+      the step yields an `out` satisfying `(f acc b).Property out`, and the successor
+      wraps `it'` with `out` as the new accumulator.
   -/
-  | yieldNext : ∀ {it' b out},
+  | yieldNext :
       it.internalState.yieldAcc = false →
       it.internalState.inner.IsPlausibleStep (.yield it' b) →
       (f it.internalState.acc b).Property out →
       IsPlausibleStep it (.yield (IterM.InternalCombinators.scanM f out false it') out)
-  /-- After `yieldAcc` is set to false, we skip when the inner iterator does.
-      Our resulting state is identical, except with an updated inner iterator
+  /-- When `yieldAcc` is false and the inner iterator skips with successor `it'`,
+      the step skips and the successor wraps `it'` with the same accumulator.
   -/
-  | skip : ∀ {it'},
+  | skip :
       it.internalState.yieldAcc = false →
       it.internalState.inner.IsPlausibleStep (.skip it') →
       IsPlausibleStep it
       (.skip (IterM.InternalCombinators.scanM f it.internalState.acc false it'))
-  /-- We are done when yieldAcc is false and the internal iterator is done -/
+  /-- When `yieldAcc` is false and the inner iterator is done, the step is done. -/
   | done :
       it.internalState.yieldAcc = false →
       it.internalState.inner.IsPlausibleStep .done →
@@ -96,9 +96,7 @@ instance instIterator : Iterator (ScanM α m f) n γ where
 private def FinRel [Finite α m] :
     IterM (α := ScanM α m f) n γ → IterM (α := ScanM α m f) n γ → Prop :=
   InvImage
-    (Prod.Lex
-      (· < ·)
-      IterM.IsPlausibleSuccessorOf)
+    (Prod.Lex (· < ·) IterM.IsPlausibleSuccessorOf)
     (fun it => (it.internalState.yieldAcc.toNat, it.internalState.inner))
 
 private theorem FinRel.of_yieldAcc [Finite α m] {it it' : IterM (α := ScanM α m f) n γ}
@@ -120,7 +118,7 @@ private def instFinitenessRelation [Finite α m] : FinitenessRelation (ScanM α 
     refine ⟨fun (a, b) => Prod.lexAccessible (WellFounded.apply ?_ a) (WellFounded.apply ?_) b⟩
     · exact Nat.lt_wfRel.wf
     · exact Finite.wf
-  subrelation {it it'} h := by
+  subrelation h := by
     obtain ⟨step, hstep, hplaus⟩ := h
     cases hplaus <;> cases hstep
     case yieldInit => simp_all [FinRel.of_yieldAcc, IterM.InternalCombinators.scanM]
@@ -219,7 +217,7 @@ For each value emitted by the base iterator `it`, this combinator calls `f`.
 @[inline, expose]
 def IterM.scanM [MonadAttach n] [Monad m] [Monad n] [MonadLiftT m n] [Iterator α m β]
     (f : γ → β → n γ) (acc : γ) (it : IterM (α := α) m β) :=
-  it.scanWithPostcondition (fun a b => PostconditionT.attachLift (f a b)) acc
+  it.scanWithPostcondition (PostconditionT.attachLift <| f · ·) acc
 
 /--
 If `it` is an iterator, then `it.scan f acc` is another iterator that applies a
@@ -248,7 +246,7 @@ For each value emitted by the base iterator `it`, this combinator calls `f`.
 -/
 @[inline, expose]
 def IterM.scan [Iterator α m β] [Monad m] (f : γ → β → γ) (acc : γ) (it : IterM (α := α) m β) :=
-  (it.scanWithPostcondition (fun a b => pure (f a b)) acc : IterM m γ)
+  (it.scanWithPostcondition (pure <| f · ·) acc : IterM m γ)
 
 
 @[inline, expose, inherit_doc IterM.scanM]
