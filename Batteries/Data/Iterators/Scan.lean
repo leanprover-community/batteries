@@ -122,8 +122,7 @@ private theorem Rel.of_inner [Monad n] [Finite α m]
     (h : it'.internalState.needsInit = it.internalState.needsInit)
     (h' : it'.internalState.inner.IsPlausibleSuccessorOf it.internalState.inner) :
     Rel it' it := by
-  simp only [Rel, InvImage, h]
-  exact Prod.Lex.right _ h'
+  simp_all [Rel, InvImage, Prod.Lex.right]
 
 private def instFinitenessRelation {α β γ : Type w} {m : Type w → Type w'}
     {n : Type w → Type w''} [Monad n] [Iterator α m β] {lift : ⦃α : Type w⦄ → m α → n α}
@@ -154,7 +153,7 @@ private def instProductivenessRelation [Monad n] [Productive α m] :
     ProductivenessRelation (ScanM α m n β γ lift f) n where
   Rel := InvImage IterM.IsPlausibleSkipSuccessorOf (ScanM.inner ∘ IterM.internalState)
   wf := InvImage.wf _ Productive.wf
-  subrelation {it it'} h := by cases h; assumption
+  subrelation h := by cases h; assumption
 
 instance instProductive [Monad n] [Productive α m] :
     Productive (ScanM α m n β γ lift f) n :=

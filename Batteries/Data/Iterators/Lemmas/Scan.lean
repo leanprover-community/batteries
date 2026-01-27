@@ -110,14 +110,14 @@ theorem Iter.toList_scanM {α β γ : Type w} {m : Type w → Type w'}
     [Iterator α Id β] [Finite α Id]
     {f : γ → β → m γ} {init : γ} (it : Iter (α := α) β) :
     (it.scanM f init).toList = it.toList.scanlM f init := by
-  simp only [Iter.scanM, IterM.toList_scanM, Iter.toList, Id.run]
+  simp [Iter.scanM, Iter.toList, Id.run]
 
 @[simp]
 theorem Iter.toList_scan {α β γ : Type w}
     [Iterator α Id β] [Finite α Id]
     {f : γ → β → γ} {init : γ} (it : Iter (α := α) β) :
     (it.scan f init).toList = List.scanl f init it.toList := by
-  simp [scan, IterM.toList_scan]
+  simp [Iter.scan, IterM.toList_scan]
   rfl
 
 @[simp]
@@ -135,17 +135,21 @@ theorem IterM.toArray_scanM {α β γ : Type w} {m : Type w → Type w'}
     [Iterator α Id β] [Finite α Id]
     {f : γ → β → m γ} {init : γ} (it : IterM (α := α) Id β) :
     (it.scanM f init).toArray = it.toArray.run.scanlM f init := by
-  rw [← toArray_toList]
-  rw [IterM.toList_scanM, ← Array.scanlM_toList]
-  rfl
+  simp [scanM]
 
 @[simp]
 theorem IterM.toArray_scan {α β γ : Type w}
     [Iterator α Id β] [Finite α Id]
     {f : γ → β → γ} {init : γ} (it : IterM (α := α) Id β) :
     (it.scan f init).toArray = it.toArray.run.scanl f init := by
-  rw [← IterM.toArray_toList, toList_scan, ← Array.scanl_toList]
-  simp only [Functor.map]
+  simp [scan, Id.run, PostconditionT.run_eq_map]
+  rfl
+
+theorem Iter.toArray_scanWithPostCondition {α β γ : Type w} {m : Type w → Type w'}
+    [Monad m] [LawfulMonad m] [Iterator α Id β] [Finite α Id]
+    {f : γ → β → PostconditionT m γ} {init : γ} (it : Iter (α := α) β) :
+    (it.scanWithPostcondition f init).toArray = it.toArray.scanlM (f · · |>.run) init := by
+  simp only [scanWithPostcondition, IterM.toArray_scanWithPostCondition]
   rfl
 
 @[simp]
@@ -154,8 +158,7 @@ theorem Iter.toArray_scanM {α β γ : Type w} {m : Type w → Type w'}
     [Iterator α Id β] [Finite α Id]
     {f : γ → β → m γ} {init : γ} (it : Iter (α := α) β) :
     (it.scanM f init).toArray = it.toArray.scanlM f init := by
-  unfold scanM
-  rw [← IterM.toArray_toList, ← Array.scanlM_toList, IterM.toList_scanM]
+  simp only [scanM, IterM.toArray_scanM]
   rfl
 
 @[simp]
