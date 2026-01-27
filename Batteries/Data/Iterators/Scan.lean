@@ -70,9 +70,8 @@ inductive IsPlausibleStep (it : @IterM (ScanM α m n β γ f) n γ) :
       it.internalState.inner.IsPlausibleStep .done →
       IsPlausibleStep it .done
 
-instance instIterator {α β γ : Type w} {m : Type w → Type w'}
-    {n : Type w → Type w''} {f : γ → β → PostconditionT n γ}
-    [Monad m] [Iterator α m β] [MonadLiftT m n] [Monad n] :
+instance instIterator {f : γ → β → PostconditionT n γ} [Monad m] [Iterator α m β]
+    [MonadLiftT m n] [Monad n] :
     Iterator (ScanM α m n β γ f) n γ where
   IsPlausibleStep := ScanM.IsPlausibleStep
   step it := do
