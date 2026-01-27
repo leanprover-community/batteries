@@ -130,7 +130,7 @@ private def instFinitenessRelation [Finite α m] : FinitenessRelation (ScanM α 
     . exact IterM.isPlausibleSuccessorOf_of_yield ‹_›
     . exact IterM.isPlausibleSuccessorOf_of_skip ‹_›
 
-instance instFinite [Finite α m (β := β)] : Finite (ScanM α m f) n :=
+instance instFinite [Finite α m] : Finite (ScanM α m f) n :=
   .of_finitenessRelation instFinitenessRelation
 
 private def instProductivenessRelation [Productive α m] :
