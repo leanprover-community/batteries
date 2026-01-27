@@ -139,7 +139,7 @@ private def instFinitenessRelation {α β γ : Type w} {m : Type w → Type w'}
     obtain ⟨step, hstep, hplaus⟩ := h
     cases hplaus <;> cases hstep
     case yieldInit =>
-      apply rel_of_needsInit <;> simp_all [IterM.InternalCombinators.scanM]
+      simp_all [rel_of_needsInit, IterM.InternalCombinators.scanM]
     all_goals
       apply rel_of_inner <;> simp_all only [IterM.InternalCombinators.scanM, IterM.mk]
     . exact IterM.isPlausibleSuccessorOf_of_yield ‹_›
