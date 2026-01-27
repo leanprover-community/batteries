@@ -13,9 +13,8 @@ namespace Std.Iterators.Types
   Internal state for the ScanM combinator
 -/
 structure ScanM (α : Type w) (m : Type w → Type w') (n : Type w → Type w'')
-    (β : Type w) (γ : Type w)
-    [Monad m] [Monad n] [MonadLiftT m n] [Iterator α m β]
-    (f : γ → β → PostconditionT n γ)  where
+    (β : Type w) (γ : Type w) (f : γ → β → PostconditionT n γ)
+    [Monad m] [Monad n] [MonadLiftT m n] [Iterator α m β] where
   /-- Inner iterator -/
   inner : IterM (α := α) m β
   /-- Current accumulated value -/
