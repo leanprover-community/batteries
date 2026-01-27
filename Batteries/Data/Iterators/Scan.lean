@@ -123,8 +123,7 @@ private def instFinitenessRelation [Finite α m] : FinitenessRelation (ScanM α 
   subrelation {it it'} h := by
     obtain ⟨step, hstep, hplaus⟩ := h
     cases hplaus <;> cases hstep
-    case yieldInit =>
-      simp_all [FinRel.of_yieldAcc, IterM.InternalCombinators.scanM]
+    case yieldInit => simp_all [FinRel.of_yieldAcc, IterM.InternalCombinators.scanM]
     all_goals
       apply FinRel.of_inner <;> simp_all only [IterM.InternalCombinators.scanM, IterM.mk]
     . exact IterM.isPlausibleSuccessorOf_of_yield ‹_›
@@ -140,7 +139,7 @@ private def instProductivenessRelation [Productive α m] :
   subrelation h := by cases h; assumption
 
 instance instProductive [Productive α m] : Productive (ScanM α m f) n :=
-  Productive.of_productivenessRelation instProductivenessRelation
+  .of_productivenessRelation instProductivenessRelation
 
 instance instIteratorLoop : IteratorLoop (ScanM α m f) n m :=
   .defaultImplementation
@@ -173,7 +172,7 @@ it                          ---a ---b ---c ---⊥
 it.scanWithPostcondition    -i -a'-ab'-abc'---⊥
 ```
 
-(given that `f i a = pure a'`, `f a' b = pure ab'`, `f ab' c = pure abc'`)
+(given that `a' ← f i a'`, `ab' ← f a' b`, `abc' ← f ab' c'`)
 
 **Termination properties:**
 
@@ -206,7 +205,7 @@ it           ---a ---b ---c ---⊥
 it.scanM     -i -a'-ab'-abc'---⊥
 ```
 
-(given that `f i a = pure a'`, `f a' b = pure ab'`, `f ab' c = pure abc'`)
+(given that `a' ← f i a`, `ab' ← f a' b`, `abc' ← f ab' c`)
 
 **Termination properties:**
 
