@@ -265,10 +265,8 @@ def IterM.scan [Iterator α m β] [Monad m] (f : γ → β → γ) (acc : γ) (i
 
 
 @[inline, expose, inherit_doc IterM.scanM]
-def Iter.scanWithPostcondition {α β γ : Type w} {m : Type w → Type w'}
-    [Monad m] [Iterator α Id β]
-    (f : γ → β → PostconditionT m γ) (acc : γ)
-    (it : Iter (α := α) β) :=
+def Iter.scanWithPostcondition [Monad m] [Iterator α Id β]
+    (f : γ → β → PostconditionT m γ) (acc : γ) (it : Iter (α := α) β) :=
   it.toIterM.scanWithPostcondition f acc
 
 @[inline, expose, inherit_doc IterM.scanM]
