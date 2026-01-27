@@ -87,8 +87,7 @@ theorem IterM.toList_scanWithPostCondition [Monad m] [LawfulMonad m] [Iterator �
 
 @[simp]
 theorem IterM.toList_scanM [Monad m] [MonadAttach m] [LawfulMonad m] [WeaklyLawfulMonadAttach m]
-    [Iterator α Id β] [Finite α Id]
-    {f : γ → β → m γ} {init : γ} (it : IterM (α := α) Id β) :
+    [Iterator α Id β] [Finite α Id] {f : γ → β → m γ} {init : γ} (it : IterM (α := α) Id β) :
     (it.scanM f init).toList = it.toList.run.scanlM f init := by
   simp [IterM.scanM, PostconditionT.run_attachLift]
 
@@ -108,8 +107,7 @@ theorem Iter.toList_scanWithPostcondition [Monad m] [LawfulMonad m] [Iterator α
 @[simp]
 theorem Iter.toList_scanM
     [Monad m] [MonadAttach m] [LawfulMonad m] [WeaklyLawfulMonadAttach m]
-    [Iterator α Id β] [Finite α Id]
-    {f : γ → β → m γ} {init : γ} (it : Iter (α := α) β) :
+    [Iterator α Id β] [Finite α Id] {f : γ → β → m γ} {init : γ} (it : Iter (α := α) β) :
     (it.scanM f init).toList = it.toList.scanlM f init := by
   simp [Iter.scanM, Iter.toList, Id.run]
 
@@ -130,8 +128,7 @@ theorem IterM.toArray_scanWithPostCondition [Monad m] [LawfulMonad m] [Iterator 
 
 @[simp]
 theorem IterM.toArray_scanM [Monad m] [MonadAttach m] [LawfulMonad m] [WeaklyLawfulMonadAttach m]
-    [Iterator α Id β] [Finite α Id]
-    {f : γ → β → m γ} {init : γ} (it : IterM (α := α) Id β) :
+    [Iterator α Id β] [Finite α Id] {f : γ → β → m γ} {init : γ} (it : IterM (α := α) Id β) :
     (it.scanM f init).toArray = it.toArray.run.scanlM f init := by
   simp [scanM]
 

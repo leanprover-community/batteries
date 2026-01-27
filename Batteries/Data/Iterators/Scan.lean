@@ -12,8 +12,8 @@ namespace Std.Iterators.Types
 /--
   Internal state for the ScanM combinator
 -/
-structure ScanM (α : Type w) (m : Type w → Type w') (n : Type w → Type w'')
-    (β : Type w) (γ : Type w) (f : γ → β → PostconditionT n γ)
+structure ScanM  {β γ : Type w} {n : Type w → Type w''}
+     (α : Type w) (m : Type w → Type w') (f : γ → β → PostconditionT n γ)
     [Monad m] [Monad n] [MonadLiftT m n] [Iterator α m β] where
   /-- Inner iterator -/
   inner : IterM (α := α) m β
@@ -26,7 +26,7 @@ structure ScanM (α : Type w) (m : Type w → Type w') (n : Type w → Type w'')
 @[expose]
 public def IterM.InternalCombinators.scanM [Monad m] [Monad n] [MonadLiftT m n] [Iterator α m β]
     (f : γ → β → PostconditionT n γ) (acc : γ) (yieldAcc : Bool) (it : IterM (α := α) m β) :
-    IterM (α := ScanM α m n β γ f) n γ :=
+    IterM (α := ScanM α m f) n γ :=
   .mk ⟨it, acc, yieldAcc⟩ n γ
 
 namespace ScanM
@@ -37,8 +37,8 @@ variable {α β γ : Type w} {m : Type w → Type w'} {n : Type w → Type w''}
 `it.IsPlausibleStep` is the proposition that `step` is a possible next step from the `scanM`
 iterator `it`. This is mostly an internal implementation detail used to prove termination.
 -/
-inductive IsPlausibleStep (it : @IterM (ScanM α m n β γ f) n γ) :
-    IterStep (@IterM (ScanM α m n β γ f) n γ) γ → Prop where
+inductive IsPlausibleStep (it : IterM (α := ScanM α m f) n γ) :
+    IterStep (IterM (α := ScanM α m f) n γ) γ → Prop where
   /-- If we haven't emitted anything yet (yieldAcc is true),
       we set it to false and do not update the internal iterator state
   -/
@@ -70,9 +70,8 @@ inductive IsPlausibleStep (it : @IterM (ScanM α m n β γ f) n γ) :
       it.internalState.inner.IsPlausibleStep .done →
       IsPlausibleStep it .done
 
-instance instIterator {f : γ → β → PostconditionT n γ} [Monad m] [Iterator α m β]
-    [MonadLiftT m n] [Monad n] :
-    Iterator (ScanM α m n β γ f) n γ where
+instance instIterator [Monad m] [Iterator α m β] [MonadLiftT m n] [Monad n] :
+    Iterator (ScanM α m f) n γ where
   IsPlausibleStep := ScanM.IsPlausibleStep
   step it := do
       if h : it.internalState.yieldAcc = true then
@@ -95,10 +94,9 @@ instance instIterator {f : γ → β → PostconditionT n γ} [Monad m] [Iterato
         | .done hp =>
           pure <| .deflate <| .done (by exact .done (by simpa using h) hp)
 
-
 namespace Finite
 private def Rel [Monad m] [Monad n] [Finite α m] :
-    IterM (α := ScanM α m n β γ f) n γ → IterM (α := ScanM α m n β γ f) n γ → Prop :=
+    IterM (α := ScanM α m f) n γ → IterM (α := ScanM α m f) n γ → Prop :=
   InvImage
     (Prod.Lex
       (· < ·)
@@ -106,7 +104,7 @@ private def Rel [Monad m] [Monad n] [Finite α m] :
     (fun it => (it.internalState.yieldAcc.toNat, it.internalState.inner))
 
 private theorem Rel.of_yieldAcc [Finite α m]
-    {it it' : IterM (α := ScanM α m n β γ f) n γ}
+    {it it' : IterM (α := ScanM α m f) n γ}
     (h' : it'.internalState.yieldAcc = false)
     (h : it.internalState.yieldAcc = true) :
     Rel it' it := by
@@ -114,7 +112,7 @@ private theorem Rel.of_yieldAcc [Finite α m]
   simp_all
 
 private theorem Rel.of_inner [Finite α m]
-    {it it' : IterM (α := ScanM α m n β γ f) n γ}
+    {it it' : IterM (α := ScanM α m f) n γ}
     (h : it'.internalState.yieldAcc = it.internalState.yieldAcc)
     (h' : it'.internalState.inner.IsPlausibleSuccessorOf it.internalState.inner) :
     Rel it' it := by
@@ -122,7 +120,7 @@ private theorem Rel.of_inner [Finite α m]
 
 private def instFinitenessRelation [Monad m] [Monad n] [Iterator α m β] [MonadLiftT m n]
     [Finite α m] {f : γ → β → PostconditionT n γ} :
-    FinitenessRelation (ScanM α m n β γ f) n where
+    FinitenessRelation (ScanM α m f) n where
   Rel := Rel
   wf := by
     apply InvImage.wf
@@ -141,17 +139,17 @@ private def instFinitenessRelation [Monad m] [Monad n] [Iterator α m β] [Monad
 end Finite
 
 instance instFinite [Monad m] [Finite α m (β := β)] [Monad n] :
-    Finite (ScanM α m n β γ f) n :=
+    Finite (ScanM α m f) n :=
   .of_finitenessRelation Finite.instFinitenessRelation
 
 private def instProductivenessRelation [Monad m] [Monad n] [Productive α m] :
-    ProductivenessRelation (ScanM α m n β γ f) n where
+    ProductivenessRelation (ScanM α m f) n where
   Rel := InvImage IterM.IsPlausibleSkipSuccessorOf (ScanM.inner ∘ IterM.internalState)
   wf := InvImage.wf _ Productive.wf
   subrelation h := by cases h; assumption
 
 instance instProductive [Monad m] [Monad n] [Productive α m] :
-    Productive (ScanM α m n β γ f) n :=
+    Productive (ScanM α m f) n :=
   Productive.of_productivenessRelation instProductivenessRelation
 
 end ScanM
