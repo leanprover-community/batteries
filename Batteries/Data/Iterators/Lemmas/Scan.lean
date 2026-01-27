@@ -15,15 +15,13 @@ namespace Std
 open Std.Iterators Std.Iterators.Types
 
 theorem IterM.InternalCombinators.step_scanM {α β γ : Type w} {m : Type w → Type w'}
-    {n : Type w → Type w''} {lift : ⦃α : Type w⦄ → m α → n α}
-    {f : γ → β → PostconditionT n γ} [Iterator α m β] [Monad n]
+    {n : Type w → Type w''}
+    {f : γ → β → PostconditionT n γ} [Iterator α m β] [MonadLiftT m n] [Monad n]
     {it : IterM (α := α) m β} {acc : γ} {yieldAcc : Bool} :
-    (IterM.InternalCombinators.scanM lift f acc yieldAcc it).step = (
-      letI : MonadLift m n := ⟨lift (α := _)⟩
-      do
+    (IterM.InternalCombinators.scanM f acc yieldAcc it).step = (do
         if h : yieldAcc = true then
           return .deflate <| .yield
-            (IterM.InternalCombinators.scanM lift f acc false it)
+            (IterM.InternalCombinators.scanM f acc false it)
             acc
             (.yieldInit (by simp [IterM.InternalCombinators.scanM, h]))
         else
@@ -31,12 +29,12 @@ theorem IterM.InternalCombinators.step_scanM {α β γ : Type w} {m : Type w →
           | .yield it' b hp => do
             let ⟨newAcc, h_acc⟩ ← (f acc b).operation
             return .deflate <| .yield
-              (IterM.InternalCombinators.scanM lift f newAcc false it')
+              (IterM.InternalCombinators.scanM f newAcc false it')
               newAcc
               (.yieldNext (by simp [IterM.InternalCombinators.scanM, h]) hp h_acc)
           | .skip it' hp =>
             return .deflate <| .skip
-              (IterM.InternalCombinators.scanM lift f acc false it')
+              (IterM.InternalCombinators.scanM f acc false it')
               (.skip (by simp [IterM.InternalCombinators.scanM, h]) hp)
           | .done hp =>
             return .deflate <|
@@ -50,7 +48,7 @@ theorem IterM.InternalCombinators.step_scanM {α β γ : Type w} {m : Type w →
 private theorem IterM.toList_scanWithPostCondition_afterInit {α β γ : Type w} {m : Type w → Type w'}
     [Monad m] [LawfulMonad m] [Iterator α Id β] [Finite α Id]
     {f : γ → β → PostconditionT m γ} {init : γ} (it : IterM (α := α) Id β) :
-    IterM.toList (IterM.InternalCombinators.scanM (fun ⦃_⦄ => monadLift) f init false it) =
+    IterM.toList (IterM.InternalCombinators.scanM (m := Id) f init false it) =
       return ((← it.toList.run.scanlM (f · · |>.run) init).tail) := by
   induction it using IterM.inductSteps generalizing init with | step it ihy ihs =>
   rw [IterM.toList_eq_match_step, IterM.toList_eq_match_step]
