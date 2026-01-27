@@ -140,7 +140,7 @@ theorem IterM.toArray_scan {α β γ : Type w}
     [Iterator α Id β] [Finite α Id]
     {f : γ → β → γ} {init : γ} (it : IterM (α := α) Id β) :
     (it.scan f init).toArray = it.toArray.run.scanl f init := by
-  simp [scan, Id.run, PostconditionT.run_eq_map]
+  simp only [scan, toArray_scanWithPostCondition, PostconditionT.run_eq_map]
   rfl
 
 theorem Iter.toArray_scanWithPostCondition {α β γ : Type w} {m : Type w → Type w'}
