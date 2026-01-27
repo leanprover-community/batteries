@@ -121,9 +121,8 @@ private theorem Rel.of_inner [Finite α m]
     Rel it' it := by
   simp_all [Rel, InvImage, Prod.Lex.right]
 
-private def instFinitenessRelation {α β γ : Type w} {m : Type w → Type w'}
-    {n : Type w → Type w''} [Monad m] [Monad n] [Iterator α m β] [MonadLiftT m n]
-    {f : γ → β → PostconditionT n γ} [Finite α m] :
+private def instFinitenessRelation [Monad m] [Monad n] [Iterator α m β] [MonadLiftT m n]
+    [Finite α m] {f : γ → β → PostconditionT n γ} :
     FinitenessRelation (ScanM α m n β γ f) n where
   Rel := Rel
   wf := by
