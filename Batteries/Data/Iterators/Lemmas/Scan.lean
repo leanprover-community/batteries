@@ -91,7 +91,7 @@ theorem IterM.toList_scan {α β γ : Type w}
     [Iterator α Id β] [Finite α Id]
     {f : γ → β → γ} {init : γ} (it : IterM (α := α) Id β) :
     (it.scan f init).toList = (List.scanl f init it.toList.run : List γ) := by
-  simp [IterM.scan, PostconditionT.run_eq_map, List.scanl]
+  simp only [scan, toList_scanWithPostCondition, PostconditionT.run_eq_map]
   rfl
 
 @[simp]
@@ -115,7 +115,7 @@ theorem Iter.toList_scan {α β γ : Type w}
     [Iterator α Id β] [Finite α Id]
     {f : γ → β → γ} {init : γ} (it : Iter (α := α) β) :
     (it.scan f init).toList = List.scanl f init it.toList := by
-  simp [Iter.scan, IterM.toList_scan]
+  simp only [scan, IterM.toList_toIter, IterM.toList_scan]
   rfl
 
 @[simp]
