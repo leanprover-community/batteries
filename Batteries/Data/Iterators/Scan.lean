@@ -78,7 +78,7 @@ instance instIterator : Iterator (ScanM α m f) n γ where
         pure <| .deflate <| .yield
           (IterM.InternalCombinators.scanM f it.internalState.acc false it.internalState.inner)
           it.internalState.acc
-          (by exact .yieldInit h)
+          (.yieldInit h)
       else
         match (← it.internalState.inner.step).inflate with
         | .yield inner' b hp => do
@@ -86,13 +86,13 @@ instance instIterator : Iterator (ScanM α m f) n γ where
           pure <| .deflate <| .yield
             (IterM.InternalCombinators.scanM f newAcc false inner')
             newAcc
-            (by exact .yieldNext (by simpa using h) hp h_acc)
+            (.yieldNext (by simpa using h) hp h_acc)
         | .skip inner' hp =>
           pure <| .deflate <| .skip
             (IterM.InternalCombinators.scanM f it.internalState.acc false inner')
-            (by exact .skip (by simpa using h) hp)
+            (.skip (by simpa using h) hp)
         | .done hp =>
-          pure <| .deflate <| .done (by exact .done (by simpa using h) hp)
+          pure <| .deflate <| .done (.done (by simpa using h) hp)
 
 private def FinRel [Finite α m] :
     IterM (α := ScanM α m f) n γ → IterM (α := ScanM α m f) n γ → Prop :=
