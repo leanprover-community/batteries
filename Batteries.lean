@@ -11,6 +11,7 @@ public import Batteries.CodeAction.Basic
 public import Batteries.CodeAction.Deprecated
 public import Batteries.CodeAction.Match
 public import Batteries.CodeAction.Misc
+public import Batteries.Control.Alternative
 public import Batteries.Control.AlternativeMonad
 public import Batteries.Control.ForInStep
 public import Batteries.Control.ForInStep.Basic
