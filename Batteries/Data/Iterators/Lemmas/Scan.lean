@@ -120,8 +120,7 @@ theorem Iter.toList_scan [Iterator α Id β] [Finite α Id]
 theorem IterM.toArray_scanWithPostCondition [Monad m] [LawfulMonad m] [Iterator α Id β]
     [Finite α Id] {f : γ → β → PostconditionT m γ} {init : γ} (it : IterM (α := α) Id β) :
     (it.scanWithPostcondition f init).toArray = it.toArray.run.scanlM (f · · |>.run) init := by
-  rw [← toArray_toList]
-  rw [IterM.toList_scanWithPostCondition, ← Array.scanlM_toList]
+  rw [← toArray_toList, IterM.toList_scanWithPostCondition, ← Array.scanlM_toList]
   rfl
 
 @[simp]
@@ -155,7 +154,6 @@ theorem Iter.toArray_scanM [Monad m] [MonadAttach m] [LawfulMonad m] [WeaklyLawf
 theorem Iter.toArray_scan [Iterator α Id β] [Finite α Id]
     {f : γ → β → γ} {init : γ} (it : Iter (α := α) β) :
     (it.scan f init).toArray = it.toArray.scanl f init := by
-  rw [← toArray_toList]
-  rw [Iter.toList_scan, ← Array.scanl_toList]
+  rw [← toArray_toList, Iter.toList_scan, ← Array.scanl_toList]
   rfl
 end Std
