@@ -23,6 +23,7 @@ public import Batteries.Control.Nondet.Basic
 public import Batteries.Control.OptionT
 public import Batteries.Data.Array
 public import Batteries.Data.AssocList
+public import Batteries.Data.Bool
 public import Batteries.Data.BinaryHeap
 public import Batteries.Data.BinomialHeap
 public import Batteries.Data.BitVec
