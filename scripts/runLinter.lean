@@ -180,7 +180,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
       IO.println s!"-- Linting passed for {module}."
 
 /--
-Usage: `runLinter [--update] [--trace | -v] [--no-build][Batteries.Data.Nat.Basic]...`
+Usage: `runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]...`
 
 Runs the linters on all declarations in the given modules
 (or all root modules of Lake `lean_lib` and `lean_exe` default targets if no module is specified).
