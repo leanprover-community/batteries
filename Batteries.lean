@@ -29,6 +29,7 @@ public import Batteries.Data.BitVec
 public import Batteries.Data.ByteArray
 public import Batteries.Data.ByteSlice
 public import Batteries.Data.Char
+public import Batteries.Data.DArray
 public import Batteries.Data.DList
 public import Batteries.Data.Fin
 public import Batteries.Data.FloatArray
