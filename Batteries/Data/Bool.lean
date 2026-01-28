@@ -7,24 +7,22 @@ module
 
 @[expose] public section
 
-/--
-Boolean '<' is well founded
-These are not instances, despite WellFoundedRelation being a class, as we provide versions for both
-< and >. If you need instances, you may use the WellFoundedLT and WellFoundedGT classes available in
-Mathlib.
+/-!
+This file contains `WellFoundedRelation` instances `Bool`.
+
+They are provided as defs rather than instances, despite WellFoundedRelation being a class, as we
+provide versions for both < and >. If you need instances, you may use the WellFoundedLT and
+WellFoundedGT classes available in Mathlib.
 -/
+
+/-- Boolean '<' is well founded -/
 def Bool.lt_wfRel : WellFoundedRelation Bool where
   rel := (· < ·)
   wf := ⟨fun
     | false => ⟨false, nofun⟩
     | true => ⟨true, fun | false, _ => ⟨false, nofun⟩⟩⟩
 
-/--
-Boolean '>' is well founded
-These are not instances, despite WellFoundedRelation being a class, as we provide versions for both
-< and >. If you need instances, you may use the WellFoundedLT and WellFoundedGT classes available in
-Mathlib.
--/
+/-- Boolean '>' is well founded -/
 def Bool.gt_wfRel : WellFoundedRelation Bool where
   rel := (· > ·)
   wf := ⟨fun
