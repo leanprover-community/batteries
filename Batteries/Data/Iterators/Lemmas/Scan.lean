@@ -45,14 +45,6 @@ theorem IterM.InternalCombinators.step_scanM
   intro step
   cases step.inflate using PlausibleIterStep.casesOn <;> rfl
 
-@[simp]
-private theorem ScanM.internalState_scanM
-    {acc : γ} {yieldAcc : Bool} {it : IterM (α := α) m β}
-    [Monad m] [Monad n] [MonadLift m n] [Iterator α m β] :
-    (IterM.InternalCombinators.scanM (n := n) f acc yieldAcc it).internalState =
-      ⟨it, acc, yieldAcc⟩ := by
-  simp [IterM.InternalCombinators.scanM]
-
 private theorem IterM.toList_scanWithPostCondition_afterInit
     [Monad m] [LawfulMonad m] [Iterator α Id β] [Finite α Id]
     {f : γ → β → PostconditionT m γ} {init : γ} (it : IterM (α := α) Id β) :
