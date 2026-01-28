@@ -5,6 +5,7 @@ Authors: Chad Sharp
 -/
 
 module
+import Batteries.Data.Bool
 
 public section
 namespace Std.Iterators.Types
@@ -97,13 +98,13 @@ private def FinRel [Finite α m] :
     IterM (α := ScanM α m f) n γ → IterM (α := ScanM α m f) n γ → Prop :=
   InvImage
     (Prod.Lex (· < ·) IterM.IsPlausibleSuccessorOf)
-    (fun it => (it.internalState.yieldAcc.toNat, it.internalState.inner))
+    (fun it => (it.internalState.yieldAcc, it.internalState.inner))
 
 private theorem FinRel.of_yieldAcc [Finite α m] {it it' : IterM (α := ScanM α m f) n γ}
     (h' : it'.internalState.yieldAcc = false) (h : it.internalState.yieldAcc = true) :
     FinRel it' it := by
   apply Prod.Lex.left
-  simp_all
+  simp_all [LT.lt]
 
 private theorem FinRel.of_inner [Finite α m] {it it' : IterM (α := ScanM α m f) n γ}
     (h : it'.internalState.yieldAcc = it.internalState.yieldAcc)
@@ -116,7 +117,7 @@ private def instFinitenessRelation [Finite α m] : FinitenessRelation (ScanM α 
   wf := by
     apply InvImage.wf
     refine ⟨fun (a, b) => Prod.lexAccessible (WellFounded.apply ?_ a) (WellFounded.apply ?_) b⟩
-    · exact Nat.lt_wfRel.wf
+    · exact Bool.lt_wfRel.wf
     · exact Finite.wf
   subrelation h := by
     obtain ⟨step, hstep, hplaus⟩ := h
