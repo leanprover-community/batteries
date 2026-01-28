@@ -80,9 +80,7 @@ theorem IterM.toList_scanWithPostCondition [Monad m] [LawfulMonad m] [Iterator �
   unfold IterM.scanWithPostcondition
   rw [IterM.toList_eq_match_step, IterM.InternalCombinators.step_scanM]
   simp only [↓reduceDIte, pure_bind, Shrink.inflate_deflate]
-  rw [toList_scanWithPostCondition_afterInit]
-  simp only [Id.run, bind_pure_comp]
-  rw [← List.scanlM_cons_head_tail]
+  rw [toList_scanWithPostCondition_afterInit, ← List.scanlM_cons_head_tail]
   simp
 
 @[simp]

@@ -104,7 +104,7 @@ private theorem FinRel.of_yieldAcc [Finite α m] {it it' : IterM (α := ScanM α
     (h' : it'.internalState.yieldAcc = false) (h : it.internalState.yieldAcc = true) :
     FinRel it' it := by
   apply Prod.Lex.left
-  simp_all [LT.lt]
+  simp [*, LT.lt]
 
 private theorem FinRel.of_inner [Finite α m] {it it' : IterM (α := ScanM α m f) n γ}
     (h : it'.internalState.yieldAcc = it.internalState.yieldAcc)
