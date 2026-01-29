@@ -417,7 +417,8 @@ theorem length_flatten_mem_partialSums_map_length (L : List (List α)) :
 
 theorem getElem_flatten_aux₁ (L : List (List α)) (i : Nat) (h : i < L.flatten.length) :
     (L.map length).partialSums.findIdx (· > i) - 1 < L.length := by
-  have := findIdx_lt_length_of_exists (xs := (L.map length).partialSums) (p := fun x => decide (x > i))
+  have := findIdx_lt_length_of_exists
+    (xs := (L.map length).partialSums) (p := fun x => decide (x > i))
   specialize this ⟨L.flatten.length,
     length_flatten_mem_partialSums_map_length L, by grind⟩
   simp at this
