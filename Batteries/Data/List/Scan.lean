@@ -8,6 +8,7 @@ module
 public import Batteries.Data.List.Basic
 meta import Batteries.Tactic.Init
 public import Batteries.Data.List.Lemmas
+import Batteries.Util.ProofWanted
 
 @[expose] public section
 
@@ -430,7 +431,25 @@ theorem getElem_flatten_aux₂ (L : List (List α)) (i : Nat) (h : i < L.flatten
     let j := (L.map length).partialSums.findIdx (· > i) - 1
     have hj : j < L.length := getElem_flatten_aux₁ L i h
     let k := i - (L.take j).flatten.length
-    k < L[j].length := sorry
+    k < L[j].length := by
+  induction L generalizing i with
+  | nil => simp at h
+  | cons l L ih =>
+    simp only [map_cons, partialSums_cons, findIdx_cons, Nat.not_lt_zero, decide_false,
+      findIdx_map, Function.comp_def, cond_false, Nat.add_one_sub_one, length_flatten, map_take,
+      getElem_cons]
+    split <;> rename_i h'
+    · simp only [h', take_zero, sum_nil, Nat.sub_zero]
+      rw [findIdx_eq (by simp)] at h'
+      simp_all
+    · have : l.length ≤ i := by
+        rw [findIdx_eq (by simp)] at h'
+        simp_all
+      rw [take_cons (by grind)]
+      specialize ih (i - l.length) (by grind)
+      have p : ∀ x, i - l.length < x ↔ i < l.length + x := by grind
+      simp only [p, length_flatten, map_take] at ih
+      grind
 
 /--
 Indexing into a flattened list: `L.flatten[i]` equals `L[j][k]` where
@@ -485,8 +504,7 @@ The indices are computed as:
 - `j` is one less than where the cumulative sum first exceeds `i`
 - `k` is `i` minus the total length of the first `j` sublists
 -/
-theorem take_flatten (L : List (List α)) (i : Nat) :
+proof_wanted take_flatten (L : List (List α)) (i : Nat) :
     let j := (L.map length).partialSums.findIdx (· > i) - 1
     let k := i - (L.take j).flatten.length
-    L.flatten.take i = (L.take j).flatten ++ (L[j]?.getD []).take k := by
-  sorry
+    L.flatten.take i = (L.take j).flatten ++ (L[j]?.getD []).take k
