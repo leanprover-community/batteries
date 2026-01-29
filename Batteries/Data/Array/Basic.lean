@@ -161,7 +161,6 @@ private def scanlMFast [Monad m] (f : β → α → m β) (init : β) (as : Arra
     (start := 0) (stop := as.size) : m (Array β) :=
   let stop := min stop as.size
   let start := min start as.size
-
   loop f init as
     (start := USize.ofNat start) (stop := USize.ofNat stop)
     (h_stop := by grind only [USize.size_eq, USize.ofNat_eq_iff_mod_eq_toNat, = Nat.min_def])
