@@ -22,6 +22,7 @@ public import Batteries.Control.Nondet.Basic
 public import Batteries.Control.OptionT
 public import Batteries.Data.Array
 public import Batteries.Data.AssocList
+public import Batteries.Data.Bool
 public import Batteries.Data.BinaryHeap
 public import Batteries.Data.BinomialHeap
 public import Batteries.Data.BitVec
@@ -42,6 +43,7 @@ public import Batteries.Data.RBMap
 public import Batteries.Data.Random
 public import Batteries.Data.Range
 public import Batteries.Data.Rat
+public import Batteries.Data.RunningStats
 public import Batteries.Data.Stream
 public import Batteries.Data.String
 public import Batteries.Data.UInt
@@ -113,4 +115,3 @@ public import Batteries.Util.LibraryNote
 public import Batteries.Util.Panic
 public import Batteries.Util.Pickle
 public import Batteries.Util.ProofWanted
-public import Batteries.WF
