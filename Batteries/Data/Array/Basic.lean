@@ -183,7 +183,7 @@ where
 Fold an effectful function `f` over the array from the left, returning the list of partial results.
 -/
 @[implemented_by scanlMFast]
-def scanlM [Monad m] (f : β → α → m β) (init : β) (as : Array α) (start := 0) 
+def scanlM [Monad m] (f : β → α → m β) (init : β) (as : Array α) (start := 0)
     (stop := as.size) : m (Array β) :=
   loop f init as (min start as.size) (min stop as.size) (Nat.min_le_right _ _) #[]
 where
@@ -202,7 +202,6 @@ private theorem scanlM_loop_eq_scanlMFast_loop [Monad m]
     scanlM.loop f init as start stop h_stop acc
       = scanlMFast.loop f init as (USize.ofNat start) (USize.ofNat stop)
       (by rw [USize.toNat_ofNat_of_lt' (Nat.lt_of_le_of_lt h_stop h_size)]; exact h_stop) acc := by
-
   generalize h_n : stop - start = n
   induction n using Nat.strongRecOn generalizing start acc init
   rename_i n ih
@@ -238,7 +237,6 @@ private def scanrMFast [Monad m] (f : α → β → m β) (init : β) (as : Arra
     (h_size : as.size_fits_usize) (start := as.size) (stop := 0) : m (Array β) :=
   let start := min start as.size
   let stop := min stop start
-
   loop f init as
     (start := USize.ofNat start) (stop := USize.ofNat stop)
     (h_start := by grind only [USize.size_eq, USize.ofNat_eq_iff_mod_eq_toNat, = Nat.min_def])
@@ -260,7 +258,6 @@ where
       have : (startM1 - stop) < (start - stop) := by grind only
         [!USize.sub_add_cancel, USize.sub_right_inj, USize.add_comm, USize.lt_add_one,
           USize.add_assoc, USize.add_right_inj]
-
       let next ← f (as.uget startM1 ‹_›) init
       loop f next as
         (start := startM1)
