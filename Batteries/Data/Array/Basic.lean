@@ -183,8 +183,8 @@ where
 Fold an effectful function `f` over the array from the left, returning the list of partial results.
 -/
 @[implemented_by scanlMFast]
-def scanlM [Monad m] (f : β → α → m β) (init : β) (as : Array α) (start := 0)
-  (stop := as.size) : m (Array β) :=
+def scanlM [Monad m] (f : β → α → m β) (init : β) (as : Array α) (start := 0) 
+    (stop := as.size) : m (Array β) :=
   loop f init as (min start as.size) (min stop as.size) (Nat.min_le_right _ _) #[]
 where
   /-- auxiliary tail-recursive function for scanlM -/
@@ -319,8 +319,8 @@ where
   loop (f : α → β → m β) (init : β) (as : Array α)
        (start stop : Nat)
        (h_start : start ≤ as.size)
-       (acc : Array β)
-     : m (Array β) := do
+       (acc : Array β) :
+       m (Array β) := do
     if h_gt : stop < start then
       let i := start - 1
       let next ← f as[i] init
