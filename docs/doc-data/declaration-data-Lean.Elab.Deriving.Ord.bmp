@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Data.Options","Lean.Elab.Deriving.Basic","Lean.Elab.Deriving.Util","Lean.Meta.Constructions.CtorIdx","Lean.Meta.Constructions.CasesOnSameCtor","Lean.Meta.SameCtorUtils"],"instances":[],"name":"Lean.Elab.Deriving.Ord"}
