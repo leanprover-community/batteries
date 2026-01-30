@@ -136,6 +136,7 @@ def scanrM [Monad m] (f : α → β → m β) (init : β) (as : Vector α n) :
     m (Vector β (n + 1)) := do
   loop init n (Nat.le_refl n) (#v[].cast (by omega))
 where
+  /-- Auxiliary tail-recursive function for scanrM -/
   loop (cur : β) (i : Nat) (hi : i ≤ n) (acc : Vector β (n - i)) :
       m (Vector β (n + 1)) := do
     if h_gt : 0 < i then
