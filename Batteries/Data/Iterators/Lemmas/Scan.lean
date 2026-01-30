@@ -23,7 +23,7 @@ theorem IterM.InternalCombinators.step_scanM
           return .deflate <| .yield
             (IterM.InternalCombinators.scanM f acc false it)
             acc
-            (.yieldInit (by simp [IterM.InternalCombinators.scanM, h]))
+            (.yieldAcc (by simp [IterM.InternalCombinators.scanM, h]))
         else
           match (← it.step).inflate with
           | .yield it' b hp => do

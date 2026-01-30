@@ -43,7 +43,7 @@ inductive IsPlausibleStep (it : IterM (α := ScanM α m f) n γ) :
   /-- When `yieldAcc` is true, the step yields the current accumulator and
       the successor iterator is identical except with `yieldAcc` set to false.
   -/
-  | yieldInit :
+  | yieldAcc :
       it.internalState.yieldAcc = true →
       IsPlausibleStep it (.yield
         (IterM.InternalCombinators.scanM f it.internalState.acc false it.internalState.inner)
@@ -78,7 +78,7 @@ instance instIterator : Iterator (ScanM α m f) n γ where
         pure <| .deflate <| .yield
           (IterM.InternalCombinators.scanM f it.internalState.acc false it.internalState.inner)
           it.internalState.acc
-          (.yieldInit h)
+          (.yieldAcc h)
       else
         match (← it.internalState.inner.step).inflate with
         | .yield inner' b hp => do
@@ -122,7 +122,7 @@ private def instFinitenessRelation [Finite α m] : FinitenessRelation (ScanM α 
   subrelation h := by
     obtain ⟨step, hstep, hplaus⟩ := h
     cases hplaus <;> cases hstep
-    case yieldInit => simp_all [FinRel.of_yieldAcc, IterM.InternalCombinators.scanM]
+    case yieldAcc => simp_all [FinRel.of_yieldAcc, IterM.InternalCombinators.scanM]
     all_goals
       apply FinRel.of_inner <;> simp_all only [IterM.InternalCombinators.scanM, IterM.mk]
     . exact IterM.isPlausibleSuccessorOf_of_yield ‹_›
