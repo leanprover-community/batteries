@@ -15,7 +15,7 @@ namespace Std.Iterators.Types
 -/
 structure ScanM  {β γ : Type w} {n : Type w → Type w''}
      (α : Type w) (m : Type w → Type w') (f : γ → β → PostconditionT n γ)
-    [Monad m] [Monad n] [MonadLiftT m n] [Iterator α m β] where
+     [MonadLiftT m n] where
   /-- Inner iterator -/
   inner : IterM (α := α) m β
   /-- Current accumulated value -/
@@ -25,14 +25,14 @@ structure ScanM  {β γ : Type w} {n : Type w → Type w''}
 
 /-- Internal implementation of the `scanM` combinator. See `IterM.scanM` for the public API. -/
 @[expose]
-public def IterM.InternalCombinators.scanM [Monad m] [Monad n] [MonadLiftT m n] [Iterator α m β]
+public def IterM.InternalCombinators.scanM [MonadLiftT m n]
     (f : γ → β → PostconditionT n γ) (acc : γ) (yieldAcc : Bool) (it : IterM (α := α) m β) :
     IterM (α := ScanM α m f) n γ :=
   .mk ⟨it, acc, yieldAcc⟩ n γ
 
 namespace ScanM
 variable {α β γ : Type w} {m : Type w → Type w'} {n : Type w → Type w''}
-  {f : γ → β → PostconditionT n γ} [Monad m] [Monad n] [MonadLiftT m n] [Iterator α m β]
+  {f : γ → β → PostconditionT n γ} [MonadLiftT m n] [Iterator α m β]
 
 /--
 `it.IsPlausibleStep` is the proposition that `step` is a possible next step from the `scanM`
@@ -71,7 +71,7 @@ inductive IsPlausibleStep (it : IterM (α := ScanM α m f) n γ) :
       it.internalState.inner.IsPlausibleStep .done →
       IsPlausibleStep it .done
 
-instance instIterator : Iterator (ScanM α m f) n γ where
+instance instIterator [Monad n] : Iterator (ScanM α m f) n γ where
   IsPlausibleStep := ScanM.IsPlausibleStep
   step it := do
       if h : it.internalState.yieldAcc = true then
@@ -112,7 +112,7 @@ private theorem FinRel.of_inner [Finite α m] {it it' : IterM (α := ScanM α m 
     FinRel it' it := by
   simp_all [FinRel, InvImage, Prod.Lex.right]
 
-private def instFinitenessRelation [Finite α m] : FinitenessRelation (ScanM α m f) n where
+private def instFinitenessRelation [Monad n] [Finite α m] : FinitenessRelation (ScanM α m f) n where
   Rel := FinRel
   wf := by
     apply InvImage.wf
@@ -128,19 +128,19 @@ private def instFinitenessRelation [Finite α m] : FinitenessRelation (ScanM α 
     . exact IterM.isPlausibleSuccessorOf_of_yield ‹_›
     . exact IterM.isPlausibleSuccessorOf_of_skip ‹_›
 
-instance instFinite [Finite α m] : Finite (ScanM α m f) n :=
+instance instFinite [Monad n] [Finite α m] : Finite (ScanM α m f) n :=
   .of_finitenessRelation instFinitenessRelation
 
-private def instProductivenessRelation [Productive α m] :
+private def instProductivenessRelation [Monad n] [Productive α m] :
     ProductivenessRelation (ScanM α m f) n where
   Rel := InvImage IterM.IsPlausibleSkipSuccessorOf (ScanM.inner ∘ IterM.internalState)
   wf := InvImage.wf _ Productive.wf
   subrelation h := by cases h; assumption
 
-instance instProductive [Productive α m] : Productive (ScanM α m f) n :=
+instance instProductive [Monad n] [Productive α m] : Productive (ScanM α m f) n :=
   .of_productivenessRelation instProductivenessRelation
 
-instance instIteratorLoop : IteratorLoop (ScanM α m f) n m :=
+instance instIteratorLoop [Monad m] [Monad n] : IteratorLoop (ScanM α m f) n m :=
   .defaultImplementation
 
 end ScanM
@@ -183,7 +183,7 @@ it.scanWithPostcondition    -i -a'-ab'-abc'---⊥
 For each value emitted by the base iterator `it`, this combinator calls `f`.
 -/
 @[inline, expose]
-def IterM.scanWithPostcondition [Monad m] [Monad n] [MonadLiftT m n] [Iterator α m β]
+def IterM.scanWithPostcondition [MonadLiftT m n]
     (f : γ → β → PostconditionT n γ) (acc : γ) (it : IterM (α := α) m β) :=
   IterM.InternalCombinators.scanM (n := n) f acc true it
 
@@ -216,7 +216,7 @@ it.scanM     -i -a'-ab'-abc'---⊥
 For each value emitted by the base iterator `it`, this combinator calls `f`.
 -/
 @[inline, expose]
-def IterM.scanM [MonadAttach n] [Monad m] [Monad n] [MonadLiftT m n] [Iterator α m β]
+def IterM.scanM [MonadAttach n] [MonadLiftT m n]
     (f : γ → β → n γ) (acc : γ) (it : IterM (α := α) m β) :=
   it.scanWithPostcondition (PostconditionT.attachLift <| f · ·) acc
 
@@ -246,21 +246,21 @@ it.scan    -i -a'-ab'-abc'---⊥
 For each value emitted by the base iterator `it`, this combinator calls `f`.
 -/
 @[inline, expose]
-def IterM.scan [Iterator α m β] [Monad m] (f : γ → β → γ) (acc : γ) (it : IterM (α := α) m β) :=
+def IterM.scan [Monad m] (f : γ → β → γ) (acc : γ) (it : IterM (α := α) m β) :=
   (it.scanWithPostcondition (pure <| f · ·) acc : IterM m γ)
 
 
 @[inline, expose, inherit_doc IterM.scanWithPostcondition]
-def Iter.scanWithPostcondition [Monad m] [Iterator α Id β]
+def Iter.scanWithPostcondition [Monad m]
     (f : γ → β → PostconditionT m γ) (acc : γ) (it : Iter (α := α) β) :=
   it.toIterM.scanWithPostcondition f acc
 
 @[inline, expose, inherit_doc IterM.scanM]
-def Iter.scanM [MonadAttach n] [Monad n] [Iterator α Id β]
+def Iter.scanM [MonadAttach n] [MonadLiftT Id n]
     (f : γ → β → n γ) (acc : γ) (it : Iter (α := α) β) :=
   it.toIterM.scanM f acc
 
 @[inline, expose, inherit_doc IterM.scan]
-def Iter.scan [Iterator α Id β] (f : γ → β → γ) (acc : γ) (it : Iter (α := α) β) :=
+def Iter.scan (f : γ → β → γ) (acc : γ) (it : Iter (α := α) β) :=
   it.toIterM.scan f acc |>.toIter
 end Std

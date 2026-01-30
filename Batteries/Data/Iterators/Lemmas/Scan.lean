@@ -17,7 +17,7 @@ open Std.Iterators Std.Iterators.Types
 
 theorem IterM.InternalCombinators.step_scanM
     {f : γ → β → PostconditionT n γ} [Iterator α m β] [MonadLiftT m n] [Monad n]
-    {it : IterM (α := α) m β} {acc : γ} {yieldAcc : Bool} [Monad m] :
+    {it : IterM (α := α) m β} {acc : γ} {yieldAcc : Bool} :
     (IterM.InternalCombinators.scanM f acc yieldAcc it).step = (do
         if h : yieldAcc = true then
           return .deflate <| .yield
