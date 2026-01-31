@@ -140,11 +140,11 @@ abbrev setN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tac
   This is guaranteed by the Array docs but it is unprovable.
   May be asserted to be true in an unsafe context via `Array.unsafe_size_fits_usize
 -/
-private abbrev size_fits_usize {a : Array α}: Prop := a.size < USize.size
+private abbrev SizeFitsUSize {a : Array α}: Prop := a.size < USize.size
 
 @[grind .]
 private theorem nat_index_eq_usize_index {n : Nat} {a : Array α}
-    {h : a.size_fits_usize} {hn : n ≤ a.size} :
+    {h : a.SizeFitsUSize} {hn : n ≤ a.size} :
     (USize.ofNat n).toNat = n :=
   USize.toNat_ofNat_of_lt' (Nat.lt_of_le_of_lt ‹_› ‹_›)
 
@@ -153,7 +153,7 @@ private theorem nat_index_eq_usize_index {n : Nat} {a : Array α}
   Can be used in unsafe functions to write more efficient implementations
   that avoid arbitrary precision integer arithmetic.
 -/
-private unsafe def unsafe_size_fits_usize {a : Array α} : Array.size_fits_usize (a := a) :=
+private unsafe def unsafe_size_fits_usize {a : Array α} : SizeFitsUSize (a := a) :=
   lcProof
 
 @[inline]
@@ -196,7 +196,7 @@ where
       pure <| acc.push init
 
 private theorem scanlM_loop_eq_scanlMFast_loop [Monad m]
-    {f : β → α → m β} {init : β} {as : Array α} {h_size : as.size_fits_usize}
+    {f : β → α → m β} {init : β} {as : Array α} {h_size : as.SizeFitsUSize}
     {start stop : Nat} {h_start : start ≤ as.size}
     {h_stop : stop ≤ as.size} {acc : Array β} :
     scanlM.loop f init as start stop h_stop acc
@@ -225,7 +225,7 @@ private theorem scanlM_loop_eq_scanlMFast_loop [Monad m]
 -- the scanlMFast and scanlM are equivalent
 private theorem scanlM_eq_scanlMFast [Monad m]
     {f : β → α → m β} {init : β} {as : Array α}
-    {h_size : as.size_fits_usize} {start stop : Nat} :
+    {h_size : as.SizeFitsUSize} {start stop : Nat} :
     scanlM f init as start stop = scanlMFast f init as start stop := by
   unfold scanlM scanlMFast
   apply scanlM_loop_eq_scanlMFast_loop
@@ -234,7 +234,7 @@ private theorem scanlM_eq_scanlMFast [Monad m]
 
 @[inline]
 private def scanrMFast [Monad m] (f : α → β → m β) (init : β) (as : Array α)
-    (h_size : as.size_fits_usize) (start := as.size) (stop := 0) : m (Array β) :=
+    (h_size : as.SizeFitsUSize) (start := as.size) (stop := 0) : m (Array β) :=
   let start := min start as.size
   let stop := min stop start
   loop f init as
