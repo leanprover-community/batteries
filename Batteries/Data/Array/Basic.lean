@@ -36,7 +36,7 @@ protected def rangeMinWith [ord : Ord α]
   xs.foldl (init := d) (start := start) (stop := stop) fun min x =>
     if compare x min |>.isLT then x else min
 
-@[inherit_doc Array.rangeMinWith, deprecated Array.rangeMinWith (since := "2025-01-08")]
+@[inherit_doc Array.rangeMinWith, deprecated Array.rangeMinWith (since := "2026-01-08")]
 protected def minWith := @Array.rangeMinWith
 
 /--
@@ -52,7 +52,7 @@ protected def rangeMinD [ord : Ord α]
   else
     d
 
-@[inherit_doc Array.rangeMinD, deprecated Array.rangeMinD (since := "2025-01-08")]
+@[inherit_doc Array.rangeMinD, deprecated Array.rangeMinD (since := "2026-01-08")]
 protected def minD := @Array.rangeMinD
 
 /--
@@ -78,7 +78,7 @@ protected def rangeMinI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
   xs.rangeMinD default start stop
 
-@[inherit_doc Array.rangeMinI, deprecated Array.rangeMinI (since := "2025-01-08")]
+@[inherit_doc Array.rangeMinI, deprecated Array.rangeMinI (since := "2026-01-08")]
 protected def minI := @Array.rangeMinI
 
 /--
@@ -91,7 +91,7 @@ protected def rangeMaxWith [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
   xs.rangeMinWith (ord := ord.opposite) d start stop
 
-@[inherit_doc Array.rangeMaxWith, deprecated Array.rangeMaxWith (since := "2025-01-08")]
+@[inherit_doc Array.rangeMaxWith, deprecated Array.rangeMaxWith (since := "2026-01-08")]
 protected def maxWith := @Array.rangeMaxWith
 
 /--
@@ -104,7 +104,7 @@ protected def rangeMaxD [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
   xs.rangeMinD (ord := ord.opposite) d start stop
 
-@[inherit_doc Array.rangeMaxD, deprecated Array.rangeMaxD (since := "2025-01-08")]
+@[inherit_doc Array.rangeMaxD, deprecated Array.rangeMaxD (since := "2026-01-08")]
 protected def maxD := @Array.rangeMaxD
 
 /--
@@ -127,7 +127,7 @@ protected def rangeMaxI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
   xs.rangeMinI (ord := ord.opposite) start stop
 
-@[inherit_doc Array.rangeMaxI, deprecated Array.rangeMaxI (since := "2025-01-08")]
+@[inherit_doc Array.rangeMaxI, deprecated Array.rangeMaxI (since := "2026-01-08")]
 protected def maxI := @Array.rangeMaxI
 
 /-!
