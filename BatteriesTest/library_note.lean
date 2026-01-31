@@ -62,6 +62,8 @@ This note has spaces in its name to test export format compatibility.
 -/
 
 -- Verify the declaration name has underscores, not spaces
+/-- info: LibraryNote.note_with_spaces : Batteries.Util.LibraryNote -/
+#guard_msgs in
 #check LibraryNote.note_with_spaces
 
 -- Test that a note with multiple consecutive spaces works
@@ -69,6 +71,8 @@ library_note «note  with   multiple    spaces» /--
 This note has multiple consecutive spaces.
 -/
 
+/-- info: LibraryNote.note__with___multiple____spaces : Batteries.Util.LibraryNote -/
+#guard_msgs in
 #check LibraryNote.note__with___multiple____spaces
 
 /--
