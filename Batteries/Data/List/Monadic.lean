@@ -68,50 +68,50 @@ theorem Spec.anyM_list [Monad m] [LawfulMonad m] [WPMonad m ps]
     {xs : List α} {p : α → m Bool}
     {tru : Assertion ps}
     {fal : xs.Cursor → Assertion ps}
+    {exc : ExceptConds ps}
     (h0 : ⊢ₛ fal ⟨[], xs, rfl⟩)
     (hp : ∀ pref cur suff (h : xs = pref ++ cur :: suff),
       ⦃fal ⟨pref, cur::suff, h.symm⟩⦄
         p cur
-      ⦃⇓ b => if b then tru else fal ⟨pref ++ [cur], suff, by simp [h]⟩⦄) :
+      ⦃(fun b => if b then tru else fal ⟨pref ++ [cur], suff, by simp [h]⟩, exc)⦄) :
     ⦃⌜True⌝⦄
     xs.anyM p
-    ⦃⇓ res => if res then tru else fal ⟨xs, [], by simp⟩⦄ := by
+    ⦃(fun res => if res then tru else fal ⟨xs, [], by simp⟩, exc)⦄ := by
   let rec go (pref suff : List α) (hcat : pref ++ suff = xs) :
       ⦃fal ⟨pref, suff, hcat⟩⦄
       suff.anyM p
-      ⦃⇓ res => if res then tru else fal ⟨xs, [], by simp⟩⦄ := by
+      ⦃(fun res => if res then tru else fal ⟨xs, [], by simp⟩, exc)⦄ := by
     match suff with
     | [] =>
       rw [List.anyM_nil]
       mvcgen
-      subst hcat
+      simp at hcat
       simp_all
     | y :: ys =>
       rw [List.anyM_cons]
       mvcgen
-      mspec (hp pref y ys hcat.symm)
+      mspec hp pref y ys (by simp [hcat])
       split
-      . simp_all
-      . mvcgen
-        mspec (go (pref ++ [y]) ys (by simp [hcat]))
+      · mvcgen
+      · mspec (go (pref ++ [y]) ys (by simp [hcat]))
   mvcgen
-  mspec go [] xs rfl
+  mspec go
 
 @[spec]
 private theorem Spec.mapFinIdxM_list_go [Monad m] [LawfulMonad m] [WPMonad m ps]
-    {xs : List α} {f : (i : Nat) → α → i < xs.length → m β}
+    {xs : List α} {f : (i : Nat) → α → i < xs.length → m β} {exc: ExceptConds ps}
     {motive : Nat → Prop}
     {p : (i : Nat) → β → i < xs.length → Prop}
     (hs : ∀ i (h : i < xs.length), motive i →
-      ⦃⌜True⌝⦄ f i xs[i] h ⦃⇓ b => ⌜p i b h ∧ motive (i + 1)⌝⦄)
+      ⦃⌜True⌝⦄ f i xs[i] h ⦃(fun b => ⌜p i b h ∧ motive (i + 1)⌝, exc)⦄)
     {bs : List α} {acc : Array β} {hlen : bs.length + acc.size = xs.length}
     (hsuff : bs = xs.drop acc.size)
     (hmot : motive acc.size)
     (hprev : ∀ i (hi : i < acc.size), p i acc[i] (by omega)) :
     ⦃⌜True⌝⦄
     List.mapFinIdxM.go xs f bs acc hlen
-    ⦃⇓ result => ⌜motive xs.length ∧
-      ∃ eq : result.length = xs.length, ∀ i h, p i result[i] h⌝⦄ := by
+    ⦃(fun result => ⌜motive xs.length ∧
+      ∃ eq : result.length = xs.length, ∀ i h, p i result[i] h⌝, exc)⦄ := by
   induction bs generalizing acc with
   | nil =>
     simp [List.mapFinIdxM.go]
@@ -144,14 +144,14 @@ private theorem Spec.mapFinIdxM_list_go [Monad m] [LawfulMonad m] [WPMonad m ps]
 @[spec]
 theorem Spec.mapFinIdxM_list [Monad m] [LawfulMonad m] [WPMonad m ps]
     {xs : List α} {f : (i : Nat) → α → i < xs.length → m β}
-    {motive : Nat → Prop}
+    {motive : Nat → Prop} {exc : ExceptConds ps}
     {p : (i : Nat) → β → i < xs.length → Prop}
     (h0 : motive 0)
     (hs : ∀ i (h : i < xs.length), motive i →
-      ⦃⌜True⌝⦄ f i xs[i] h ⦃⇓ b => ⌜p i b h ∧ motive (i + 1)⌝⦄) :
+      ⦃⌜True⌝⦄ f i xs[i] h ⦃(fun b => ⌜p i b h ∧ motive (i + 1)⌝, exc)⦄) :
     ⦃⌜True⌝⦄
     xs.mapFinIdxM f
-    ⦃⇓ bs => ⌜motive xs.length ∧ ∃ eq : bs.length = xs.length, ∀ i h, p i bs[i] h⌝⦄ := by
+    ⦃(fun bs => ⌜motive xs.length ∧ ∃ eq : bs.length = xs.length, ∀ i h, p i bs[i] h⌝, exc)⦄ := by
   unfold List.mapFinIdxM
   exact Spec.mapFinIdxM_list_go hs (by simp) (by simp [h0]) (fun i hi => absurd hi (by simp))
 
@@ -175,11 +175,12 @@ theorem length_mapM {α β : Type u} [Monad m] [LawfulMonad m] [WPMonad m ps]
 
 theorem anyM_iff_exists [Monad m] [LawfulMonad m] [WPMonad m ps]
     {xs : List α} {p : α → m Bool} {q : xs.Cursor → Prop}
+    {exc : ExceptConds ps}
     (hp : ∀ pref cur suff (h : xs = pref ++ cur :: suff),
-      ⦃⌜True⌝⦄ p cur ⦃⇓ b => ⌜b = true ↔ q ⟨pref, cur::suff, h.symm⟩⌝⦄) :
+      ⦃⌜True⌝⦄ p cur ⦃(fun b => ⌜b = true ↔ q ⟨pref, cur::suff, h.symm⟩⌝, exc)⦄) :
     ⦃⌜True⌝⦄
     xs.anyM p
-    ⦃⇓ res => ⌜res = true ↔ ∃ cursor : xs.Cursor, cursor.suffix ≠ [] ∧ q cursor⌝⦄ := by
+    ⦃(fun res => ⌜res = true ↔ ∃ cursor : xs.Cursor, cursor.suffix ≠ [] ∧ q cursor⌝, exc)⦄ := by
   mvcgen
   case vc1.tru =>
     exact ⌜∃ cursor : xs.Cursor, cursor.suffix ≠ [] ∧ q cursor⌝

@@ -38,28 +38,29 @@ theorem Spec.anyM_array [Monad m] [LawfulMonad m] [WPMonad m ps]
     {xs : Array α} {p : α → m Bool}
     {tru : Assertion ps}
     {fal : xs.toList.Cursor → Assertion ps}
+    {exc : ExceptConds ps}
     (h0 : ⊢ₛ fal ⟨[], xs.toList, rfl⟩)
     (hp : ∀ pref cur suff (h : xs.toList = pref ++ cur :: suff),
       ⦃fal ⟨pref, cur::suff, h.symm⟩⦄
         p cur
-      ⦃⇓ b => if b then tru else fal ⟨pref ++ [cur], suff, by simp [h]⟩⦄) :
+      ⦃(fun b => if b then tru else fal ⟨pref ++ [cur], suff, by simp [h]⟩, exc)⦄) :
     ⦃⌜True⌝⦄
     xs.anyM p
-    ⦃⇓ res => if res then tru else fal ⟨xs.toList, [], by simp⟩⦄ := by
+    ⦃(fun res => if res then tru else fal ⟨xs.toList, [], by simp⟩, exc)⦄ := by
   rw [← Array.anyM_toList]
   exact Spec.anyM_list h0 hp
 
 @[spec]
 theorem Spec.mapFinIdxM_array [Monad m] [LawfulMonad m] [WPMonad m ps]
     {xs : Array α} {f : (i : Nat) → α → i < xs.size → m β}
-    {motive : Nat → Prop}
+    {motive : Nat → Prop} {exc : ExceptConds ps}
     {p : (i : Nat) → β → i < xs.size → Prop}
     (h0 : motive 0)
     (hs : ∀ i (h : i < xs.size), motive i →
-      ⦃⌜True⌝⦄ f i xs[i] h ⦃⇓ b => ⌜p i b h ∧ motive (i + 1)⌝⦄) :
+      ⦃⌜True⌝⦄ f i xs[i] h ⦃(fun b => ⌜p i b h ∧ motive (i + 1)⌝, exc)⦄) :
     ⦃⌜True⌝⦄
     xs.mapFinIdxM f
-    ⦃⇓ bs => ⌜motive xs.size ∧ ∃ eq : bs.size = xs.size, ∀ i h, p i bs[i] h⌝⦄ := by
+    ⦃(fun bs => ⌜motive xs.size ∧ ∃ eq : bs.size = xs.size, ∀ i h, p i bs[i] h⌝, exc)⦄ := by
   simp only [← Array.length_toList] at hs ⊢
   rw [List.mapFinIdxM_toArray, map_eq_pure_bind]
   unfold Triple
@@ -94,12 +95,13 @@ theorem size_mapM {α β : Type u} [Monad m] [LawfulMonad m] [WPMonad m ps]
   . simp
 
 theorem anyM_iff_exists [Monad m] [LawfulMonad m] [WPMonad m ps]
-    {xs : Array α} {p : α → m Bool} {q : xs.toList.Cursor → Prop}
+    {xs : Array α} {p : α → m Bool} {q : xs.toList.Cursor → Prop} {exc: ExceptConds ps}
     (hp : ∀ pref cur suff (h : xs.toList = pref ++ cur :: suff),
-      ⦃⌜True⌝⦄ p cur ⦃⇓ b => ⌜b = true ↔ q ⟨pref, cur::suff, h.symm⟩⌝⦄) :
+      ⦃⌜True⌝⦄ p cur ⦃(fun b => ⌜b = true ↔ q ⟨pref, cur::suff, h.symm⟩⌝, exc)⦄) :
     ⦃⌜True⌝⦄
     xs.anyM p
-    ⦃⇓ res => ⌜res = true ↔ ∃ cursor : xs.toList.Cursor, cursor.suffix ≠ [] ∧ q cursor⌝⦄ := by
+    ⦃(fun res => ⌜res = true ↔
+      ∃ cursor : xs.toList.Cursor, cursor.suffix ≠ [] ∧ q cursor⌝, exc)⦄ := by
   rw [← Array.anyM_toList]
   apply List.anyM_iff_exists hp
 
