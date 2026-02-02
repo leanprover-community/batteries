@@ -8,10 +8,47 @@ module
 
 public import Batteries.Classes.SatisfiesM
 public import Batteries.Util.ProofWanted
+public import Std.Tactic.Do
+import Batteries.Data.List.Monadic
 import all Init.Data.Array.Basic  -- for unfolding `modifyM`
 
 @[expose] public section
+namespace Std.Do
+set_option mvcgen.warning false
 
+@[spec]
+theorem Spec.mapM_array {α β : Type w} [Monad m] [LawfulMonad m] [WPMonad m ps]
+    {xs : Array α} {f : α → m β}
+    (inv : Invariant xs.toList (Array β) ps)
+    (step : ∀ pref cur suff (h : xs.toList = pref ++ cur :: suff) acc,
+      ⦃inv.1 (⟨pref, cur::suff, h.symm⟩, acc)⦄
+        f cur
+      ⦃(fun b => inv.1 (⟨pref ++ [cur], suff, by simp [h]⟩, acc.push b), inv.2)⦄) :
+    ⦃inv.1 (⟨[], xs.toList, rfl⟩, #[])⦄
+    xs.mapM f
+    ⦃(fun bs => inv.1 (⟨xs.toList, [], by simp⟩, bs), inv.2)⦄ := by
+  rw [Array.mapM_eq_foldlM]
+  mvcgen
+  invariants
+    · inv
+  apply step (h := ‹_›)
+
+@[spec]
+theorem Spec.anyM_array [Monad m] [LawfulMonad m] [WPMonad m ps]
+    {xs : Array α} {p : α → m Bool}
+    {tru : Assertion ps}
+    {fal : xs.toList.Cursor → Assertion ps}
+    (h0 : ⊢ₛ fal ⟨[], xs.toList, rfl⟩)
+    (hp : ∀ pref cur suff (h : xs.toList = pref ++ cur :: suff),
+      ⦃fal ⟨pref, cur::suff, h.symm⟩⦄
+        p cur
+      ⦃⇓ b => if b then tru else fal ⟨pref ++ [cur], suff, by simp [h]⟩⦄) :
+    ⦃⌜True⌝⦄
+    xs.anyM p
+    ⦃⇓ res => if res then tru else fal ⟨xs.toList, [], by simp⟩⦄ := by
+  rw [← Array.anyM_toList]
+  exact Spec.anyM_list h0 hp
+end Std.Do
 /-!
 # Results about monadic operations on `Array`, in terms of `SatisfiesM`.
 
@@ -20,49 +57,22 @@ in order to minimize dependence on `SatisfiesM`.
 -/
 
 namespace Array
+set_option mvcgen.warning false
+open Std.Do
 
-theorem SatisfiesM_foldlM [Monad m] [LawfulMonad m] {as : Array α} {init : β}
-    {motive : Nat → β → Prop} {f : β → α → m β} (h0 : motive 0 init)
-    (hf : ∀ i : Fin as.size, ∀ b, motive i.1 b → SatisfiesM (motive (i.1 + 1)) (f b as[i])) :
-    SatisfiesM (motive as.size) (as.foldlM f init) := by
-  let rec go {i j b} (h₁ : j ≤ as.size) (h₂ : as.size ≤ i + j) (H : motive j b) :
-    SatisfiesM (motive as.size) (foldlM.loop f as as.size (Nat.le_refl _) i j b) := by
-    unfold foldlM.loop; split
-    · next hj =>
-      split
-      · cases Nat.not_le_of_gt (by simp [hj]) h₂
-      · exact (hf ⟨j, hj⟩ b H).bind fun _ => go hj (by rwa [Nat.succ_add] at h₂)
-    · next hj => exact Nat.le_antisymm h₁ (Nat.ge_of_not_lt hj) ▸ .pure H
-  simp [foldlM]; exact go (Nat.zero_le _) (Nat.le_refl _) h0
-
-theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] {as : Array α} {f : α → m β}
-    {motive : Nat → Prop} {p : Fin as.size → β → Prop} (h0 : motive 0)
-    (hs : ∀ i, motive i.1 → SatisfiesM (p i · ∧ motive (i + 1)) (f as[i])) :
-    SatisfiesM
-      (fun arr => motive as.size ∧ ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ arr[i])
-      (Array.mapM f as) := by
-  rw [mapM_eq_foldlM]
-  refine SatisfiesM_foldlM (m := m) (β := Array β)
-    (motive := fun i arr => motive i ∧ arr.size = i ∧ ∀ i h2, p i (arr[i.1]'h2)) ?z ?s
-    |>.imp fun ⟨h₁, eq, h₂⟩ => ⟨h₁, eq, fun _ _ => h₂ ..⟩
-  · case z => exact ⟨h0, rfl, nofun⟩
-  · case s =>
-    intro ⟨i, hi⟩ arr ⟨ih₁, eq, ih₂⟩
-    refine (hs _ ih₁).map fun ⟨h₁, h₂⟩ => ⟨h₂, by simp [eq], fun j hj => ?_⟩
-    simp [getElem_push] at hj ⊢; split; {apply ih₂}
-    cases j; cases (Nat.le_or_eq_of_le_succ hj).resolve_left ‹_›; cases eq; exact h₁
-
-theorem SatisfiesM_mapM' [Monad m] [LawfulMonad m] {as : Array α} {f : α → m β}
-    {p : Fin as.size → β → Prop}
-    (hs : ∀ i, SatisfiesM (p i) (f as[i])) :
-    SatisfiesM
-      (fun arr => ∃ eq : arr.size = as.size, ∀ i h, p ⟨i, h⟩ arr[i])
-      (Array.mapM f as) :=
-  (SatisfiesM_mapM (motive := fun _ => True) trivial (fun _ h => (hs _).imp (⟨·, h⟩))).imp (·.2)
-
-theorem size_mapM [Monad m] [LawfulMonad m] (f : α → m β) (as : Array α) :
-    SatisfiesM (fun arr => arr.size = as.size) (Array.mapM f as) :=
-  (SatisfiesM_mapM' (fun _ => .trivial)).imp (·.1)
+theorem size_mapM {α β : Type u} [Monad m] [LawfulMonad m] [WPMonad m ps]
+    {xs : Array α} {f : α → m β}
+    (hf : ∀ x, ⦃⌜True⌝⦄ f x ⦃⇓ _ => ⌜True⌝⦄) :
+    ⦃⌜True⌝⦄
+    xs.mapM f
+    ⦃⇓ bs => ⌜bs.size = xs.size⌝⦄ := by
+  rw [Array.mapM_eq_foldlM]
+  mvcgen
+  invariants
+    · ⇓⟨cursor, acc⟩ => ⌜acc.size = cursor.prefix.length⌝
+  . mspec hf
+    simp_all
+  . simp
 
 theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] {p : α → m Bool} {as : Array α}
     (hstart : start ≤ min stop as.size) (tru : Prop) (fal : Nat → Prop) (h0 : fal start)
