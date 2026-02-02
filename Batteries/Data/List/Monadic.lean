@@ -85,15 +85,13 @@ theorem Spec.anyM_list [Monad m] [LawfulMonad m] [WPMonad m ps]
     | [] =>
       rw [List.anyM_nil]
       mvcgen
-      simp at hcat
+      simp only [List.append_nil] at hcat
       simp_all
     | y :: ys =>
       rw [List.anyM_cons]
       mvcgen
       mspec hp pref y ys (by simp [hcat])
-      split
-      · mvcgen
-      · mspec (go (pref ++ [y]) ys (by simp [hcat]))
+      split <;> mvcgen [go]
   mvcgen
   mspec go
 
