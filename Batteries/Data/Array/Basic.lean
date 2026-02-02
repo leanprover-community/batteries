@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
 module
-public import Batteries.Tactic.Alias
+import Batteries.Tactic.Alias
 
 @[expose] public section
 
