@@ -236,7 +236,7 @@ also receives each element's index added to an optional parameter `start`
 (i.e. the numbers that `f` takes as its first argument will be greater than or equal to `start` and
 less than `start + l.length`).
 -/
-@[specialize] def foldlIdx {α : Type u} {β : Type v} (f : Nat → α → β → α) (init : α) :
+@[specialize] def foldlIdx (f : Nat → α → β → α) (init : α) :
     List β → (start : Nat := 0) → α
   | [], _ => init
   | b :: l, s => foldlIdx f (f s init b) l (s + 1)
