@@ -5,8 +5,10 @@ defaultTargets = ["Batteries", "runLinter"]
 
 [leanOptions]
 linter.missingDocs = true
-experimental.module = true
-backward.privateInPublic.warn = false
+# We prefix this with `weak.` so that running `lake new my_project math`
+# with an older default toolchain doesn't fail when running the Mathlib post update hook.
+# This option should be removed entirely once Batteries stops using `backward.privateInPublic`.
+weak.backward.privateInPublic.warn = false
 
 [[lean_lib]]
 name = "Batteries"

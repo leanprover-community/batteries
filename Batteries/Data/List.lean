@@ -9,3 +9,4 @@ public import Batteries.Data.List.Matcher
 public import Batteries.Data.List.Monadic
 public import Batteries.Data.List.Pairwise
 public import Batteries.Data.List.Perm
+public import Batteries.Data.List.Scan

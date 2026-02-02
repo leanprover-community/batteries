@@ -21,17 +21,11 @@ open Lean Elab Term Tactic Command
 -- Note: as of nightly-2025-10-23, after https://github.com/leanprover/lean4/pull/10625
 -- these instances need to be re-implemented.
 
--- instance : MonadSatisfying (ST σ) where
---   satisfying {α p x} h := sorry
---   val_eq h := sorry
-
--- instance : MonadSatisfying (EST ε σ) where
---   satisfying h := sorry
---   val_eq h := sorry
-
--- instance : MonadSatisfying (EIO ε) := inferInstanceAs <| MonadSatisfying (EST _ _)
--- instance : MonadSatisfying BaseIO := inferInstanceAs <| MonadSatisfying (ST _)
+-- instance : MonadSatisfying (EIO ε) := inferInstanceAs <| MonadSatisfying (EStateM _ _)
+-- instance : MonadSatisfying BaseIO := inferInstanceAs <| MonadSatisfying (EIO _)
 -- instance : MonadSatisfying IO := inferInstanceAs <| MonadSatisfying (EIO _)
+
+-- instance : MonadSatisfying (EST ε σ) := inferInstanceAs <| MonadSatisfying (EStateM _ _)
 
 -- instance : MonadSatisfying CoreM :=
 --   inferInstanceAs <| MonadSatisfying (ReaderT _ <| StateRefT' _ _ (EIO _))

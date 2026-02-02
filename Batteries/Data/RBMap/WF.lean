@@ -286,11 +286,11 @@ protected theorem Ordered.setRed {t : RBNode α} : (setRed t).Ordered cmp ↔ t.
 
 @[simp] theorem reverse_balLeft (l : RBNode α) (v : α) (r : RBNode α) :
     (balLeft l v r).reverse = balRight r.reverse v l.reverse := by
-  unfold balLeft balRight; split
-  · simp
-  · rw [balLeft.match_3.eq_2 _ _ _ _ (by simp [reverse_eq_iff]; intros; solve_by_elim)]
-    split <;> simp
-    rw [balRight.match_1.eq_3] <;> (simp [reverse_eq_iff]; intros; solve_by_elim)
+  suffices ∀ r' l', r' = r.reverse → l' = l.reverse →
+     (balLeft l v r).reverse = balRight r' v l' from this _ _ rfl rfl
+  intros r' l' hr hl
+  fun_cases balLeft l v r <;> fun_cases balRight r' v l' <;>
+    grind [reverse, reverse_reverse, reverse_balance2, reverse_setRed]
 
 @[simp] theorem reverse_balRight (l : RBNode α) (v : α) (r : RBNode α) :
     (balRight l v r).reverse = balLeft r.reverse v l.reverse := by

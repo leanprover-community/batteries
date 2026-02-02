@@ -58,7 +58,7 @@ def PrefixTable.extend [BEq α] (t : PrefixTable α) (x : α) : PrefixTable α w
     rw [Array.getElem_push]
     split
     · exact t.valid ..
-    · next h => exact Nat.le_trans (Nat.lt_succ.1 <| Fin.isLt ..) (Nat.not_lt.1 h)
+    · next h => exact Nat.le_trans (Nat.lt_succ_iff.1 <| Fin.isLt ..) (Nat.not_lt.1 h)
 
 /-- Make prefix table from a pattern array -/
 def mkPrefixTable [BEq α] (xs : Array α) : PrefixTable α := xs.foldl (·.extend) default
@@ -105,7 +105,7 @@ partial def Matcher.next? [BEq α] [Std.Stream σ α] (m : Matcher α) (stream :
       next? { m with state } stream
 
 namespace Matcher
-open Std.Iterators
+open Std Std.Iterators
 
 /-- Iterator transformer for KMP matcher. -/
 protected structure Iterator (σ n α) [BEq α] (m : Matcher α) [Iterator σ n α] where
@@ -135,7 +135,7 @@ instance [Monad n] [BEq α] (m : Matcher α) [Iterator σ n α] :
 
 private def finitenessRelation [Monad n] [BEq α] (m : Matcher α) [Iterator σ n α] [Finite σ n] :
     FinitenessRelation (m.Iterator σ n α) n where
-  rel := InvImage IterM.IsPlausibleSuccessorOf fun it => it.internalState.inner
+  Rel := InvImage IterM.IsPlausibleSuccessorOf fun it => it.internalState.inner
   wf := InvImage.wf _ Finite.wf
   subrelation {it it'} h := by
     obtain ⟨_, hsucc, step, rfl⟩ := h

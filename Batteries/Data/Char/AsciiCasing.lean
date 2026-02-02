@@ -19,75 +19,50 @@ These facts apply for ASCII characters only. Recall that `isAlpha`, `isLower`, `
 namespace Char
 
 theorem not_isLower_of_isUpper {c : Char} : c.isUpper → ¬ c.isLower := by
-  simp only [isUpper, ge_iff_le, UInt32.le_iff_toNat_le, UInt32.reduceToNat, toNat_val,
-    Bool.and_eq_true, decide_eq_true_eq, isLower, not_and, Nat.not_le, and_imp]
+  simp [isUpper, UInt32.le_iff_toNat_le, isLower]
   omega
 
 theorem not_isUpper_of_isLower {c : Char} : c.isLower → ¬ c.isUpper := by
-  simp only [isUpper, ge_iff_le, UInt32.le_iff_toNat_le, UInt32.reduceToNat, toNat_val,
-    Bool.and_eq_true, decide_eq_true_eq, isLower, not_and, Nat.not_le, and_imp]
+  simp [isUpper, UInt32.le_iff_toNat_le, isLower]
   omega
 
 theorem toLower_eq_of_not_isUpper {c : Char} (h : ¬ c.isUpper) : c.toLower = c := by
-  simp only [isUpper, ge_iff_le, Bool.and_eq_true, decide_eq_true_eq, not_and] at h
-  simp only [toLower, ge_iff_le, ite_eq_right_iff, and_imp]
-  intro h65 h90
-  absurd h h65
-  exact h90
+  simp_all [isUpper, UInt32.le_iff_toNat_le, toLower]
+  omega
 
 theorem toLower_eq_of_isUpper {c : Char} (h : c.isUpper) : c.toLower = ofNat (c.toNat + 32) := by
-  simp only [isUpper, ge_iff_le, Bool.and_eq_true, decide_eq_true_eq] at h
-  simp only [toLower, ge_iff_le, ite_eq_left_iff]
-  intro; contradiction
+  ext
+  rw [val_ofNat, UInt32.ofNat_add]
+  · simp_all [isUpper, toLower]
+  · simp [isUpper, UInt32.le_iff_toNat_le] at h; grind
 
 theorem toUpper_eq_of_not_isLower {c : Char} (h : ¬ c.isLower) : c.toUpper = c := by
-  simp only [isLower, ge_iff_le, Bool.and_eq_true, decide_eq_true_eq, not_and] at h
-  simp only [toUpper, ge_iff_le, ite_eq_right_iff, and_imp]
-  intro h97 h122
-  absurd h h97
-  exact h122
+  simp only [isLower, Bool.and_eq_true, decide_eq_true_eq] at h
+  simp only [toUpper, dif_neg h]
 
 theorem toUpper_eq_of_isLower {c : Char} (h : c.isLower) : c.toUpper = ofNat (c.toNat - 32) := by
-  simp only [isLower, ge_iff_le, Bool.and_eq_true, decide_eq_true_eq] at h
-  simp only [toUpper, ge_iff_le, ite_eq_left_iff]
-  intro; contradiction
+  ext
+  rw [val_ofNat, UInt32.ofNat_sub]
+  · simp_all [toUpper, isLower]; grind
+  · simp [isLower, UInt32.le_iff_toNat_le] at h; grind
+  · simp [isLower, UInt32.le_iff_toNat_le] at h; grind
 
 @[simp] theorem isUpper_toLower_eq_false (c : Char) : c.toLower.isUpper = false := by
-  simp only [isUpper, toLower, ge_iff_le, UInt32.le_iff_toNat_le, UInt32.reduceToNat, toNat_val,
-    Bool.and_eq_false_imp, decide_eq_true_eq, decide_eq_false_iff_not, Nat.not_le]
-  intro h
-  split at h
-  · next h' =>
-    rw [if_pos h']
-    have : (c.toNat + 32).isValidChar := by omega
-    simp only [toNat_ofNat, ↓reduceIte, gt_iff_lt, *]
-    omega
-  · next h' =>
-    rw [if_neg h']
-    omega
+  simp only [isUpper, toLower]
+  split <;> grind [UInt32.toNat_add, toNat_val]
 
 @[simp] theorem isLower_toUpper_eq_false (c : Char) : c.toUpper.isLower = false := by
-  simp only [isLower, toUpper, ge_iff_le, UInt32.le_iff_toNat_le, UInt32.reduceToNat, toNat_val,
-    Bool.and_eq_false_imp, decide_eq_true_eq, decide_eq_false_iff_not, Nat.not_le]
-  intro h
-  split at h
-  · next h' =>
-    rw [if_pos h']
-    have : (c.toNat - 32).isValidChar := by omega
-    simp [toNat_ofNat, *] at h ⊢
-    omega
-  · next h' =>
-    rw [if_neg h']
-    omega
+  simp only [isLower, toUpper]
+  split <;> grind [UInt32.toNat_add, toNat_val]
 
 @[simp] theorem isLower_toLower_eq_isAlpha (c : Char) : c.toLower.isLower = c.isAlpha := by
   rw [Bool.eq_iff_iff]
   by_cases h : c.isUpper
-  · simp only [isLower, h, toLower_eq_of_isUpper, ge_iff_le, UInt32.le_iff_toNat_le,
-      UInt32.reduceToNat, toNat_val, Bool.and_eq_true, decide_eq_true_eq, isAlpha, Bool.true_or,
-      iff_true]
-    simp only [isUpper, ge_iff_le, UInt32.le_iff_toNat_le, UInt32.reduceToNat, toNat_val,
-      Bool.and_eq_true, decide_eq_true_eq] at h
+  · simp only [isLower, h, toLower_eq_of_isUpper, ↓Char.isValue, Char.reduceVal, ge_iff_le,
+      UInt32.le_iff_toNat_le, UInt32.reduceToNat, toNat_val, Bool.and_eq_true, decide_eq_true_eq,
+      isAlpha, Bool.true_or, iff_true]
+    simp only [isUpper, ↓Char.isValue, Char.reduceVal, ge_iff_le, UInt32.le_iff_toNat_le,
+      UInt32.reduceToNat, toNat_val, Bool.decide_and, Bool.and_eq_true, decide_eq_true_eq] at h
     have : (c.toNat + 32).isValidChar := by omega
     simp [toNat_ofNat, *]
   · simp [toLower_eq_of_not_isUpper, isAlpha, h]
@@ -95,11 +70,11 @@ theorem toUpper_eq_of_isLower {c : Char} (h : c.isLower) : c.toUpper = ofNat (c.
 @[simp] theorem isUpper_toUpper_eq_isAlpha (c : Char) : c.toUpper.isUpper = c.isAlpha := by
   rw [Bool.eq_iff_iff]
   by_cases h : c.isLower
-  · simp only [isUpper, h, toUpper_eq_of_isLower, ge_iff_le, UInt32.le_iff_toNat_le,
-      UInt32.reduceToNat, toNat_val, Bool.and_eq_true, decide_eq_true_eq, isAlpha, Bool.or_true,
-      iff_true]
-    simp only [isLower, ge_iff_le, UInt32.le_iff_toNat_le, UInt32.reduceToNat, toNat_val,
-      Bool.and_eq_true, decide_eq_true_eq] at h
+  · simp only [isUpper, h, toUpper_eq_of_isLower, ↓Char.isValue, Char.reduceVal, ge_iff_le,
+      UInt32.le_iff_toNat_le, UInt32.reduceToNat, toNat_val, Bool.decide_and, Bool.and_eq_true,
+      decide_eq_true_eq, isAlpha, Bool.or_true, iff_true]
+    simp only [isLower, ↓Char.isValue, Char.reduceVal, ge_iff_le, UInt32.le_iff_toNat_le,
+      UInt32.reduceToNat, toNat_val, Bool.and_eq_true, decide_eq_true_eq] at h
     have : (c.toNat - 32).isValidChar := by omega
     have : 32 ≤ c.toNat := by omega
     simp [toNat_ofNat, Nat.le_sub_iff_add_le, *]
@@ -119,12 +94,12 @@ theorem toUpper_eq_of_isLower {c : Char} (h : c.isLower) : c.toUpper = ofNat (c.
   · have hu : ¬ c.isUpper := not_isUpper_of_isLower hl
     have hu' : c.toUpper.isUpper := by simp [isAlpha, hl]
     have hv : (c.toNat - 32).isValidChar := by
-      simp only [isLower, ge_iff_le, UInt32.le_iff_toNat_le, UInt32.reduceToNat, toNat_val,
-        Bool.and_eq_true, decide_eq_true_eq, isUpper, not_and, Nat.not_le] at hl hu
-      omega
+      simp only [isLower, isUpper, UInt32.le_iff_toNat_le, toNat_val] at hl hu
+      grind
     have h : 32 ≤ c.toNat := by
-      simp only [isLower, ge_iff_le, UInt32.le_iff_toNat_le, UInt32.reduceToNat, toNat_val,
-        Bool.and_eq_true, decide_eq_true_eq, isUpper, not_and, Nat.not_le] at hl hu
+      simp only [isLower, ↓Char.isValue, Char.reduceVal, ge_iff_le, UInt32.le_iff_toNat_le,
+        UInt32.reduceToNat, toNat_val, Bool.and_eq_true, decide_eq_true_eq, isUpper,
+        Bool.decide_and, not_and, Nat.not_le] at hl hu
       omega
     rw [toLower_eq_of_isUpper hu', toUpper_eq_of_isLower hl, toLower_eq_of_not_isUpper hu,
       toNat_ofNat, if_pos hv, Nat.sub_add_cancel h, ofNat_toNat]
@@ -138,8 +113,9 @@ theorem toUpper_eq_of_isLower {c : Char} (h : c.isLower) : c.toUpper = ofNat (c.
   · have hl : ¬ c.isLower := not_isLower_of_isUpper hu
     have hl' : c.toLower.isLower := by simp [isAlpha, hu]
     have hv : (c.toNat + 32).isValidChar := by
-      simp only [isUpper, ge_iff_le, UInt32.le_iff_toNat_le, UInt32.reduceToNat, toNat_val,
-        Bool.and_eq_true, decide_eq_true_eq, isLower, not_and, Nat.not_le] at hu hl
+      simp only [isUpper, ↓Char.isValue, Char.reduceVal, ge_iff_le, UInt32.le_iff_toNat_le,
+        UInt32.reduceToNat, toNat_val, Bool.decide_and, Bool.and_eq_true, decide_eq_true_eq,
+        isLower, not_and, Nat.not_le] at hu hl
       omega
     rw [toUpper_eq_of_isLower hl', toLower_eq_of_isUpper hu, toUpper_eq_of_not_isLower hl,
       toNat_ofNat, if_pos hv, Nat.add_sub_cancel, ofNat_toNat]
