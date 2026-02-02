@@ -111,7 +111,8 @@ private theorem Spec.mapFinIdxM_list_go [Monad m] [LawfulMonad m] [WPMonad m ps]
     (hprev : ∀ i (hi : i < acc.size), p i acc[i] (by omega)) :
     ⦃⌜True⌝⦄
     List.mapFinIdxM.go xs f bs acc hlen
-    ⦃⇓ result => ⌜motive xs.length ∧ ∃ eq : result.length = xs.length, ∀ i h, p i result[i] h⌝⦄ := by
+    ⦃⇓ result => ⌜motive xs.length ∧
+      ∃ eq : result.length = xs.length, ∀ i h, p i result[i] h⌝⦄ := by
   induction bs generalizing acc with
   | nil =>
     simp [List.mapFinIdxM.go]
