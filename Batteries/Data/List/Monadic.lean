@@ -76,7 +76,6 @@ theorem Spec.anyM_list [Monad m] [LawfulMonad m] [WPMonad m ps]
     ⦃⌜True⌝⦄
     xs.anyM p
     ⦃⇓ res => if res then tru else fal ⟨xs, [], by simp⟩⦄ := by
-  -- Use a recursive helper that carries the stateful hypothesis
   let rec go (pref suff : List α) (hcat : pref ++ suff = xs) :
       ⦃fal ⟨pref, suff, hcat⟩⦄
       suff.anyM p
@@ -122,7 +121,6 @@ private theorem Spec.mapFinIdxM_list_go [Monad m] [LawfulMonad m] [WPMonad m ps]
   | cons b bs ih =>
     simp only [List.mapFinIdxM.go]
     have hacc : acc.size < xs.length := by simp [List.length_cons] at hlen; omega
-    -- b = xs[acc.size] from hsuff
     have hb : b = xs[acc.size] := by
       have : (xs.drop acc.size).head? = some b := by rw [← hsuff]; rfl
       simp_all
