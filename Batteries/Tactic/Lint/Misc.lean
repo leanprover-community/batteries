@@ -7,7 +7,6 @@ module
 
 public meta import Lean.Util.CollectLevelParams
 public meta import Lean.Util.ForEachExpr
-public meta import Lean.Meta.GlobalInstances
 public meta import Lean.Meta.Check
 public meta import Lean.Util.Recognizers
 public meta import Lean.DocString
@@ -31,7 +30,7 @@ This file defines several small linters.
   errorsFound := "DUPLICATED NAMESPACES IN NAME:"
   test declName := do
     if ← isAutoDecl declName then return none
-    if isGlobalInstance (← getEnv) declName then return none
+    if ← isInstanceReducible declName then return none
     let nm := declName.components
     let some (dup, _) := nm.zip nm.tail! |>.find? fun (x, y) => x == y
       | return none
@@ -68,10 +67,10 @@ We skip all declarations that contain `sorry` in their value. -/
   noErrorsFound := "No definitions are missing documentation."
   errorsFound := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
-    if (← isAutoDecl declName) || isGlobalInstance (← getEnv) declName then
+    if (← isAutoDecl declName) || (← isInstanceReducible declName) then
       return none -- FIXME: scoped/local instances should also not be linted
     if let .str p _ := declName then
-      if isGlobalInstance (← getEnv) p then
+      if (← isInstanceReducible p) then
         -- auxillary functions for instances should not be linted
         return none
     if let .str _ s := declName then
@@ -117,7 +116,7 @@ has been used. -/
   noErrorsFound := "All declarations correctly marked as def/lemma."
   errorsFound := "INCORRECT DEF/LEMMA:"
   test declName := do
-    if (← isAutoDecl declName) || isGlobalInstance (← getEnv) declName then
+    if (← isAutoDecl declName) || (← isInstanceReducible declName) then
       return none
     -- leanprover/lean4#2575:
     -- projections are generated as `def`s even when they should be `theorem`s
