@@ -53,14 +53,18 @@ theorem Spec.anyM_array [Monad m] [LawfulMonad m] [WPMonad m ps]
 theorem Spec.mapFinIdxM_array [Monad m] [LawfulMonad m] [WPMonad m ps]
     {xs : Array α} {f : (i : Nat) → α → i < xs.size → m β}
     {motive : Nat → Prop}
-    {p : (i : Nat) → β → i < xs.toList.length → Prop}
+    {p : (i : Nat) → β → i < xs.size → Prop}
     (h0 : motive 0)
-    (hs : ∀ i (h : i < xs.toList.length), motive i →
+    (hs : ∀ i (h : i < xs.size), motive i →
       ⦃⌜True⌝⦄ f i xs[i] h ⦃⇓ b => ⌜p i b h ∧ motive (i + 1)⌝⦄) :
     ⦃⌜True⌝⦄
-    xs.toList.mapFinIdxM f
-    ⦃⇓ bs => ⌜motive xs.toList.length ∧ ∃ eq : bs.length = xs.toList.length, ∀ i h, p i bs[i] h⌝⦄ :=
-  Spec.mapFinIdxM_list h0 hs
+    xs.mapFinIdxM f
+    ⦃⇓ bs => ⌜motive xs.size ∧ ∃ eq : bs.size = xs.size, ∀ i h, p i bs[i] h⌝⦄ := by
+  simp only [← Array.length_toList] at hs ⊢
+  rw [List.mapFinIdxM_toArray, map_eq_pure_bind]
+  unfold Triple
+  mspec Spec.mapFinIdxM_list h0 hs
+  mvcgen
 
 end Std.Do
 
