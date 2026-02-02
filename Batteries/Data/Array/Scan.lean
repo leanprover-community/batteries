@@ -37,14 +37,12 @@ theorem scanlM_loop_toList [Monad m] [LawfulMonad m]
 
 theorem scanlM_toList [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Array α} :
     List.toArray <$> as.toList.scanlM f init = as.scanlM f init := by
-  unfold scanlM
-  simp [Array.scanlM_loop_toList, ←Array.length_toList]
+  simp [scanlM, Array.scanlM_loop_toList, ←Array.length_toList]
 
 @[simp, grind =]
 theorem toList_scanlM [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Array α} :
     toList <$> as.scanlM f init = as.toList.scanlM f init := by
-  rw [← scanlM_toList]
-  simp
+  simp [← scanlM_toList]
 
 theorem scanrM_loop_toList [Monad m] [LawfulMonad m] {f : α → β → m β}
     {start : Nat} {h : start ≤ as.size} :
@@ -66,16 +64,13 @@ theorem scanrM_loop_toList [Monad m] [LawfulMonad m] {f : α → β → m β}
         ext a
         rw [ih (start := start - 1) (stop := stop) (acc := acc.push init) (by omega)]
       have h_list : List.take (n + 1) (List.drop stop as.toList)
-        = as[stop] :: List.take n (List.drop (stop + 1) as.toList)
-        := by
+        = as[stop] :: List.take n (List.drop (stop + 1) as.toList) := by
           rw [List.drop_eq_getElem_cons (by simp; omega)]
-          simp
+          simp only [getElem_toList, List.take_succ_cons]
       have h_rev_list : (List.take (n + 1) (List.drop stop as.toList)).reverse
-        = as[start - 1] :: (List.take n (List.drop stop as.toList)).reverse
-        := by
+        = as[start - 1] :: (List.take n (List.drop stop as.toList)).reverse := by
           have h_eq : start - 1 = stop + n := by omega
-          rw [← List.take_append_getElem
-            (by simp; omega : n < (List.drop stop as.toList).length)]
+          rw [← List.take_append_getElem (by simp; omega : n < (List.drop stop as.toList).length)]
           simp [List.reverse_append, List.getElem_drop, h_eq]
       simp_all only [Array.toList_push, List.reverse_append, List.reverse_cons,
         Functor.map_map , List.scanrM_eq_scanlM_reverse]
@@ -83,14 +78,12 @@ theorem scanrM_loop_toList [Monad m] [LawfulMonad m] {f : α → β → m β}
 
 theorem scanrM_toList [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Array α} :
     List.toArray <$> as.toList.scanrM f init = as.scanrM f init := by
-  unfold scanrM
-  simp [Array.scanrM_loop_toList, ← Array.length_toList]
+  simp [scanrM, Array.scanrM_loop_toList, ← Array.length_toList]
 
 @[simp, grind =]
 theorem toList_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Array α} :
     toList <$> as.scanrM f init = as.toList.scanrM f init := by
-  rw [← scanrM_toList]
-  simp
+  simp [← scanrM_toList]
 
 -- TODO (cmlsharp): rewrite this and scanrM_extract without requiring LawfulMonad?
 -- In principle, it should be possible to flip the dependency order between this and
@@ -120,23 +113,18 @@ theorem scanrM_empty [Monad m] {f : α → β → m β} {start stop : Nat} :
 
 theorem scanlM_reverse [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Array α} :
     as.reverse.scanlM f init = Array.reverse <$> (as.scanrM (flip f) init) := by
-  rw [← scanlM_toList, ← scanrM_toList]
-  simp
+  simp only [← scanlM_toList, ← scanrM_toList, toList_reverse, List.scanlM_reverse, Functor.map_map, List.reverse_toArray]
 
 @[simp]
 theorem scanlM_pure [Monad m] [LawfulMonad m] {f : β → α → β} {as : Array α} :
     as.scanlM (m := m) (pure <| f · ·) init = pure (as.scanl f init) := by
-  unfold scanl
-  rw [← scanlM_toList, ← scanlM_toList, List.scanlM_pure]
-  simp only [map_pure, Id.run_map]
+  simp only [scanl, ← scanlM_toList, ← scanlM_toList, List.scanlM_pure, map_pure, pure, Id.run_map]
   rfl
 
 @[simp]
 theorem scanrM_pure [Monad m] [LawfulMonad m] {f : α → β → β} {as : Array α} :
     as.scanrM (m := m) (pure <| f · ·) init = pure (as.scanr f init) := by
-  unfold scanr
-  rw [← scanrM_toList, ← scanrM_toList, List.scanrM_pure]
-  simp only [map_pure, Id.run_map]
+  simp only [scanr, ← scanrM_toList, ← scanrM_toList, List.scanrM_pure, map_pure, pure, Id.run_map]
   rfl
 
 theorem idRun_scanlM {f : β → α → Id β} {as : Array α} :
@@ -150,14 +138,12 @@ theorem idRun_scanrM {f : α → β → Id β} {as : Array α} :
 @[grind =]
 theorem scanlM_map [Monad m] [LawfulMonad m] {f : α₁ → α₂ } {g: β → α₂ → m β} {as : Array α₁} :
     (as.map f).scanlM g init = as.scanlM (g · <| f ·) init := by
-  repeat rw [← scanlM_toList]
-  simp
+  simp only [← scanlM_toList, toList_map, List.scanlM_map]
 
 @[grind =]
 theorem scanrM_map [Monad m] [LawfulMonad m] {f : α₁ → α₂ } {g: α₂ → β → m β} {as : Array α₁} :
     (as.map f).scanrM g init = as.scanrM (fun a b => g (f a) b) init := by
-  repeat rw [← scanrM_toList]
-  simp
+  simp only [← scanrM_toList, toList_map, List.scanrM_map]
 
 /-- ### Array.scanl -/
 
@@ -167,8 +153,7 @@ theorem scanl_eq_scanlM {f : β → α → β} {as: Array α} :
 
 theorem scanl_toList {f: β → α → β} {as : Array α} :
     (as.toList.scanl f init).toArray = as.scanl f init := by
-  rw [scanl_eq_scanlM, ← scanlM_toList]
-  simp [Id.run_map, pure, List.scanl]
+  simp only [scanl_eq_scanlM, ← scanlM_toList, List.scanl, pure, Id.run_map]
 
 @[simp, grind =]
 theorem toList_scanl {f : β → α → β} {as: Array α} :
@@ -210,8 +195,8 @@ theorem scanl_iff_empty {f : β → α → β} (c : β) :
 @[simp, grind =]
 theorem getElem_scanl {f : β → α → β} {as: Array α} (h : i < (as.scanl f init).size) :
     (as.scanl f init)[i]'h = foldl f init (as.take i) := by
-  simp only [←foldl_toList, ←scanl_toList]
-  simp
+  simp only [←foldl_toList, ←scanl_toList, List.getElem_toArray, List.getElem_scanl,
+    take_eq_extract, toList_extract, List.extract_eq_drop_take, Nat.sub_zero, List.drop_zero]
 
 @[grind =]
 theorem getElem?_scanl {f : β → α → β} :
@@ -233,20 +218,19 @@ theorem getElem?_succ_scanl {f : β → α → β} :
 
 theorem getElem_succ_scanl {f : β → α → β} (h : i + 1 < (scanl f b as).size) :
     (as.scanl f b)[i + 1] = f (as.scanl f b)[i] (as[i]'(by grind)) := by
-  simp only [← scanl_toList, List.getElem_toArray, List.getElem_succ_scanl]
-  simp
+  simp only [← scanl_toList, List.getElem_toArray, List.getElem_succ_scanl, List.getElem_scanl,
+    getElem_toList]
 
 @[grind =]
 theorem scanl_push {f : β → α → β} {init: β} {a : α} {as : Array α} :
     (as.push a).scanl f init = (as.scanl f init).push (f (as.foldl f init) a) := by
-  repeat rw [← scanl_toList]
-  simp [List.scanl_append]
+  simp only [← scanl_toList, toList_push, List.scanl_append, foldl_toList, List.scanl_cons,
+    List.scanl_nil, List.tail_cons, List.push_toArray]
 
 @[grind =]
 theorem scanl_map {f : γ → β → γ} {g : α → β} (init : γ) (as : Array α) :
     scanl f init (as.map g) = scanl (f · <| g ·) init as := by
-  repeat rw [← scanl_toList]
-  simp [List.scanl_map]
+  simp only [← scanl_toList, toList_map, List.scanl_map]
 
 @[simp, grind =]
 theorem back_scanl {f : β → α → β} {as : Array α} :
@@ -265,8 +249,7 @@ theorem scanr_eq_scanrM {f : α → β → β} {as : Array α} :
 
 theorem scanr_toList {f : α → β → β} {as : Array α} :
     (as.toList.scanr f init).toArray = as.scanr f init := by
-  rw [scanr_eq_scanrM, ← scanrM_toList]
-  simp [Id.run_map, pure, List.scanr]
+  simp only [scanr_eq_scanrM, ← scanrM_toList, List.scanr, pure, Id.run_map]
 
 @[simp, grind =]
 theorem toList_scanr {f : α → β → β} {as : Array α} :
@@ -327,15 +310,14 @@ theorem getElem?_scanr_zero {f : α → β → β} :
 @[grind =]
 theorem scanr_map {f : β → γ → γ} {g : α → β} (init : γ) (as : Array α) :
     scanr f init (as.map g) = scanr (fun x acc => f (g x) acc) init as := by
-  repeat rw [← scanr_toList]
-  simp [List.scanr_map]
+  simp only [← scanr_toList, toList_map, List.scanr_map]
 
 @[grind =]
 theorem scanl_reverse {f : β → α → β} {as : Array α} :
     scanl f init as.reverse = reverse (scanr (flip f) init as) := by
   apply toList_inj.mp
-  simp only [← scanl_toList, ← scanr_toList]
-  simp
+  simp only [← scanl_toList, ← scanr_toList, toList_reverse, List.scanl_reverse,
+    List.reverse_toArray]
 
  end Array
 

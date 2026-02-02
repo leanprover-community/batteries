@@ -180,7 +180,32 @@ where
       grind only [Nat.min_def, USize.lt_iff_toNat_lt]
 
 /--
-Fold an effectful function `f` over the array from the left, returning the list of partial results.
+Folds a monadic function over an array from the left, accumulating the partial results starting with
+`init`. The accumulated value is combined with the each element of the list in order, using `f`.
+
+The optional parameters `start` and `stop` control the region of the array to be folded. Folding
+proceeds from `start` (inclusive) to `stop` (exclusive), so no folding occurs unless `start < stop`.
+By default, the entire array is folded.
+
+Examples:
+```lean example
+example [Monad m] (f : α → β → m α) :
+    Array.scanlM f x₀ #[a, b, c] = (do
+      let x₁ ← f x₀ a
+      let x₂ ← f x₁ b
+      let x₃ ← f x₂ c
+      pure #[x₀, x₁, x₂, x₃])
+    := by simp [scanlM, scanlM.loop]
+```
+
+```lean example
+example [Monad m] (f : α → β → m α) :
+    Array.scanlM f x₀ #[a, b, c] (start := 1) (stop := 3) = (do
+      let x₁ ← f x₀ b
+      let x₂ ← f x₁ c
+      pure #[x₀, x₁, x₂])
+    := by simp [scanlM, scanlM.loop]
+```
 -/
 @[implemented_by scanlMFast]
 def scanlM [Monad m] (f : β → α → m β) (init : β) (as : Array α) (start := 0)
@@ -281,31 +306,32 @@ private unsafe def scanrMUnsafe [Monad m] (f : α → β → m β) (init : β) (
   scanrMFast (h_size := Array.unsafe_size_fits_usize) f init as (start := start) (stop := stop)
 
 /--
-Folds a monadic function over a list from the left, accumulating the partial results starting with
-`init`. The accumulated value is combined with the each element of the list in order, using `f`.
+Folds a monadic function over an array from the right, accumulating the partial results starting
+with `init`. The accumulated value is combined with the each element of the list in order using `f`.
 
 The optional parameters `start` and `stop` control the region of the array to be folded. Folding
-proceeds from `start` (inclusive) to `stop` (exclusive), so no folding occurs unless `start < stop`.
+proceeds from `start` (exclusive) to `stop` (inclusive), so no folding occurs unless `start > stop`.
 By default, the entire array is folded.
 
 Examples:
 ```lean example
-example [Monad m] (f : α → β → m α) :
-    Array.scanlM (m := m) f x₀ #[a, b, c] = (do
-      let x₁ ← f x₀ a
-      let x₂ ← f x₁ b
-      let x₃ ← f x₂ c
-      pure #[x₀, x₁, x₂, x₃])
-  := by rfl
+example [Monad m] (f : α → β → m β) :
+    Array.scanrM f x₀ #[a, b, c] = (do
+      let x₁ ← f c x₀
+      let x₂ ← f b x₁
+      let x₃ ← f a x₂
+      pure #[x₃, x₂, x₁, x₀])
+    := by simp [scanrM, scanrM.loop]
 ```
 
 ```lean example
-example [Monad m] (f : α → β → m α) :
-    Array.scanlM (m := m) f x₀ #[a, b, c] (start := 1) = (do
-      let x₁ ← f x₀ b
-      let x₂ ← f x₁ c
-      pure #[x₀, x₁, x₂])
-  := by rfl
+example [Monad m] (f : α → β → m β) :
+    Array.scanrM f x₀ #[a, b, c] (start := 3) (stop := 1) = (do
+      let x₁ ← f c x₀
+      let x₂ ← f b x₁
+      pure #[x₂, x₁, x₀])
+    := by simp [scanrM, scanrM.loop]
+```
 -/
 @[implemented_by scanrMUnsafe]
 def scanrM [Monad m]
@@ -327,7 +353,7 @@ where
       pure <| acc.push init |>.reverse
 
 /--
-Fold a function `f` over the list from the left, returning the list of partial results.
+Fold a function `f` over the array from the left, returning the array of partial results.
 ```
 scanl (· + ·) 0 #[1, 2, 3] = #[0, 1, 3, 6]
 ```
@@ -337,9 +363,9 @@ def scanl (f : β → α → β) (init : β) (as : Array α) (start := 0) (stop 
   Id.run <| as.scanlM (pure <| f · ·) init start stop
 
 /--
-Fold a function `f` over the list from the right, returning the list of partial results.
+Fold a function `f` over the array from the right, returning the array of partial results.
 ```
-scanl (+) 0 #[1, 2, 3] = #[0, 1, 3, 6]
+scanr (· + ·) 0 #[1, 2, 3] = #[6, 5, 3, 0]
 ```
 -/
 @[inline]
@@ -368,13 +394,13 @@ def scanrM [Monad m] (f : α → β → m β) (init : β) (as : Subarray α) : m
 Fold a pure function `f` over the array from the left, returning the list of partial results.
 -/
 @[inline]
-def scanl (f : β → α → β) (init : β) (as : Subarray α): Array β :=
+def scanl (f : β → α → β) (init : β) (as : Subarray α) : Array β :=
   as.array.scanl f init (start := as.start) (stop := as.stop)
 
 /--
 Fold a pure function `f` over the array from the left, returning the list of partial results.
 -/
-def scanr (f : α → β → β) (init : β) (as : Subarray α): Array β :=
+def scanr (f : α → β → β) (init : β) (as : Subarray α) : Array β :=
   as.array.scanr f init (start := as.start) (stop := as.stop)
 
 /--
