@@ -48,7 +48,29 @@ theorem Spec.anyM_array [Monad m] [LawfulMonad m] [WPMonad m ps]
     ⦃⇓ res => if res then tru else fal ⟨xs.toList, [], by simp⟩⦄ := by
   rw [← Array.anyM_toList]
   exact Spec.anyM_list h0 hp
+
+@[spec]
+theorem Spec.mapFinIdxM_array [Monad m] [LawfulMonad m] [WPMonad m ps]
+    {xs : Array α} {f : (i : Nat) → α → i < xs.size → m β}
+    {motive : Nat → Prop}
+    {p : (i : Nat) → β → i < xs.size → Prop}
+    (h0 : motive 0)
+    (hs : ∀ i (h : i < xs.size), motive i →
+      ⦃⌜True⌝⦄ f i xs[i] h ⦃⇓ b => ⌜p i b h ∧ motive (i + 1)⌝⦄) :
+    ⦃⌜True⌝⦄
+    xs.toList.mapFinIdxM f
+    ⦃⇓ bs => ⌜motive xs.toList.length ∧ ∃ eq : bs.length = xs.toList.length, ∀ i h, p i bs[i] h⌝⦄ := by
+  simp only [← Array.getElem_toList] at *
+  simp only [← Array.length_toList] at *
+  rw [List.mapFinIdxM_toArray, map_eq_pure_bind, bind_pure_comp]
+  have hinner := Spec.mapFinIdxM_list h0 hs
+  skip
+
+
+
+
 end Std.Do
+
 /-!
 # Results about monadic operations on `Array`, in terms of `SatisfiesM`.
 
@@ -74,71 +96,16 @@ theorem size_mapM {α β : Type u} [Monad m] [LawfulMonad m] [WPMonad m ps]
     simp_all
   . simp
 
-theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] {p : α → m Bool} {as : Array α}
-    (hstart : start ≤ min stop as.size) (tru : Prop) (fal : Nat → Prop) (h0 : fal start)
-    (hp : ∀ i : Fin as.size, i.1 < stop → fal i.1 →
-      SatisfiesM (bif · then tru else fal (i + 1)) (p as[i])) :
-    SatisfiesM
-      (fun res => bif res then tru else fal (min stop as.size))
-      (anyM p as start stop) := by
-  let rec go {stop j} (hj' : j ≤ stop) (hstop : stop ≤ as.size) (h0 : fal j)
-    (hp : ∀ i : Fin as.size, i.1 < stop → fal i.1 →
-      SatisfiesM (bif · then tru else fal (i + 1)) (p as[i])) :
-    SatisfiesM
-      (fun res => bif res then tru else fal stop)
-      (anyM.loop p as stop hstop j) := by
-    unfold anyM.loop; split
-    · next hj =>
-      exact (hp ⟨j, Nat.lt_of_lt_of_le hj hstop⟩ hj h0).bind fun
-        | true, h => .pure h
-        | false, h => go hj hstop h hp
-    · next hj => exact .pure <| Nat.le_antisymm hj' (Nat.ge_of_not_lt hj) ▸ h0
-    termination_by stop - j
-  simp only [Array.anyM_eq_anyM_loop]
-  exact go hstart _ h0 fun i hi => hp i <| Nat.lt_of_lt_of_le hi <| Nat.min_le_left ..
+theorem anyM_iff_exists [Monad m] [LawfulMonad m] [WPMonad m ps]
+    {xs : Array α} {p : α → m Bool} {q : xs.toList.Cursor → Prop}
+    (hp : ∀ pref cur suff (h : xs.toList = pref ++ cur :: suff),
+      ⦃⌜True⌝⦄ p cur ⦃⇓ b => ⌜b = true ↔ q ⟨pref, cur::suff, h.symm⟩⌝⦄) :
+    ⦃⌜True⌝⦄
+    xs.anyM p
+    ⦃⇓ res => ⌜res = true ↔ ∃ cursor : xs.toList.Cursor, cursor.suffix ≠ [] ∧ q cursor⌝⦄ := by
+  rw [← Array.anyM_toList]
+  apply List.anyM_iff_exists hp
 
-theorem SatisfiesM_anyM_iff_exists [Monad m] [LawfulMonad m]
-    {p : α → m Bool} {as : Array α} {q : Fin as.size → Prop}
-    (hp : ∀ i : Fin as.size, start ≤ i.1 → i.1 < stop → SatisfiesM (· = true ↔ q i) (p as[i])) :
-    SatisfiesM
-      (fun res => res = true ↔ ∃ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop ∧ q i)
-      (anyM p as start stop) := by
-  cases Nat.le_total start (min stop as.size) with
-  | inl hstart =>
-    refine (SatisfiesM_anyM hstart
-      (fal := fun j => start ≤ j ∧ ¬ ∃ i : Fin as.size, start ≤ i.1 ∧ i.1 < j ∧ q i)
-      (tru := ∃ i : Fin as.size, start ≤ i.1 ∧ i.1 < stop ∧ q i) ?_ ?_).imp ?_
-    · exact ⟨Nat.le_refl _, fun ⟨i, h₁, h₂, _⟩ => (Nat.not_le_of_gt h₂ h₁).elim⟩
-    · refine fun i h₂ ⟨h₁, h₃⟩ => (hp _ h₁ h₂).imp fun hq => ?_
-      unfold cond; split <;> simp at hq
-      · exact ⟨_, h₁, h₂, hq⟩
-      · refine ⟨Nat.le_succ_of_le h₁, h₃.imp fun ⟨j, h₃, h₄, h₅⟩ => ⟨j, h₃, ?_, h₅⟩⟩
-        refine Nat.lt_of_le_of_ne (Nat.le_of_lt_succ h₄) fun e => hq (Fin.eq_of_val_eq e ▸ h₅)
-    · intro
-      | true, h => simp only [true_iff]; exact h
-      | false, h =>
-        simp only [false_iff, reduceCtorEq]
-        exact h.2.imp fun ⟨j, h₁, h₂, hq⟩ => ⟨j, h₁, Nat.lt_min.2 ⟨h₂, j.2⟩, hq⟩
-  | inr hstart =>
-    rw [anyM_stop_le_start (h := hstart)]
-    refine .pure ?_; simp; intro j h₁ h₂
-    cases Nat.not_lt.2 (Nat.le_trans hstart h₁) (Nat.lt_min.2 ⟨h₂, j.2⟩)
-
-theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
-    {as : Array α} {init : β} {motive : Nat → β → Prop} {f : α → β → m β}
-    (h0 : motive as.size init)
-    (hf : ∀ i : Fin as.size, ∀ b, motive (i.1 + 1) b → SatisfiesM (motive i.1) (f as[i] b)) :
-    SatisfiesM (motive 0) (as.foldrM f init) := by
-  let rec go {i b} (hi : i ≤ as.size) (H : motive i b) :
-    SatisfiesM (motive 0) (foldrM.fold f as 0 i hi b) := by
-    unfold foldrM.fold; simp; split
-    · next hi => exact .pure (hi ▸ H)
-    · next hi =>
-      split; {simp at hi}
-      · next i hi' =>
-        exact (hf ⟨i, hi'⟩ b H).bind fun _ => go _
-  simp [foldrM]; split; {exact go _ h0}
-  · next h => exact .pure (Nat.eq_zero_of_not_pos h ▸ h0)
 
 theorem SatisfiesM_mapFinIdxM [Monad m] [LawfulMonad m]
     {as : Array α} {f : (i : Nat) → α → i < as.size → m β} {motive : Nat → Prop}

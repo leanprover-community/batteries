@@ -97,13 +97,72 @@ theorem Spec.anyM_list [Monad m] [LawfulMonad m] [WPMonad m ps]
         mspec (go (pref ++ [y]) ys (by simp [hcat]))
   mvcgen
   mspec go [] xs rfl
+
+@[spec]
+private theorem Spec.mapFinIdxM_list_go [Monad m] [LawfulMonad m] [WPMonad m ps]
+    {xs : List α} {f : (i : Nat) → α → i < xs.length → m β}
+    {motive : Nat → Prop}
+    {p : (i : Nat) → β → i < xs.length → Prop}
+    (hs : ∀ i (h : i < xs.length), motive i →
+      ⦃⌜True⌝⦄ f i xs[i] h ⦃⇓ b => ⌜p i b h ∧ motive (i + 1)⌝⦄)
+    {bs : List α} {acc : Array β} {hlen : bs.length + acc.size = xs.length}
+    (hsuff : bs = xs.drop acc.size)
+    (hmot : motive acc.size)
+    (hprev : ∀ i (hi : i < acc.size), p i acc[i] (by omega)) :
+    ⦃⌜True⌝⦄
+    List.mapFinIdxM.go xs f bs acc hlen
+    ⦃⇓ result => ⌜motive xs.length ∧ ∃ eq : result.length = xs.length, ∀ i h, p i result[i] h⌝⦄ := by
+  induction bs generalizing acc with
+  | nil =>
+    simp [List.mapFinIdxM.go]
+    mvcgen
+    simp only [List.length_nil, Nat.zero_add] at hlen
+    simp_all
+  | cons b bs ih =>
+    simp only [List.mapFinIdxM.go]
+    have hacc : acc.size < xs.length := by simp [List.length_cons] at hlen; omega
+    -- b = xs[acc.size] from hsuff
+    have hb : b = xs[acc.size] := by
+      have : (xs.drop acc.size).head? = some b := by rw [← hsuff]; rfl
+      simp_all
+    subst hb
+    mvcgen
+    mspec (hs acc.size _ hmot)
+    mframe
+    rename_i r h
+    obtain ⟨h_p, h_motive⟩ := h
+    mspec (ih _ (Array.size_push r ▸ h_motive) _)
+    . simp only [Array.size_push]
+      rw [List.drop_eq_getElem_cons hacc] at hsuff
+      exact List.cons_inj_right _ |>.mp ‹_›
+    . intro i hi
+      simp only [Array.size_push] at hi
+      simp only [Array.getElem_push]
+      split
+      . exact hprev i ‹_›
+      . simp_all [show i = acc.size by omega]
+
+@[spec]
+theorem Spec.mapFinIdxM_list [Monad m] [LawfulMonad m] [WPMonad m ps]
+    {xs : List α} {f : (i : Nat) → α → i < xs.length → m β}
+    {motive : Nat → Prop}
+    {p : (i : Nat) → β → i < xs.length → Prop}
+    (h0 : motive 0)
+    (hs : ∀ i (h : i < xs.length), motive i →
+      ⦃⌜True⌝⦄ f i xs[i] h ⦃⇓ b => ⌜p i b h ∧ motive (i + 1)⌝⦄) :
+    ⦃⌜True⌝⦄
+    xs.mapFinIdxM f
+    ⦃⇓ bs => ⌜motive xs.length ∧ ∃ eq : bs.length = xs.length, ∀ i h, p i bs[i] h⌝⦄ := by
+  unfold List.mapFinIdxM
+  exact Spec.mapFinIdxM_list_go hs (by simp) (by simp [h0]) (fun i hi => absurd hi (by simp))
+
 end Std.Do
 
 namespace List
 open Std.Do
 set_option mvcgen.warning false
 
-theorem mapM_length {α β : Type u} [Monad m] [LawfulMonad m] [WPMonad m ps]
+theorem length_mapM {α β : Type u} [Monad m] [LawfulMonad m] [WPMonad m ps]
     {xs : List α} {f : α → m β}
     (hf : ∀ x, ⦃⌜True⌝⦄ f x ⦃⇓ _ => ⌜True⌝⦄) :
     ⦃⌜True⌝⦄
@@ -153,4 +212,5 @@ theorem anyM_iff_exists [Monad m] [LawfulMonad m] [WPMonad m ps]
     intro c hsuff hq
     simp only [← c.property, List.length_append] at hfal
     simp_all [List.length_pos_iff]
+
 end List
