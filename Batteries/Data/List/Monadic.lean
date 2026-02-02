@@ -114,8 +114,7 @@ private theorem Spec.mapFinIdxM_list_go [Monad m] [LawfulMonad m] [WPMonad m ps]
   | nil =>
     simp [List.mapFinIdxM.go]
     mvcgen
-    simp only [List.length_nil, Nat.zero_add] at hlen
-    simp_all
+    grind
   | cons b bs ih =>
     simp only [List.mapFinIdxM.go]
     have hacc : acc.size < xs.length := by simp [List.length_cons] at hlen; omega
@@ -125,19 +124,9 @@ private theorem Spec.mapFinIdxM_list_go [Monad m] [LawfulMonad m] [WPMonad m ps]
     subst hb
     mvcgen
     mspec (hs acc.size _ hmot)
-    mframe
-    rename_i r h
-    obtain ⟨h_p, h_motive⟩ := h
-    mspec (ih _ (Array.size_push r ▸ h_motive) _)
-    . simp only [Array.size_push]
-      rw [List.drop_eq_getElem_cons hacc] at hsuff
-      exact List.cons_inj_right _ |>.mp ‹_›
-    . intro i hi
-      simp only [Array.size_push] at hi
-      simp only [Array.getElem_push]
-      split
-      . exact hprev i ‹_›
-      . simp_all [show i = acc.size by omega]
+    mframe; rename_i h
+    mspec ih _ (Array.size_push ‹_› ▸ h.2) _ <;>
+      grind [List.drop_eq_getElem_cons]
 
 @[spec]
 theorem Spec.mapFinIdxM_list [Monad m] [LawfulMonad m] [WPMonad m ps]
@@ -151,7 +140,7 @@ theorem Spec.mapFinIdxM_list [Monad m] [LawfulMonad m] [WPMonad m ps]
     xs.mapFinIdxM f
     ⦃(fun bs => ⌜motive xs.length ∧ ∃ eq : bs.length = xs.length, ∀ i h, p i bs[i] h⌝, exc)⦄ := by
   unfold List.mapFinIdxM
-  exact Spec.mapFinIdxM_list_go hs (by simp) (by simp [h0]) (fun i hi => absurd hi (by simp))
+  apply Spec.mapFinIdxM_list_go <;> grind
 
 end Std.Do
 
@@ -192,7 +181,7 @@ theorem anyM_iff_exists [Monad m] [LawfulMonad m] [WPMonad m ps]
       mframe
       rename_i hiff
       split <;> mpure_intro
-      case isTrue => exact ⟨⟨pref, cur :: suff, h.symm⟩, (by simp), hiff.mp ‹_›⟩
+      case isTrue => grind only
       intro c hsuff hlen
       simp only [List.length_append, List.length_singleton] at hlen
       by_cases hc : c.prefix.length < pref.length

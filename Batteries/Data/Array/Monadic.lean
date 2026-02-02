@@ -28,8 +28,7 @@ theorem Spec.mapM_array {α β : Type w} [Monad m] [LawfulMonad m] [WPMonad m ps
     xs.mapM f
     ⦃(fun bs => inv.1 (⟨xs.toList, [], by simp⟩, bs), inv.2)⦄ := by
   rw [Array.mapM_eq_foldlM]
-  mvcgen
-  invariants
+  mvcgen invariants
     · inv
   apply step (h := ‹_›)
 
@@ -87,8 +86,7 @@ theorem size_mapM {α β : Type u} [Monad m] [LawfulMonad m] [WPMonad m ps]
     xs.mapM f
     ⦃⇓ bs => ⌜bs.size = xs.size⌝⦄ := by
   rw [Array.mapM_eq_foldlM]
-  mvcgen
-  invariants
+  mvcgen invariants
     · ⇓⟨cursor, acc⟩ => ⌜acc.size = cursor.prefix.length⌝
   . mspec hf
     simp_all
