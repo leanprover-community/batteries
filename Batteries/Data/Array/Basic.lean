@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
 module
+public import Batteries.Tactic.Alias
 
 @[expose] public section
 
@@ -120,25 +121,12 @@ protected def maxI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
   xs.minI (ord := ord.opposite) start stop
 
-/-!
-### Safe Nat Indexed Array functions
-The functions in this section offer variants of Array functions which use `Nat` indices
-instead of `Fin` indices. All these functions have as parameter a proof that the index is
-valid for the array. But this parameter has a default argument `by get_elem_tactic` which
-should prove the index bound.
--/
+@[deprecated set (since := "2026-02-02")]
+alias setN := set
 
-/--
-`setN a i h x` sets an element in a vector using a Nat index which is provably valid.
-A proof by `get_elem_tactic` is provided as a default argument for `h`.
-This will perform the update destructively provided that `a` has a reference count of 1 when called.
--/
-abbrev setN (a : Array α) (i : Nat) (x : α) (h : i < a.size := by get_elem_tactic) : Array α :=
-  a.set i x
-
-/--
-  This is guaranteed by the Array docs but it is unprovable.
-  May be asserted to be true in an unsafe context via `Array.unsafe_size_fits_usize
+/-
+This is guaranteed by the Array docs but it is unprovable.
+May be asserted to be true in an unsafe context via `Array.unsafe_size_fits_usize
 -/
 private abbrev SizeFitsUSize {a : Array α}: Prop := a.size < USize.size
 
@@ -148,10 +136,10 @@ private theorem nat_index_eq_usize_index {n : Nat} {a : Array α}
     (USize.ofNat n).toNat = n :=
   USize.toNat_ofNat_of_lt' (Nat.lt_of_le_of_lt ‹_› ‹_›)
 
-/--
-  This is guaranteed by the Array docs but it is unprovable.
-  Can be used in unsafe functions to write more efficient implementations
-  that avoid arbitrary precision integer arithmetic.
+/-
+This is guaranteed by the Array docs but it is unprovable.
+Can be used in unsafe functions to write more efficient implementations
+that avoid arbitrary precision integer arithmetic.
 -/
 private unsafe def unsafe_size_fits_usize {a : Array α} : SizeFitsUSize (a := a) :=
   lcProof
@@ -377,28 +365,28 @@ end Array
 namespace Subarray
 
 /--
-Fold an effectful function `f` over the array from the left, returning the list of partial results.
+Fold a monadic function `f` over the subarray from the left, returning the list of partial results.
 -/
 @[inline]
 def scanlM [Monad m] (f : β → α → m β) (init : β) (as : Subarray α) : m (Array β) :=
   as.array.scanlM f init (start := as.start) (stop := as.stop)
 
 /--
-Fold an effectful function `f` over the array from the right, returning the list of partial results.
+Fold a monadic function `f` over the subarray from the right, returning the list of partial results.
 -/
 @[inline]
 def scanrM [Monad m] (f : α → β → m β) (init : β) (as : Subarray α) : m (Array β) :=
   as.array.scanrM f init (start := as.start) (stop := as.stop)
 
 /--
-Fold a pure function `f` over the array from the left, returning the list of partial results.
+Fold a function `f` over the subarray from the left, returning the list of partial results.
 -/
 @[inline]
 def scanl (f : β → α → β) (init : β) (as : Subarray α) : Array β :=
   as.array.scanl f init (start := as.start) (stop := as.stop)
 
 /--
-Fold a pure function `f` over the array from the left, returning the list of partial results.
+Fold a function `f` over the subarray from the left, returning the list of partial results.
 -/
 def scanr (f : α → β → β) (init : β) (as : Subarray α) : Array β :=
   as.array.scanr f init (start := as.start) (stop := as.stop)
@@ -411,7 +399,7 @@ def isEmpty (as : Subarray α) : Bool :=
   as.start == as.stop
 
 /--
-Check whether a subarray contains an element.
+Check whether a subarray contains a given element.
 -/
 @[inline]
 def contains [BEq α] (as : Subarray α) (a : α) : Bool :=
