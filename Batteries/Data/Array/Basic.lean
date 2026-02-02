@@ -223,6 +223,7 @@ private theorem scanlM_loop_eq_scanlMFast_loop [Monad m]
 
 -- this theorem establishes that given the (unprovable) assumption that as.size < USize.size,
 -- the scanlMFast and scanlM are equivalent
+-- TODO (cmlsharp): prova an analogous theorem for scanrM
 private theorem scanlM_eq_scanlMFast [Monad m]
     {f : β → α → m β} {init : β} {as : Array α}
     {h_size : as.SizeFitsUSize} {start stop : Nat} :
