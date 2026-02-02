@@ -248,8 +248,8 @@ where
        (start stop : USize)
        (h_start : start.toNat ≤ as.size)
        (acc : Array β)
-       (h_bound : start.toNat - stop.toNat  < acc.size)
-     : m (Array β) := do
+       (h_bound : start.toNat - stop.toNat  < acc.size) :
+        m (Array β) := do
     if h_gt : stop < start then
       let startM1 := start - 1
       have : startM1 < start := by grind only [!USize.sub_add_cancel, USize.lt_iff_le_and_ne,

@@ -33,10 +33,7 @@ theorem scanlM_loop_toList [Monad m] [LawfulMonad m]
     | succ n ih =>
       unfold scanlM.loop
       rw [List.drop_eq_getElem_cons (by simp; omega)]
-      simp [ show start < stop by omega
-           , show stop - (start + 1) = n by omega
-           , ih
-           ]
+      simp [show start < stop by omega, show stop - (start + 1) = n by omega, ih]
 
 theorem scanlM_toList [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Array α} :
     List.toArray <$> as.toList.scanlM f init = as.scanlM f init := by
@@ -49,8 +46,6 @@ theorem toList_scanlM [Monad m] [LawfulMonad m] {f : β → α → m β} {as : A
   rw [← scanlM_toList]
   simp
 
--- TODO: come back and simplify this proof? And/or simplify the structure of Arrat.scacnrM to make
--- it more amenable
 theorem scanrM_loop_toList [Monad m] [LawfulMonad m] {f : α → β → m β}
     {start : Nat} {h : start ≤ as.size} :
     scanrM.loop f init as start stop h acc =
@@ -97,8 +92,9 @@ theorem toList_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {as : A
   rw [← scanrM_toList]
   simp
 
--- In principle this likely could be rewritten without LawfulMonad, it's just that
--- it is easiest to prove using scanlM_loop_toList
+-- TODO (cmlsharp): rewrite this and scanrM_extract without requiring LawfulMonad?
+-- In principle, it should be possible to flip the dependency order between this and
+-- scanlM_loop_toList, and this lemma should not require LawfulMonad
 theorem scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Array α} :
     as.scanlM f init start stop = (as.extract start stop).scanlM f init := by
   rw (occs := [1]) [scanlM]
@@ -106,8 +102,6 @@ theorem scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {as : 
   simp_all [← length_toList]
   grind [List.take_eq_take_iff, List.drop_eq_drop_iff]
 
--- TODO: rewrite without requiring LawfulMonad?
--- In principle it probably shouldn't require it its just that scanlM_loop_toList does
 theorem scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Array α} :
     as.scanrM f init start stop = (as.extract stop start).scanrM f init := by
   rw (occs := [1]) [scanrM]
