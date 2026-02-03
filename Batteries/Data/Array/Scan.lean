@@ -337,6 +337,14 @@ theorem toArray_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {as : 
   rw [← Array.toList_scanrM]
   simp
 
+theorem toArray_scanl {f : β → α → β} {as : List α} :
+    (as.scanl f init).toArray = as.toArray.scanl f init := by
+  rw [← Array.toList_scanl]
+
+theorem toArray_scanr {f : α → β → β} {as : List α} :
+    (as.scanr f init).toArray = as.toArray.scanr f init := by
+  rw [← Array.toList_scanr]
+
 end List
 
 namespace Subarray
