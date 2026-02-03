@@ -349,10 +349,12 @@ end List
 
 namespace Subarray
 
+@[simp]
 theorem scanlM_eq_scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Subarray α} :
     as.scanlM f init = (as.array.extract as.start as.stop).scanlM f init := by
   simp only [scanlM, Array.extract_scanlM]
 
+@[simp]
 theorem scanrM_eq_scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Subarray α} :
     as.scanrM f init = (as.array.extract as.stop as.start).scanrM f init := by
   simp only [scanrM, Array.extract_scanrM]
