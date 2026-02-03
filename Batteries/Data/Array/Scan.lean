@@ -61,8 +61,8 @@ theorem scanrM.loop_toList [Monad m] [LawfulMonad m] {f : α → β → m β}
     simp only [map_bind]
     conv =>
       lhs
-      arg 2;
-      ext a;
+      arg 2
+      ext a
       rw [ih (start := start - 1) (stop := stop) (acc := acc.push init) (by omega)]
     simp only [List.scanrM_eq_scanlM_reverse]
     have h_take := List.take_succ_drop (l := as.toList) (n := n) (stop := stop) (by simp; omega)
