@@ -323,7 +323,19 @@ theorem scanl_reverse {f : β → α → β} {as : Array α} :
   simp only [← scanl_toList, ← scanr_toList, toList_reverse, List.scanl_reverse,
     List.reverse_toArray]
 
- end Array
+end Array
+
+namespace List
+theorem toArray_scanlM [Monad m] [LawfulMonad m] {f : β → α → m β} {as : List α} :
+    toArray <$> as.scanlM f init = as.toArray.scanlM f init := by
+  rw [← Array.toList_scanlM]
+  simp
+
+theorem toArray_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {as : List α} :
+    toArray <$> as.scanrM f init = as.toArray.scanrM f init := by
+  rw [← Array.toList_scanrM]
+  simp
+end List
 
 namespace Subarray
 
