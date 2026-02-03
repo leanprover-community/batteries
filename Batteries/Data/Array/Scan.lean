@@ -117,15 +117,13 @@ theorem scanlM_reverse [Monad m] [LawfulMonad m] {f : β → α → m β} {as : 
 @[simp]
 theorem scanlM_pure [Monad m] [LawfulMonad m] {f : β → α → β} {as : Array α} :
     as.scanlM (m := m) (pure <| f · ·) init = pure (as.scanl f init) := by
-  simp only [scanl, ← toArray_scanlM_toList, ← toArray_scanlM_toList,
-    List.scanlM_pure, map_pure, pure,Id.run_map]
+  simp only [scanl, ← toArray_scanlM_toList, ← toArray_scanlM_toList, List.scanlM_pure, map_pure]
   rfl
 
 @[simp]
 theorem scanrM_pure [Monad m] [LawfulMonad m] {f : α → β → β} {as : Array α} :
     as.scanrM (m := m) (pure <| f · ·) init = pure (as.scanr f init) := by
-  simp only [scanr, ← toArray_scanrM_toList, ← toArray_scanrM_toList,
-    List.scanrM_pure, map_pure, pure, Id.run_map]
+  simp only [scanr, ← toArray_scanrM_toList, ← toArray_scanrM_toList, List.scanrM_pure, map_pure]
   rfl
 
 @[simp]
@@ -221,9 +219,8 @@ theorem getElem?_succ_scanl {f : β → α → β} :
 
 theorem getElem_succ_scanl {f : β → α → β} (h : i + 1 < (scanl f b as).size) :
     (as.scanl f b)[i + 1] = f (as.scanl f b)[i] (as[i]'(by grind)) := by
-  simp only [← toArray_scanl_toList, List.getElem_toArray,
-    List.getElem_succ_scanl, List.getElem_scanl,
-    getElem_toList]
+  simp only [← toArray_scanl_toList, List.getElem_toArray]
+  grind [List.getElem_succ_scanl]
 
 @[grind =]
 theorem scanl_push {f : β → α → β} {init: β} {a : α} {as : Array α} :
@@ -296,8 +293,8 @@ theorem back?_scanr {f : α → β → β} {as : Array α} :
 @[simp, grind =]
 theorem getElem_scanr {f : α → β → β} (h : i < (scanr f b l).size) :
     (scanr f b l)[i] = foldr f b (l.drop i) := by
-  simp only [← foldr_toList, ← toArray_scanr_toList,
-    ← getElem_toList, List.getElem_scanr, toList_drop]
+  simp only [← foldr_toList, ← toArray_scanr_toList]
+  grind [toList_drop]
 
 @[grind =]
 theorem getElem?_scanr {f : α → β → β} :
