@@ -141,7 +141,7 @@ This is guaranteed by the Array docs but it is unprovable.
 Can be used in unsafe functions to write more efficient implementations
 that avoid arbitrary precision integer arithmetic.
 -/
-private unsafe def unsafe_size_fits_usize {a : Array α} : SizeFitsUSize (a := a) :=
+private unsafe def unsafe_sizeFitsUSize {a : Array α} : SizeFitsUSize a :=
   lcProof
 
 @[inline]
