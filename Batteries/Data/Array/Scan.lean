@@ -314,6 +314,16 @@ theorem scanl_reverse {f : β → α → β} {as : Array α} :
   simp only [scanl_eq_scanl_toList, scanr_eq_scanr_toList]
   simp
 
+theorem scanl_extract {f : β → α → β} {as : Array α} :
+    (as.extract start stop).scanl f init  = as.scanl f init start stop := by
+  unfold scanl
+  rw [scanlM_extract]
+
+theorem scanr_extract {f : α → β → β} {as : Array α} :
+    (as.extract stop start).scanr f init  = as.scanr f init start stop := by
+  unfold scanr
+  rw [scanrM_extract]
+
 end Array
 
 namespace List
@@ -350,4 +360,13 @@ theorem scanrM_eq_scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m 
     as.scanrM f init = (as.array.extract as.stop as.start).scanrM f init := by
   simp only [scanrM, Array.scanrM_extract]
 
+@[simp]
+theorem scanl_eq_scanl_extract {f : β → α → β} {as : Subarray α} :
+    as.scanl f init = (as.array.extract as.start as.stop).scanl f init := by
+  simp only [scanl, Array.scanl_extract]
+
+@[simp]
+theorem scanr_eq_scanr_extract {f : α → β → β} {as : Subarray α} :
+    as.scanr f init = (as.array.extract as.stop as.start).scanr f init := by
+  simp only [scanr, Array.scanr_extract]
 end Subarray
