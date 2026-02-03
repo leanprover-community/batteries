@@ -128,7 +128,7 @@ alias setN := set
 This is guaranteed by the Array docs but it is unprovable.
 May be asserted to be true in an unsafe context via `Array.unsafe_size_fits_usize
 -/
-private abbrev SizeFitsUSize {a : Array α}: Prop := a.size < USize.size
+private abbrev SizeFitsUSize (a : Array α) : Prop := a.size < USize.size
 
 @[grind .]
 private theorem nat_index_eq_usize_index {n : Nat} {a : Array α}
