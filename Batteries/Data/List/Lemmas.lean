@@ -12,6 +12,9 @@ public import Batteries.Data.List.Basic
 
 namespace List
 
+instance instNeZeroNatLengthCons {a : α} {l : List α} : NeZero (a :: l).length :=
+  ⟨Nat.succ_ne_zero _⟩
+
 /-! ### count -/
 theorem count_getElem_take_succ [BEq α] [EquivBEq α] {xs : List α}
     {i : Nat} {hi} : (xs.take (i + 1)).count xs[i] = (xs.take i).count xs[i] + 1 := by

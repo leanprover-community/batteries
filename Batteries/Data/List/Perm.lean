@@ -321,83 +321,109 @@ theorem perm_insertP (p : α → Bool) (a l) : insertP p a l ~ a :: l := by
 theorem Perm.insertP (p : α → Bool) (a) (h : l₁ ~ l₂) : insertP p a l₁ ~ insertP p a l₂ :=
   Perm.trans (perm_insertP ..) <| Perm.trans (Perm.cons _ h) <| Perm.symm (perm_insertP ..)
 
-/-! ### finToFin -/
+/-! ### idxBij -/
 
 @[simp]
-theorem Subperm.countBefore_idxOfNth [BEq α] [ReflBEq α] {xs ys : List α} (hxy : xs.Subperm ys)
+theorem Subperm.countBefore_idxOfNth [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+~ ys)
     {hi : i < xs.length} : ys.countBefore xs[i] (ys.idxOfNth xs[i] (xs.countBefore xs[i] i)) =
-    countBefore xs[i] xs i :=
-    countBefore_idxOfNth_of_lt_count <|
-    Nat.lt_of_lt_of_le (countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl) (hxy.count_le _)
+    countBefore xs[i] xs i := countBefore_idxOfNth_of_lt_count <|
+  Nat.lt_of_lt_of_le (countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl) (h.count_le _)
 
-/-- `Subperm.finToFin` is an injective map from `Fin (xs.length)` to `Fin (ys.length)`
-  which exists when we have `xs.Subperm ys`: conceptually it represents the embedding of
-  one list into the other.
+@[simp]
+theorem Perm.countBefore_idxOfNth [BEq α] [ReflBEq α] {xs ys : List α} (h : xs ~ ys)
+    {hi : i < xs.length} : ys.countBefore xs[i] (ys.idxOfNth xs[i] (xs.countBefore xs[i] i)) =
+    countBefore xs[i] xs i := countBefore_idxOfNth_of_lt_count <|
+  Nat.lt_of_lt_of_eq (countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl) (h.count_eq _)
 
-  It is not unique unless `xs` has no duplicates.
+
+/-- `Subperm.idxInj` is an injective map from `Fin (xs.length)` to `Fin (ys.length)`
+which exists when we have `xs <+~ ys`: conceptually it represents an embedding of
+one list into the other. For example:
+```
+(by decide : [0, 1, 1] <+~ [5, 0, 1, 3, 1]).idxInj 1 = 2
+(by decide : [0, 1, 1, 3, 5] ~ [5, 0, 1, 3, 1]).idxBij 2 = 4
+```
 -/
-def Subperm.finToFin [BEq α] [ReflBEq α] {xs ys : List α} (hxy : xs.Subperm ys)
-    (i : Fin (xs.length)) : Fin (ys.length) :=
-  ⟨ys.idxOfNth xs[i.1] (xs.countBefore xs[i.1] i),
-    idxOfNth_lt_length_of_lt_count
-    (Nat.lt_of_lt_of_le (countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl) (hxy.count_le _))⟩
+def Subperm.idxInj [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+~ ys) :
+    Fin (xs.length) → Fin (ys.length) :=
+  ys.sigmaCountToIdx ∘ (fun xi => ⟨xi.1, xi.2.castLE (h.count_le _)⟩) ∘ xs.idxToSigmaCount
 
 @[simp, grind =]
-theorem coe_finToFin [BEq α] [ReflBEq α] {xs ys : List α} {hxy : xs.Subperm ys}
+theorem coe_idxInj [BEq α] [ReflBEq α] {xs ys : List α} {h : xs <+~ ys}
     {i : Fin (xs.length)} :
-    (hxy.finToFin i : Nat) = ys.idxOfNth xs[i] (xs.countBefore xs[i] i) := rfl
+    (h.idxInj i : Nat) = ys.idxOfNth xs[i] (xs.countBefore xs[i] i) := rfl
 
-theorem Subperm.getElem_finToFin_eq_getElem [BEq α] [LawfulBEq α] {xs ys : List α}
-    (hxy : xs.Subperm ys) {i : Fin (xs.length)} :
-  ys[(hxy.finToFin i : Nat)] = xs[(i : Nat)] := getElem_idxOfNth_eq
+theorem Subperm.getElem_idxInj_eq_getElem [BEq α] [LawfulBEq α] {xs ys : List α}
+    (h : xs <+~ ys) {i : Fin (xs.length)} :
+  ys[(h.idxInj i : Nat)] = xs[(i : Nat)] := getElem_idxOfNth_eq
 
-theorem Subperm.finToFin_injective [BEq α] [LawfulBEq α] {xs ys : List α}
-    (hxy : xs.Subperm ys) (i j : Fin (xs.length))
-    (hij : hxy.finToFin i = hxy.finToFin j) : i = j := Fin.ext <| by
-  simpa [hxy] using congrArg (fun i : (Fin ys.length) =>
-    xs.idxOfNth ys[i] (ys.countBefore ys[i] i)) hij
+theorem Subperm.idxInj_injective [BEq α] [LawfulBEq α] {xs ys : List α}
+    (h : xs <+~ ys) : h.idxInj.Injective := fun _ _ hij => Fin.ext <| by
+  simpa [h] using congrArg (fun i : Fin _ => xs.idxOfNth ys[i] (ys.countBefore ys[i] i)) hij
 
-proof_wanted Subperm.finToFin_unique [BEq α] [LawfulBEq α] {xs ys : List α} (hnd : xs.Nodup)
-    (hxy : xs.Subperm ys) (f : Fin (xs.length) → Fin (ys.length))
-    (hf₁ : ∀ i, ys[(f i).1] = xs[i.1]) (hf₂ : ∀ i j, f i = f j → i = j) : f = hxy.finToFin
+@[simp]
+theorem Subperm.idxInj_inj [BEq α] [LawfulBEq α] {xs ys : List α}
+    {h : xs <+~ ys} (i j : Fin (xs.length)) :
+  h.idxInj i = h.idxInj j ↔ i = j := h.idxInj_injective.eq_iff
 
-/-- `Perm.finToFin` is a bijective map from `Fin (xs.length)` to `Fin (ys.length)`
-  which exists when we have `xs.Perm ys`: conceptually it represents the permuting of
-  one list into the other.
+proof_wanted Subperm.idxInj_unique [BEq α] [LawfulBEq α] {xs ys : List α}
+    (hnd : ∀ x ∈ xs, count x ys = 1) (h : xs <+~ ys) (f : Fin (xs.length) → Fin (ys.length))
+    (hf₁ : f.Injective) (hf₂ : ∀ i, ys[(f i).1] = xs[i.1]) : f = h.idxInj
 
-  It is not unique unless the lists have no duplicates.
+/-- `Perm.idxBij` is a bijective map from `Fin (xs.length)` to `Fin (ys.length)`
+which exists when we have `xs.Perm ys`: conceptually it represents a permuting of
+one list into the other. For example:
+```
+(by decide : [0, 1, 1, 3, 5] ~ [5, 0, 1, 3, 1]).idxBij 2 = 4
+(by decide : [0, 1, 1, 3, 5] ~ [5, 0, 1, 3, 1]).idxBij 3 = 3
+```
 -/
-def Perm.finToFin [BEq α] [ReflBEq α] {xs ys : List α} (hxy : xs ~ ys) :
-    Fin (xs.length) → Fin (ys.length) := hxy.subperm.finToFin
+def Perm.idxBij [BEq α] [ReflBEq α] {xs ys : List α} (h : xs ~ ys) :
+    Fin (xs.length) → Fin (ys.length) := h.subperm.idxInj
 
 @[simp, grind =]
-theorem Perm.coe_finToFin [BEq α] [ReflBEq α] {xs ys : List α} (hxy : xs ~ ys)
+theorem Perm.subperm_idxBij [BEq α] [ReflBEq α] {xs ys : List α} (h : xs ~ ys) :
+    h.subperm.idxInj = h.idxBij := rfl
+
+@[simp, grind =]
+theorem Perm.coe_idxBij [BEq α] [ReflBEq α] {xs ys : List α} (h : xs ~ ys)
     {i : Fin (xs.length)} :
-    (hxy.finToFin i : Nat) = ys.idxOfNth xs[i] (xs.countBefore xs[i] i) := rfl
+    (h.idxBij i : Nat) = ys.idxOfNth xs[i] (xs.countBefore xs[i] i) := rfl
 
-@[simp, grind =]
-theorem Perm.subperm_finToFin [BEq α] [ReflBEq α] {xs ys : List α} (hxy : xs ~ ys) :
-    hxy.subperm.finToFin = hxy.finToFin := rfl
+theorem Perm.getElem_idxBij_eq_getElem [BEq α] [LawfulBEq α] {xs ys : List α}
+    (hxy : xs.Perm ys) (i : Fin (xs.length)) : ys[(hxy.idxBij i : Nat)] = xs[(i : Nat)] :=
+  Subperm.getElem_idxInj_eq_getElem _
 
-theorem Perm.finToFin_finToFin_symm [BEq α] [LawfulBEq α] {xs ys : List α} (hxy : xs ~ ys)
-    {i : Fin (ys.length)} : hxy.finToFin (hxy.symm.finToFin i) = i :=
-  Fin.ext <| by simp [hxy.symm.subperm]
+theorem Perm.getElem_idxBij_symm_eq_getElem [BEq α] [LawfulBEq α] {xs ys : List α}
+    (hxy : xs.Perm ys) (i : Fin (ys.length)) : xs[(hxy.symm.idxBij i : Nat)] = ys[(i : Nat)] :=
+  Subperm.getElem_idxInj_eq_getElem _
 
-theorem Perm.finToFin_symm_finToFin [BEq α] [LawfulBEq α] {xs ys : List α} (hxy : xs ~ ys)
-    {i : Fin (xs.length)} : hxy.symm.finToFin (hxy.finToFin i) = i :=
-  Fin.ext <| by simp [hxy.subperm]
+theorem Perm.idxBij_leftInverse_idxBij_symm [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys) :
+    h.idxBij.LeftInverse h.symm.idxBij := fun _ => Fin.ext <| by simp [h.symm.subperm]
 
-theorem Perm.getElem_finToFin_eq_getElem [BEq α] [LawfulBEq α] {xs ys : List α}
-    (hxy : xs.Perm ys) (i : Fin (xs.length)) : ys[(hxy.finToFin i : Nat)] = xs[(i : Nat)] :=
-  Subperm.getElem_finToFin_eq_getElem _
+theorem Perm.idxBij_rightInverse_idxBij_symm [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys) :
+    h.idxBij.RightInverse h.symm.idxBij := fun _ => Fin.ext <| by simp [h.subperm]
 
-theorem Perm.getElem_finToFin_symm_eq_getElem [BEq α] [LawfulBEq α] {xs ys : List α}
-    (hxy : xs.Perm ys) (i : Fin (ys.length)) : xs[(hxy.symm.finToFin i : Nat)] = ys[(i : Nat)] :=
-  Subperm.getElem_finToFin_eq_getElem _
+theorem Perm.idxBij_symm_rightInverse_idxBij [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys) :
+    h.symm.idxBij.RightInverse h.idxBij := h.idxBij_leftInverse_idxBij_symm
 
-proof_wanted Perm.finToFin_unique [BEq α] [LawfulBEq α] {xs ys : List α} (hnd : xs.Nodup)
+theorem Perm.idxBij_symm_leftInverse_idxBij [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys) :
+    h.symm.idxBij.LeftInverse h.idxBij := h.idxBij_rightInverse_idxBij_symm
+
+theorem Perm.idxBij_idxBij_symm [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys)
+    {i : Fin (ys.length)} : h.idxBij (h.symm.idxBij i) = i := h.idxBij_leftInverse_idxBij_symm _
+
+theorem Perm.idxBij_symm_idxBij [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys)
+    {i : Fin (xs.length)} : h.symm.idxBij (h.idxBij i) = i := h.idxBij_rightInverse_idxBij_symm _
+
+theorem Perm.idxBij_injective [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys) :
+    h.idxBij.Injective := h.idxBij_rightInverse_idxBij_symm.injective
+
+theorem Perm.idxBij_surjective [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys) :
+    h.idxBij.Surjective := h.idxBij_symm_rightInverse_idxBij.surjective
+
+proof_wanted Perm.idxBij_unique [BEq α] [LawfulBEq α] {xs ys : List α} (hnd : xs.Nodup)
     (hxy : xs.Perm ys) (f : Fin (xs.length) → Fin (ys.length))
-    (g : Fin (ys.length) → Fin (xs.length))
-    (hf : ∀ i, ys[(f i).1] = xs[i.1]) (hg : ∀ i, xs[(g i).1] = ys[i.1])
-    (hfg₁ : ∀ i, f (g i) = i) (hfg₂ : ∀ i, g (f i) = i) :
-  f = hxy.finToFin ∧ g = hxy.symm.finToFin
+    (g : Fin (ys.length) → Fin (xs.length)) (hfg₁ : f.LeftInverse g) (hfg₂ : f.RightInverse g)
+    (hf : ∀ i, ys[(f i).1] = xs[i.1]) (hg : ∀ i, xs[(g i).1] = ys[i.1]) :
+  f = hxy.idxBij ∧ g = hxy.symm.idxBij

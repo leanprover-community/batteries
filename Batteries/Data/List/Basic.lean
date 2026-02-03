@@ -279,13 +279,18 @@ We have `l.findIdxsValues p s = (l.findIdxs p s).zip (l.filter p)`.
 @[deprecated (since := "2025-11-06")]
 alias indexsValues := findIdxsValues
 
-/-- `findIdxNth p xs n` returns the index of the `n`th element for which `p` returns `true`. -/
+/-- `findIdxNth p xs n` returns the index of the `n`th element for which `p` returns `true`.
+For example:
+```
+findIdxNth (· < 3) [5, 1, 3, 2, 4, 0, 1, 4] 2 = 5
+```
+-/
 @[inline] def findIdxNth (p : α → Bool) (xs : List α) (n : Nat) : Nat := go xs n 0 where
   /-- Auxiliary for `findIdxNth`: `findIdxNth.go p l n acc = findIdxNth p l n + acc`. -/
   @[specialize] go : (xs : List α) → (n : Nat) → (s : Nat) → Nat
   | [], _, s => s
   | a :: xs, 0, s => bif p a then s else go xs 0 (s + 1)
-  | a :: xs, n + 1, s => go xs (n + bif !(p a) then 1 else 0) (s + 1)
+  | a :: xs, n + 1, s => bif !(p a) then go xs (n + 1) (s + 1) else go xs n (s + 1)
 
 /--
 `idxsOf a l s` is the list of all indexes of `a` in `l`,  added to an
@@ -301,21 +306,35 @@ idxsOf a [a, b, a, a] 5 = [5, 7, 8]
 @[deprecated (since := "2025-11-06")]
 alias indexesOf := idxsOf
 
-/-- `idxOfNth p xs n` returns the index of the `n`th instance of `a` in `xs`. -/
+/-- `idxOfNth a xs n` returns the index of the `n`th instance of `a` in `xs`, counting from `0`.
+
+For example:
+```
+idxOfNth 1 [5, 1, 3, 2, 4, 0, 1, 4] 1 = 6
+```
+-/
 def idxOfNth [BEq α] (a : α) (xs : List α) (n : Nat) : Nat :=
   xs.findIdxNth (· == a) n
 
 /-- `countPBefore p xs i hip` counts the number of `x` in `xs` before the `i`th index for
-which `p x = true`. -/
+which `p x = true`. For example:
+```
+countPBefore (· < 3) [5, 1, 3, 2, 4, 0, 1, 4] 5 = 2
+```
+-/
 def countPBefore (p : α → Bool) (xs : List α) (i : Nat) : Nat := go xs i 0 where
   /-- Auxiliary for `countPBefore`: `countPBefore.go p l i acc = countPBefore p l i + acc`. -/
   @[specialize] go : (xs : List α) → (i : Nat) → (s : Nat) → Nat
   | _ :: _, 0, s => s
-  | a :: xs, i + 1, s => go xs i (bif p a then s + 1 else s)
+  | a :: xs, i + 1, s => bif p a then go xs i (s + 1) else go xs i s
   | [], _, s => s
 
-/-- `countBefore x xs n` counts the number of `x` in `xs` before the
-    `i`th index for which `x == a` is true. -/
+/-- `countBefore a xs n` counts the number of `x` in `xs` before the
+    `i`th index for which `x == a` is true. For example:
+```
+countBefore 1 [5, 1, 3, 2, 4, 0, 1, 4] 6 = 1
+```
+-/
 def countBefore [BEq α] (a : α) : List α → Nat → Nat :=
   countPBefore (· == a)
 
