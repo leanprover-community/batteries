@@ -90,7 +90,6 @@ theorem extract_scanlM [Monad m] [LawfulMonad m] {f : β → α → m β} {as : 
   rw (occs := [2]) [scanlM]
   rw [scanlM.loop_toList, ← toArray_scanlM_toList, bind_pure_comp]
   simp_all only [toList_extract, List.nil_append]
-  skip
   grind [List.take_eq_take_iff, List.drop_eq_drop_iff]
 
 theorem extract_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Array α} :
@@ -199,7 +198,7 @@ theorem scanl_iff_empty {f : β → α → β} (c : β) :
 @[simp, grind =]
 theorem getElem_scanl {f : β → α → β} {as: Array α} (h : i < (as.scanl f init).size) :
     (as.scanl f init)[i]'h = foldl f init (as.take i) := by
-  simp only [←foldl_toList, ←toArray_scanl_toList, List.getElem_toArray, List.getElem_scanl,
+  simp only [← foldl_toList, ← toArray_scanl_toList, List.getElem_toArray, List.getElem_scanl,
     take_eq_extract, toList_extract, List.extract_eq_drop_take, Nat.sub_zero, List.drop_zero]
 
 @[grind =]
@@ -222,14 +221,16 @@ theorem getElem?_succ_scanl {f : β → α → β} :
 
 theorem getElem_succ_scanl {f : β → α → β} (h : i + 1 < (scanl f b as).size) :
     (as.scanl f b)[i + 1] = f (as.scanl f b)[i] (as[i]'(by grind)) := by
-  simp only [← toArray_scanl_toList, List.getElem_toArray, List.getElem_succ_scanl, List.getElem_scanl,
+  simp only [← toArray_scanl_toList, List.getElem_toArray,
+    List.getElem_succ_scanl, List.getElem_scanl,
     getElem_toList]
 
 @[grind =]
 theorem scanl_push {f : β → α → β} {init: β} {a : α} {as : Array α} :
     (as.push a).scanl f init = (as.scanl f init).push (f (as.foldl f init) a) := by
-  simp only [← toArray_scanl_toList, toList_push, List.scanl_append, foldl_toList, List.scanl_cons,
-    List.scanl_nil, List.tail_cons, List.push_toArray]
+  simp only [← toArray_scanl_toList, toList_push,
+    List.scanl_append, foldl_toList, List.scanl_cons, List.scanl_nil,
+    List.tail_cons, List.push_toArray]
 
 @[grind =]
 theorem scanl_map {f : γ → β → γ} {g : α → β} (init : γ) (as : Array α) :
@@ -295,7 +296,8 @@ theorem back?_scanr {f : α → β → β} {as : Array α} :
 @[simp, grind =]
 theorem getElem_scanr {f : α → β → β} (h : i < (scanr f b l).size) :
     (scanr f b l)[i] = foldr f b (l.drop i) := by
-  simp only [← foldr_toList, ← toArray_scanr_toList, ←getElem_toList, List.getElem_scanr, toList_drop]
+  simp only [← foldr_toList, ← toArray_scanr_toList,
+    ← getElem_toList, List.getElem_scanr, toList_drop]
 
 @[grind =]
 theorem getElem?_scanr {f : α → β → β} :
