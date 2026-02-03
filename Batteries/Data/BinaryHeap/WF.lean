@@ -236,9 +236,7 @@ theorem exceptAt_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       · simp_all [show 2 * i.val + 1 < sz by omega]
       · simp_all [show 2 * i.val + 2 < sz by omega]
     · unfold exceptAt parent at *
-      simp_all only [Fin.getElem_fin]
-      grind only [Fin.ext_iff, Fin.isLt, = Fin.getElem_fin, = Vector.getElem_swap,
-        !Std.TransOrd.isLE_trans]
+      grind only [Fin.getElem_fin, !Std.TransOrd.isLE_trans, Vector.getElem_swap]
 
 /-- If exceptAt a i, swap preserves childLeParent at parent -/
 theorem childLeParent_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
@@ -283,7 +281,8 @@ theorem iff_bottomUp [Ord α] [Std.OrientedOrd α] (a : Vector α sz) :
     constructor <;> intro hchild
     case' mpr.left => have := hBottom ⟨2 * i.val + 1, hchild⟩
     case' mpr.right => have := hBottom ⟨2 * i.val + 2, hchild⟩
-    all_goals grind only [Std.OrientedOrd.eq_swap, parent, = Fin.getElem_fin,
+    all_goals
+      grind only [Std.OrientedOrd.eq_swap, parent, = Fin.getElem_fin,
       !Ordering.isGE_swap]
 
 /-- If exception is at 0, then bottomUp holds -/
