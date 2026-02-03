@@ -324,13 +324,13 @@ theorem scanl_reverse {f : β → α → β} {as : Array α} :
  end Array
 
 namespace Subarray
+
 theorem scanlM_eq_scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Subarray α} :
     as.scanlM f init = (as.array.extract as.start as.stop).scanlM f init := by
-  unfold scanlM
-  simp only [Array.extract_scanlM]
+  simp only [scanlM, Array.extract_scanlM]
 
 theorem scanrM_eq_scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Subarray α} :
     as.scanrM f init = (as.array.extract as.stop as.start).scanrM f init := by
-  unfold scanrM
-  simp only [Array.extract_scanrM]
+  simp only [scanrM, Array.extract_scanrM]
+
 end Subarray
