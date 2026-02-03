@@ -174,14 +174,14 @@ theorem heapifyDown_preserves_wf_parent [Ord α] [Std.TransOrd α] [Std.Oriented
       apply WF.parent_dominates_set_subtree <;> assumption
     . have hsub : ¬InSubtree i.val childIdx :=  by grind only [InSubtree.not_of_lt]
       rw [heapifyDown_get_of_not_inSubtree' hside hsub]
-      rw [Vector.getElem_set_ne _ _ (by simp_all only [ne_eq]; omega)]
+      rw [Vector.getElem_set_ne _ _ (by simp only [ne_eq]; omega)]
       simp_all [childIdx, parent]
 
 theorem heapifyDown_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
     (heapifyDown a i).Perm a := by
   induction a, i using heapifyDown.induct with
     | case1 => simp_all [heapifyDown_eq_of_maxChild_none]
-    | case2 _ _ _ _ _ _ ih => simp_all [heapifyDown_eq_of_lt, ih.trans, Vector.swap_perm]
+    | case2 => rename_i ih; simp_all [heapifyDown_eq_of_lt, ih.trans, Vector.swap_perm]
     | case3 => simp_all [heapifyDown_eq_of_not_lt]
 
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
@@ -393,7 +393,6 @@ theorem toSortedArray_loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α)
 
 theorem toSortedArray_perm [Ord α] (heap : BinaryHeap α) :
     heap.toSortedArray.Perm heap.arr := by
-  unfold toSortedArray
   apply Array.Perm.of_toList_perm
   apply toSortedArray_loop_perm heap #[] |>.trans
   simp
@@ -402,9 +401,7 @@ theorem mkHeap.loop_perm [Ord α] {a : Vector α sz} {h : n ≤ sz} :
     (mkHeap.loop n a h).Perm a := by
   induction n generalizing a with
   | zero => simp [mkHeap.loop]
-  | succ i ih =>
-    simp only [mkHeap.loop]
-    exact ih.trans heapifyDown_perm
+  | succ _ ih => simp [mkHeap.loop, ih.trans heapifyDown_perm]
 
 end perm
 
@@ -446,10 +443,8 @@ theorem singleton_wf [Ord α] {x : α} : WF (singleton x) := by
 @[simp, grind .]
 theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α sz} :
     WF.topDown (mkHeap a) := by
-  unfold mkHeap
   apply mkHeap.loop_wf
-  intros
-  constructor <;> intro <;> omega
+  grind only [WF.children]
 
 theorem mkHeap_perm [Ord α] {a : Vector α sz} : (mkHeap a).toArray.Perm a.toArray :=
   mkHeap.loop_perm |>.toArray
@@ -617,4 +612,5 @@ theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.Oriented
   intro a b hge
   rw [Std.OrientedOrd.eq_swap] at hge
   simp_all [show instOrd.compare a b = instOrd.opposite.compare b a from rfl]
+
 end
