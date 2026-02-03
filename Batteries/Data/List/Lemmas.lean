@@ -1024,10 +1024,8 @@ theorem sum_singleton [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (·
 theorem sum_pair [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (· + ·) 0] {a b : α} :
   [a, b].sum = a + b := by simp [Std.LawfulRightIdentity.right_id]
 
-@[simp, grind =]
-theorem sum_append [Add α] [Zero α] [Std.LawfulLeftIdentity (α := α) (· + ·) 0]
-    [Std.Associative (α := α) (· + ·)] {l₁ l₂ : List α} : (l₁ ++ l₂).sum = l₁.sum + l₂.sum := by
-  induction l₁ with simp [Std.LawfulLeftIdentity.left_id, Std.Associative.assoc, *]
+-- defined in `Std`, which currently only `simp`-annotates `sum_append_nat` and `sum_append_int`
+attribute [simp] sum_append
 
 theorem sum_concat [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 0]
     [Std.Associative (α := α) (· + ·)] {l : List α} {a : α} :
@@ -1038,9 +1036,6 @@ theorem sum_flatten [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 
     [Std.Associative (α := α) (· + ·)] {l : List (List α)} :
     l.flatten.sum = (l.map sum).sum := by
   induction l with simp [*]
-
-theorem sum_eq_foldr [Add α] [Zero α] {l : List α} :
-    l.sum = l.foldr (· + ·) 0 := rfl
 
 theorem sum_eq_foldl [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
     [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} :
