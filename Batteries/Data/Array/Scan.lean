@@ -82,7 +82,7 @@ theorem toList_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {as : A
   simp [scanrM_eq_scanrM_toList]
 
 theorem scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Array α} :
-    (as.extract start stop).scanlM f init  = as.scanlM f init start stop := by
+    (as.extract start stop).scanlM f init = as.scanlM f init start stop := by
   rw (occs := [2]) [scanlM]
   apply map_toList_inj.mp
   rw [scanlM.loop_toList, scanlM_eq_scanlM_toList, bind_pure_comp]
@@ -197,7 +197,7 @@ theorem getElem?_scanl {f : β → α → β} :
     (scanl f a l)[i]? = if i ≤ l.size then some (foldl f a (l.take i)) else none := by
   grind
 
-@[grind _=_]
+@[grind =]
 theorem take_scanl {f : β → α → β} (init : β) (as : Array α) :
     (scanl f init as).take (i + 1) = scanl f init (as.take i) := by
   grind
