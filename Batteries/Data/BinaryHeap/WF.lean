@@ -56,7 +56,7 @@ namespace InSubtree
 
 @[simp]
 theorem le (ins : InSubtree j k) : j ≤ k := by
-  induction ins <;> omega
+  induction ins with omega
 
 theorem not_of_lt (hlt : k < j): ¬InSubtree j k := by
   intro hsub

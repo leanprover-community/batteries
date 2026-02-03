@@ -65,11 +65,11 @@ theorem heapifyDown_eq_of_not_lt [Ord α] {a : Vector α sz} {i j : Fin sz}
 theorem heapifyDown_preserves_prefix [Ord α] (a : Vector α sz) (i k : Fin sz) (hk : k < ↑i) :
     (heapifyDown a i)[k] = a[k] := by
   induction a, i using heapifyDown.induct with
-    | case1 => simp_all [heapifyDown_eq_of_maxChild_none]
-    | case2 a i j hmaxChild hij hlt ih  =>
-      rw [heapifyDown_eq_of_lt hmaxChild hlt, ih (by omega)]
-      apply Vector.getElem_swap_of_ne <;> omega
-    | case3 =>  simp_all [heapifyDown_eq_of_not_lt]
+  | case1 => simp_all [heapifyDown_eq_of_maxChild_none]
+  | case2 a i j hmaxChild hij hlt ih  =>
+    rw [heapifyDown_eq_of_lt hmaxChild hlt, ih (by omega)]
+    apply Vector.getElem_swap_of_ne <;> omega
+  | case3 =>  simp_all [heapifyDown_eq_of_not_lt]
 
 /-- `heapifyDown` does not modify elements outside the subtree rooted at `i`. -/
 theorem heapifyDown_get_of_not_inSubtree [Ord α] {a : Vector α sz} {i : Fin sz}
@@ -180,9 +180,9 @@ theorem heapifyDown_preserves_wf_parent [Ord α] [Std.TransOrd α] [Std.Oriented
 theorem heapifyDown_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
     (heapifyDown a i).Perm a := by
   induction a, i using heapifyDown.induct with
-    | case1 => simp_all [heapifyDown_eq_of_maxChild_none]
-    | case2 => rename_i ih; simp_all [heapifyDown_eq_of_lt, ih.trans, Vector.swap_perm]
-    | case3 => simp_all [heapifyDown_eq_of_not_lt]
+  | case1 => simp_all [heapifyDown_eq_of_maxChild_none]
+  | case2 => rename_i ih; simp_all [heapifyDown_eq_of_lt, ih.trans, Vector.swap_perm]
+  | case3 => simp_all [heapifyDown_eq_of_not_lt]
 
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
 theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
@@ -440,6 +440,14 @@ theorem empty_wf [Ord α] : WF (empty : BinaryHeap α) := by
 theorem singleton_wf [Ord α] {x : α} : WF (singleton x) := by
   simp [WF, singleton, vector, WF.topDown_singleton]
 
+@[simp]
+theorem max_empty [Ord α] : (empty : BinaryHeap α).max = none := by
+  simp [empty, max]
+
+@[simp]
+theorem max_singleton [Ord α] {x : α} : (singleton x).max = some x := by
+  simp [singleton, max]
+
 @[simp, grind .]
 theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α sz} :
     WF.topDown (mkHeap a) := by
@@ -453,6 +461,29 @@ theorem mkHeap_perm [Ord α] {a : Vector α sz} : (mkHeap a).toArray.Perm a.toAr
 theorem size_insert [Ord α] (heap : BinaryHeap α) (x : α) :
     (heap.insert x).size = heap.size + 1 := by
   simp [size, insert]
+
+@[simp]
+theorem size_extractMax [Ord α] (heap : BinaryHeap α) :
+    (heap.extractMax).2.size = heap.size - 1 := by
+  simp [extractMax]
+
+@[simp]
+theorem extractMax_fst [Ord α] (heap : BinaryHeap α) :
+    heap.extractMax.1 = heap.max := by simp [extractMax]
+
+@[simp]
+theorem extractMax_snd [Ord α] (heap : BinaryHeap α) :
+    heap.extractMax.2 = heap.popMax := by simp [extractMax]
+
+@[simp]
+theorem size_decreaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x : α) :
+    (heap.decreaseKey i x).size = heap.size := by
+  simp [decreaseKey, size]
+
+@[simp]
+theorem size_increaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x : α) :
+    (heap.increaseKey i x).size = heap.size := by
+  simp [increaseKey, size]
 
 @[grind .]
 theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
@@ -471,6 +502,14 @@ theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : Binary
     rw [Vector.getElem_push_lt, Vector.getElem_push_lt]
     exact h_wf ⟨i.val, by grind only⟩ h_nz
   . grind only [WF.childLeParent]
+
+@[simp]
+theorem mem_empty [Ord α] {x : α} : x ∈ (empty : BinaryHeap α) ↔ False := by
+  simp [mem_def, empty]
+
+@[simp]
+theorem mem_singleton [Ord α] {x y : α} : x ∈ singleton y ↔ x = y := by
+  simp [mem_def, singleton]
 
 theorem mem_insert [Ord α] {heap : BinaryHeap α} :
     y ∈ heap.insert x ↔ y = x ∨ y ∈ heap := by
@@ -582,6 +621,16 @@ theorem toSortedArray_sorted [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     heap.toSortedArray.toList.Pairwise (compare · · |>.isGE) := by
   simp_all [toSortedArray, toSortedArray_loop_sorted]
 
+@[simp]
+theorem size_toSortedArray [Ord α] {heap : BinaryHeap α} :
+    heap.toSortedArray.size = heap.size :=
+  (toSortedArray_perm heap).size_eq
+
+@[simp]
+theorem mem_toSortedArray [Ord α] {heap : BinaryHeap α} {x : α} :
+    x ∈ heap.toSortedArray ↔ x ∈ heap :=
+  (toSortedArray_perm heap).mem_iff
+
 end
 end BinaryHeap
 
@@ -598,11 +647,39 @@ theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     WF (Batteries.Vector.toBinaryHeap a) := by
   simp [WF.topDown_toArray, Vector.toBinaryHeap]
 
+@[simp]
+theorem Array.toBinaryHeap_size [Ord α] {a : Array α} :
+    a.toBinaryHeap.size = a.size := by
+  simp [Array.toBinaryHeap, BinaryHeap.size]
+
+@[simp]
+theorem Vector.toBinaryHeap_size [Ord α] {a : Vector α sz} :
+    (Batteries.Vector.toBinaryHeap a).size = sz := by
+  simp [Batteries.Vector.toBinaryHeap, BinaryHeap.size]
+
+@[simp]
+theorem Array.mem_toBinaryHeap [Ord α] {a : Array α} {x : α} :
+    x ∈ a.toBinaryHeap ↔ x ∈ a := by
+  simp only [Array.toBinaryHeap, BinaryHeap.mem_def]
+  exact mkHeap_perm.mem_iff
+
+@[simp]
+theorem Vector.mem_toBinaryHeap [Ord α] {a : Vector α sz} {x : α} :
+    x ∈ Batteries.Vector.toBinaryHeap a ↔ x ∈ a := by
+  simp only [Batteries.Vector.toBinaryHeap, BinaryHeap.mem_def, Vector.mem_toArray_iff]
+  simp only [← Vector.mem_toArray_iff]
+  exact mkHeap_perm.mem_iff
+
 theorem Array.heapSort_perm [instOrd : Ord α] {a : Array α} :
     a.heapSort.Perm a := by
   letI := instOrd.opposite
   apply toSortedArray_perm a.toBinaryHeap |>.trans
   exact mkHeap_perm
+
+@[simp]
+theorem Array.heapSort_size [instOrd : Ord α] {a : Array α} :
+    a.heapSort.size = a.size :=
+  Array.heapSort_perm.size_eq
 
 theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Array α} :
