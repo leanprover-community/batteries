@@ -111,8 +111,8 @@ theorem scanrM_empty [Monad m] {f : α → β → m β} {start stop : Nat} :
 
 theorem scanlM_reverse [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Array α} :
     as.reverse.scanlM f init = Array.reverse <$> (as.scanrM (flip f) init) := by
-  simp only [← toArray_scanlM_toList, ← toArray_scanrM_toList, toList_reverse,
-    List.scanlM_reverse, Functor.map_map, List.reverse_toArray]
+  simp only [← toArray_scanlM_toList, ← toArray_scanrM_toList]
+  simp
 
 @[simp]
 theorem scanlM_pure [Monad m] [LawfulMonad m] {f : β → α → β} {as : Array α} :
@@ -198,8 +198,8 @@ theorem scanl_iff_empty {f : β → α → β} (c : β) :
 @[simp, grind =]
 theorem getElem_scanl {f : β → α → β} {as: Array α} (h : i < (as.scanl f init).size) :
     (as.scanl f init)[i]'h = foldl f init (as.take i) := by
-  simp only [← foldl_toList, ← toArray_scanl_toList, List.getElem_toArray, List.getElem_scanl,
-    take_eq_extract, toList_extract, List.extract_eq_drop_take, Nat.sub_zero, List.drop_zero]
+  simp only [← toArray_scanl_toList, ← foldl_toList]
+  simp
 
 @[grind =]
 theorem getElem?_scanl {f : β → α → β} :
@@ -228,9 +228,8 @@ theorem getElem_succ_scanl {f : β → α → β} (h : i + 1 < (scanl f b as).si
 @[grind =]
 theorem scanl_push {f : β → α → β} {init: β} {a : α} {as : Array α} :
     (as.push a).scanl f init = (as.scanl f init).push (f (as.foldl f init) a) := by
-  simp only [← toArray_scanl_toList, toList_push,
-    List.scanl_append, foldl_toList, List.scanl_cons, List.scanl_nil,
-    List.tail_cons, List.push_toArray]
+  simp only [← toArray_scanl_toList]
+  simp [List.scanl_append]
 
 @[grind =]
 theorem scanl_map {f : γ → β → γ} {g : α → β} (init : γ) (as : Array α) :
@@ -254,7 +253,8 @@ theorem scanr_eq_scanrM {f : α → β → β} {as : Array α} :
 
 theorem toArray_scanr_toList {f : α → β → β} {as : Array α} :
     (as.toList.scanr f init).toArray = as.scanr f init := by
-  simp only [scanr_eq_scanrM, ← toArray_scanrM_toList, List.scanr, pure, Id.run_map]
+  simp only [scanr_eq_scanrM, ← toArray_scanrM_toList]
+  simp [List.scanr]
 
 @[simp, grind =]
 theorem toList_scanr {f : α → β → β} {as : Array α} :
@@ -302,8 +302,7 @@ theorem getElem_scanr {f : α → β → β} (h : i < (scanr f b l).size) :
 @[grind =]
 theorem getElem?_scanr {f : α → β → β} :
     (scanr f b as)[i]? = if i < as.size + 1 then some (foldr f b (as.drop i)) else none := by
-  simp only [← foldr_toList, ← toArray_scanr_toList, List.getElem?_toArray, toList_drop]
-  simp only [← length_toList, List.getElem?_scanr]
+  grind
 
 theorem getElem_scanr_zero {f : α → β → β} :
     (scanr f init as)[0] = as.foldr f init := by
@@ -322,8 +321,8 @@ theorem scanr_map {f : β → γ → γ} {g : α → β} (init : γ) (as : Array
 theorem scanl_reverse {f : β → α → β} {as : Array α} :
     scanl f init as.reverse = reverse (scanr (flip f) init as) := by
   apply toList_inj.mp
-  simp only [← toArray_scanl_toList, ← toArray_scanr_toList, toList_reverse, List.scanl_reverse,
-    List.reverse_toArray]
+  simp only [← toArray_scanl_toList, ← toArray_scanr_toList]
+  simp
 
 end Array
 
