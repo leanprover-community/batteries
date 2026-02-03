@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2014 Parikshit Khanna. All rights reserved.
+Copyright (c) 2026 Chad Sharp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chad Sharp
 -/
@@ -8,6 +8,7 @@ module
 public import Batteries.Data.Array.Basic
 public import Batteries.Data.Array.Lemmas
 import Batteries.Data.List.Scan
+import Batteries.Data.List.Lemmas
 
 public section
 
@@ -20,12 +21,11 @@ namespace Array
 
 theorem scanlM.loop_toList [Monad m] [LawfulMonad m]
     {f : β → α → m β} {stop : Nat} (h : stop ≤ as.size) :
-    scanlM.loop f init as start stop h acc =
+    Array.toList <$> scanlM.loop f init as start stop h acc =
       return acc.toList
                ++ (← as.toList.drop start
                   |>.take (stop - start)
-                  |>.scanlM f init)
-               |>.toArray := by
+                  |>.scanlM f init) := by
   induction h_ind : stop - start generalizing start acc init with
   | zero =>
     unfold scanlM.loop
@@ -37,6 +37,7 @@ theorem scanlM.loop_toList [Monad m] [LawfulMonad m]
 
 theorem scanlM_eq_scanlM_toList [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Array α} :
     as.scanlM f init = List.toArray <$> as.toList.scanlM f init := by
+  apply map_toList_inj.mp
   simp [scanlM, Array.scanlM.loop_toList, ←Array.length_toList]
 
 @[simp, grind =]
@@ -46,38 +47,34 @@ theorem toList_scanlM [Monad m] [LawfulMonad m] {f : β → α → m β} {as : A
 
 theorem scanrM.loop_toList [Monad m] [LawfulMonad m] {f : α → β → m β}
     {start : Nat} {h : start ≤ as.size} :
-    scanrM.loop f init as start stop h acc =
+    Array.toList <$> scanrM.loop f init as start stop h acc =
       return (← as.toList.drop stop
                   |>.take (start - stop)
                   |>.scanrM f init)
-                ++ acc.toList.reverse
-                |>.toArray := by
+                ++ acc.toList.reverse := by
   induction h_ind : start - stop generalizing stop acc init start with
   | zero =>
-    grind [scanrM.loop, append_eq_toArray_iff, toList_reverse]
+    simp [scanrM.loop, show ¬ stop < start by omega]
   | succ n ih =>
     unfold scanrM.loop
     simp_all only [bind_pure_comp, show stop < start by omega, ↓reduceDIte]
+    simp only [map_bind]
     conv =>
       lhs
-      arg 2
-      ext a
+      arg 2;
+      ext a;
       rw [ih (start := start - 1) (stop := stop) (acc := acc.push init) (by omega)]
-    have h_list : List.take (n + 1) (List.drop stop as.toList)
-      = as[stop] :: List.take n (List.drop (stop + 1) as.toList) := by
-        rw [List.drop_eq_getElem_cons (by simp; omega)]
-        simp only [getElem_toList, List.take_succ_cons]
-    have h_rev_list : (List.take (n + 1) (List.drop stop as.toList)).reverse
-      = as[start - 1] :: (List.take n (List.drop stop as.toList)).reverse := by
-        have h_eq : start - 1 = stop + n := by omega
-        rw [← List.take_append_getElem (by simp; omega : n < (List.drop stop as.toList).length)]
-        simp [List.reverse_append, List.getElem_drop, h_eq]
-    simp_all only [Array.toList_push, List.reverse_append, List.reverse_cons,
-      Functor.map_map , List.scanrM_eq_scanlM_reverse]
-    simp_all [flip]
+    simp only [List.scanrM_eq_scanlM_reverse]
+    have h_take := List.take_succ_drop (l := as.toList) (n := n) (stop := stop) (by simp; omega)
+    simp only [show stop + n = start - 1 by omega, getElem_toList] at h_take
+    simp only [h_take, List.reverse_append, List.reverse_singleton, List.singleton_append,
+      List.scanlM_cons, map_bind]
+    apply bind_congr
+    simp_all
 
 theorem scanrM_eq_scanrM_toList [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Array α} :
     as.scanrM f init = List.toArray <$> as.toList.scanrM f init := by
+  apply map_toList_inj.mp
   simp [scanrM, Array.scanrM.loop_toList, ← Array.length_toList]
 
 @[simp, grind =]
@@ -85,18 +82,20 @@ theorem toList_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {as : A
     toList <$> as.scanrM f init = as.toList.scanrM f init := by
   simp [scanrM_eq_scanrM_toList]
 
-theorem extract_scanlM [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Array α} :
+theorem scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Array α} :
     (as.extract start stop).scanlM f init  = as.scanlM f init start stop := by
   rw (occs := [2]) [scanlM]
+  apply map_toList_inj.mp
   rw [scanlM.loop_toList, scanlM_eq_scanlM_toList, bind_pure_comp]
-  simp_all only [toList_extract, List.nil_append]
+  simp_all only [toList_extract, Functor.map_map, id_map', List.nil_append_fun, id_map]
   grind [List.take_eq_take_iff, List.drop_eq_drop_iff]
 
-theorem extract_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Array α} :
+theorem scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Array α} :
     (as.extract stop start).scanrM f init = as.scanrM f init start stop := by
   rw (occs := [2]) [scanrM]
+  apply map_toList_inj.mp
   rw [scanrM.loop_toList, scanrM_eq_scanrM_toList, bind_pure_comp]
-  simp_all only [toList_extract]
+  simp_all only [toList_extract,  Functor.map_map, id_map', List.reverse_nil, List.append_nil]
   grind [List.take_eq_take_iff, List.drop_eq_drop_iff]
 
 @[simp, grind =]
@@ -183,13 +182,8 @@ theorem scanl_singleton {f : β → α → β} :
 @[simp]
 theorem scanl_ne_empty {f : β → α → β} : scanl f init as ≠ #[] := by grind
 
--- This pattern can be removed after moving to a lean version containing
--- https://github.com/leanprover/lean4/pull/11760
-local grind_pattern Array.eq_empty_of_size_eq_zero => xs.size where
-  guard xs.size = 0
-
 @[simp]
-theorem scanl_iff_empty {f : β → α → β} (c : β) :
+theorem scanl_eq_singleton_iff {f : β → α → β} (c : β) :
     scanl f init as = #[c] ↔ c = init ∧ as = #[] := by
   grind
 
@@ -350,11 +344,11 @@ namespace Subarray
 @[simp]
 theorem scanlM_eq_scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Subarray α} :
     as.scanlM f init = (as.array.extract as.start as.stop).scanlM f init := by
-  simp only [scanlM, Array.extract_scanlM]
+  simp only [scanlM, Array.scanlM_extract]
 
 @[simp]
 theorem scanrM_eq_scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Subarray α} :
     as.scanrM f init = (as.array.extract as.stop as.start).scanrM f init := by
-  simp only [scanrM, Array.extract_scanrM]
+  simp only [scanrM, Array.scanrM_extract]
 
 end Subarray
