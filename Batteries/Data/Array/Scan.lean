@@ -155,14 +155,14 @@ theorem scanl_eq_scanlM {f : β → α → β} {as: Array α} :
     as.scanl f init = (as.scanlM (m := Id) (pure <| f · ·) init).run := by
   simp
 
-theorem scanl_toList {f: β → α → β} {as : Array α} :
+theorem toArray_scanl_toList {f: β → α → β} {as : Array α} :
     (as.toList.scanl f init).toArray = as.scanl f init := by
   simp only [scanl_eq_scanlM, ← toArray_scanlM_toList, List.scanl, pure, Id.run_map]
 
 @[simp, grind =]
 theorem toList_scanl {f : β → α → β} {as: Array α} :
     (as.scanl f init).toList = as.toList.scanl f init := by
-  rw [← scanl_toList]
+  rw [← toArray_scanl_toList]
 
 @[simp]
 theorem size_scanl {f : β → α → β} (init : β) (as : Array α) :
@@ -199,7 +199,7 @@ theorem scanl_iff_empty {f : β → α → β} (c : β) :
 @[simp, grind =]
 theorem getElem_scanl {f : β → α → β} {as: Array α} (h : i < (as.scanl f init).size) :
     (as.scanl f init)[i]'h = foldl f init (as.take i) := by
-  simp only [←foldl_toList, ←scanl_toList, List.getElem_toArray, List.getElem_scanl,
+  simp only [←foldl_toList, ←toArray_scanl_toList, List.getElem_toArray, List.getElem_scanl,
     take_eq_extract, toList_extract, List.extract_eq_drop_take, Nat.sub_zero, List.drop_zero]
 
 @[grind =]
@@ -218,23 +218,23 @@ theorem getElem_scanl_zero {f : β → α → β} : (scanl f init as)[0] = init 
 
 theorem getElem?_succ_scanl {f : β → α → β} :
     (scanl f init as)[i + 1]? = (scanl f init as)[i]?.bind fun x => as[i]?.map fun y => f x y := by
-  simp [← scanl_toList, List.getElem?_succ_scanl]
+  simp [← toArray_scanl_toList, List.getElem?_succ_scanl]
 
 theorem getElem_succ_scanl {f : β → α → β} (h : i + 1 < (scanl f b as).size) :
     (as.scanl f b)[i + 1] = f (as.scanl f b)[i] (as[i]'(by grind)) := by
-  simp only [← scanl_toList, List.getElem_toArray, List.getElem_succ_scanl, List.getElem_scanl,
+  simp only [← toArray_scanl_toList, List.getElem_toArray, List.getElem_succ_scanl, List.getElem_scanl,
     getElem_toList]
 
 @[grind =]
 theorem scanl_push {f : β → α → β} {init: β} {a : α} {as : Array α} :
     (as.push a).scanl f init = (as.scanl f init).push (f (as.foldl f init) a) := by
-  simp only [← scanl_toList, toList_push, List.scanl_append, foldl_toList, List.scanl_cons,
+  simp only [← toArray_scanl_toList, toList_push, List.scanl_append, foldl_toList, List.scanl_cons,
     List.scanl_nil, List.tail_cons, List.push_toArray]
 
 @[grind =]
 theorem scanl_map {f : γ → β → γ} {g : α → β} (init : γ) (as : Array α) :
     scanl f init (as.map g) = scanl (f · <| g ·) init as := by
-  simp only [← scanl_toList, toList_map, List.scanl_map]
+  simp only [← toArray_scanl_toList, toList_map, List.scanl_map]
 
 @[simp, grind =]
 theorem back_scanl {f : β → α → β} {as : Array α} :
@@ -251,14 +251,14 @@ theorem scanr_eq_scanrM {f : α → β → β} {as : Array α} :
     as.scanr f init = (as.scanrM (m := Id) (pure <| f · ·) init).run := by
   simp
 
-theorem scanr_toList {f : α → β → β} {as : Array α} :
+theorem toArray_scanr_toList {f : α → β → β} {as : Array α} :
     (as.toList.scanr f init).toArray = as.scanr f init := by
   simp only [scanr_eq_scanrM, ← toArray_scanrM_toList, List.scanr, pure, Id.run_map]
 
 @[simp, grind =]
 theorem toList_scanr {f : α → β → β} {as : Array α} :
     (as.scanr f init).toList = as.toList.scanr f init := by
-  rw [← scanr_toList]
+  rw [← toArray_scanr_toList]
 
 @[simp]
 theorem size_scanr {f : α → β → β} (init : β) (as : Array α) :
@@ -295,12 +295,12 @@ theorem back?_scanr {f : α → β → β} {as : Array α} :
 @[simp, grind =]
 theorem getElem_scanr {f : α → β → β} (h : i < (scanr f b l).size) :
     (scanr f b l)[i] = foldr f b (l.drop i) := by
-  simp only [← foldr_toList, ← scanr_toList, ←getElem_toList, List.getElem_scanr, toList_drop]
+  simp only [← foldr_toList, ← toArray_scanr_toList, ←getElem_toList, List.getElem_scanr, toList_drop]
 
 @[grind =]
 theorem getElem?_scanr {f : α → β → β} :
     (scanr f b as)[i]? = if i < as.size + 1 then some (foldr f b (as.drop i)) else none := by
-  simp only [← foldr_toList, ← scanr_toList, List.getElem?_toArray, toList_drop]
+  simp only [← foldr_toList, ← toArray_scanr_toList, List.getElem?_toArray, toList_drop]
   simp only [← length_toList, List.getElem?_scanr]
 
 theorem getElem_scanr_zero {f : α → β → β} :
@@ -314,13 +314,13 @@ theorem getElem?_scanr_zero {f : α → β → β} :
 @[grind =]
 theorem scanr_map {f : β → γ → γ} {g : α → β} (init : γ) (as : Array α) :
     scanr f init (as.map g) = scanr (fun x acc => f (g x) acc) init as := by
-  simp only [← scanr_toList, toList_map, List.scanr_map]
+  simp only [← toArray_scanr_toList, toList_map, List.scanr_map]
 
 @[grind =]
 theorem scanl_reverse {f : β → α → β} {as : Array α} :
     scanl f init as.reverse = reverse (scanr (flip f) init as) := by
   apply toList_inj.mp
-  simp only [← scanl_toList, ← scanr_toList, toList_reverse, List.scanl_reverse,
+  simp only [← toArray_scanl_toList, ← toArray_scanr_toList, toList_reverse, List.scanl_reverse,
     List.reverse_toArray]
 
 end Array
