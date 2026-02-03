@@ -126,7 +126,7 @@ alias setN := set
 
 /-
 This is guaranteed by the Array docs but it is unprovable.
-May be asserted to be true in an unsafe context via `Array.unsafe_size_fits_usize
+May be asserted to be true in an unsafe context via `Array.unsafe_sizeFitsUsize`
 -/
 private abbrev SizeFitsUSize (a : Array α) : Prop := a.size < USize.size
 
@@ -141,7 +141,7 @@ This is guaranteed by the Array docs but it is unprovable.
 Can be used in unsafe functions to write more efficient implementations
 that avoid arbitrary precision integer arithmetic.
 -/
-private unsafe def unsafe_sizeFitsUSize {a : Array α} : SizeFitsUSize a :=
+private unsafe def unsafe_sizeFitsUSize (a : Array α) : SizeFitsUSize a :=
   lcProof
 
 @[inline]
@@ -291,7 +291,7 @@ where
 @[inline]
 private unsafe def scanrMUnsafe [Monad m] (f : α → β → m β) (init : β) (as : Array α)
     (start := as.size) (stop := 0) : m (Array β) :=
-  scanrMFast (h_size := Array.unsafe_size_fits_usize) f init as (start := start) (stop := stop)
+  scanrMFast (h_size := as.unsafe_sizeFitsUSize) f init as (start := start) (stop := stop)
 
 /--
 Folds a monadic function over an array from the right, accumulating the partial results starting
