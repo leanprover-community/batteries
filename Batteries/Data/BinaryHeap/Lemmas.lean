@@ -544,6 +544,68 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       simp_all [WF.topDown_iff_at_below_zero.mp, heapifyDown_wf (i := ⟨0, by omega⟩) hbelow]
     . grind only [WF.children, WF.topDown]
 
+theorem replaceMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {heap : BinaryHeap α} {x : α} (h_wf : WF heap) :
+    WF (heap.replaceMax x).2 := by
+  unfold replaceMax
+  have htd : WF.topDown heap.vector := by simp_all [WF]
+  split
+  · grind only [WF.topDown, WF.children, WF.topDown_toArray, max_eq_none_iff]
+  · apply WF.topDown_toArray
+    have h_pos := size_pos_of_max ‹_›
+    have hbelow : WF.below (heap.vector.set 0 x h_pos) (Fin.mk 0 h_pos) :=
+      WF.set_smaller_wf_below htd
+    simp_all [WF.topDown_iff_at_below_zero.mp, heapifyDown_wf (i := ⟨0, h_pos⟩) hbelow]
+
+theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {heap : BinaryHeap α} {x : α} (h_wf : WF heap) :
+    WF (heap.insertExtractMax x).2 := by
+  unfold insertExtractMax
+  have htd : WF.topDown heap.vector := by simp_all [WF]
+  split
+  · exact h_wf
+  · split
+    · apply WF.topDown_toArray
+      have h_pos := size_pos_of_max ‹_›
+      have hbelow : WF.below (heap.vector.set 0 x h_pos) (Fin.mk 0 h_pos) :=
+        WF.set_smaller_wf_below htd
+      simp_all [WF.topDown_iff_at_below_zero.mp, heapifyDown_wf (i := ⟨0, h_pos⟩) hbelow]
+    · exact h_wf
+
+@[simp]
+theorem size_insertExtractMax [Ord α] (heap : BinaryHeap α) (x : α) :
+    (heap.insertExtractMax x).2.size = heap.size := by
+  grind only [insertExtractMax, size, Vector.size_toArray]
+
+theorem insertExtractMax_fst_of_empty [Ord α] {heap : BinaryHeap α} (h : heap.size = 0) (x : α) :
+    (heap.insertExtractMax x).1 = x := by
+  grind only [insertExtractMax, max_eq_none_iff]
+
+theorem insertExtractMax_fst_of_lt [Ord α] {heap : BinaryHeap α} {x m : α}
+    (hmax : heap.max = some m) (h_lt : (compare x m).isLT) :
+    (heap.insertExtractMax x).1 = m := by
+  grind only [insertExtractMax]
+
+theorem insertExtractMax_fst_of_not_lt [Ord α] {heap : BinaryHeap α} {x m : α}
+    (hmax : heap.max = some m) (h_nlt : ¬(compare x m).isLT) :
+    (heap.insertExtractMax x).1 = x := by
+  grind only [insertExtractMax]
+
+theorem size_replaceMax_of_empty [Ord α] {heap : BinaryHeap α} (h : heap.size = 0) (x : α) :
+    (heap.replaceMax x).2.size = 1 := by
+  grind only [replaceMax, size, Vector.size_toArray]
+
+theorem size_replaceMax_of_nonempty [Ord α] {heap : BinaryHeap α} (h : heap.size ≠ 0) (x : α) :
+    (heap.replaceMax x).2.size = heap.size := by
+  unfold replaceMax size
+  split <;> simp_all [max_eq_none_iff]
+
+@[simp]
+theorem replaceMax_fst [Ord α] (heap : BinaryHeap α) (x : α) :
+    (heap.replaceMax x).1 = heap.max := by
+  unfold replaceMax
+  split <;> simp_all [max_eq_none_iff.mpr]
+
 /-- Elements in popMax were in the original heap -/
 theorem popMax_subset [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ heap.popMax) :
     x ∈ heap := by
@@ -648,12 +710,12 @@ theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   simp [WF.topDown_toArray, Vector.toBinaryHeap]
 
 @[simp]
-theorem Array.toBinaryHeap_size [Ord α] {a : Array α} :
+theorem Array.size_toBinaryHeap [Ord α] {a : Array α} :
     a.toBinaryHeap.size = a.size := by
   simp [Array.toBinaryHeap, BinaryHeap.size]
 
 @[simp]
-theorem Vector.toBinaryHeap_size [Ord α] {a : Vector α sz} :
+theorem Vector.size_toBinaryHeap [Ord α] {a : Vector α sz} :
     (Batteries.Vector.toBinaryHeap a).size = sz := by
   simp [Batteries.Vector.toBinaryHeap, BinaryHeap.size]
 
@@ -677,7 +739,7 @@ theorem Array.heapSort_perm [instOrd : Ord α] {a : Array α} :
   exact mkHeap_perm
 
 @[simp]
-theorem Array.heapSort_size [instOrd : Ord α] {a : Array α} :
+theorem Array.size_heapSort [instOrd : Ord α] {a : Array α} :
     a.heapSort.size = a.size :=
   Array.heapSort_perm.size_eq
 
