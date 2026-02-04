@@ -10,6 +10,7 @@ import all Batteries.Data.BinaryHeap.Basic
 namespace Batteries.BinaryHeap
 
 public section
+
 /-- The primary local correctness property for the heap. A node should be >= both its children
     (if it has them).
 -/
@@ -100,7 +101,7 @@ def below [Ord α] (a : Vector α sz) (i : Nat) : Prop :=
   ∀ j : Fin sz, i < j.val → WF.children a j
 
 /-- WF.below is monotone: larger threshold means weaker condition. -/
-theorem below_of_le {a : Vector α sz} {i j : Nat}  [Ord α]
+theorem below_of_le {a : Vector α sz} {i j : Nat} [Ord α]
     (hij : i ≤ j) (hbelow : WF.below a i) : WF.below a j := by
   grind only [WF.below]
 

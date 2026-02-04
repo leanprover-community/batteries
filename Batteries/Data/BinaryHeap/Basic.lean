@@ -10,13 +10,12 @@ public section
 namespace Batteries
 
 /-- A max-heap data structure. -/
-structure BinaryHeap (α: Type w) [Ord α] where
+structure BinaryHeap (α : Type w) [Ord α] where
   /-- `O(1)`. Get data array for a `BinaryHeap`. -/
   arr : Array α
 
 namespace BinaryHeap
 variable {α : Type w}
-
 
 /-- Given a node, return the index of its larger child, if it exists -/
 @[inline]
@@ -139,7 +138,6 @@ def popMax [Ord α] (self : BinaryHeap α) : BinaryHeap α :=
 @[inline]
 def extractMax [Ord α] (self : BinaryHeap α) : Option α × BinaryHeap α :=
   (self.max, self.popMax)
-
 
 @[simp]
 theorem max_eq_none_iff [Ord α] {heap : BinaryHeap α} :

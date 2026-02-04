@@ -69,7 +69,7 @@ theorem heapifyDown_preserves_prefix [Ord α] (a : Vector α sz) (i k : Fin sz) 
   | case2 a i j hmaxChild hij hlt ih  =>
     rw [heapifyDown_eq_of_lt hmaxChild hlt, ih (by omega)]
     apply Vector.getElem_swap_of_ne <;> omega
-  | case3 =>  simp_all [heapifyDown_eq_of_not_lt]
+  | case3 => simp_all [heapifyDown_eq_of_not_lt]
 
 /-- `heapifyDown` does not modify elements outside the subtree rooted at `i`. -/
 theorem heapifyDown_get_of_not_inSubtree [Ord α] {a : Vector α sz} {i : Fin sz}
@@ -179,10 +179,10 @@ theorem heapifyDown_preserves_wf_parent [Ord α] [Std.TransOrd α] [Std.Oriented
 
 theorem heapifyDown_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
     (heapifyDown a i).Perm a := by
-  induction a, i using heapifyDown.induct with
-  | case1 => simp_all [heapifyDown_eq_of_maxChild_none]
-  | case2 => rename_i ih; simp_all [heapifyDown_eq_of_lt, ih.trans, Vector.swap_perm]
-  | case3 => simp_all [heapifyDown_eq_of_not_lt]
+  induction a, i using heapifyDown.induct
+  . simp_all [heapifyDown_eq_of_maxChild_none]
+  . simp_all [heapifyDown_eq_of_lt, Vector.Perm.trans ‹_›, Vector.swap_perm]
+  . simp_all [heapifyDown_eq_of_not_lt]
 
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
 theorem swap_child_dominates [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
