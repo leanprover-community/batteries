@@ -12,17 +12,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Generate app token
+      id: app-token
+      uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+      with:
+        app-id: ${{ secrets.MATHLIB_NIGHTLY_TESTING_APP_ID }}
+        private-key: ${{ secrets.MATHLIB_NIGHTLY_TESTING_PRIVATE_KEY }}
+    # The create-github-app-token README states that this token is masked and will not be logged accidentally.
+
     - name: Checkout Batteries repository
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       with:
         repository: leanprover-community/batteries
         ref: nightly-testing
         fetch-depth: 0  # Fetch all branches
+        token: ${{ steps.app-token.outputs.token }}
 
     - name: Set up Git
       run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
+        git config --global user.name "mathlib-nightly-testing[bot]"
+        git config --global user.email "mathlib-nightly-testing[bot]@users.noreply.github.com"
 
     - name: Configure Lean
       uses: leanprover/lean-action@f807b338d95de7813c5c50d018f1c23c9b93b4ec # 2025-04-24
