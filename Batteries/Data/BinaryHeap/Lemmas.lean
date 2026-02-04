@@ -9,8 +9,6 @@ public import Batteries.Data.BinaryHeap.WF
 import all Batteries.Data.BinaryHeap.WF
 import all Batteries.Data.BinaryHeap.Basic
 
-set_option profiler true
-set_option profiler.threshold 500
 namespace Batteries.BinaryHeap
 
 /-- If maxChild returns none, there are no children in bounds. -/
