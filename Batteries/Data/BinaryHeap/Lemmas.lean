@@ -740,15 +740,13 @@ theorem Vector.size_toBinaryHeap [Ord α] {a : Vector α sz} :
 @[simp]
 theorem Array.mem_toBinaryHeap [Ord α] {a : Array α} {x : α} :
     x ∈ a.toBinaryHeap ↔ x ∈ a := by
-  simp only [Array.toBinaryHeap, BinaryHeap.mem_def]
-  exact mkHeap_perm.mem_iff
+  simp [Array.toBinaryHeap, BinaryHeap.mem_def, mkHeap_perm.mem_iff]
 
 @[simp]
 theorem Vector.mem_toBinaryHeap [Ord α] {a : Vector α sz} {x : α} :
     x ∈ Batteries.Vector.toBinaryHeap a ↔ x ∈ a := by
   simp only [Batteries.Vector.toBinaryHeap, BinaryHeap.mem_def, Vector.mem_toArray_iff]
-  simp only [← Vector.mem_toArray_iff]
-  exact mkHeap_perm.mem_iff
+  simp [← Vector.mem_toArray_iff, mkHeap_perm.mem_iff]
 
 theorem Array.heapSort_perm [instOrd : Ord α] {a : Array α} :
     a.heapSort.Perm a := by
