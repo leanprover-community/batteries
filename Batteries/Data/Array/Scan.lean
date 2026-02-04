@@ -315,12 +315,12 @@ theorem scanl_reverse {f : β → α → β} {as : Array α} :
   simp
 
 theorem scanl_extract {f : β → α → β} {as : Array α} :
-    (as.extract start stop).scanl f init  = as.scanl f init start stop := by
+    (as.extract start stop).scanl f init = as.scanl f init start stop := by
   unfold scanl
   rw [scanlM_extract]
 
 theorem scanr_extract {f : α → β → β} {as : Array α} :
-    (as.extract stop start).scanr f init  = as.scanr f init start stop := by
+    (as.extract stop start).scanr f init = as.scanr f init start stop := by
   unfold scanr
   rw [scanrM_extract]
 
