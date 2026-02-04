@@ -9,6 +9,8 @@ public import Batteries.Data.BinaryHeap.WF
 import all Batteries.Data.BinaryHeap.WF
 import all Batteries.Data.BinaryHeap.Basic
 
+set_option profiler true
+set_option profiler.threshold 500
 namespace Batteries.BinaryHeap
 
 /-- If maxChild returns none, there are no children in bounds. -/
@@ -462,7 +464,6 @@ theorem size_insert [Ord α] (heap : BinaryHeap α) (x : α) :
     (heap.insert x).size = heap.size + 1 := by
   simp [size, insert]
 
-@[simp]
 theorem size_extractMax [Ord α] (heap : BinaryHeap α) :
     (heap.extractMax).2.size = heap.size - 1 := by
   simp [extractMax]
@@ -591,6 +592,16 @@ theorem insertExtractMax_fst_of_not_lt [Ord α] {heap : BinaryHeap α} {x m : α
     (heap.insertExtractMax x).1 = x := by
   grind only [insertExtractMax]
 
+@[simp]
+theorem insertExtractMax_empty [Ord α] (x : α) :
+    empty.insertExtractMax x = (x, empty) := by
+  simp [insertExtractMax, empty, max]
+
+@[simp]
+theorem replaceMax_empty [Ord α] (x : α) :
+    empty.replaceMax x = (none, singleton x) := by
+  simp [replaceMax, empty, singleton, max, vector]
+
 theorem size_replaceMax_of_empty [Ord α] {heap : BinaryHeap α} (h : heap.size = 0) (x : α) :
     (heap.replaceMax x).2.size = 1 := by
   grind only [replaceMax, size, Vector.size_toArray]
@@ -603,8 +614,15 @@ theorem size_replaceMax_of_nonempty [Ord α] {heap : BinaryHeap α} (h : heap.si
 @[simp]
 theorem replaceMax_fst [Ord α] (heap : BinaryHeap α) (x : α) :
     (heap.replaceMax x).1 = heap.max := by
-  unfold replaceMax
-  split <;> simp_all [max_eq_none_iff.mpr]
+  grind only [replaceMax, max_eq_none_iff.mpr]
+
+@[simp]
+theorem popMax_empty [Ord α] : (empty : BinaryHeap α).popMax = empty := by
+  simp [popMax, empty, size]
+
+@[simp]
+theorem extractMax_empty [Ord α] : (empty : BinaryHeap α).extractMax = (none, empty) := by
+  simp [extractMax]
 
 /-- Elements in popMax were in the original heap -/
 theorem popMax_subset [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ heap.popMax) :
