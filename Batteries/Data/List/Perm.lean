@@ -348,9 +348,9 @@ one list into the other. For example:
 (by decide : [1, 0, 1] <+~ [5, 0, 1, 3, 1]).idxInj 1 = 1
 ```
 -/
-def Subperm.idxInj [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+~ ys) :
-    Fin (xs.length) → Fin (ys.length) :=
-  ys.sigmaCountToIdx ∘ (fun xi => ⟨xi.1, xi.2.castLE (h.count_le _)⟩) ∘ xs.idxToSigmaCount
+def Subperm.idxInj [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+~ ys) (i : Fin (xs.length)) :
+    Fin (ys.length) := let ⟨x, t⟩ := xs.idxToSigmaCount i;
+  ys.sigmaCountToIdx ⟨x, t, Nat.lt_of_lt_of_le t.isLt <| h.count_le _⟩
 
 @[simp, grind =]
 theorem coe_idxInj [BEq α] [ReflBEq α] {xs ys : List α} {h : xs <+~ ys}
