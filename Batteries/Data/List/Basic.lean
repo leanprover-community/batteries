@@ -317,7 +317,9 @@ def idxOfNth [BEq α] (a : α) (xs : List α) (n : Nat) : Nat :=
   xs.findIdxNth (· == a) n
 
 /-- `countPBefore p xs i hip` counts the number of `x` in `xs` before the `i`th index for
-which `p x = true`. For example:
+which `p x = true`.
+
+For example:
 ```
 countPBefore (· < 3) [5, 1, 3, 2, 4, 0, 1, 4] 5 = 2
 ```
@@ -330,7 +332,9 @@ def countPBefore (p : α → Bool) (xs : List α) (i : Nat) : Nat := go xs i 0 w
   | [], _, s => s
 
 /-- `countBefore a xs n` counts the number of `x` in `xs` before the
-    `i`th index for which `x == a` is true. For example:
+`i`th index for which `x == a` is true.
+
+For example:
 ```
 countBefore 1 [5, 1, 3, 2, 4, 0, 1, 4] 6 = 1
 ```

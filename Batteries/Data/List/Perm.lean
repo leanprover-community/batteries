@@ -377,7 +377,6 @@ order-preserving embedding of one list into the other. For example:
 (by decide : [0, 1, 1] <+ [5, 0, 1, 3, 1]).idxInj 1 = 2
 ```
 -/
-
 def Sublist.idxOrderInj [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+ ys) :
     Fin (xs.length) → Fin (ys.length) := h.subperm.idxInj
 
@@ -392,7 +391,7 @@ theorem Sublist.coe_idxOrderInj [BEq α] [ReflBEq α] {xs ys : List α} (h : xs 
 
 theorem Sublist.getElem_idxOrderInj_eq_getElem [BEq α] [LawfulBEq α] {xs ys : List α}
     (h : xs <+ ys) {i : Fin (xs.length)} :
-  ys[(h.idxOrderInj i : Nat)] = xs[(i : Nat)] := getElem_idxOfNth_eq
+    ys[(h.idxOrderInj i : Nat)] = xs[(i : Nat)] := getElem_idxOfNth_eq
 
 theorem Sublist.idxOrderInj_injective [BEq α] [LawfulBEq α] {xs ys : List α}
     (h : xs <+ ys) : h.idxOrderInj.Injective := Subperm.idxInj_injective _
@@ -400,7 +399,7 @@ theorem Sublist.idxOrderInj_injective [BEq α] [LawfulBEq α] {xs ys : List α}
 @[simp]
 theorem Sublist.idxOrderInj_inj [BEq α] [LawfulBEq α] {xs ys : List α}
     {h : xs <+ ys} (i j : Fin (xs.length)) :
-  h.idxOrderInj i = h.idxOrderInj j ↔ i = j := h.idxOrderInj_injective.eq_iff
+    h.idxOrderInj i = h.idxOrderInj j ↔ i = j := h.idxOrderInj_injective.eq_iff
 
 proof_wanted Sublist.idxOrderInj_lt_iff_lt [BEq α] [LawfulBEq α] {xs ys : List α}
     {h : xs <+ ys} (i j : Fin (xs.length)) : h.idxOrderInj i < h.idxOrderInj j ↔ i < j

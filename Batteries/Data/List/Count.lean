@@ -34,7 +34,9 @@ theorem count_concat [BEq α] [LawfulBEq α] (a : α) (l : List α) :
 /-! ### idxToSigmaCount, sigmaCountToIdx -/
 
 /-- `idxToSigmaCount` is essentially a `Fin`-to-`Fin` wrapper for `countBefore` that also
-includes the corresponding element. For example:
+includes the corresponding element.
+
+For example:
 ```
 idxToSigmaCount [5, 1, 3, 2, 4, 0, 1, 4] 5 = ⟨0, 0⟩
 ```
@@ -57,6 +59,7 @@ theorem coe_snd_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin (xs
     ((xs.idxToSigmaCount i).2 : Nat) = xs.countBefore xs[i.1] i := rfl
 
 /-- `sigmaCountToIdx` is a `_ × Fin`-to-`Fin` wrapper for `countBefore`.
+
 For example:
 ```
 sigmaCountToIdx [5, 1, 3, 2, 4, 0, 1, 4] ⟨0, 0⟩ = 5

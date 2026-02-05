@@ -16,6 +16,7 @@ instance instNeZeroNatLengthCons {a : α} {l : List α} : NeZero (a :: l).length
   ⟨Nat.succ_ne_zero _⟩
 
 /-! ### count -/
+
 theorem count_getElem_take_succ [BEq α] [EquivBEq α] {xs : List α}
     {i : Nat} {hi} : (xs.take (i + 1)).count xs[i] = (xs.take i).count xs[i] + 1 := by
   grind [take_append_getElem]
@@ -668,7 +669,7 @@ theorem findIdxNth_zero : (xs : List α).findIdxNth p 0 = xs.findIdx p := by
   induction xs <;> grind
 
 @[grind =>]
-theorem findIdxNth_lt_length_of_lt_countP {xs : List α} : n < xs.countP p →
+theorem findIdxNth_lt_length_of_lt_countP {xs : List α} (h : n < xs.countP p) :
     xs.findIdxNth p n < xs.length := by induction xs generalizing n <;> grind
 
 @[grind =>]
@@ -695,9 +696,9 @@ theorem findIdxNth_le_length {xs : List α} :
 
 theorem findIdxNth_le_findIdxNth_iff {xs : List α} :
     xs.findIdxNth p n ≤ xs.findIdxNth p m ↔ countP p xs ≤ m ∨ n ≤ m := by
-  induction xs generalizing n m with | nil | cons a xs IH
-  · grind
-  · cases h : p a <;> cases n <;> cases m <;> simp [h, IH]
+  induction xs generalizing n m with
+  | nil => grind
+  | cons a xs IH => cases h : p a <;> cases n <;> cases m <;> simp [h, IH]
 
 theorem findIdxNth_lt_findIdxNth_iff {xs : List α} :
     xs.findIdxNth p n < xs.findIdxNth p m ↔ n < xs.countP p ∧ n < m := by
@@ -896,7 +897,7 @@ theorem getElem_idxOf_eq_idxOfNth_add {xs : List α} [BEq α] {hixs : n < (xs.id
   induction xs generalizing n s <;> grind
 
 @[grind =]
-theorem getElem_idxOf_eq_idxOfNth {xs : List α} [BEq α] {hixs : n < (xs.idxsOf x).length} :
+theorem getElem_idxOf_eq_idxOfNth {xs : List α} [BEq α] {h : n < (xs.idxsOf x).length} :
     (xs.idxsOf x)[n] = xs.idxOfNth x n := getElem_idxOf_eq_idxOfNth_add
 
 @[grind =>]
@@ -984,12 +985,13 @@ theorem countPBefore_cons_zero {a : α} :
 @[grind =]
 theorem countPBefore_succ :
     (xs : List α).countPBefore p (i + 1) =
-    if h : xs = [] then 0 else
-    if p (xs.head h) then xs.tail.countPBefore p i + 1
+    if h : xs = [] then 0
+    else if p (xs.head h) then xs.tail.countPBefore p i + 1
     else xs.tail.countPBefore p i := by grind [cases List]
 
 theorem countPBefore_cons_succ_of_neg {a : α} (h : p a = false) :
     (a :: xs).countPBefore p (i + 1) = xs.countPBefore p i := by grind
+
 theorem countPBefore_cons_succ_of_pos {a : α} (h : p a) :
     (a :: xs).countPBefore p (i + 1) = xs.countPBefore p i + 1 := by grind
 
