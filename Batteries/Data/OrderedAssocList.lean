@@ -3,8 +3,10 @@ Copyright (c) 2023 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
-import Batteries.Data.AssocList
-import Batteries.Classes.Order
+module
+public import Batteries.Data.AssocList
+import all Batteries.Data.AssocList
+public import Batteries.Classes.Order
 
 /-!
 # Ordered association lists
@@ -32,6 +34,8 @@ The main operations defined are:
 * `merge f` for `f : α → Option β → Option γ → Option δ` which merges two lists,
   dropping some values. It runs in time `O(l₁.length + l₂.length)`.
 -/
+
+@[expose] public section
 
 open Std
 
@@ -216,20 +220,8 @@ theorem headKey?_orderedInsert_or (cmp) (l : AssocList α β) (a) (b) :
   | .nil => left; rfl
   | .cons x y s => dsimp; cases cmp a x <;> simp
 
-theorem orderedInsert_KeysOrdered [LawfulEqCmp cmp] [OrientedCmp cmp] (h : KeysOrdered cmp l) :
-    KeysOrdered cmp (orderedInsert cmp l a b) := by
-  match l with
-  | .nil => trivial
-  | .cons x y t =>
-    dsimp [orderedInsert]
-    match w : cmp a x with
-    | .lt => exact ⟨w, h⟩
-    | .eq =>
-      rcases LawfulEqCmp.eq_of_compare w with rfl
-      cases t <;> exact h
-    | .gt => exact aux h w
--- I've split this step out with a name as it is useful to fill in a proof term later.
-where aux [LawfulEqCmp cmp] [OrientedCmp cmp] {x y t}
+mutual
+theorem orderedInsert_KeysOrdered_aux [LawfulEqCmp cmp] [OrientedCmp cmp] {x y t}
     (h : KeysOrdered cmp (cons x y t)) (w : cmp a x = Ordering.gt) :
     KeysOrdered cmp (cons x y (orderedInsert cmp t a b)) := by
         apply KeysOrdered_cons
@@ -241,6 +233,20 @@ where aux [LawfulEqCmp cmp] [OrientedCmp cmp] {x y t}
             exact ltHeadKey?_of_keysOrdered_cons h
         · apply orderedInsert_KeysOrdered
           exact h.tail
+
+theorem orderedInsert_KeysOrdered [LawfulEqCmp cmp] [OrientedCmp cmp] (h : KeysOrdered cmp l) :
+    KeysOrdered cmp (orderedInsert cmp l a b) := by
+  match l with
+  | .nil => trivial
+  | .cons x y t =>
+    dsimp [orderedInsert]
+    match w : cmp a x with
+    | .lt => exact ⟨w, h⟩
+    | .eq =>
+      rcases LawfulEqCmp.eq_of_compare w with rfl
+      cases t <;> exact h
+    | .gt => exact orderedInsert_KeysOrdered_aux h w
+end
 
 theorem headKey?_le_headKey?_filterMapVal [TransCmp cmp] (h : KeysOrdered cmp l) :
     headKey?_le_headKey? cmp l (l.filterMapVal f) := by
@@ -333,8 +339,12 @@ theorem orderedMerge_KeysOrdered [LawfulEqCmp cmp] [TransCmp cmp]
     KeysOrdered cmp (orderedMerge cmp f l₁ l₂) := by
   match l₁, l₂ with
   | .nil, .nil => trivial
-  | .nil, .cons a₂ g t₂ => exact filterMapVal_KeysOrdered h₂
-  | .cons a₁ b t₁, .nil => exact filterMapVal_KeysOrdered h₁
+  | .nil, .cons a₂ g t₂ =>
+    unfold orderedMerge
+    exact filterMapVal_KeysOrdered h₂
+  | .cons a₁ b t₁, .nil =>
+    unfold orderedMerge
+    exact filterMapVal_KeysOrdered h₁
   | .cons a₁ b t₁, .cons a₂ g t₂ =>
     rw [orderedMerge]
     match h : cmp a₁ a₂ with
@@ -409,7 +419,7 @@ theorem orderedFind?_eq_none_of_LTHeadKey? (l : AssocList α β) (w : LTHeadKey?
 theorem orderedFind?_cons [TransCmp cmp]
     (h : (AssocList.cons a b t).KeysOrdered cmp) :
     orderedFind? cmp (.cons a b t) x = if cmp x a = .eq then some b else orderedFind? cmp t x := by
-  simp only [find?, AssocList.orderedFind?]
+  simp only [AssocList.orderedFind?]
   split <;> rename_i w <;> simp only [w, reduceCtorEq, reduceIte]
   rw [AssocList.orderedFind?_eq_none_of_LTHeadKey?]
   simp only [LTHeadKey?, headKey?]
@@ -425,7 +435,7 @@ theorem orderedFind?_cons [TransCmp cmp]
 
 @[simp] theorem orderedFind?_cons_self [OrientedCmp cmp] :
     orderedFind? cmp (.cons a b t) a = some b := by
-  simp [find?, AssocList.orderedFind?, ReflCmp.compare_self]
+  simp [AssocList.orderedFind?, ReflCmp.compare_self]
 
 theorem orderedFind?_orderedInsert {cmp : α → α → Ordering} [LawfulEqCmp cmp] [TransCmp cmp]
     (l : AssocList α β) (h : KeysOrdered cmp l) (a : α) (b : β) :
@@ -448,7 +458,7 @@ theorem orderedFind?_orderedInsert {cmp : α → α → Ordering} [LawfulEqCmp c
         · rcases (LawfulEqCmp.eq_of_compare h₂).symm
           simp_all [OrientedCmp.lt_of_gt]
         · rfl
-      · exact orderedInsert_KeysOrdered.aux h h₁
+      · exact orderedInsert_KeysOrdered_aux h h₁
 termination_by l.length
 
 theorem orderedFind?_orderedInsert_self {cmp : α → α → Ordering} [LawfulEqCmp cmp] [TransCmp cmp]
@@ -482,7 +492,7 @@ theorem ext_orderedKeys
         rw [w₂, orderedFind?_eq_none_of_LTHeadKey? _ h]
       specialize w a₁
       simp [orderedFind?_cons_self] at w
-      simp_all [orderedFind?_eq_find?]
+      simp_all
     | .eq =>
       rcases LawfulEqCmp.eq_of_compare h
       have w' := w a₁
@@ -504,7 +514,7 @@ theorem ext_orderedKeys
         rw [w₁, orderedFind?_eq_none_of_LTHeadKey? _ (OrientedCmp.lt_of_gt h)]
       specialize w a₂
       simp [orderedFind?_cons_self] at w
-      simp_all [orderedFind?_eq_find?]
+      simp_all
 
 @[simp]
 theorem orderedFind?_filterMapVal {cmp : α → α → Ordering} [LawfulEqCmp cmp] [TransCmp cmp]
@@ -545,7 +555,7 @@ theorem filterMapVal_filterMapVal {cmp : α → α → Ordering} [LawfulEqCmp cm
   · intro a
     rw [orderedFind?_filterMapVal, orderedFind?_filterMapVal h, orderedFind?_filterMapVal h]
     · ext d
-      simp only [orderedFind?_filterMapVal, h, Option.mem_def, Option.bind_eq_some_iff]
+      simp only [Option.bind_eq_some_iff]
       constructor
       · rintro ⟨c, ⟨⟨b, hb, hc⟩, hd⟩⟩
         refine ⟨b, hb, c, hc, hd⟩
@@ -722,7 +732,7 @@ def insert (l : OrderedAssocList cmp β) (a : α) (b : β) : OrderedAssocList cm
     | .eq => ⟨.cons a b t, by
         cases (LawfulEqCmp.eq_of_compare w); cases t <;> exact h⟩
     | .gt => .cons x y (insert ⟨t, h.tail⟩ a b) (AssocList.ltHeadKey?_of_keysOrdered_cons
-        (AssocList.orderedInsert_KeysOrdered.aux h w)) := by
+        (AssocList.orderedInsert_KeysOrdered_aux h w)) := by
   dsimp [insert, AssocList.orderedInsert]
   congr
   split <;> simp
@@ -811,12 +821,16 @@ unseal AssocList.orderedMerge in
 unseal AssocList.orderedMerge in
 @[simp] theorem merge_mk_nil_mk_cons {f : α → Option β → Option γ → Option δ} :
     merge f (⟨.nil, h⟩ : OrderedAssocList cmp β) ⟨.cons x' y' t', h'⟩ =
-      filterMapVal (fun a g => f a none (some g)) ⟨.cons x' y' t', h'⟩ := rfl
+      filterMapVal (fun a g => f a none (some g)) ⟨.cons x' y' t', h'⟩ := by
+  simp [merge, AssocList.orderedMerge]
+  rfl
 
 unseal AssocList.orderedMerge in
 @[simp] theorem merge_mk_cons_mk_nil {f : α → Option β → Option γ → Option δ} :
     merge f ⟨.cons x y t, h⟩ (⟨.nil, h'⟩ : OrderedAssocList cmp γ) =
-      filterMapVal (fun a b => f a (some b) none) ⟨.cons x y t, h⟩ := rfl
+      filterMapVal (fun a b => f a (some b) none) ⟨.cons x y t, h⟩ := by
+  simp [merge, AssocList.orderedMerge]
+  rfl
 
 private theorem merge_mk_cons_mk_cons_list
     (f : α → Option β → Option γ → Option δ) (x y t h x' y' t' h') :
@@ -861,10 +875,7 @@ private theorem merge_mk_cons_mk_cons {f : α → Option β → Option γ → Op
             simp only [w, i] at p
             simp only [list_merge]
             simp only [← p]
-            exact (merge f _ _).KeysOrdered⟩ := by
-  apply ext_list
-  simp only [merge_mk_cons_mk_cons_list]
-  split <;> split <;> simp_all [merge]
+            exact (merge f _ _).KeysOrdered⟩ := by grind +locals
 
 unseal AssocList.orderedMerge in
 @[simp] theorem getElem?_merge {f : α → Option β → Option γ → Option δ}
