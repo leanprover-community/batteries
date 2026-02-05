@@ -122,7 +122,8 @@ elab_rules : tactic
     | ``simpTrace => do
       -- Convert simp? to simp and run
       match tac with
-      | `(tactic| simp?%$tk $[!%$bang]? $cfg:optConfig $(discharger)? $[only%$o]? $[[$args,*]]? $(loc)?) =>
+      | `(tactic| simp?%$tk $[!%$bang]? $cfg:optConfig $(discharger)? $[only%$o]?
+          $[[$args,*]]? $(loc)?) =>
         let simpStx ← if bang.isSome then
           `(tactic| simp!%$tk $cfg:optConfig $[$discharger]? $[only%$o]? $[[$args,*]]? $[$loc]?)
         else
@@ -136,7 +137,8 @@ elab_rules : tactic
     | ``simpAllTrace => do
       -- Convert simp_all? to simp_all and run
       match tac with
-      | `(tactic| simp_all?%$tk $[!%$bang]? $cfg:optConfig $(discharger)? $[only%$o]? $[[$args,*]]?) =>
+      | `(tactic| simp_all?%$tk $[!%$bang]? $cfg:optConfig $(discharger)? $[only%$o]?
+          $[[$args,*]]?) =>
         let simpStx ← if bang.isSome then
           `(tactic| simp_all!%$tk $cfg:optConfig $[$discharger]? $[only%$o]? $[[$args,*]]?)
         else
