@@ -41,21 +41,21 @@ For example:
 idxToSigmaCount [5, 1, 3, 2, 4, 0, 1, 4] 5 = ⟨0, 0⟩
 ```
 -/
-def idxToSigmaCount [BEq α] [ReflBEq α] (xs : List α) (i : Fin (xs.length)) :
+def idxToSigmaCount [BEq α] [ReflBEq α] (xs : List α) (i : Fin xs.length) :
     (x : α) × Fin (xs.count x) :=
   ⟨xs[i.1], xs.countBefore xs[i.1] i, countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl⟩
 
 @[simp, grind =]
-theorem fst_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin (xs.length)} :
+theorem fst_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin xs.length} :
     (xs.idxToSigmaCount i).1 = xs[i.1] := rfl
 
 @[simp, grind =]
-theorem snd_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin (xs.length)} :
+theorem snd_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin xs.length} :
     (xs.idxToSigmaCount i).2 =
     ⟨xs.countBefore xs[i.1] i, countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl⟩ := rfl
 
 @[simp, grind =]
-theorem coe_snd_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin (xs.length)} :
+theorem coe_snd_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin xs.length} :
     ((xs.idxToSigmaCount i).2 : Nat) = xs.countBefore xs[i.1] i := rfl
 
 /-- `sigmaCountToIdx` is a `_ × Fin`-to-`Fin` wrapper for `countBefore`.
@@ -66,7 +66,7 @@ sigmaCountToIdx [5, 1, 3, 2, 4, 0, 1, 4] ⟨0, 0⟩ = 5
 ```
 -/
 def sigmaCountToIdx [BEq α] (xs : List α) (xc : (x : α) × Fin (xs.count x)) :
-    Fin (xs.length) := ⟨xs.idxOfNth xc.1 xc.2, idxOfNth_lt_length_of_lt_count xc.2.isLt⟩
+    Fin xs.length := ⟨xs.idxOfNth xc.1 xc.2, idxOfNth_lt_length_of_lt_count xc.2.isLt⟩
 
 @[simp, grind =]
 theorem coe_sigmaCountToIdx [BEq α] {xs: List α} {xc : (x : α) × Fin (xs.count x)} :
@@ -74,7 +74,7 @@ theorem coe_sigmaCountToIdx [BEq α] {xs: List α} {xc : (x : α) × Fin (xs.cou
 
 @[simp, grind =]
 theorem sigmaCountToIdx_idxToSigmaCount [BEq α] [ReflBEq α] {xs : List α}
-    {i : Fin (xs.length)} : xs.sigmaCountToIdx (xs.idxToSigmaCount i) = i :=
+    {i : Fin xs.length} : xs.sigmaCountToIdx (xs.idxToSigmaCount i) = i :=
   Fin.ext <| idxOfNth_countBefore_of_lt_length_of_beq _ BEq.rfl
 
 @[simp, grind =]
