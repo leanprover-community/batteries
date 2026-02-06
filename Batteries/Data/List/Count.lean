@@ -77,7 +77,31 @@ theorem sigmaCountToIdx_idxToSigmaCount [BEq α] [ReflBEq α] {xs : List α}
     {i : Fin xs.length} : xs.sigmaCountToIdx (xs.idxToSigmaCount i) = i :=
   Fin.ext <| idxOfNth_countBefore_of_lt_length_of_beq _ BEq.rfl
 
+theorem leftInverse_sigmaCountToIdx_idxToSigmaCount [BEq α] [ReflBEq α] {xs : List α} :
+  xs.sigmaCountToIdx.LeftInverse xs.idxToSigmaCount := by grind
+
+theorem rightInverse_idxToSigmaCount_sigmaCountToIdx [BEq α] [ReflBEq α] {xs : List α} :
+  xs.idxToSigmaCount.RightInverse xs.sigmaCountToIdx := by grind
+
+theorem injective_idxToSigmaCount [BEq α] [ReflBEq α] {xs : List α} :
+    xs.idxToSigmaCount.Injective := leftInverse_sigmaCountToIdx_idxToSigmaCount.injective
+
+theorem surjective_sigmaCountToIdx [BEq α] [ReflBEq α] {xs : List α} :
+    xs.sigmaCountToIdx.Surjective := rightInverse_idxToSigmaCount_sigmaCountToIdx.surjective
+
 @[simp, grind =]
 theorem idxToSigmaCount_sigmaCountToIdx [BEq α] [LawfulBEq α] {xs : List α}
     {xc : (x : α) × Fin (xs.count x)} : xs.idxToSigmaCount (xs.sigmaCountToIdx xc) = xc :=
   Sigma.ext getElem_idxOfNth_eq (heq_of_eqRec_eq (by simp) (by grind))
+
+theorem leftInverse_idxToSigmaCount_sigmaCountToIdx [BEq α] [LawfulBEq α] {xs : List α} :
+  xs.idxToSigmaCount.LeftInverse xs.sigmaCountToIdx := by grind
+
+theorem rightInverse_sigmaCountToIdx_idxToSigmaCount [BEq α] [LawfulBEq α] {xs : List α} :
+  xs.sigmaCountToIdx.RightInverse xs.idxToSigmaCount := by grind
+
+theorem injective_sigmaCountToIdx [BEq α] [LawfulBEq α] {xs : List α} :
+    xs.sigmaCountToIdx.Injective := leftInverse_idxToSigmaCount_sigmaCountToIdx.injective
+
+theorem surjective_idxToSigmaCount [BEq α] [LawfulBEq α] {xs : List α} :
+    xs.idxToSigmaCount.Surjective := rightInverse_sigmaCountToIdx_idxToSigmaCount.surjective
