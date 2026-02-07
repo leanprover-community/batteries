@@ -82,14 +82,12 @@ def getLinter (name declName : Name) : CoreM NamedLinter := unsafe
 
 /-- Defines the `env_linter` extension for adding a linter to the default set. -/
 initialize batteriesLinterExt :
-    PersistentEnvExtension (Name × Bool) (Name × Bool) (NameMap (Name × Bool)) ←
+    SimplePersistentEnvExtension (Name × Bool) (NameMap (Name × Bool)) ←
   let addEntryFn := fun m (n, b) => m.insert (n.updatePrefix .anonymous) (n, b)
-  registerPersistentEnvExtension {
-    mkInitial := pure {}
-    addImportedFn := fun nss => pure <|
+  registerSimplePersistentEnvExtension {
+    addImportedFn := fun nss =>
       nss.foldl (init := {}) fun m ns => ns.foldl (init := m) addEntryFn
-    addEntryFn
-    exportEntriesFn := fun es => es.foldl (fun a _ e => a.push e) #[]
+    addEntryFn := fun m (n, b) => m.insert (n.updatePrefix .anonymous) (n, b)
   }
 
 /--
