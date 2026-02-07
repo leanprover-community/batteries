@@ -42,7 +42,7 @@ example (P : (Nat → Nat) → Prop) : P (fun n => n - n) := by
     tactic => sorry
   sorry
 
-/-- warning: declaration uses 'sorry' -/
+/-- warning: declaration uses `sorry` -/
 #guard_msgs in
 example (P : Nat → Prop) : P 12 := by
   conv =>
