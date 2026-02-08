@@ -342,7 +342,7 @@ theorem toSortedArray_loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α)
     have h_x : x = heap.arr[0] := max_eq_arr_zero h_some
     apply toSortedArray_loop_perm heap.popMax (out.push x) |>.trans
     simp only [Array.toList_push]
-    apply (List.perm_append_comm.append_left _).trans
+    apply List.perm_append_comm.append_left _ |>.trans
     simp only [← List.append_assoc]
     apply List.Perm.append_right
     apply List.cons_perm_append_singleton x |>.symm.trans
@@ -659,7 +659,7 @@ theorem toSortedArray_sorted [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
 @[simp]
 theorem size_toSortedArray [Ord α] {heap : BinaryHeap α} :
     heap.toSortedArray.size = heap.size :=
-  (toSortedArray_perm heap).size_eq
+  toSortedArray_perm heap |>.size_eq
 
 @[simp]
 theorem mem_toSortedArray [Ord α] {heap : BinaryHeap α} {x : α} :
