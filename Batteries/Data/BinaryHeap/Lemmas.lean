@@ -461,9 +461,7 @@ theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : Binary
   rw [WF.iff_bottomUp]
   apply heapifyUp_bottomUp
   . intro i _
-    unfold WF at h_wf
-    rw [WF.iff_bottomUp] at h_wf
-    unfold WF.BottomUp at h_wf
+    rw [WF, WF.iff_bottomUp, WF.BottomUp] at h_wf
     intro h_nz
     simp only [Fin.getElem_fin]
     rw [Vector.getElem_push_lt, Vector.getElem_push_lt]
