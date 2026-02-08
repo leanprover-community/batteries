@@ -79,8 +79,8 @@ theorem heapifyDown_getElem_of_not_inSubtree [Ord α] {a : Vector α sz} {i : Fi
     · simp_all [heapifyDown_eq_of_not_lt_child]
 termination_by sz - i
 
-/-- Variant of `heapifyDown_getElem_of_not_inSubtree` that takes a `Nat` index instead of `Fin`.
-    Useful when working with numeric inequalities; converts the `Nat` to a `Fin` internally. -/
+/-- Variant of `heapifyDown_getElem_of_not_inSubtree` that takes a `Nat` index instead of `Fin`
+    Mostly for automation, simp/grind have a hard time doing this on their own -/
 theorem heapifyDown_getElem_of_not_inSubtree' [Ord α] {a : Vector α sz} {i : Fin sz}
     {k : Nat} (hk : k < sz) (hnsub : ¬InSubtree i k) :
     (heapifyDown a i)[k] = a[k] :=
