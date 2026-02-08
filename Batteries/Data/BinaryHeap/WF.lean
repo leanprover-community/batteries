@@ -179,8 +179,6 @@ theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   -- m's value unchanged by set, so use original parent_ge_subtree relationship
   · have : i.val ≠ m.val := by omega
     simp_all only [Fin.getElem_fin, ne_eq, not_false_eq_true, Vector.getElem_set_ne]
-    -- Extend the subtree: parent → i → m
-    have h_parent_to_i : InSubtree parent.val i.val := by grind only [InSubtree]
     exact WF.parent_ge_subtree
       (hwf_at := htd parent)
       (hwf_below := fun j _ => htd j)
@@ -344,10 +342,10 @@ theorem childLeParent_set_of_ge [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     by_cases hi : i.val = 0
     · have hset_parent : (v.set i x i.isLt)[parent] = x := by simp_all [parent]
       grind only [!Std.TransOrd.isLE_trans, Std.OrientedOrd.eq_swap, !Ordering.isGE_swap,
-        Vector.getElem_set]
+        Vector.getElem_set_ne]
     · have h_parent := hbu i (by omega)
       grind only [!Std.TransOrd.isLE_trans, Std.OrientedOrd.eq_swap, !Ordering.isGE_swap,
-        Parent, Vector.getElem_set]
+        Parent, Vector.getElem_set_ne]
 
 /-- Swapping the root with the last element and then popping maintains the Below invariant at the root for heapifyDown. -/
 theorem below_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.TopDown a) (h0 : 0 < sz) :
