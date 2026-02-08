@@ -313,7 +313,7 @@ theorem iff_bottomUp [Ord α] [Std.OrientedOrd α] (a : Vector α sz) :
       !Ordering.isGE_swap]
 
 /-- If exception is at 0, then bottomUp holds -/
-theorem bottomUp_of_exceptAt_zero [Ord α] {a : Vector α sz} (h : 0 < sz)
+theorem bottomUp_of_exceptAt_root [Ord α] {a : Vector α sz} (h : 0 < sz)
     (hexcept : ExceptAt a ⟨0, h⟩) :
     WF.BottomUp a := by
   grind only [Parent, Fin.ext_iff, WF.BottomUp, ExceptAt]
@@ -372,8 +372,8 @@ theorem below_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.TopDown a)
   intro j _
   have ⟨hwf_l, hwf_r⟩ := hwf ⟨j.val, by omega⟩
   constructor <;> intro
-  case' left  => have := hwf_l (by omega : 2 * j.val + 1 < sz)
-  case' right => have := hwf_r (by omega : 2 * j.val + 2 < sz)
+  case' left  => have := hwf_l (show 2 * j.val + 1 < sz by omega)
+  case' right => have := hwf_r (show 2 * j.val + 2 < sz by omega)
   all_goals grind only [Vector.getElem_swap, Vector.getElem_pop, Fin.getElem_fin]
 
 end WF

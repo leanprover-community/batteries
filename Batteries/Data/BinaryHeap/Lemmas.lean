@@ -259,7 +259,7 @@ theorem heapifyUp_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   induction a, i using heapifyUp.induct with
   | case1 =>
     simp only [heapifyUp]
-    exact WF.bottomUp_of_exceptAt_zero (by omega) h_exc
+    exact WF.bottomUp_of_exceptAt_root (by omega) h_exc
   | case2 a i hisucc j h_lt ih =>
     have h_le : compare a[j] a[i+1] |>.isLE := by simp_all [Ordering.isLE_eq_isLT_or_isEq]
     simp only [heapifyUp, h_lt, ↓reduceIte, j]
