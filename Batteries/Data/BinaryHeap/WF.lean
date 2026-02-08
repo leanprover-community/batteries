@@ -93,7 +93,7 @@ theorem mem_of_zero (a : Nat) : InSubtree 0 a := by
 
 /-- A child index is in the subtree of its parent. -/
 theorem of_child (h : j = 2 * i + 1 ∨ j = 2 * i + 2) : InSubtree i j := by
-  rcases h with h | h <;> (simp only [h]; constructor; exact .refl)
+  rcases h with h | h <;> (subst h; constructor; exact .refl)
 
 end InSubtree
 
@@ -195,19 +195,20 @@ theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     exact WF.parent_ge_subtree
       (hwf_at := htd parent)
       (hwf_below := fun j _ => htd j)
-      (hsub := InSubtree.trans h_parent_to_i hsub)
+      (hsub := InSubtree.trans (by grind only [InSubtree]) hsub)
 
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
 theorem swap_preserves_ge_subtree [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} {i j : Fin sz} (h_ij : i < j) (h_lt : (compare a[i] a[j]).isLT)
     (hbelow : WF.Below a i) (k : Fin sz) (hsub : InSubtree j k) :
     (compare a[j] (a.swap i j i.isLt j.isLt)[k]).isGE := by
-  by_cases hk_eq_j : k.val = j.val
+  simp only [Fin.getElem_fin]
+  by_cases hkj : k.val = j.val
   · rw [← Ordering.isGE, Std.OrientedOrd.eq_swap]
     simp_all
-  · have hi' : k.val ≠ i.val := InSubtree.ne_of_lt h_ij hsub
-    simp_all [WF.parent_ge_subtree, hbelow j h_ij, Vector.getElem_swap_of_ne,
-      WF.below_of_le (Fin.le_of_lt h_ij) hbelow]
+  · rw [Vector.getElem_swap_of_ne (InSubtree.ne_of_lt h_ij hsub) hkj]
+    apply WF.parent_ge_subtree (hbelow j h_ij) _ hsub
+    exact WF.below_of_le (Fin.le_of_lt h_ij) hbelow
 
 /-- The root element is greater than or equal to all heap elements. -/
 theorem root_ge_all [Ord α] [Std.TransOrd α]
@@ -279,11 +280,10 @@ theorem childLeParent_swap_parent [Ord α] [Std.TransOrd α] [Std.OrientedOrd α
   all_goals
     intro hside
     unfold ExceptAt Parent at hexcept
-    by_cases hli : targetIdx = i.val
+    by_cases hli : i.val = targetIdx
     · have hji : j ≠ i.val := by omega
       grind only [= Fin.getElem_fin, = Vector.getElem_swap]
     · have hparent_eq : (targetIdx - 1) / 2 = j := by omega
-      simp_all only [Fin.getElem_fin]
       have h1 := hexcept ⟨targetIdx, hside⟩ (by grind only) (by grind only)
       by_cases hj_pos : 0 < j <;>
         grind only [= Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isLE_trans]
@@ -299,14 +299,14 @@ def BottomUp [Ord α] (v : Vector α sz) : Prop :=
 theorem iff_bottomUp [Ord α] [Std.OrientedOrd α] (a : Vector α sz) :
     WF.TopDown a ↔ WF.BottomUp a := by
   constructor
-  · intro hTop i
-    have := hTop ⟨(i.val - 1) / 2, by omega⟩
+  · intro htd i
+    have := htd ⟨(i.val - 1) / 2, by omega⟩
     grind only [Ordering.isGE_swap, Std.OrientedOrd.eq_swap, WF.Children,
       Parent, = Fin.getElem_fin]
-  · intro hBottom i
+  · intro hbu i
     constructor <;> intro hchild
-    case' mpr.left => have := hBottom ⟨2 * i.val + 1, hchild⟩
-    case' mpr.right => have := hBottom ⟨2 * i.val + 2, hchild⟩
+    case' mpr.left => have := hbu ⟨2 * i.val + 1, hchild⟩
+    case' mpr.right => have := hbu ⟨2 * i.val + 2, hchild⟩
     all_goals
       grind only [Std.OrientedOrd.eq_swap, Parent, = Fin.getElem_fin,
       !Ordering.isGE_swap]
