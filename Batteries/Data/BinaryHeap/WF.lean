@@ -46,8 +46,8 @@ end
 theorem WF.children_congr [Ord α] {a b : Vector α sz} {k : Fin sz}
     (hwf : WF.Children a k)
     (hk : b[k] = a[k])
-    (hl : ∀ h : 2 * k.val + 1 < sz, b[2 * k.val + 1] = a[2 * k.val + 1])
-    (hr : ∀ h : 2 * k.val + 2 < sz, b[2 * k.val + 2] = a[2 * k.val + 2]) :
+    (hl : ∀ _ : 2 * k.val + 1 < sz, b[2 * k.val + 1] = a[2 * k.val + 1])
+    (hr : ∀ _ : 2 * k.val + 2 < sz, b[2 * k.val + 2] = a[2 * k.val + 2]) :
     WF.Children b k := by
   simp_all [WF.Children]
 
@@ -115,16 +115,8 @@ theorem below_swap [Ord α] {a : Vector α sz} {i j : Fin sz}
     {hbelow : WF.Below a i} {hij : i < j} :
     WF.Below (a.swap i j) j := by
   intro k hk_gt_j
-  have hchild := hbelow k (Nat.lt_trans hij hk_gt_j)
-  grind only [= Fin.getElem_fin, = Vector.getElem_swap, WF.Children]
-
-/-- Setting a smaller value preserves WF.Below -/
-theorem below_set [Ord α] {v : Vector α sz} {i : Fin sz} {x : α}
-    (htd : WF.TopDown v) :
-    WF.Below (v.set i x) i := by
-  intro j hj
-  have ⟨hwf_jl, hwf_jr⟩ := htd j
-  grind only [Vector.getElem_set, Fin.getElem_fin, WF.Children]
+  apply WF.children_congr (hbelow k (Nat.lt_trans hij hk_gt_j))
+    <;> intros <;> apply Vector.getElem_swap_of_ne <;> omega
 
 /-- For k < i where neither child equals i, set at i preserves WF.children at k -/
 theorem children_set_of_ne [Ord α] {v : Vector α sz} {i k : Fin sz} {x : α}
@@ -132,6 +124,13 @@ theorem children_set_of_ne [Ord α] {v : Vector α sz} {i k : Fin sz} {x : α}
     (hleft_ne : i.val ≠ 2 * k.val + 1) (hright_ne : i.val ≠ 2 * k.val + 2) :
     WF.Children (v.set i x) k := by
   apply WF.children_congr hwf <;> intros <;> apply Vector.getElem_set_ne <;> omega
+
+/-- Setting a smaller value preserves WF.Below -/
+theorem below_set [Ord α] {v : Vector α sz} {i : Fin sz} {x : α}
+    (htd : WF.TopDown v) :
+    WF.Below (v.set i x) i := by
+  intro j hj
+  apply children_set_of_ne (htd j) <;> omega
 
 /-- An empty vector is trivially well-formed (no nodes to violate the heap property). -/
 theorem topDown_empty [Ord α] : WF.TopDown (#v[] : Vector α 0) := by
