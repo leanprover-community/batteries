@@ -279,7 +279,7 @@ section perm
 theorem List.cons_perm_append_singleton {l : List α} (x : α) : (x :: l).Perm (l ++ [x]) := by
   induction l with
   | nil => rfl
-  | cons => exact List.Perm.swap _ _ _ |>.trans (List.Perm.cons _ ‹_›)
+  | cons x' xs ih => exact List.Perm.swap x' x xs |>.trans (ih.cons x')
 
 /-- For a vector, the last element cons'd with pop.toList is a permutation of toList -/
 theorem Vector.last_cons_pop_perm {v : Vector α (n+1)} :
