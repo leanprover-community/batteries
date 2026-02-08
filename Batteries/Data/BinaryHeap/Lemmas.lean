@@ -31,13 +31,13 @@ theorem maxChild_ge_left [Ord α] [Std.OrientedOrd α] (a : Vector α sz) (i j :
     (hmc : maxChild a i = some j) (hleft : 2 * i.val + 1 < sz) :
     compare a[j] a[2 * i.val + 1] |>.isGE := by
   grind only [Std.OrientedOrd.eq_swap, Ordering.swap_lt, Ordering.isGE, Ordering.isLT, maxChild,
-  Fin.getElem_fin]
+    Fin.getElem_fin]
 
 theorem maxChild_ge_right [Ord α] [Std.OrientedOrd α] (a : Vector α sz)
     (i j : Fin sz) (hmc : maxChild a i = some j) (hright : 2 * i.val + 2 < sz) :
     compare a[↑j] a[2 * ↑i + 2] |>.isGE := by
-  grind only [= Fin.getElem_fin, Std.OrientedOrd.eq_swap, Ordering.swap_lt,
-    Ordering.isGE, Ordering.isLT, maxChild]
+  grind only [= Fin.getElem_fin, Std.OrientedOrd.eq_swap, Ordering.swap_lt, Ordering.isGE,
+    Ordering.isLT, maxChild]
 
 section heapifyDown
 
@@ -70,7 +70,7 @@ theorem heapifyDown_getElem_of_not_inSubtree [Ord α] {a : Vector α sz} {i : Fi
   | some j =>
     have hij : i < j := maxChild_gt hmc
     by_cases h_lt : (compare a[i] a[j]).isLT
-    · rw [heapifyDown_eq_of_lt_child ‹_› ‹_›]
+    · rw [heapifyDown_eq_of_lt_child hmc h_lt]
       have hnsub_j : ¬InSubtree j k := by
         intro hsub_jk
         exact hnsub (InSubtree.of_child (maxChild_isChild hmc) |>.trans hsub_jk)
@@ -276,10 +276,10 @@ end heapifyUp
 section perm
 
 /-- x :: l is a permutation of l ++ [x] -/
-theorem List.cons_perm_append_singleton (x : α) (l : List α) : (x :: l).Perm (l ++ [x]) := by
+theorem List.cons_perm_append_singleton {l : List α} (x : α) : (x :: l).Perm (l ++ [x]) := by
   induction l with
   | nil => rfl
-  | cons y ys ih => exact (List.Perm.swap y x ys).trans (ih.cons y)
+  | cons => exact List.Perm.swap _ _ _ |>.trans (List.Perm.cons _ ‹_›)
 
 /-- For a vector, the last element cons'd with pop.toList is a permutation of toList -/
 theorem Vector.last_cons_pop_perm {v : Vector α (n+1)} :
@@ -291,7 +291,7 @@ theorem Vector.last_cons_pop_perm {v : Vector α (n+1)} :
   have hlast : v[n] = v.toList.getLast hne := by
     simp [List.getLast_eq_getElem, Vector.length_toList, Vector.getElem_toList]
   rw [hdrop, hlast]
-  apply List.cons_perm_append_singleton _ _ |>.trans
+  apply List.cons_perm_append_singleton _ |>.trans
   rw [List.dropLast_concat_getLast hne]
 
 @[simp]
@@ -345,7 +345,7 @@ theorem toSortedArray_loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α)
     apply (List.perm_append_comm.append_left _).trans
     simp only [← List.append_assoc]
     apply List.Perm.append_right
-    apply List.cons_perm_append_singleton x _ |>.symm.trans
+    apply List.cons_perm_append_singleton x |>.symm.trans
     simp_all [popMax_perm]
 
 theorem toSortedArray_perm [Ord α] (heap : BinaryHeap α) :
