@@ -306,7 +306,7 @@ theorem Vector.swap_last_pop_perm {v : Vector α (n+1)} {i : Fin (n+1)} (hi : i.
   simp only [Fin.getElem_fin]
   rw [← Vector.getElem_swap_right]
   apply Vector.last_cons_pop_perm.trans
-  exact (Vector.swap_perm (by omega) (by omega)).toList
+  exact Vector.swap_perm (by omega) (by omega) |>.toList
 
 /-- popMax returns a permutation: the original is a perm of max :: popMax -/
 theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
@@ -319,10 +319,10 @@ theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
     let v : Vector α (n + 1) := heap.vector.cast (by omega)
     have hdown := heapifyDown_perm (a := v.swap 0 n |>.pop) (i := ⟨0, hsz⟩)
     have hswap := Vector.swap_last_pop_perm (v := v) (i := ⟨0, by omega⟩) (hi := by omega)
-    exact (hdown.toList.cons _).trans hswap
+    exact hdown.toList.cons _ |>.trans hswap
   · have : heap.size = 1 := by omega
     have hswap := Vector.last_cons_pop_perm (n := 0) (v := heap.vector.cast (by omega))
-    simp_all [Vector.cast, vector, size]
+    simp_all [vector]
 
 /-- When max returns some, the value equals arr[0]. -/
 theorem max_eq_arr_zero [Ord α] {heap : BinaryHeap α} {x : α} (h : heap.max = some x) :
