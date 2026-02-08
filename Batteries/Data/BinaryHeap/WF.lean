@@ -196,6 +196,18 @@ theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       (hwf_below := fun j _ => htd j)
       (hsub := InSubtree.trans h_parent_to_i hsub)
 
+/-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
+theorem swap_preserves_ge_subtree [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+    {a : Vector α sz} {i j : Fin sz} (h_ij : i < j) (h_lt : (compare a[i] a[j]).isLT)
+    (hbelow : WF.Below a i) (k : Fin sz) (hsub : InSubtree j k) :
+    (compare a[j] (a.swap i j i.isLt j.isLt)[k]).isGE := by
+  by_cases hk_eq_j : k.val = j.val
+  · rw [← Ordering.isGE, Std.OrientedOrd.eq_swap]
+    simp_all
+  · have hi' : k.val ≠ i.val := InSubtree.ne_of_lt h_ij hsub
+    simp_all [WF.parent_ge_subtree, hbelow j h_ij, Vector.getElem_swap_of_ne,
+      WF.below_of_le (Fin.le_of_lt h_ij) hbelow]
+
 /-- The root element is greater than or equal to all heap elements. -/
 theorem root_ge_all [Ord α] [Std.TransOrd α]
     {a : Vector α sz} (hwf : WF.TopDown a) (hne : 0 < sz) (k : Fin sz) :

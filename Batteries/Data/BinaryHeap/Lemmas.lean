@@ -158,18 +158,6 @@ theorem heapifyDown_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
   | case2 => simp_all [heapifyDown_eq_of_lt_child, Vector.Perm.trans ‹_›, Vector.swap_perm]
   | case3 => simp_all [heapifyDown_eq_of_not_lt_child]
 
-/-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
-theorem swap_preserves_dominance_subtree [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
-    {a : Vector α sz} {i j : Fin sz} (h_ij : i < j) (h_lt : (compare a[i] a[j]).isLT)
-    (hbelow : WF.Below a i) (k : Fin sz) (hsub : InSubtree j k) :
-    (compare a[j] (a.swap i j i.isLt j.isLt)[k]).isGE := by
-  by_cases hk_eq_j : k.val = j.val
-  · rw [← Ordering.isGE, Std.OrientedOrd.eq_swap]
-    simp_all
-  · have hi' : k.val ≠ i.val := InSubtree.ne_of_lt h_ij hsub
-    simp_all [WF.parent_ge_subtree, hbelow j h_ij, Vector.getElem_swap_of_ne,
-      WF.below_of_le (Fin.le_of_lt h_ij) hbelow]
-
 theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} {i j : Fin sz}
     (hmaxChild : maxChild a i = some j)
@@ -198,7 +186,7 @@ theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α
     rename_i hj
     simp only [← hj]
     apply heapifyDown_preserves_ge_root_of_subtree
-    exact swap_preserves_dominance_subtree h_ij h_lt hbelow
+    exact WF.swap_preserves_ge_subtree h_ij h_lt hbelow
 
   -- Sibling cases: j is the untouched sibling of the child we're proving about
   -- left.inr: proving left child property, but j (right child) is the sibling
