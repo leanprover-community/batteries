@@ -513,7 +513,6 @@ theorem replaceMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {heap : BinaryHeap α} {x : α} (h_wf : WF heap) :
     WF (heap.replaceMax x).2 := by
   unfold replaceMax
-  unfold WF at h_wf
   split
   · apply WF.topDown_toArray
     simp_all [WF.TopDown, WF.Children]
