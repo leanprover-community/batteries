@@ -118,7 +118,6 @@ theorem below_swap [Ord α] {a : Vector α sz} {i j : Fin sz}
   have hchild := hbelow k (Nat.lt_trans hij hk_gt_j)
   grind only [= Fin.getElem_fin, = Vector.getElem_swap, WF.Children]
 
-
 /-- Setting a smaller value preserves WF.Below -/
 theorem below_set [Ord α] {v : Vector α sz} {i : Fin sz} {x : α}
     (htd : WF.TopDown v) :
@@ -175,6 +174,7 @@ theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   have h_parent_child : i.val = 2 * parent.val + 1 ∨ i.val = 2 * parent.val + 2 := by grind only
   have ⟨hwf_parent_l, hwf_parent_r⟩ := htd parent
   have h_parent_ge_i : (compare v[parent] v[i]).isGE := by grind only [= Fin.getElem_fin]
+
   -- Split: is m the element we modified (i), or an unmodified descendant?
   by_cases hm_eq : m.val = i.val
   -- Case: m = i (we set it to x ≤ v[i])
@@ -183,6 +183,7 @@ theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     apply Std.TransOrd.isGE_trans h_parent_ge_i
     rw [Std.OrientedOrd.eq_swap]
     simp_all
+
   -- Case: m ≠ i (m is an unmodified descendant)
   -- m's value unchanged by set, so use original parent_ge_subtree relationship
   · have : i.val ≠ m.val := by omega
@@ -304,9 +305,7 @@ theorem iff_bottomUp [Ord α] [Std.OrientedOrd α] (a : Vector α sz) :
     constructor <;> intro hchild
     case' mpr.left => have := hbu ⟨2 * i.val + 1, hchild⟩
     case' mpr.right => have := hbu ⟨2 * i.val + 2, hchild⟩
-    all_goals
-      grind only [Std.OrientedOrd.eq_swap, Parent, = Fin.getElem_fin,
-      !Ordering.isGE_swap]
+    all_goals grind only [Std.OrientedOrd.eq_swap, Parent, = Fin.getElem_fin, !Ordering.isGE_swap]
 
 /-- If exception is at 0, then bottomUp holds -/
 theorem bottomUp_of_exceptAt_root [Ord α] {a : Vector α sz} (h : 0 < sz)
@@ -362,8 +361,7 @@ theorem childLeParent_set_of_ge [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
         Parent, Vector.getElem_set]
 
 /-- Swapping the root with the last element and then popping maintains the Below invariant at the root for heapifyDown. -/
-theorem below_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.TopDown a)
-    (h0 : 0 < sz) :
+theorem below_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.TopDown a) (h0 : 0 < sz) :
     WF.Below (a.swap 0 (sz - 1) h0 (by omega) |>.pop) 0 := by
   intro j _
   have ⟨hwf_l, hwf_r⟩ := hwf ⟨j.val, by omega⟩
