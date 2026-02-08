@@ -616,7 +616,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
     · have hleft : i.val ≠ 2 * k.val + 1 := by omega
       have hright : i.val ≠ 2 * k.val + 2 := by omega
       apply heapifyDown_get_of_not_child hki _ hleft hright
-      apply WF.children_set_of_ne (htd k) (by omega) <;> assumption
+      exact WF.children_set_of_ne (htd k) (by omega) hleft hright
   · exact Fin.ext hki_eq ▸ hchildren_i
   · exact hbelow_i k hik
 
@@ -674,7 +674,7 @@ theorem size_toSortedArray [Ord α] {heap : BinaryHeap α} :
 @[simp]
 theorem mem_toSortedArray [Ord α] {heap : BinaryHeap α} {x : α} :
     x ∈ heap.toSortedArray ↔ x ∈ heap :=
-  (toSortedArray_perm heap).mem_iff
+  toSortedArray_perm heap |>.mem_iff
 
 end
 end BinaryHeap
