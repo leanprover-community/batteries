@@ -273,7 +273,6 @@ theorem childLeParent_swap_parent [Ord α] [Std.TransOrd α] [Std.OrientedOrd α
     (hexcept : ExceptAt a i) :
     ChildLeParent
       (a.swap i ((i.val - 1) / 2) i.isLt (by omega)) ⟨(i.val - 1) / 2, by omega⟩ := by
-  unfold ChildLeParent at *
   let j := (i.val - 1) / 2
   constructor
   case' left  => let targetIdx := 2 * j + 1
@@ -351,7 +350,6 @@ theorem childLeParent_set_of_ge [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {v : Vector α sz} {i : Fin sz} {x : α}
     (hbu : WF.BottomUp v) (h_ge : compare x v[i] |>.isGE) :
     ChildLeParent (v.set i x i.isLt) i := by
-  unfold ChildLeParent
   let parent := (i.val - 1) / 2
   have htd : WF.TopDown v := by rwa [← WF.iff_bottomUp] at hbu
   have ⟨htd_left, htd_right⟩ := htd i
