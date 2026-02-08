@@ -502,12 +502,12 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {heap : BinaryHeap α} (h_wf : WF heap) :
     WF (heap.popMax) := by
   unfold popMax
-  have htd : WF.TopDown heap.vector := by simp_all [WF]
+  unfold WF at h_wf
   simp only
   split
   . simp_all [WF]
   . split <;> apply WF.topDown_toArray
-    . have hbelow := WF.below_swap_pop htd (by omega)
+    . have hbelow := WF.below_swap_pop h_wf (by omega)
       simp_all [WF.topDown_iff_root_and_below.mp, heapifyDown_wf (i := ⟨0, by omega⟩) hbelow]
     . grind only [WF.Children, WF.TopDown]
 
@@ -515,18 +515,18 @@ theorem replaceMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {heap : BinaryHeap α} {x : α} (h_wf : WF heap) :
     WF (heap.replaceMax x).2 := by
   unfold replaceMax
-  have htd : WF.TopDown heap.vector := by simp_all [WF]
+  unfold WF at h_wf
   split
   · grind only [WF.TopDown, WF.Children, WF.topDown_toArray, max_eq_none_iff]
   · apply WF.topDown_toArray
     apply WF.topDown_iff_root_and_below.mp
-    exact heapifyDown_wf (WF.below_set htd)
+    exact heapifyDown_wf (WF.below_set h_wf)
 
 theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {heap : BinaryHeap α} {x : α} (h_wf : WF heap) :
     WF (heap.insertExtractMax x).2 := by
   unfold insertExtractMax
-  have htd : WF.TopDown heap.vector := by simp_all [WF]
+  have htd : WF.TopDown heap.vector := by rwa [WF] at h_wf
   split
   · exact h_wf
   · split
