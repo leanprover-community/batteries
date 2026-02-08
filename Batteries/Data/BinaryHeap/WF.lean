@@ -80,17 +80,16 @@ theorem ne_of_lt (h: i < j) (hins : InSubtree j k) : k ≠ i := by
 
 /-- Every index is a member of the subtree rooted at 0. -/
 theorem mem_of_zero (a : Nat) : InSubtree 0 a := by
-  induction a using Nat.strongRecOn with
-  | _ n ih =>
-    match n with
-    | 0 => exact .refl
-    | n + 1 =>
-      if h : n % 2 = 0 then
-        have : n + 1 = 2 * (n / 2) + 1 := by omega
-        exact this ▸ .left (ih (n / 2) (by omega))
-      else
-        have : n + 1 = 2 * (n / 2) + 2 := by omega
-        exact this ▸ .right (ih (n / 2) (by omega))
+  induction a using Nat.strongRecOn with | _ n ih =>
+  match n with
+  | 0 => exact .refl
+  | n + 1 =>
+    if h : n % 2 = 0 then
+      have : n + 1 = 2 * (n / 2) + 1 := by omega
+      exact this ▸ .left (ih (n / 2) (by omega))
+    else
+      have : n + 1 = 2 * (n / 2) + 2 := by omega
+      exact this ▸ .right (ih (n / 2) (by omega))
 
 /-- A child index is in the subtree of its parent. -/
 theorem of_child (h : j = 2 * i + 1 ∨ j = 2 * i + 2) : InSubtree i j := by
