@@ -253,19 +253,19 @@ theorem heapifyUp_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     (hchildren : WF.ChildLeParent a i) :
     WF.BottomUp (heapifyUp a i) := by
   induction a, i using heapifyUp.induct with
-  | case1 a =>
+  | case1 _ =>
     simp only [heapifyUp]
-    exact WF.bottomUp_of_exceptAt_zero a (by omega) hexcept
+    exact WF.bottomUp_of_exceptAt_zero (by omega) hexcept
   | case2 a i hisucc j h_lt ih =>
     have h_le : compare a[j] a[i+1] |>.isLE := by simp_all [Ordering.isLE_eq_isLT_or_isEq]
     simp only [heapifyUp, h_lt, ↓reduceIte, j]
     apply ih
-    · exact WF.exceptAt_swap a ⟨i+1, by omega⟩ h_le hexcept hchildren
-    · exact WF.childLeParent_swap a ⟨i+1, by omega⟩ h_le hexcept
+    · exact WF.exceptAt_swap h_le hexcept hchildren
+    · exact WF.childLeParent_swap h_le hexcept
   | case3 a i hisucc j h_nlt =>
     simp_all only [heapifyUp, j]
-    apply WF.bottomUp_of_exceptAt_of_parent a ⟨i+1, by omega⟩ hexcept
-    apply WF.parent_of_ge a ⟨i + 1, by omega⟩ <;> simp_all [Ordering.isGE_iff_ne_lt]
+    apply WF.bottomUp_of_exceptAt_of_parent hexcept
+    apply WF.parent_of_ge <;> simp_all [Ordering.isGE_iff_ne_lt]
 
 /-- `heapifyUp` restores the full heap property, given that all nodes except `i` satisfy
 the parent property and `i`'s children are ≤ `i`'s parent. -/

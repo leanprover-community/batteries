@@ -232,7 +232,7 @@ def ExceptAt [Ord α] (a : Vector α sz) (i : Fin sz) : Prop :=
 
 /-- If exceptAt i and childLeParent i, swap preserves exceptAt at parent -/
 theorem exceptAt_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
-    (a : Vector α sz) (i : Fin sz)
+    {a : Vector α sz} {i : Fin sz}
     (h_le : compare a[(i.val - 1) / 2] a[i] |>.isLE)
     (hexcept : ExceptAt a i)
     (hchildren : ChildLeParent a i) :
@@ -252,7 +252,7 @@ theorem exceptAt_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
 
 /-- If exceptAt a i, swap preserves childLeParent at parent -/
 theorem childLeParent_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
-    (a : Vector α sz) (i : Fin sz)
+    {a : Vector α sz} {i : Fin sz}
     (h_le : compare a[(i.val - 1) / 2] a[i] |>.isLE)
     (hexcept : ExceptAt a i) :
     ChildLeParent
@@ -298,13 +298,13 @@ theorem iff_bottomUp [Ord α] [Std.OrientedOrd α] (a : Vector α sz) :
       !Ordering.isGE_swap]
 
 /-- If exception is at 0, then bottomUp holds -/
-theorem bottomUp_of_exceptAt_zero [Ord α] (a : Vector α sz) (h : 0 < sz)
+theorem bottomUp_of_exceptAt_zero [Ord α] {a : Vector α sz} (h : 0 < sz)
     (hexcept : ExceptAt a ⟨0, h⟩) :
     WF.BottomUp a := by
   grind only [Parent, Fin.ext_iff, WF.BottomUp, ExceptAt]
 
 /-- If parent property holds at i and exceptAt i, then bottomUp -/
-theorem bottomUp_of_exceptAt_of_parent [Ord α] (a : Vector α sz) (i : Fin sz)
+theorem bottomUp_of_exceptAt_of_parent [Ord α] {a : Vector α sz} {i : Fin sz}
     (hexcept : ExceptAt a i) (hparent : Parent a i) :
     WF.BottomUp a := by
   grind only [BottomUp, Parent, ExceptAt]
