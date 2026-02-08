@@ -234,11 +234,9 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     -- Apply IH to heapifyDown at j on the swapped array
     have ⟨ih_at, ih_below⟩ := ih (WF.below_swap (hbelow := hbelow) (hij := h_ij))
     have hchild := maxChild_isChild hmaxChild
-
     constructor
     -- (1) WF.Children at i: a[j] (now at i) dominates both children of i
     · exact heapifyDown_children_swap hmaxChild h_lt hbelow
-
     -- (2) WF.Below at i: all nodes k > i satisfy WF.Children.
     -- Split by position of k relative to j (the node we recursed into):
     · intro k hik
