@@ -93,7 +93,7 @@ theorem mem_of_zero (a : Nat) : InSubtree 0 a := by
         exact this ▸ .right (ih (n / 2) (by omega))
 
 /-- A child index is in the subtree of its parent. -/
-theorem child_inSubtree (h : j = 2 * i + 1 ∨ j = 2 * i + 2) : InSubtree i j := by
+theorem of_child (h : j = 2 * i + 1 ∨ j = 2 * i + 2) : InSubtree i j := by
   rcases h with h | h <;> (simp only [h]; constructor; exact .refl)
 
 end InSubtree

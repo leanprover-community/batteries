@@ -73,7 +73,7 @@ theorem heapifyDown_getElem_of_not_inSubtree [Ord α] {a : Vector α sz} {i : Fi
     · rw [heapifyDown_eq_of_lt_child hmc h_lt]
       have hnsub_j : ¬InSubtree j k := by
         intro hsub_jk
-        exact hnsub (InSubtree.child_inSubtree (maxChild_isChild hmc) |>.trans hsub_jk)
+        exact hnsub (InSubtree.of_child (maxChild_isChild hmc) |>.trans hsub_jk)
       rw [heapifyDown_getElem_of_not_inSubtree hnsub_j]
       grind only [= Fin.getElem_fin, Vector.getElem_swap_of_ne, InSubtree]
     · simp_all [heapifyDown_eq_of_not_lt_child]
@@ -114,7 +114,7 @@ theorem heapifyDown_preserves_ge_root_of_subtree [Ord α] [Std.TransOrd α]
   induction a, j using heapifyDown.induct with
   | case1 => simp_all [heapifyDown_eq_of_maxChild_none, InSubtree.refl]
   | case2 a j child hmaxChild _ h_lt _ =>
-    have := InSubtree.child_inSubtree (maxChild_isChild hmaxChild)
+    have := InSubtree.of_child (maxChild_isChild hmaxChild)
     rw [heapifyDown_eq_of_lt_child hmaxChild h_lt,
         heapifyDown_getElem_of_not_inSubtree (InSubtree.not_of_lt (maxChild_gt hmaxChild))]
     simp_all [Vector.getElem_swap_left]
