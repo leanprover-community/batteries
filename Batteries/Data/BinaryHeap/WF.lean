@@ -51,11 +51,6 @@ theorem WF.children_congr [Ord α] {a b : Vector α sz} {k : Fin sz}
     WF.Children b k := by
   simp_all [WF.Children]
 
-/-- The size of the underlying vector is preserved when constructing a `BinaryHeap`. -/
-theorem vector_size [Ord α] {v : Vector α sz} :
-    (BinaryHeap.mk v.toArray).vector.size = sz := by
-  simp [Vector.size, Vector.size_toArray, BinaryHeap.size]
-
 /-- Index `k` lies in the subtree rooted at index `root` in the implicit binary heap tree. -/
 @[grind]
 inductive InSubtree (root : Nat) : Nat → Prop
@@ -314,7 +309,7 @@ theorem topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.TopDown v) : WF �
   constructor
     <;> intros
     <;> (first | apply hleft | apply hright)
-    <;> simp_all [vector_size]
+    <;> simp_all[Vector.size_toArray, BinaryHeap.size]
 
 /-- Setting a larger value preserves WF.exceptAt -/
 theorem exceptAt_set_of_ge [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
