@@ -457,7 +457,6 @@ theorem size_increaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x 
 theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
     {x : α} (h_wf : heap.WF) :
     (heap.insert x).WF := by
-  unfold insert
   apply WF.of_topDown_toArray
   rw [WF.iff_bottomUp]
   apply heapifyUp_bottomUp
@@ -479,8 +478,7 @@ theorem mem_singleton [Ord α] {x y : α} : x ∈ singleton y ↔ x = y := by
 
 theorem mem_insert [Ord α] {heap : BinaryHeap α} :
     y ∈ heap.insert x ↔ y = x ∨ y ∈ heap := by
-  unfold insert
-  simp only [mem_def, Vector.mem_toArray_iff]
+  simp only [insert, mem_def, Vector.mem_toArray_iff]
   rw [Vector.Perm.mem_iff heapifyUp_perm]
   simp_all [vector, or_comm]
 
@@ -522,8 +520,8 @@ theorem replaceMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
 theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {heap : BinaryHeap α} {x : α} (h_wf : WF heap) :
     WF (heap.insertExtractMax x).2 := by
-  unfold insertExtractMax
   have htd : WF.TopDown heap.vector := by rwa [WF] at h_wf
+  unfold insertExtractMax
   split
   · exact h_wf
   · split
@@ -598,7 +596,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
     {i : Fin heap.size} (h_wf : WF heap) (h_leq : compare x (heap.get i) |>.isLE) :
     WF (heap.decreaseKey i x) := by
   unfold decreaseKey
-  apply WF.topDown_toArray
+  apply WF.of_topDown_toArray
   have htd : WF.TopDown heap.vector := by simp_all [WF]
   have hbelow : WF.Below (heap.vector.set i x _) i := WF.below_set htd
   have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_wf hbelow
@@ -620,7 +618,7 @@ theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
     WF (heap.increaseKey i x) := by
   unfold increaseKey
   have hbu : WF.BottomUp heap.vector := by rwa [WF, WF.iff_bottomUp] at h_wf
-  apply WF.topDown_toArray
+  apply WF.of_topDown_toArray
   rw [WF.iff_bottomUp]
   apply heapifyUp_bottomUp
   . exact WF.exceptAt_set_of_ge hbu h_ge
@@ -681,13 +679,13 @@ open Batteries.BinaryHeap
 theorem Array.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Array α} :
     WF (a.toBinaryHeap) := by
-  simp [WF.topDown_toArray, Array.toBinaryHeap]
+  simp [WF.of_topDown_toArray, Array.toBinaryHeap]
 
 /-- Converting a vector to a binary heap produces a well-formed heap. -/
 theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} :
     WF (Batteries.Vector.toBinaryHeap a) := by
-  simp [WF.topDown_toArray, Vector.toBinaryHeap]
+  simp [WF.of_topDown_toArray, Vector.toBinaryHeap]
 
 @[simp]
 theorem Array.size_toBinaryHeap [Ord α] {a : Array α} :
