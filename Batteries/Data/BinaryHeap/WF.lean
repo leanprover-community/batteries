@@ -117,7 +117,7 @@ theorem below_swap [Ord α] {a : Vector α sz} {i j : Fin sz}
     WF.Below (a.swap i j) j := by
   intro k hk_gt_j
   have hk_gt_i : i.val < k.val := Nat.lt_trans ‹_› ‹_›
-  obtain ⟨_, _⟩ := hbelow k hk_gt_i
+  have ⟨_, _⟩ := hbelow k hk_gt_i
   grind only [= Fin.getElem_fin, = Vector.getElem_swap, WF.Children]
 
 
@@ -126,7 +126,7 @@ theorem below_set [Ord α] {v : Vector α sz} {i : Fin sz} {x : α}
     (htd : WF.TopDown v) :
     WF.Below (v.set i x) i := by
   intro j hj
-  obtain ⟨hwf_jl, hwf_jr⟩ := htd j
+  have ⟨hwf_jl, hwf_jr⟩ := htd j
   grind only [Vector.getElem_set, Fin.getElem_fin, WF.Children]
 
 /-- For k < i where neither child equals i, set at i preserves WF.children at k -/
@@ -161,7 +161,7 @@ theorem parent_ge_subtree [Ord α] [Std.TransOrd α]
   induction hsub
   case refl => grind only [Ordering.isGE]
   all_goals
-    obtain ⟨hwf_m, _⟩ : WF.Children a ⟨‹_›, by omega⟩ := by
+    have ⟨hwf_m, _⟩ : WF.Children a ⟨‹_›, by omega⟩ := by
       grind only [WF.Below, InSubtree.not_of_lt]
     grind only [= Fin.getElem_fin, !Std.TransOrd.isGE_trans]
 
@@ -173,7 +173,7 @@ theorem parent_ge_set_of_inSubtree [Ord α] [Std.TransOrd α] [Std.OrientedOrd �
     (compare v[(i.val - 1) / 2] (v.set i x i.isLt)[m]).isGE := by
   let parent : Fin sz := ⟨(i.val - 1) / 2, by omega⟩
   have h_parent_child : i.val = 2 * parent.val + 1 ∨ i.val = 2 * parent.val + 2 := by grind only
-  obtain ⟨hwf_parent_l, hwf_parent_r⟩ := htd parent
+  have ⟨hwf_parent_l, hwf_parent_r⟩ := htd parent
   have h_parent_ge_i : (compare v[parent] v[i]).isGE := by grind only [= Fin.getElem_fin]
   by_cases hm_eq : m.val = i.val
   · simp_all only [Fin.getElem_fin, Vector.getElem_set_self]
@@ -235,7 +235,7 @@ theorem exceptAt_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   by_cases hki : k.val = i.val
   · simp_all
   · by_cases hk_child_of_i : (k.val - 1) / 2 = i.val
-    · obtain ⟨hleft, hright⟩ := hchildren
+    · have ⟨hleft, hright⟩ := hchildren
       have hk_is_child : k.val = 2 * i.val + 1 ∨ k.val = 2 * i.val + 2 := by omega
       have hk_ne_parent : k.val ≠ (i.val - 1) / 2 := by omega
       rcases hk_is_child with hk_left | hk_right
@@ -305,7 +305,7 @@ theorem bottomUp_of_exceptAt_of_parent [Ord α] {a : Vector α sz} {i : Fin sz}
 
 theorem topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.TopDown v) : WF ⟨v.toArray⟩ := by
   rintro ⟨ival, _⟩
-  obtain ⟨hleft, hright⟩ := h_td ⟨ival, by simp_all [size]⟩
+  have ⟨hleft, hright⟩ := h_td ⟨ival, by simp_all [size]⟩
   constructor
     <;> intros
     <;> (first | apply hleft | apply hright)
@@ -330,7 +330,7 @@ theorem childLeParent_set_of_ge [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     ChildLeParent (v.set i x i.isLt) i := by
   unfold ChildLeParent
   let parent := (i.val - 1) / 2
-  obtain ⟨htd_left, htd_right⟩ := htd i
+  have ⟨htd_left, htd_right⟩ := htd i
   constructor <;> intro hchild
   case' left  => have := htd_left hchild
   case' right => have := htd_right hchild
@@ -349,8 +349,8 @@ theorem below_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.TopDown a)
     (h0 : 0 < sz) :
     WF.Below (a.swap 0 (sz - 1) h0 (by omega) |>.pop) 0 := by
   intro j _
-  obtain ⟨hwf_l, hwf_r⟩ := hwf ⟨j.val, by omega⟩
-  constructor <;> intro _
+  have ⟨hwf_l, hwf_r⟩ := hwf ⟨j.val, by omega⟩
+  constructor <;> intro
   case' left  => have := hwf_l (by omega : 2 * j.val + 1 < sz)
   case' right => have := hwf_r (by omega : 2 * j.val + 2 < sz)
   all_goals grind only [Vector.getElem_swap, Vector.getElem_pop, Fin.getElem_fin]

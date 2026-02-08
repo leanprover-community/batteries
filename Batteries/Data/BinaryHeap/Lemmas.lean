@@ -125,7 +125,7 @@ theorem heapifyDown_set_of_le_preserves_children [Ord α] [Std.TransOrd α] [Std
     WF.Children (heapifyDown (v.set i x i.isLt) i) ⟨(i.val - 1) / 2, by omega⟩ := by
   let parent : Fin sz := ⟨(i.val - 1) / 2, by omega⟩
   have hk_not_sub : ¬InSubtree i parent := by grind only [InSubtree.not_of_lt]
-  obtain ⟨hwf_parent_l, hwf_parent_r⟩ := htd parent
+  have ⟨hwf_parent_l, hwf_parent_r⟩ := htd parent
   have h_parent_child : i.val = 2 * parent.val + 1 ∨ i.val = 2 * parent.val + 2 := by grind only
   constructor
   case' left  => let childIdx := 2 * parent.val + 1
@@ -222,7 +222,7 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   | case1 => grind only [heapifyDown_eq_of_maxChild_none, WF.Children, maxChild_none_iff]
   | case2 a i j hmaxChild h_ij h_ai_aj ih =>
     rw [heapifyDown_eq_of_lt_child hmaxChild h_ai_aj]
-    obtain ⟨ih_at, ih_below⟩ := ih (WF.below_swap (hbelow := hbelow) (hij := h_ij))
+    have ⟨ih_at, ih_below⟩ := ih (WF.below_swap (hbelow := hbelow) (hij := h_ij))
     have hchild := maxChild_isChild hmaxChild
     constructor
     · apply heapifyDown_children_swap <;> assumption
@@ -372,7 +372,7 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   | zero => simp_all [mkHeap.loop]
   | succ i ih =>
     have hi_lt : i < sz := by omega
-    obtain ⟨hwf_at, hwf_below⟩:= heapifyDown_wf (a := a) (i := ⟨i, hi_lt⟩) hinv
+    have ⟨hwf_at, hwf_below⟩:= heapifyDown_wf (a := a) (i := ⟨i, hi_lt⟩) hinv
     apply ih
     intro k hk
     by_cases hk_eq : k = i
@@ -483,7 +483,7 @@ theorem max_ge_all [Ord α] [Std.TransOrd α]
     {heap : BinaryHeap α} {y: α} (hwf : WF heap) (h_in: y ∈ heap) (h_ne : heap.size > 0) :
     let root := heap.max.get (by simp_all [max, size])
     compare root y |>.isGE := by
-  obtain ⟨idx, h_sz, h_ge⟩ := Array.mem_iff_getElem.mp h_in
+  have ⟨idx, h_sz, h_ge⟩ := Array.mem_iff_getElem.mp h_in
   have := WF.root_ge_all hwf h_ne ⟨idx, h_sz⟩
   simp_all [vector, max]
 
