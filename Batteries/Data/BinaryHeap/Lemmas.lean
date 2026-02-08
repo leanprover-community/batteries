@@ -94,6 +94,7 @@ theorem heapifyDown_swap_children_of_lt [Ord α] {a : Vector α sz} {i j k : Fin
     grind only [heapifyDown_getElem_of_not_inSubtree, InSubtree.not_of_lt,
       Vector.getElem_swap_of_ne, heapifyDown_getElem_of_not_inSubtree', Fin.getElem_fin]
 
+/-- `heapifyDown` preserves WF.Children at positions before the heapified index that are not its children. -/
 theorem heapifyDown_get_of_not_child [Ord α] {v : Vector α sz} {i k : Fin sz}
     (hki : k < i) (hwf : WF.Children v k)
     (hleft_ne : i.val ≠ 2 * k.val + 1) (hright_ne : i.val ≠ 2 * k.val + 2) :
@@ -151,6 +152,7 @@ theorem heapifyDown_set_of_le_preserves_children [Ord α] [Std.TransOrd α] [Std
       rw [Vector.getElem_set_ne _ _ (by simp only [ne_eq]; omega)]
       simp_all [childIdx, parent]
 
+/-- `heapifyDown` is a permutation—it only rearranges elements, doesn't change the multiset. -/
 theorem heapifyDown_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
     (heapifyDown a i).Perm a := by
   induction a, i using heapifyDown.induct with
@@ -286,13 +288,11 @@ end heapifyUp
 
 section perm
 
-/-- x :: l is a permutation of l ++ [x] -/
 theorem List.cons_perm_append_singleton {l : List α} (x : α) : (x :: l).Perm (l ++ [x]) := by
   induction l with
   | nil => rfl
   | cons x' xs ih => exact List.Perm.swap x' x xs |>.trans (ih.cons x')
 
-/-- For a vector, the last element cons'd with pop.toList is a permutation of toList -/
 theorem Vector.last_cons_pop_perm {v : Vector α (n+1)} :
     (v[n] :: v.pop.toList).Perm v.toList := by
   have hne : v.toList ≠ [] := by simp
@@ -311,7 +311,6 @@ theorem Vector.swap_same {v : Vector α n} {i : Nat} (hi : i < n) :
   ext k hk
   simp_all [Vector.getElem_swap]
 
-/-- Swapping element i with the last and popping gives a permutation with v[i] prepended -/
 theorem Vector.swap_last_pop_perm {v : Vector α (n+1)} {i : Fin (n+1)} (hi : i.val < n) :
     (v[i] :: (v.swap i n (by omega) (by omega) |>.pop).toList).Perm v.toList := by
   simp only [Fin.getElem_fin]
@@ -329,7 +328,7 @@ theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
   · let n := heap.size - 1
     let v : Vector α (n + 1) := heap.vector.cast (by omega)
     have hdown := heapifyDown_perm (a := v.swap 0 n |>.pop) (i := ⟨0, hsz⟩)
-    have hswap := Vector.swap_last_pop_perm (v := v) (i := ⟨0, by omega⟩) (hi := by omega)
+    have hswap := Vector.swap_last_pop_perm (v := v) (i := ⟨0, by omega⟩) (by omega)
     exact hdown.toList.cons _ |>.trans hswap
   · have : heap.size = 1 := by omega
     have hswap := Vector.last_cons_pop_perm (n := 0) (v := heap.vector.cast (by omega))
@@ -359,6 +358,7 @@ theorem toSortedArray_loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α)
     apply List.cons_perm_append_singleton x |>.symm.trans
     simp_all [popMax_perm]
 
+/-- `toSortedArray` produces a permutation of the heap. -/
 theorem toSortedArray_perm [Ord α] (heap : BinaryHeap α) :
     heap.toSortedArray.Perm heap.arr := by
   apply Array.Perm.of_toList_perm
@@ -383,12 +383,12 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   | zero => simp_all [mkHeap.loop]
   | succ i ih =>
     have hi_lt : i < sz := by omega
-    have ⟨hwf_at, hwf_below⟩:= heapifyDown_wf (a := a) (i := ⟨i, hi_lt⟩) hinv
+    have ⟨hwf_at, hwf_below⟩:= heapifyDown_wf (i := ⟨i, hi_lt⟩) hinv
     apply ih
     intro k hk
     by_cases hk_eq : k = i
     · grind only
-    · exact hwf_below k (by omega : i < k)
+    · exact hwf_below k (show i < k by omega)
 
 public section
 
@@ -416,6 +416,7 @@ theorem max_empty [Ord α] : (empty : BinaryHeap α).max = none := by
 theorem max_singleton [Ord α] {x : α} : (singleton x).max = some x := by
   simp [singleton, max]
 
+/-- Constructing a heap from a vector produces a well-formed heap. -/
 @[simp, grind .]
 theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α sz} :
     WF.TopDown (mkHeap a) := by
@@ -496,6 +497,7 @@ theorem max_ge_all [Ord α] [Std.TransOrd α]
   have := WF.root_ge_all hwf h_ne ⟨idx, h_sz⟩
   simp_all [vector, max]
 
+/-- Removing the maximum element from a well-formed heap preserves well-formedness. -/
 theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {heap : BinaryHeap α} (h_wf : WF heap) :
     WF (heap.popMax) := by
@@ -507,6 +509,7 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       exact heapifyDown_wf (WF.below_swap_pop h_wf (by omega))
     . grind only [WF.Children, WF.TopDown]
 
+/-- Replacing the maximum element in a well-formed heap preserves well-formedness. -/
 theorem replaceMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {heap : BinaryHeap α} {x : α} (h_wf : WF heap) :
     WF (heap.replaceMax x).2 := by
@@ -590,6 +593,7 @@ theorem mem_of_mem_popMax [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ he
     have hmem := hperm h_pos |>.mem_iff (a := x)
     simp_all [mem_def]
 
+/-- Decreasing a key value in a well-formed heap and reheapifying downward preserves well-formedness. -/
 theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_leq : compare x (heap.get i) |>.isLE) :
     WF (heap.decreaseKey i x) := by
@@ -610,6 +614,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
   · exact Fin.ext hki_eq ▸ hchildren_i
   · exact hbelow_i k hik
 
+/-- Increasing a key value in a well-formed heap and reheapifying upward preserves well-formedness. -/
 theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare x (heap.get i) |>.isGE) :
     WF (heap.increaseKey i x) := by
@@ -672,11 +677,13 @@ end BinaryHeap
 public section
 open Batteries.BinaryHeap
 
+/-- Converting an array to a binary heap produces a well-formed heap. -/
 theorem Array.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Array α} :
     WF (a.toBinaryHeap) := by
   simp [WF.topDown_toArray, Array.toBinaryHeap]
 
+/-- Converting a vector to a binary heap produces a well-formed heap. -/
 theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} :
     WF (Batteries.Vector.toBinaryHeap a) := by
@@ -714,6 +721,7 @@ theorem Array.size_heapSort [instOrd : Ord α] {a : Array α} :
     a.heapSort.size = a.size :=
   Array.heapSort_perm.size_eq
 
+/-- `heapSort` produces a sorted array. -/
 theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Array α} :
     a.heapSort.toList.Pairwise (compare · · |>.isLE) := by
