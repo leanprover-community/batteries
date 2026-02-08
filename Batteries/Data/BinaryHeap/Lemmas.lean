@@ -502,9 +502,8 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {heap : BinaryHeap α} (h_wf : WF heap) :
     WF (heap.popMax) := by
   unfold popMax
-  unfold WF at h_wf
   split
-  . rwa [WF]
+  . exact h_wf
   . split <;> apply WF.topDown_toArray
     . apply WF.topDown_iff_root_and_below.mp
       exact heapifyDown_wf (WF.below_swap_pop h_wf (by omega))
