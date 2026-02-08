@@ -209,7 +209,7 @@ def Parent [Ord α] (a : Vector α sz) (i : Fin sz) : Prop :=
   ∀ _ : 0 < i.val, compare a[i] a[(i.val - 1)/2] |>.isLE
 
 /-- The comparison gives us the parent property -/
-theorem parent_of_ge [Ord α] [Std.OrientedOrd α] (a : Vector α sz) (i : Fin sz) (hi : 0 < i.val)
+theorem parent_of_ge [Ord α] [Std.OrientedOrd α] {a : Vector α sz} {i : Fin sz} (hi : 0 < i.val)
     (h : compare a[(i.val - 1) / 2] a[i] |>.isGE) :
     Parent a i := by
   grind only [Std.OrientedOrd.eq_swap, !Ordering.isGE_swap, Parent]
