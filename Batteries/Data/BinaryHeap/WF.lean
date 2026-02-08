@@ -249,9 +249,7 @@ theorem exceptAt_swap_parent [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     · have ⟨hleft, hright⟩ := hchildren
       have hk_is_child : k.val = 2 * i.val + 1 ∨ k.val = 2 * i.val + 2 := by omega
       have hk_ne_parent : k.val ≠ (i.val - 1) / 2 := by omega
-      rcases hk_is_child with hk_left | hk_right
-      · simp_all [show 2 * i.val + 1 < sz by omega]
-      · simp_all [show 2 * i.val + 2 < sz by omega]
+      rcases hk_is_child with hk_left | hk_right <;> simp_all
     · unfold ExceptAt Parent at *
       grind only [Fin.getElem_fin, !Std.TransOrd.isLE_trans, Vector.getElem_swap]
 
