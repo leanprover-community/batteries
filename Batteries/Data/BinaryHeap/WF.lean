@@ -49,7 +49,6 @@ theorem WF.children_congr [Ord α] {a b : Vector α sz} {k : Fin sz}
     (hl : ∀ h : 2 * k.val + 1 < sz, b[2 * k.val + 1] = a[2 * k.val + 1])
     (hr : ∀ h : 2 * k.val + 2 < sz, b[2 * k.val + 2] = a[2 * k.val + 2]) :
     WF.Children b k := by
-  obtain ⟨hwf_left, hwf_right⟩ := hwf
   simp_all [WF.Children]
 
 /-- The size of the underlying vector is preserved when constructing a `BinaryHeap`. -/

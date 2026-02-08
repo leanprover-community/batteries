@@ -586,7 +586,7 @@ theorem mem_of_mem_popMax [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ he
   by_cases h_sz : heap.size = 0
   · simp_all [popMax, mem_def]
   · have h_pos : 0 < heap.size := by omega
-    have := (hperm h_pos).mem_iff (a := x)
+    have hmem := hperm h_pos |>.mem_iff (a := x)
     simp_all [mem_def]
 
 theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
