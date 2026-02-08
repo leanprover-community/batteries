@@ -178,7 +178,6 @@ theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α
   have h_ij : i < j := maxChild_gt hmaxChild
   have hnsub_i : ¬InSubtree j.val i.val := InSubtree.not_of_lt h_ij
   have hchild := maxChild_isChild hmaxChild
-
   -- Need to prove i ≥ left_child and i ≥ right_child
   constructor
   all_goals
@@ -189,7 +188,6 @@ theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α
     -- Split by which child j is (left or right). Four cases arise from:
     -- (prove i ≥ left and right child) × (is j this child or the sibling?)
     cases hchild
-
   -- Matching cases: j is the child we're proving about
   -- left.inl: j is left child, proving left child property
   -- right.inr: j is right child, proving right child property
@@ -198,7 +196,6 @@ theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α
     simp only [← hj]
     apply heapifyDown_preserves_ge_root_of_subtree
     exact WF.swap_preserves_ge_subtree h_ij h_lt hbelow
-
   -- Sibling cases: j is the untouched sibling of the child we're proving about
   -- left.inr: proving left child property, but j (right child) is the sibling
   -- right.inl: proving right child property, but j (left child) is the sibling
