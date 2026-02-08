@@ -146,7 +146,7 @@ theorem topDown_singleton [Ord α] {x : α} : WF.TopDown #v[x] := by
 theorem topDown_iff_root_and_below [Ord α] {a : Vector α sz} {h0 : 0 < sz} :
    WF.Children a ⟨0, h0⟩ ∧  WF.Below a 0 ↔ WF.TopDown a := by
   constructor
-  . rintro ⟨_, hbelow⟩
+  . intro ⟨_, hbelow⟩
     intro j
     by_cases h : j.val = 0
     . grind only
@@ -324,7 +324,7 @@ theorem bottomUp_of_exceptAt_of_parent [Ord α] {a : Vector α sz} {i : Fin sz}
   grind only [BottomUp, Parent, ExceptAt]
 
 theorem topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.TopDown v) : WF ⟨v.toArray⟩ := by
-  rintro ⟨ival, _⟩
+  intro ⟨ival, _⟩
   have ⟨hleft, hright⟩ := h_td ⟨ival, by simp_all [size]⟩
   constructor
     <;> intros
