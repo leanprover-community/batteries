@@ -143,13 +143,7 @@ theorem topDown_singleton [Ord α] {x : α} : WF.TopDown #v[x] := by
 /-- WF.topDown follows from WF.children at 0 and WF.Below at 0 -/
 theorem topDown_iff_root_and_below [Ord α] {a : Vector α sz} {h0 : 0 < sz} :
    WF.Children a ⟨0, h0⟩ ∧  WF.Below a 0 ↔ WF.TopDown a := by
-  constructor
-  . intro ⟨_, hbelow⟩
-    intro j
-    by_cases h : j.val = 0
-    . grind only
-    . exact hbelow j (by omega)
-  . grind only [WF.Children, WF.TopDown, WF.Below]
+  grind only [WF.Children, WF.TopDown, WF.Below]
 
 /-- A node dominates all descendants in its subtree in a well-formed heap. -/
 theorem parent_ge_subtree [Ord α] [Std.TransOrd α]
@@ -173,7 +167,6 @@ theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   have h_parent_child : i.val = 2 * parent.val + 1 ∨ i.val = 2 * parent.val + 2 := by grind only
   have ⟨hwf_parent_l, hwf_parent_r⟩ := htd parent
   have h_parent_ge_i : (compare v[parent] v[i]).isGE := by grind only [= Fin.getElem_fin]
-
   -- Split: is m the element we modified (i), or an unmodified descendant?
   by_cases hm_eq : m.val = i.val
   -- Case: m = i (we set it to x ≤ v[i])
@@ -182,7 +175,6 @@ theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     apply Std.TransOrd.isGE_trans h_parent_ge_i
     rw [Std.OrientedOrd.eq_swap]
     simp_all
-
   -- Case: m ≠ i (m is an unmodified descendant)
   -- m's value unchanged by set, so use original parent_ge_subtree relationship
   · have : i.val ≠ m.val := by omega
