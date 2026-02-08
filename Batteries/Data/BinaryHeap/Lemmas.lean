@@ -98,7 +98,8 @@ theorem heapifyDown_swap_children_of_lt [Ord α] {a : Vector α sz} {i j k : Fin
     <;> apply Vector.getElem_swap_of_ne
     <;> omega
 
-/-- `heapifyDown` preserves WF.Children at positions before the heapified index that are not its children. -/
+/-- `heapifyDown` preserves WF.Children at positions before the heapified index that are not its
+  children. -/
 -- possible to merge with above theorem? they have the exact same structure
 theorem heapifyDown_get_of_not_child [Ord α] {v : Vector α sz} {i k : Fin sz}
     (hki : k < i) (hwf : WF.Children v k)
@@ -595,7 +596,8 @@ theorem mem_of_mem_popMax [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ he
     have hmem := hperm h_pos |>.mem_iff (a := x)
     simp_all [mem_def]
 
-/-- Decreasing a key value in a well-formed heap and reheapifying downward preserves well-formedness. -/
+/-- Decreasing a key value in a well-formed heap and reheapifying downward preserves
+  well-formedness. -/
 theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_leq : compare x (heap.get i) |>.isLE) :
     WF (heap.decreaseKey i x) := by
@@ -616,7 +618,8 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
   · exact Fin.ext hki_eq ▸ hchildren_i
   · exact hbelow_i k hik
 
-/-- Increasing a key value in a well-formed heap and reheapifying upward preserves well-formedness. -/
+/-- Increasing a key value in a well-formed heap and reheapifying upward preserves well-formedness.
+  -/
 theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare x (heap.get i) |>.isGE) :
     WF (heap.increaseKey i x) := by

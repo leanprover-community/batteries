@@ -306,7 +306,8 @@ theorem bottomUp_of_parent_and_exceptAt [Ord α] {a : Vector α sz} {i : Fin sz}
     WF.BottomUp a := by
   grind only [BottomUp, Parent, ExceptAt]
 
-/-- A well-formed vector transfers its well-formedness to a BinaryHeap created from its array representation. -/
+/-- A well-formed vector transfers its well-formedness to a BinaryHeap created from its array
+  representation. -/
 theorem of_topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.TopDown v) : WF ⟨v.toArray⟩ := by
   intro ⟨ival, _⟩
   have ⟨hleft, hright⟩ := h_td ⟨ival, by simp_all [size]⟩
@@ -347,7 +348,8 @@ theorem childLeParent_set_of_ge [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       grind only [!Std.TransOrd.isLE_trans, Std.OrientedOrd.eq_swap, !Ordering.isGE_swap,
         Parent, Vector.getElem_set_ne]
 
-/-- Swapping the root with the last element and then popping maintains the Below invariant at the root for heapifyDown. -/
+/-- Swapping the root with the last element and then popping maintains the Below invariant at the
+  root for heapifyDown. -/
 theorem below_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.TopDown a) (h0 : 0 < sz) :
     WF.Below (a.swap 0 (sz - 1) h0 (by omega) |>.pop) 0 := by
   intro j _
