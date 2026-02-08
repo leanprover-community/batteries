@@ -73,13 +73,14 @@ theorem heapifyDown_getElem_of_not_inSubtree [Ord α] {a : Vector α sz} {i : Fi
     · rw [heapifyDown_eq_of_lt_child hmc h_lt]
       have hnsub_j : ¬InSubtree j k := by
         intro hsub_jk
-        exact hnsub (InSubtree.of_child (maxChild_isChild hmc) |>.trans hsub_jk)
+        exact hnsub (InSubtree.child_inSubtree (maxChild_isChild hmc) |>.trans hsub_jk)
       rw [heapifyDown_getElem_of_not_inSubtree hnsub_j]
       grind only [= Fin.getElem_fin, Vector.getElem_swap_of_ne, InSubtree]
     · simp_all [heapifyDown_eq_of_not_lt_child]
 termination_by sz - i
 
-/-- `heapifyDown` preserves `WF.Children` for nodes completely outside the affected subtree. -/
+/-- Variant of `heapifyDown_getElem_of_not_inSubtree` that takes a `Nat` index instead of `Fin`.
+    Useful when working with numeric inequalities; converts the `Nat` to a `Fin` internally. -/
 theorem heapifyDown_getElem_of_not_inSubtree' [Ord α] {a : Vector α sz} {i : Fin sz}
     {k : Nat} (hk : k < sz) (hnsub : ¬InSubtree i k) :
     (heapifyDown a i)[k] = a[k] :=
@@ -113,7 +114,7 @@ theorem heapifyDown_preserves_ge_root_of_subtree [Ord α] [Std.TransOrd α]
   induction a, j using heapifyDown.induct with
   | case1 => simp_all [heapifyDown_eq_of_maxChild_none, InSubtree.refl]
   | case2 a j child hmaxChild _ h_lt _ =>
-    have := InSubtree.of_child (maxChild_isChild hmaxChild)
+    have := InSubtree.child_inSubtree (maxChild_isChild hmaxChild)
     rw [heapifyDown_eq_of_lt_child hmaxChild h_lt,
         heapifyDown_getElem_of_not_inSubtree (InSubtree.not_of_lt (maxChild_gt hmaxChild))]
     simp_all [Vector.getElem_swap_left]
@@ -268,7 +269,7 @@ theorem heapifyUp_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     . exact WF.childLeParent_swap_parent h_le h_exc
   | case3 _ _ _ j =>
     simp_all only [heapifyUp, j]
-    apply WF.bottomUp_of_exceptAt_of_parent h_exc
+    apply WF.bottomUp_of_parent_and_exceptAt h_exc
     apply WF.parent_of_ge <;> simp_all [Ordering.isGE_iff_ne_lt]
 
 /-- `heapifyUp` restores the full heap property, given that all nodes except `i` satisfy

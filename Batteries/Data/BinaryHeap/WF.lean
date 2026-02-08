@@ -78,8 +78,8 @@ theorem ne_of_lt (h: i < j) (hins : InSubtree j k) : k ≠ i := by
   have : j ≤ k := InSubtree.le hins
   omega
 
-/-- Every index lies in the subtree rooted at 0. -/
-theorem zero_root (a : Nat) : InSubtree 0 a := by
+/-- Every index is a member of the subtree rooted at 0. -/
+theorem mem_of_zero (a : Nat) : InSubtree 0 a := by
   induction a using Nat.strongRecOn with
   | _ n ih =>
     match n with
@@ -93,7 +93,7 @@ theorem zero_root (a : Nat) : InSubtree 0 a := by
         exact this ▸ .right (ih (n / 2) (by omega))
 
 /-- A child index is in the subtree of its parent. -/
-theorem of_child (h : j = 2 * i + 1 ∨ j = 2 * i + 2) : InSubtree i j := by
+theorem child_inSubtree (h : j = 2 * i + 1 ∨ j = 2 * i + 2) : InSubtree i j := by
   rcases h with h | h <;> (simp only [h]; constructor; exact .refl)
 
 end InSubtree
@@ -217,7 +217,7 @@ theorem root_ge_all [Ord α] [Std.TransOrd α]
   parent_ge_subtree
     (hwf_at := hwf ⟨0, hne⟩)
     (hwf_below := fun j _ => hwf j)
-    (hsub := InSubtree.zero_root k.val)
+    (hsub := InSubtree.mem_of_zero k.val)
 
 /-- "Dual" correctness property to WF.children. A node should be <= its parent
     Used when verifying heapifyUp -/
@@ -318,8 +318,8 @@ theorem bottomUp_of_exceptAt_root [Ord α] {a : Vector α sz} (h : 0 < sz)
     WF.BottomUp a := by
   grind only [Parent, Fin.ext_iff, WF.BottomUp, ExceptAt]
 
-/-- If parent property holds at i and exceptAt i, then bottomUp -/
-theorem bottomUp_of_exceptAt_of_parent [Ord α] {a : Vector α sz} {i : Fin sz}
+/-- If both the parent property and exceptAt property hold at i, then the heap is bottomUp. -/
+theorem bottomUp_of_parent_and_exceptAt [Ord α] {a : Vector α sz} {i : Fin sz}
     (hexcept : ExceptAt a i) (hparent : Parent a i) :
     WF.BottomUp a := by
   grind only [BottomUp, Parent, ExceptAt]
