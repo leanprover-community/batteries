@@ -323,7 +323,7 @@ theorem bottomUp_of_exceptAt_of_parent [Ord α] {a : Vector α sz} {i : Fin sz}
     WF.BottomUp a := by
   grind only [BottomUp, Parent, ExceptAt]
 
-theorem topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.TopDown v) : WF ⟨v.toArray⟩ := by
+theorem of_topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.TopDown v) : WF ⟨v.toArray⟩ := by
   intro ⟨ival, _⟩
   have ⟨hleft, hright⟩ := h_td ⟨ival, by simp_all [size]⟩
   constructor
