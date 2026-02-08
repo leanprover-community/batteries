@@ -326,22 +326,21 @@ theorem exceptAt_set_of_ge [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
 /-- Setting a larger value preserves WF.childLeParent when original heap is well-formed -/
 theorem childLeParent_set_of_ge [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {v : Vector α sz} {i : Fin sz} {x : α}
-    (htd : WF.TopDown v) (hbu : WF.BottomUp v) (h_ge : compare x v[i] |>.isGE) :
+    (hbu : WF.BottomUp v) (h_ge : compare x v[i] |>.isGE) :
     ChildLeParent (v.set i x i.isLt) i := by
   unfold ChildLeParent
   let parent := (i.val - 1) / 2
+  have htd : WF.TopDown v := by rwa [← WF.iff_bottomUp] at hbu
   have ⟨htd_left, htd_right⟩ := htd i
   constructor <;> intro hchild
   case' left  => have := htd_left hchild
   case' right => have := htd_right hchild
   all_goals
     by_cases hi : i.val = 0
-    · -- i = 0, so parent = 0 = i
-      have hset_parent : (v.set i x i.isLt)[parent] = x := by simp_all [parent]
+    · have hset_parent : (v.set i x i.isLt)[parent] = x := by simp_all [parent]
       grind only [!Std.TransOrd.isLE_trans, Std.OrientedOrd.eq_swap, !Ordering.isGE_swap,
         Vector.getElem_set]
-    · -- i ≠ 0, so parent ≠ i
-      have h_parent := hbu i (by omega)
+    · have h_parent := hbu i (by omega)
       grind only [!Std.TransOrd.isLE_trans, Std.OrientedOrd.eq_swap, !Ordering.isGE_swap,
         Parent, Vector.getElem_set]
 
