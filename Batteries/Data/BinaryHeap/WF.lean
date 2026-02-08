@@ -143,7 +143,7 @@ theorem topDown_singleton [Ord α] {x : α} : WF.TopDown #v[x] := by
   simp [WF.TopDown, WF.Children]
 
 /-- WF.topDown follows from WF.children at 0 and WF.Below at 0 -/
-theorem topDown_iff_children_and_below [Ord α] {a : Vector α sz} {h0 : 0 < sz} :
+theorem topDown_iff_root_and_below [Ord α] {a : Vector α sz} {h0 : 0 < sz} :
    WF.Children a ⟨0, h0⟩ ∧  WF.Below a 0 ↔ WF.TopDown a := by
   constructor
   . rintro ⟨_, hbelow⟩
@@ -166,7 +166,7 @@ theorem parent_ge_subtree [Ord α] [Std.TransOrd α]
     grind only [= Fin.getElem_fin, !Std.TransOrd.isGE_trans]
 
 /-- Parent dominates all descendants after setting a smaller value -/
-theorem parent_ge_set_of_inSubtree [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {v : Vector α sz} {i : Fin sz} {x : α}
     (htd : WF.TopDown v) (h_le : compare x v[i] |>.isLE) (hi : 0 < i.val)
     (m : Fin sz) (hsub : InSubtree i.val m.val) :
@@ -233,7 +233,7 @@ def ExceptAt [Ord α] (a : Vector α sz) (i : Fin sz) : Prop :=
   ∀ j : Fin sz, i ≠ j → Parent a j
 
 /-- If exceptAt i and childLeParent i, swap preserves exceptAt at parent -/
-theorem exceptAt_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem exceptAt_swap_parent [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} {i : Fin sz}
     (h_le : compare a[(i.val - 1) / 2] a[i] |>.isLE)
     (hexcept : ExceptAt a i)
@@ -253,7 +253,7 @@ theorem exceptAt_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       grind only [Fin.getElem_fin, !Std.TransOrd.isLE_trans, Vector.getElem_swap]
 
 /-- If exceptAt a i, swap preserves childLeParent at parent -/
-theorem childLeParent_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem childLeParent_swap_parent [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} {i : Fin sz}
     (h_le : compare a[(i.val - 1) / 2] a[i] |>.isLE)
     (hexcept : ExceptAt a i) :

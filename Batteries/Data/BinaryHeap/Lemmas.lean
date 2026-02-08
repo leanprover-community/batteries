@@ -144,7 +144,7 @@ theorem heapifyDown_set_of_le_preserves_children [Ord α] [Std.TransOrd α] [Std
     -- parent
     · simp only [parent, heq, childIdx]
       apply heapifyDown_preserves_ge_root_of_subtree
-      exact WF.parent_ge_set_of_inSubtree htd h_le ‹_›
+      exact WF.parent_ge_subtree_of_set htd h_le ‹_›
     -- Case: childIdx ≠ i (this is the untouched sibling)
     · have hsub : ¬InSubtree i.val childIdx :=  by grind only [InSubtree.not_of_lt]
       rw [heapifyDown_getElem_of_not_inSubtree' hside hsub]
@@ -274,8 +274,8 @@ theorem heapifyUp_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     have h_le : compare a[j] a[i+1] |>.isLE := by simp_all [Ordering.isLE_eq_isLT_or_isEq]
     simp only [heapifyUp, h_lt, ↓reduceIte, j]
     apply ih
-    . exact WF.exceptAt_swap h_le h_exc h_clp
-    . exact WF.childLeParent_swap h_le h_exc
+    . exact WF.exceptAt_swap_parent h_le h_exc h_clp
+    . exact WF.childLeParent_swap_parent h_le h_exc
   | case3 _ _ _ j =>
     simp_all only [heapifyUp, j]
     apply WF.bottomUp_of_exceptAt_of_parent h_exc
@@ -520,7 +520,7 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   . simp_all [WF]
   . split <;> apply WF.topDown_toArray
     . have hbelow := WF.below_swap_pop htd (by omega)
-      simp_all [WF.topDown_iff_children_and_below.mp, heapifyDown_wf (i := ⟨0, by omega⟩) hbelow]
+      simp_all [WF.topDown_iff_root_and_below.mp, heapifyDown_wf (i := ⟨0, by omega⟩) hbelow]
     . grind only [WF.Children, WF.TopDown]
 
 theorem replaceMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
@@ -534,7 +534,7 @@ theorem replaceMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     have h_pos := size_pos_of_max ‹_›
     have hbelow : WF.Below (heap.vector.set 0 x h_pos) (Fin.mk 0 h_pos) :=
       WF.below_set htd
-    simp_all [WF.topDown_iff_children_and_below.mp, heapifyDown_wf (i := ⟨0, h_pos⟩) hbelow]
+    simp_all [WF.topDown_iff_root_and_below.mp, heapifyDown_wf (i := ⟨0, h_pos⟩) hbelow]
 
 theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {heap : BinaryHeap α} {x : α} (h_wf : WF heap) :
@@ -548,7 +548,7 @@ theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       have h_pos := size_pos_of_max ‹_›
       have hbelow : WF.Below (heap.vector.set 0 x h_pos) (Fin.mk 0 h_pos) :=
         WF.below_set htd
-      simp_all [WF.topDown_iff_children_and_below.mp, heapifyDown_wf (i := ⟨0, h_pos⟩) hbelow]
+      simp_all [WF.topDown_iff_root_and_below.mp, heapifyDown_wf (i := ⟨0, h_pos⟩) hbelow]
     · exact h_wf
 
 @[simp]
