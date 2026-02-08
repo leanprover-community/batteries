@@ -115,8 +115,7 @@ theorem below_swap [Ord α] {a : Vector α sz} {i j : Fin sz}
     {hbelow : WF.Below a i} {hij : i < j} :
     WF.Below (a.swap i j) j := by
   intro k hk_gt_j
-  have hk_gt_i : i.val < k.val := Nat.lt_trans ‹_› ‹_›
-  have ⟨_, _⟩ := hbelow k hk_gt_i
+  have hchild := hbelow k (Nat.lt_trans hij hk_gt_j)
   grind only [= Fin.getElem_fin, = Vector.getElem_swap, WF.Children]
 
 
@@ -176,7 +175,6 @@ theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   have h_parent_child : i.val = 2 * parent.val + 1 ∨ i.val = 2 * parent.val + 2 := by grind only
   have ⟨hwf_parent_l, hwf_parent_r⟩ := htd parent
   have h_parent_ge_i : (compare v[parent] v[i]).isGE := by grind only [= Fin.getElem_fin]
-
   -- Split: is m the element we modified (i), or an unmodified descendant?
   by_cases hm_eq : m.val = i.val
   -- Case: m = i (we set it to x ≤ v[i])
@@ -185,7 +183,6 @@ theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     apply Std.TransOrd.isGE_trans h_parent_ge_i
     rw [Std.OrientedOrd.eq_swap]
     simp_all
-
   -- Case: m ≠ i (m is an unmodified descendant)
   -- m's value unchanged by set, so use original parent_ge_subtree relationship
   · have : i.val ≠ m.val := by omega
