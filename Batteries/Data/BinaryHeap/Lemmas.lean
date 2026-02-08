@@ -249,22 +249,20 @@ section heapifyUp
     and i's children are already ≤ i's parent -/
 theorem heapifyUp_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     {a : Vector α sz} {i : Fin sz}
-    (hexcept : WF.ExceptAt a i)
-    (hchildren : WF.ChildLeParent a i) :
+    (h_exc : WF.ExceptAt a i)
+    (h_clp : WF.ChildLeParent a i) :
     WF.BottomUp (heapifyUp a i) := by
   induction a, i using heapifyUp.induct with
-  | case1 _ =>
-    simp only [heapifyUp]
-    exact WF.bottomUp_of_exceptAt_zero (by omega) hexcept
+  | case1 => simp [heapifyUp, WF.bottomUp_of_exceptAt_zero (by omega) h_exc]
   | case2 a i hisucc j h_lt ih =>
     have h_le : compare a[j] a[i+1] |>.isLE := by simp_all [Ordering.isLE_eq_isLT_or_isEq]
     simp only [heapifyUp, h_lt, ↓reduceIte, j]
     apply ih
-    · exact WF.exceptAt_swap h_le hexcept hchildren
-    · exact WF.childLeParent_swap h_le hexcept
-  | case3 a i hisucc j h_nlt =>
+      <;> (first | apply WF.exceptAt_swap | apply WF.childLeParent_swap)
+      <;> assumption
+  | case3 _ _ _ j =>
     simp_all only [heapifyUp, j]
-    apply WF.bottomUp_of_exceptAt_of_parent hexcept
+    apply WF.bottomUp_of_exceptAt_of_parent h_exc
     apply WF.parent_of_ge <;> simp_all [Ordering.isGE_iff_ne_lt]
 
 /-- `heapifyUp` restores the full heap property, given that all nodes except `i` satisfy
