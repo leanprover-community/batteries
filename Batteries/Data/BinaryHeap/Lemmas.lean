@@ -613,13 +613,13 @@ theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare x (heap.get i) |>.isGE) :
     WF (heap.increaseKey i x) := by
   unfold increaseKey
-  generalize hv : heap.vector = v
-  have htd : WF.TopDown v := by simp_all [WF]
-  have hbu : WF.BottomUp v := by simpa [← WF.iff_bottomUp]
-  have h_ge' : compare x v[i] |>.isGE := by simp_all [get, vector]
+  have htd : WF.TopDown heap.vector := by rwa [WF] at h_wf
+  have hbu : WF.BottomUp heap.vector := by rwa [WF.iff_bottomUp] at htd
   apply WF.topDown_toArray
   rw [WF.iff_bottomUp]
-  simp_all [WF.exceptAt_set_of_ge, WF.childLeParent_set_of_ge, heapifyUp_bottomUp]
+  apply heapifyUp_bottomUp
+  . exact WF.exceptAt_set_of_ge hbu h_ge
+  . exact WF.childLeParent_set_of_ge h_wf hbu h_ge
 
 /-- The inner loop of toSortedArray produces a sorted array -/
 private theorem toSortedArray_loop_sorted [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
