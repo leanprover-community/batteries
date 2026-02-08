@@ -175,13 +175,21 @@ theorem parent_ge_set_of_inSubtree [Ord α] [Std.TransOrd α] [Std.OrientedOrd �
   have h_parent_child : i.val = 2 * parent.val + 1 ∨ i.val = 2 * parent.val + 2 := by grind only
   have ⟨hwf_parent_l, hwf_parent_r⟩ := htd parent
   have h_parent_ge_i : (compare v[parent] v[i]).isGE := by grind only [= Fin.getElem_fin]
+
+  -- Split: is m the element we modified (i), or an unmodified descendant?
   by_cases hm_eq : m.val = i.val
+  -- Case: m = i (we set it to x ≤ v[i])
+  -- Show: parent ≥ x, by transitivity: parent ≥ v[i] ≥ x
   · simp_all only [Fin.getElem_fin, Vector.getElem_set_self]
     apply Std.TransOrd.isGE_trans h_parent_ge_i
     rw [Std.OrientedOrd.eq_swap]
     simp_all
+
+  -- Case: m ≠ i (m is an unmodified descendant)
+  -- m's value unchanged by set, so use original parent_ge_subtree relationship
   · have : i.val ≠ m.val := by omega
     simp_all only [Fin.getElem_fin, ne_eq, not_false_eq_true, Vector.getElem_set_ne]
+    -- Extend the subtree: parent → i → m
     have h_parent_to_i : InSubtree parent.val i.val := by grind only [InSubtree]
     exact WF.parent_ge_subtree
       (hwf_at := htd parent)
