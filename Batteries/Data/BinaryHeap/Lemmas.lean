@@ -116,7 +116,9 @@ theorem heapifyDown_preserves_ge_root_of_subtree [Ord α] [Std.TransOrd α]
     (hge : ∀ k : Fin sz, InSubtree j.val k.val → (compare v a[k]).isGE) :
     (compare v (heapifyDown a j)[j]).isGE := by
   -- this proof isn't really inductive, heapifyDown.induct is just a convenient way to split the
-  -- cases
+  -- cases. 'split' doesn't work because of dependent rewriting issues.
+  -- so you have to do e.g. cases maxChild a j and by_cases (compare a[j] a[i]).isLT manualy.
+  -- Unsure if there is something more idiomatic.
   induction a, j using heapifyDown.induct with
   | case1 => simp_all [heapifyDown_eq_of_maxChild_none, InSubtree.refl]
   | case2 a j child hmaxChild _ h_lt _ =>
