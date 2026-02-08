@@ -231,7 +231,7 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       · exact ih_below k hlt
       · exact Fin.ext heq ▸ ih_at
       · exact heapifyDown_swap_children_of_lt hchild (by omega) hgt (hbelow k hik)
-  | case3 a i j hmaxChild hij h_nlt =>
+  | case3 =>
     simp_all [heapifyDown_eq_of_not_lt_child, children_of_ge_maxChild, Ordering.isGE_iff_ne_lt]
 
 end heapifyDown
