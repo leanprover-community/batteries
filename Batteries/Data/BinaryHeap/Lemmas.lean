@@ -91,18 +91,24 @@ theorem heapifyDown_swap_children_of_lt [Ord α] {a : Vector α sz} {i j k : Fin
     (hchild : j.val = 2 * i.val + 1 ∨ j.val = 2 * i.val + 2)
     (hik : i < k) (hkj : k < j) (hwf : WF.Children a k) :
     WF.Children (heapifyDown (a.swap i j i.isLt j.isLt) j) k := by
-  apply WF.children_congr hwf <;>
-    grind only [heapifyDown_getElem_of_not_inSubtree, InSubtree.not_of_lt,
-      Vector.getElem_swap_of_ne, heapifyDown_getElem_of_not_inSubtree', Fin.getElem_fin]
+  apply WF.children_congr hwf
+    <;> intros
+    <;> (try simp only [Fin.getElem_fin])
+    <;> rw [heapifyDown_getElem_of_not_inSubtree' _ (by grind only [InSubtree.not_of_lt])]
+    <;> apply Vector.getElem_swap_of_ne
+    <;> omega
 
 /-- `heapifyDown` preserves WF.Children at positions before the heapified index that are not its children. -/
+-- possible to merge with above theorem? they have the exact same structure
 theorem heapifyDown_get_of_not_child [Ord α] {v : Vector α sz} {i k : Fin sz}
     (hki : k < i) (hwf : WF.Children v k)
     (hleft_ne : i.val ≠ 2 * k.val + 1) (hright_ne : i.val ≠ 2 * k.val + 2) :
     WF.Children (heapifyDown v i) k := by
-  apply WF.children_congr hwf <;>
-    grind only [heapifyDown_getElem_of_not_inSubtree, heapifyDown_getElem_of_not_inSubtree',
-      InSubtree.not_of_lt, Fin.getElem_fin]
+  apply WF.children_congr hwf
+    <;> intros
+    <;> (try simp only [Fin.getElem_fin])
+    <;> rw [heapifyDown_getElem_of_not_inSubtree' _ (by grind only [InSubtree.not_of_lt])]
+    <;> omega
 
 /-- If v dominates all values in the subtree, v dominates the result at root -/
 theorem heapifyDown_preserves_ge_root_of_subtree [Ord α] [Std.TransOrd α]
