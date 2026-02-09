@@ -337,7 +337,7 @@ theorem max_eq_arr_zero [Ord α] {heap : BinaryHeap α} {x : α} (h : heap.max =
   simp_all
 
 /-- The inner loop of toSortedArray produces a permutation of heap ++ out -/
-theorem toSortedArray_loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α) :
+theorem toSortedArray.loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α) :
     (toSortedArray.loop heap out).toList.Perm (heap.arr.toList ++ out.toList) := by
   unfold toSortedArray.loop
   split
@@ -345,7 +345,7 @@ theorem toSortedArray_loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α)
   · rename_i x h_some
     have h_pos : 0 < heap.size := size_pos_of_max h_some
     have h_x : x = heap.arr[0] := max_eq_arr_zero h_some
-    apply toSortedArray_loop_perm heap.popMax (out.push x) |>.trans
+    apply toSortedArray.loop_perm heap.popMax (out.push x) |>.trans
     simp only [Array.toList_push]
     apply List.perm_append_comm.append_left _ |>.trans
     simp only [← List.append_assoc]
@@ -357,7 +357,7 @@ theorem toSortedArray_loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α)
 theorem toSortedArray_perm [Ord α] (heap : BinaryHeap α) :
     heap.toSortedArray.Perm heap.arr := by
   apply Array.Perm.of_toList_perm
-  apply toSortedArray_loop_perm heap #[] |>.trans
+  apply toSortedArray.loop_perm heap #[] |>.trans
   simp
 
 theorem mkHeap.loop_perm [Ord α] {a : Vector α sz} {h : n ≤ sz} :
@@ -591,7 +591,6 @@ theorem mem_of_mem_popMax [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ he
 theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_leq : compare x (heap.get i) |>.isLE) :
     WF (heap.decreaseKey i x) := by
-  unfold decreaseKey
   apply WF.of_topDown_toArray
   have htd : WF.TopDown heap.vector := by simp_all [WF]
   have hbelow : WF.Below (heap.vector.set i x _) i := WF.below_set htd
@@ -613,7 +612,6 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
 theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare x (heap.get i) |>.isGE) :
     WF (heap.increaseKey i x) := by
-  unfold increaseKey
   have hbu : WF.BottomUp heap.vector := by rwa [WF, WF.iff_bottomUp] at h_wf
   apply WF.of_topDown_toArray
   rw [WF.iff_bottomUp]
@@ -633,21 +631,18 @@ private theorem toSortedArray_loop_sorted [Ord α] [Std.TransOrd α] [Std.Orient
   have h_pos : 0 < heap.size := size_pos_of_max h
   apply toSortedArray_loop_sorted
   · exact popMax_wf hwf
-  · have hx_in_heap : x ∈ heap := by
-      simp_all [BinaryHeap.mem_def, BinaryHeap.max, Array.mem_of_getElem? h]
+  · have : x ∈ heap := by simp_all [BinaryHeap.mem_def, BinaryHeap.max, Array.mem_of_getElem? h]
     rw [Array.toList_push, List.pairwise_append]
     refine ⟨by assumption, by simp, ?_⟩
     intros
-    rw [Std.OrientedOrd.eq_swap, Ordering.isGE_swap]
-    simp_all [Array.mem_toList_iff]
-  · have hx_ge_heap : ∀ y ∈ heap, compare x y |>.isGE := by
-      intro y hy
-      have := max_ge_all hwf hy h_pos
-      simp_all [Option.get_some]
+    rw [Std.OrientedOrd.eq_swap]
+    simp_all
+  · have hx_ge_heap : ∀ y ∈ heap, compare x y |>.isGE := fun _ hy => by
+      simpa [h] using max_ge_all hwf hy h_pos
     intro _ _ _ hy
     rw [Array.mem_push] at hy
     cases hy
-    case' inr => rw [Std.OrientedOrd.eq_swap, Ordering.isLE_swap]
+    case' inr => rw [Std.OrientedOrd.eq_swap]
     all_goals simp_all [mem_of_mem_popMax]
 
 /-- toSortedArray produces a sorted array if the heap is well-formed -/
