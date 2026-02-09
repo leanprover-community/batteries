@@ -42,8 +42,7 @@ idxToSigmaCount [5, 1, 3, 2, 4, 0, 1, 4] 5 = ⟨0, 0⟩
 ```
 -/
 def idxToSigmaCount [BEq α] [ReflBEq α] (xs : List α) (i : Fin xs.length) :
-    (x : α) × Fin (xs.count x) :=
-  ⟨xs[i.1], xs.countBefore xs[i.1] i, countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl⟩
+    (x : α) × Fin (xs.count x) := ⟨xs[i.1], xs.countBefore xs[i.1] i, by grind⟩
 
 @[simp, grind =]
 theorem fst_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin xs.length} :
@@ -51,8 +50,7 @@ theorem fst_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin xs.leng
 
 @[simp, grind =]
 theorem snd_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin xs.length} :
-    (xs.idxToSigmaCount i).2 =
-    ⟨xs.countBefore xs[i.1] i, countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl⟩ := rfl
+    (xs.idxToSigmaCount i).2 = ⟨xs.countBefore xs[i.1] i, by grind⟩ := rfl
 
 @[simp, grind =]
 theorem coe_snd_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin xs.length} :
@@ -66,7 +64,7 @@ sigmaCountToIdx [5, 1, 3, 2, 4, 0, 1, 4] ⟨0, 0⟩ = 5
 ```
 -/
 def sigmaCountToIdx [BEq α] (xs : List α) (xc : (x : α) × Fin (xs.count x)) :
-    Fin xs.length := ⟨xs.idxOfNth xc.1 xc.2, idxOfNth_lt_length_of_lt_count xc.2.isLt⟩
+    Fin xs.length := ⟨xs.idxOfNth xc.1 xc.2, by grind⟩
 
 @[simp, grind =]
 theorem coe_sigmaCountToIdx [BEq α] {xs: List α} {xc : (x : α) × Fin (xs.count x)} :
@@ -74,8 +72,7 @@ theorem coe_sigmaCountToIdx [BEq α] {xs: List α} {xc : (x : α) × Fin (xs.cou
 
 @[simp, grind =]
 theorem sigmaCountToIdx_idxToSigmaCount [BEq α] [ReflBEq α] {xs : List α}
-    {i : Fin xs.length} : xs.sigmaCountToIdx (xs.idxToSigmaCount i) = i :=
-  Fin.ext <| idxOfNth_countBefore_of_lt_length_of_beq _ BEq.rfl
+    {i : Fin xs.length} : xs.sigmaCountToIdx (xs.idxToSigmaCount i) = i := by grind
 
 theorem leftInverse_sigmaCountToIdx_idxToSigmaCount [BEq α] [ReflBEq α] {xs : List α} :
   xs.sigmaCountToIdx.LeftInverse xs.idxToSigmaCount := by grind
@@ -92,7 +89,7 @@ theorem surjective_sigmaCountToIdx [BEq α] [ReflBEq α] {xs : List α} :
 @[simp, grind =]
 theorem idxToSigmaCount_sigmaCountToIdx [BEq α] [LawfulBEq α] {xs : List α}
     {xc : (x : α) × Fin (xs.count x)} : xs.idxToSigmaCount (xs.sigmaCountToIdx xc) = xc :=
-  Sigma.ext getElem_idxOfNth_eq (heq_of_eqRec_eq (by simp) (by grind))
+  Sigma.ext getElem_idxOfNth_eq (heq_of_eqRec_eq (by grind) (by grind))
 
 theorem leftInverse_idxToSigmaCount_sigmaCountToIdx [BEq α] [LawfulBEq α] {xs : List α} :
   xs.idxToSigmaCount.LeftInverse xs.sigmaCountToIdx := by grind

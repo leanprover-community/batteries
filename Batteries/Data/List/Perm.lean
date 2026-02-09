@@ -327,19 +327,19 @@ theorem Perm.insertP (p : α → Bool) (a) (h : l₁ ~ l₂) : insertP p a l₁ 
 theorem Subperm.countBefore_idxOfNth [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+~ ys)
     {hi : i < xs.length} : ys.countBefore xs[i] (ys.idxOfNth xs[i] (xs.countBefore xs[i] i)) =
     countBefore xs[i] xs i := countBefore_idxOfNth_of_lt_count <|
-  Nat.lt_of_lt_of_le (countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl) (h.count_le _)
+  Nat.lt_of_lt_of_le (by grind) (h.count_le _)
 
 @[simp]
 theorem Sublist.countBefore_idxOfNth [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+ ys)
     {hi : i < xs.length} : ys.countBefore xs[i] (ys.idxOfNth xs[i] (xs.countBefore xs[i] i)) =
     countBefore xs[i] xs i := countBefore_idxOfNth_of_lt_count <|
-  Nat.lt_of_lt_of_le (countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl) (h.count_le _)
+  Nat.lt_of_lt_of_le (by grind) (h.count_le _)
 
 @[simp]
 theorem Perm.countBefore_idxOfNth [BEq α] [ReflBEq α] {xs ys : List α} (h : xs ~ ys)
     {hi : i < xs.length} : ys.countBefore xs[i] (ys.idxOfNth xs[i] (xs.countBefore xs[i] i)) =
     countBefore xs[i] xs i := countBefore_idxOfNth_of_lt_count <|
-  Nat.lt_of_lt_of_eq (countBefore_lt_count_of_lt_length_of_beq _ BEq.rfl) (h.count_eq _)
+  Nat.lt_of_lt_of_eq (by grind) (h.count_eq _)
 
 /-- `Subperm.idxInj` is an injective map from `Fin xs.length` to `Fin ys.length`
 which exists when we have `xs <+~ ys`: conceptually it represents an embedding of
