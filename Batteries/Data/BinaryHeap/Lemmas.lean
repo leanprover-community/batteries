@@ -179,31 +179,25 @@ theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α
   constructor
   all_goals
     intro hside
-    -- Position i now contains a[j] (via swap), unchanged by heapifyDown (i outside j's subtree)
     simp only [heapifyDown_getElem_of_not_inSubtree hnsub_i, Fin.getElem_fin,
       Vector.getElem_swap_left]
-    -- Split by which child j is (left or right). Four cases arise from:
+    -- Split by which child j is. Four cases arise from:
     -- (prove i ≥ left and right child) × (is j this child or the sibling?)
     cases hchild
   -- Matching cases: j is the child we're proving about
-  -- left.inl: j is left child, proving left child property
-  -- right.inr: j is right child, proving right child property
   case left.inl | right.inr =>
     rename_i hj
     simp only [← hj]
     apply heapifyDown_preserves_ge_root_of_subtree
     exact WF.swap_preserves_ge_subtree h_ij h_lt hbelow
   -- Sibling cases: j is the untouched sibling of the child we're proving about
-  -- left.inr: proving left child property, but j (right child) is the sibling
-  -- right.inl: proving right child property, but j (left child) is the sibling
-  case' left.inr  => let childIdx := 2 * i.val + 1   -- left child
-  case' right.inl => let childIdx := 2 * i.val + 2   -- right child
+  case' left.inr  => let childIdx := 2 * i.val + 1
+  case' right.inl => let childIdx := 2 * i.val + 2
   all_goals
     -- j (the sibling) is outside its own subtree, so heapifyDown doesn't touch it
     have hnsub : ¬InSubtree j.val childIdx := by grind only [InSubtree.not_of_lt]
     rw [heapifyDown_getElem_of_not_inSubtree' hside hnsub,
       Vector.getElem_swap_of_ne (by omega) (by omega)]
-    -- Use original maxChild property (j ≥ sibling)
     first | apply maxChild_ge_left | apply maxChild_ge_right
     assumption
 
@@ -226,9 +220,7 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   induction a, i using heapifyDown.induct with
   | case1 => grind only [heapifyDown_eq_of_maxChild_none, WF.Children, maxChild_none_iff]
   | case2 a i j hmaxChild h_ij h_lt ih =>
-    -- Case: maxChild returns some j and a[i] < a[j], so we swap and recurse
     rw [heapifyDown_eq_of_lt_child hmaxChild h_lt]
-    -- Apply IH to heapifyDown at j on the swapped array
     have ⟨ih_at, ih_below⟩ := ih (WF.below_swap (hbelow := hbelow) (hij := h_ij))
     have hchild := maxChild_isChild hmaxChild
     constructor
