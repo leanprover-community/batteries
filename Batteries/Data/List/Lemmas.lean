@@ -660,7 +660,6 @@ theorem getElem_findIdxs_eq_findIdxNth_add {xs : List α} {h : n < (xs.findIdxs 
 theorem getElem_findIdxs_eq_findIdxNth {xs : List α} {h : n < (xs.findIdxs p).length} :
     (xs.findIdxs p)[n] = xs.findIdxNth p n := getElem_findIdxs_eq_findIdxNth_add
 
-@[grind .]
 theorem pos_findIdxNth_getElem {xs : List α} {h : xs.findIdxNth p n < xs.length} :
     p xs[xs.findIdxNth p n] := by induction xs generalizing n <;> grind
 
@@ -875,23 +874,18 @@ theorem idxOfNth_cons [BEq α] {a : α} :
     if a == x then xs.idxOfNth x n + 1
     else xs.idxOfNth x (n + 1) + 1 := by grind
 
-@[grind =]
 theorem idxOfNth_cons_of_not_beq {a : α} [BEq α] (h : (a == x) = false) :
     (a :: xs).idxOfNth x n = xs.idxOfNth x n + 1 := by grind
 
-@[grind =]
 theorem idxOfNth_cons_of_beq {a : α} [BEq α] (h : a == x) :
     (a :: xs).idxOfNth x n = if n = 0 then 0 else xs.idxOfNth x (n - 1) + 1 := by grind
 
-@[grind =]
 theorem idxOfNth_cons_zero_of_beq {a : α} [BEq α] (h : a == x) :
     (a :: xs).idxOfNth x 0 = 0 := by grind
 
-@[grind =]
 theorem idxOfNth_cons_succ_of_beq {a : α} [BEq α] (h : a == x) :
     (a :: xs).idxOfNth x (n + 1) = xs.idxOfNth x n + 1 := by grind
 
-@[grind =]
 theorem getElem_idxOf_eq_idxOfNth_add {xs : List α} [BEq α] {h : n < (xs.idxsOf x s).length} :
     (xs.idxsOf x s)[n] = xs.idxOfNth x n + s := by
   induction xs generalizing n s <;> grind
@@ -900,13 +894,12 @@ theorem getElem_idxOf_eq_idxOfNth_add {xs : List α} [BEq α] {h : n < (xs.idxsO
 theorem getElem_idxOf_eq_idxOfNth {xs : List α} [BEq α] {h : n < (xs.idxsOf x).length} :
     (xs.idxsOf x)[n] = xs.idxOfNth x n := getElem_idxOf_eq_idxOfNth_add
 
-@[grind .]
 theorem getElem_idxOfNth_beq {xs : List α} [BEq α] {h : xs.idxOfNth x n < xs.length} :
     xs[xs.idxOfNth x n] == x := pos_findIdxNth_getElem (p := (· == x))
 
 grind_pattern getElem_idxOfNth_beq => xs[xs.idxOfNth x n]
 
-@[simp, grind .]
+@[simp, grind =]
 theorem getElem_idxOfNth_eq {xs : List α} [BEq α] [LawfulBEq α] {h : xs.idxOfNth x n < xs.length} :
     xs[xs.idxOfNth x n] = x := eq_of_beq getElem_idxOfNth_beq
 
@@ -1064,7 +1057,7 @@ theorem idxOfNth_countBefore_of_lt_length_of_beq [BEq α] {xs : List α} {h : i 
     (hip : xs[i] == x) : xs.idxOfNth x (xs.countBefore x i) = i :=
   findIdxNth_countPBefore_of_lt_length_of_pos hip
 
-@[simp, grind .]
+@[simp, grind =]
 theorem idxOfNth_countBefore_getElem [BEq α] [ReflBEq α] {xs : List α}
     {h : i < xs.length} : xs.idxOfNth xs[i] (xs.countBefore xs[i] i) = i :=
   idxOfNth_countBefore_of_lt_length_of_beq BEq.rfl
