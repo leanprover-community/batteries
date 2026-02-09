@@ -21,7 +21,6 @@ theorem count_getElem_take_succ [BEq α] [EquivBEq α] {xs : List α}
     {i : Nat} {hi} : (xs.take (i + 1)).count xs[i] = (xs.take i).count xs[i] + 1 := by
   grind [take_append_getElem]
 
-@[grind .]
 theorem count_getElem_take_lt_count [BEq α] [EquivBEq α] {xs : List α}
     {i : Nat} {hi} : (xs.take i).count (xs[i]'hi) < xs.count xs[i] :=
   Nat.lt_of_succ_le (Nat.le_trans (Nat.le_of_eq count_getElem_take_succ.symm) <|
