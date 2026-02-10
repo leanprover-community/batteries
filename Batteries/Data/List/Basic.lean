@@ -647,10 +647,12 @@ pwFilter (·<·) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4]
 def pwFilter (R : α → α → Prop) [DecidableRel R] (l : List α) : List α :=
   l.foldr (fun x IH => if ∀ y ∈ IH, R x y then x :: IH else IH) []
 
-/-- `IsChain R l` means that `R` holds between adjacent elements of `l`.
+/--
+`IsChain R l` means that `R` holds between adjacent elements of `l`. Example:
 ```
 IsChain R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
-``` -/
+```
+-/
 inductive IsChain (R : α → α → Prop) : List α → Prop where
   /-- A list of length 0 is a chain. -/
   | nil : IsChain R []
@@ -665,14 +667,14 @@ attribute [simp, grind ←] IsChain.singleton
 @[simp, grind =] theorem isChain_cons_cons : IsChain R (a :: b :: l) ↔ R a b ∧ IsChain R (b :: l) :=
   ⟨fun | .cons_cons hr h => ⟨hr, h⟩, fun ⟨hr, h⟩ => .cons_cons hr h⟩
 
-instance instDecidableIsChain {R : α → α → Prop} [h : DecidableRel R] (l : List α) :
-    Decidable (l.IsChain R) := match l with | [] => isTrue .nil | a :: l => go a l
-  where
-    go (a : α) (l : List α) : Decidable ((a :: l).IsChain R) :=
-      match l with
-      | [] => isTrue <| .singleton a
-      | b :: l => haveI := (go b l); decidable_of_iff' _ isChain_cons_cons
-
+instance {R : α → α → Prop} [h : DecidableRel R] : (l : List α) → Decidable (l.IsChain R)
+  | [] => isTrue .nil | a :: l => go a l
+where
+  go (a : α) (l : List α) : Decidable ((a :: l).IsChain R) :=
+    match l with
+    | [] => isTrue <| .singleton a
+    | b :: l => haveI := (go b l); decidable_of_iff' _ isChain_cons_cons
+    
 /-- `Chain R a l` means that `R` holds between adjacent elements of `a::l`.
 ```
 Chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d
