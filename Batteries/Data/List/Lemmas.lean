@@ -963,19 +963,6 @@ theorem map_coe_finRange_eq_range : (finRange n).map (↑·) = List.range n := b
   apply List.ext_getElem <;> simp
 /-! ### sum/prod -/
 
-private theorem foldr_eq_foldl_aux (f : α → α → α) (init : α) [Std.Associative f]
-    [Std.LawfulIdentity f init] {l : List α} :
-    l.foldl f a = f a (l.foldl f init) := by
-  induction l generalizing a with
-  | nil => simp [Std.LawfulRightIdentity.right_id]
-  | cons b l ih =>
-    simp [Std.LawfulLeftIdentity.left_id, ih (a := f a b), ih (a := b), Std.Associative.assoc]
-
-theorem foldr_eq_foldl (f : α → α → α) (init : α) [Std.Associative f]
-    [Std.LawfulIdentity f init] {l : List α} :
-    l.foldr f init = l.foldl f init := by
-  simp [foldr_eq_foldl_of_associative, Std.LawfulRightIdentity.right_id]
-
 @[simp, grind =]
 theorem prod_nil [Mul α] [One α] : ([] : List α).prod = 1 := rfl
 
