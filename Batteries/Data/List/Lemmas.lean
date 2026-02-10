@@ -1018,9 +1018,6 @@ theorem prod_eq_foldl [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
 theorem sum_zero_cons [Add α] [Zero α] [Std.LawfulLeftIdentity (α := α) (· + ·) 0] {l : List α} :
     (0 :: l).sum = l.sum := by simp [Std.LawfulLeftIdentity.left_id]
 
-theorem sum_singleton [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (· + ·) 0] {a : α} :
-  [a].sum = a := by simp [Std.LawfulRightIdentity.right_id]
-
 theorem sum_pair [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (· + ·) 0] {a b : α} :
   [a, b].sum = a + b := by simp [Std.LawfulRightIdentity.right_id]
 
@@ -1036,7 +1033,3 @@ theorem sum_flatten [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 
     [Std.Associative (α := α) (· + ·)] {l : List (List α)} :
     l.flatten.sum = (l.map sum).sum := by
   induction l with simp [*]
-
-theorem sum_eq_foldl [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
-    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} :
-    l.sum = l.foldl (· + ·) 0 := foldr_eq_foldl ..
