@@ -974,9 +974,7 @@ private theorem foldr_eq_foldl_aux (f : α → α → α) (init : α) [Std.Assoc
 theorem foldr_eq_foldl (f : α → α → α) (init : α) [Std.Associative f]
     [Std.LawfulIdentity f init] {l : List α} :
     l.foldr f init = l.foldl f init := by
-  induction l with
-  | nil => rfl
-  | cons a l ih => simp [ih, Std.LawfulLeftIdentity.left_id, foldr_eq_foldl_aux (a := a)]
+  simp [foldr_eq_foldl_of_associative, Std.LawfulRightIdentity.right_id]
 
 @[simp, grind =]
 theorem prod_nil [Mul α] [One α] : ([] : List α).prod = 1 := rfl
