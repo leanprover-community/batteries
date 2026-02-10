@@ -674,7 +674,7 @@ where
     match l with
     | [] => isTrue <| .singleton a
     | b :: l => haveI := (go b l); decidable_of_iff' _ isChain_cons_cons
-    
+
 /-- `Chain R a l` means that `R` holds between adjacent elements of `a::l`.
 ```
 Chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d
