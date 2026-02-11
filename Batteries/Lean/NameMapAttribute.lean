@@ -39,7 +39,6 @@ def registerNameMapExtension (α) (name : Name := by exact decl_name%) :
     name
     addImportedFn arr := .mk fun _ => arr.foldl (·.insertMany ·) ∅
     addEntryFn s n := s.map (·.insert n.1 n.2)
-    toArrayFn es := es.toArray
   }
 
 /-- The inputs to `registerNameMapAttribute`. -/
