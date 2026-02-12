@@ -105,6 +105,12 @@ def traceLintCore (msg : String) (inIO : Bool) : CoreM Unit := do
   else
     trace[Batteries.Lint] msg
 
+/-- Prepends `currentModule` and `linter` (if present) in the appropriate format. -/
+def prefixLintMsg (currentModule linterName : Option Name) (msg : String) :=
+  s!"{if let some m := currentModule then s!"[{m}] " else ""}\
+      {if let some l := linterName then s!"- {l}: " else ""}\
+      {msg}"
+
 /-- Traces via `IO.println` if `inIO` is `true`, and via `trace[...]` otherwise. Prepends
 `currentModule` and `linter` (if present).
 
@@ -112,10 +118,7 @@ This declaration is `macro_inline`, so it should have the same thunky behavior a
 @[macro_inline, expose]
 def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Name := none) :
     CoreM Unit :=
-  traceLintCore (inIO := inIO)
-    s!"{if let some m := currentModule then s!"[{m}] " else ""}\
-      {if let some l := linterName then s!"- {l}: " else ""}\
-      {msg}"
+  traceLintCore (inIO := inIO) <| prefixLintMsg currentModule linterName msg
 
 /--
 Runs all the specified linters on all the specified declarations in parallel,
@@ -132,7 +135,6 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
   let tasks : Array (NamedLinter × Array (Name × Task (Except Exception <| Option MessageData))) ←
     linters.mapM fun linter => do
       traceLint "(0/2) Starting..." inIO currentModule linter.name
-      let decls ← decls.filterM (shouldBeLinted linter.name)
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
         let act : MetaM (Option MessageData) := do
           let result ← linter.test decl
