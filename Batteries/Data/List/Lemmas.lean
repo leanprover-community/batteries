@@ -409,7 +409,7 @@ alias Chain.imp := IsChain.imp
 theorem IsChain.cons_of_imp (h : ∀ c, R a c → R b c) :
     IsChain R (a :: l) → IsChain R (b :: l) := by grind [cases List]
 
-@[deprecated IsChain.of_cons_of_imp (since := "2026-02-10")]
+@[deprecated (since := "2026-02-10")]
 alias IsChain.cons_of_imp_of_cons := IsChain.cons_of_imp
 
 theorem IsChain.cons_of_imp_of_imp (HRS : ∀ ⦃a b : α⦄, R a b → S a b)
