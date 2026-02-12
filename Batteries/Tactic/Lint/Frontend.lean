@@ -91,33 +91,80 @@ def getChecks (slow : Bool) (runOnly : Option (List Name)) (runAlways : Option (
         result := result.binInsert (·.name.lt ·.name) linter
   pure result
 
+/-- Traces via `IO.println` if `inIO` is `true`, and via `trace[...]` otherwise. It seems that
+`trace` messages in a running `CoreM` are not propagated through to `IO` in the current setup. We
+use `IO.println` directly instead of running `printTraces` at the end of our `CoreM` action so that
+trace messages are printed to stdout immediately, and are not lost if any part of the action hangs.
+
+This declaration is `macro_inline`, so it should have the same thunky behavior as `trace[...]`. -/
+@[macro_inline, expose]
+def traceLintCore (msg : String) (inIO : Bool) : CoreM Unit := do
+  if inIO then
+    if ← getBoolOption `trace.Batteries.Lint then
+      IO.println msg
+  else
+    trace[Batteries.Lint] msg
+
+/-- Traces via `IO.println` if `inIO` is `true`, and via `trace[...]` otherwise. Prepends
+`currentModule` and `linter` (if present).
+
+This declaration is `macro_inline`, so it should have the same thunky behavior as `trace[...]`. -/
+@[macro_inline, expose]
+def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Name := none) :
+    CoreM Unit :=
+  traceLintCore (inIO := inIO)
+    s!"{if let some m := currentModule then s!"[{m}] " else ""}\
+      {if let some l := linterName then s!"- {l}: " else ""}\
+      {msg}"
+
 /--
 Runs all the specified linters on all the specified declarations in parallel,
 producing a list of results.
 -/
-def lintCore (decls : Array Name) (linters : Array NamedLinter) :
+def lintCore (decls : Array Name) (linters : Array NamedLinter)
+    -- For tracing:
+    (currentModule : Option Name := none) (inIO : Bool := false) :
     CoreM (Array (NamedLinter × Std.HashMap Name MessageData)) := do
   let env ← getEnv
   let options ← getOptions -- TODO: sanitize options?
+  traceLint
+      s!"Running linters:\n  {"\n  ".intercalate <| linters.map (s!"{·.name}") |>.toList}"
+      inIO currentModule
 
   let tasks : Array (NamedLinter × Array (Name × Task (Option MessageData))) ←
     linters.mapM fun linter => do
+      traceLint "(0/2) Starting..." inIO currentModule linter.name
       let decls ← decls.filterM (shouldBeLinted linter.name)
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
         BaseIO.asTask do
-          match ← withCurrHeartbeats (linter.test decl)
+          let act : MetaM (Option MessageData) := withCurrHeartbeats do
+            let result ← linter.test decl
+            if inIO then
+              -- Ensure any trace messages are propagated to stdout
+              printTraces
+            return result
+          match ← act
               |>.run' mkMetaContext -- We use the context used by `Command.liftTermElabM`
               |>.run' {options, fileName := "", fileMap := default} {env}
               |>.toBaseIO with
           | Except.ok msg? => pure msg?
           | Except.error err => pure m!"LINTER FAILED:\n{err.toMessageData}"
 
-  tasks.mapM fun (linter, decls) => do
+  let result ← tasks.mapM fun (linter, decls) => do
+    traceLint "(1/2) Getting..." inIO currentModule linter.name
     let mut msgs : Std.HashMap Name MessageData := {}
     for (declName, msg?) in decls do
       if let some msg := msg?.get then
         msgs := msgs.insert declName msg
+    traceLint
+      s!"(2/2) {if msgs.isEmpty then "Passed!" else
+        s!"Failed with {msgs.size} messages\
+        {if inIO then ", but these may include declarations in `nolints.json`" else ""}."}"
+      inIO currentModule linter.name
     pure (linter, msgs)
+  traceLint "Completed linting!" inIO currentModule
+  return result
+
 
 /-- Sorts a map with declaration keys as names by line number. -/
 def sortResults (results : Std.HashMap Name α) : CoreM <| Array (Name × α) := do
@@ -216,7 +263,7 @@ def getDeclsInPackage (pkg : Name) : CoreM (Array Name) := do
   let mut decls ← getDeclsInCurrModule
   let modules := env.header.moduleNames.map (pkg.isPrefixOf ·)
   return env.constants.map₁.fold (init := decls) fun decls declName _ =>
-    if modules[env.const2ModIdx[declName]?.get! (α := Nat)]! then
+    if modules[env.const2ModIdx[declName]?.get!]! then
       decls.push declName
     else decls
 
@@ -278,3 +325,5 @@ elab "#list_linters" : command => do
   for (name, dflt) in result do
     msg := msg ++ m!"\n{name}{if dflt then " (*)" else ""}"
   logInfo msg
+
+initialize registerTraceClass `Batteries.Lint

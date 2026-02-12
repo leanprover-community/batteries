@@ -183,29 +183,42 @@ theorem takeDTR_go_eq : ∀ n l, takeDTR.go dflt n l acc = acc.toList ++ takeD n
 @[csimp] theorem takeD_eq_takeDTR : @takeD = @takeDTR := by
   funext α f n l; simp [takeDTR, takeDTR_go_eq]
 
+
+/-- Tail-recursive helper function for `scanlM` and `scanrM` -/
+@[inline]
+def scanAuxM [Monad m] (f : β → α → m β) (init : β) (l : List α) : m (List β) :=
+  go l init []
+where
+  /-- Auxiliary for `scanAuxM` -/
+  @[specialize] go : List α → β → List β → m (List β)
+    | [], last, acc => pure <| last :: acc
+    | x :: xs, last, acc => do go xs (← f last x) (last :: acc)
+
+/--
+Folds a monadic function over a list from the left, accumulating partial results starting with
+`init`. The accumulated values are combined with the each element of the list in order, using `f`.
+-/
+@[inline]
+def scanlM [Monad m] (f : β → α → m β) (init : β) (l : List α) : m (List β) :=
+  List.reverse <$> scanAuxM f init l
+
+/--
+Folds a monadic function over a list from the right, accumulating partial results starting with
+`init`. The accumulated values are combined with the each element of the list in order, using `f`.
+-/
+@[inline]
+def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) :=
+  scanAuxM (flip f) init xs.reverse
+
 /--
 Fold a function `f` over the list from the left, returning the list of partial results.
 ```
 scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]
 ```
 -/
-@[simp] def scanl (f : α → β → α) (a : α) : List β → List α
-  | [] => [a]
-  | b :: l => a :: scanl f (f a b) l
-
-/-- Tail-recursive version of `scanl`. -/
-@[inline] def scanlTR (f : α → β → α) (a : α) (l : List β) : List α := go l a #[] where
-  /-- Auxiliary for `scanlTR`: `scanlTR.go f l a acc = acc.toList ++ scanl f a l`. -/
-  @[specialize] go : List β → α → Array α → List α
-  | [], a, acc => acc.toListAppend [a]
-  | b :: l, a, acc => go l (f a b) (acc.push a)
-
-theorem scanlTR_go_eq : ∀ l, scanlTR.go f l a acc = acc.toList ++ scanl f a l
-  | [] => by simp [scanlTR.go, scanl]
-  | a :: l => by simp [scanlTR.go, scanl, scanlTR_go_eq l]
-
-@[csimp] theorem scanl_eq_scanlTR : @scanl = @scanlTR := by
-  funext α f n l; simp (config := { unfoldPartialApp := true }) [scanlTR, scanlTR_go_eq]
+@[inline]
+def scanl (f : β → α → β) (init : β) (as : List α) : List β :=
+  Id.run <| as.scanlM (pure <| f · ·) init
 
 /--
 Fold a function `f` over the list from the right, returning the list of partial results.
@@ -213,9 +226,9 @@ Fold a function `f` over the list from the right, returning the list of partial 
 scanr (+) 0 [1, 2, 3] = [6, 5, 3, 0]
 ```
 -/
-def scanr (f : α → β → β) (b : β) (l : List α) : List β :=
-  let (b', l') := l.foldr (fun a (b', l') => (f a b', b' :: l')) (b, [])
-  b' :: l'
+@[inline]
+def scanr (f : α → β → β) (init : β) (as : List α) : List β :=
+  Id.run <| as.scanrM (pure <| f · ·) init
 
 /--
 Fold a list from left to right as with `foldl`, but the combining function
@@ -223,7 +236,8 @@ also receives each element's index added to an optional parameter `start`
 (i.e. the numbers that `f` takes as its first argument will be greater than or equal to `start` and
 less than `start + l.length`).
 -/
-@[specialize] def foldlIdx (f : Nat → α → β → α) (init : α) : List β → (start : Nat := 0) → α
+@[specialize] def foldlIdx (f : Nat → α → β → α) (init : α) :
+    List β → (start : Nat := 0) → α
   | [], _ => init
   | b :: l, s => foldlIdx f (f s init b) l (s + 1)
 
@@ -248,9 +262,9 @@ def foldrIdx {α : Type u} {β : Type v} (f : Nat → α → β → β) (init : 
     (foldrIdx f i xs s, s) := by induction xs generalizing s <;> grind [foldrIdx]
   grind [foldrIdxTR]
 
-/-- `findIdxs p l` is the list of indexes of elements of `l` that satisfy `p`, added to an
-optional parameter `start` (so that the members of `findIdxs p l` will be greater than or
-equal to `start` and less than `l.length + start`).  -/
+/-- `findIdxs p l s` is the list of indexes of elements of `l` that satisfy `p`, added to an
+optional parameter `s` (so that the members of `findIdxs p l s` will be greater than or
+equal to `s` and less than `l.length + s`).  -/
 @[inline] def findIdxs (p : α → Bool) (l : List α) (start : Nat := 0) : List Nat :=
   foldrIdx (fun i a is => bif p a then i :: is else is) [] l start
 
@@ -265,9 +279,22 @@ We have `l.findIdxsValues p s = (l.findIdxs p s).zip (l.filter p)`.
 @[deprecated (since := "2025-11-06")]
 alias indexsValues := findIdxsValues
 
+/-- `findIdxNth p xs n` returns the index of the `n`th element for which `p` returns `true`.
+For example:
+```
+findIdxNth (· < 3) [5, 1, 3, 2, 4, 0, 1, 4] 2 = 5
+```
+-/
+@[inline] def findIdxNth (p : α → Bool) (xs : List α) (n : Nat) : Nat := go xs n 0 where
+  /-- Auxiliary for `findIdxNth`: `findIdxNth.go p l n acc = findIdxNth p l n + acc`. -/
+  @[specialize] go : (xs : List α) → (n : Nat) → (s : Nat) → Nat
+  | [], _, s => s
+  | a :: xs, 0, s => bif p a then s else go xs 0 (s + 1)
+  | a :: xs, n + 1, s => bif !(p a) then go xs (n + 1) (s + 1) else go xs n (s + 1)
+
 /--
-`idxsOf a l` is the list of all indexes of `a` in `l`,  added to an
-optional parameter `start`. For example:
+`idxsOf a l s` is the list of all indexes of `a` in `l`,  added to an
+optional parameter `s`. For example:
 ```
 idxsOf b [a, b, a, a] = [1]
 idxsOf a [a, b, a, a] 5 = [5, 7, 8]
@@ -278,6 +305,42 @@ idxsOf a [a, b, a, a] 5 = [5, 7, 8]
 
 @[deprecated (since := "2025-11-06")]
 alias indexesOf := idxsOf
+
+/-- `idxOfNth a xs n` returns the index of the `n`th instance of `a` in `xs`, counting from `0`.
+
+For example:
+```
+idxOfNth 1 [5, 1, 3, 2, 4, 0, 1, 4] 1 = 6
+```
+-/
+def idxOfNth [BEq α] (a : α) (xs : List α) (n : Nat) : Nat :=
+  xs.findIdxNth (· == a) n
+
+/-- `countPBefore p xs i hip` counts the number of `x` in `xs` before the `i`th index for
+which `p x = true`.
+
+For example:
+```
+countPBefore (· < 3) [5, 1, 3, 2, 4, 0, 1, 4] 5 = 2
+```
+-/
+def countPBefore (p : α → Bool) (xs : List α) (i : Nat) : Nat := go xs i 0 where
+  /-- Auxiliary for `countPBefore`: `countPBefore.go p l i acc = countPBefore p l i + acc`. -/
+  @[specialize] go : (xs : List α) → (i : Nat) → (s : Nat) → Nat
+  | _ :: _, 0, s => s
+  | a :: xs, i + 1, s => bif p a then go xs i (s + 1) else go xs i s
+  | [], _, s => s
+
+/-- `countBefore a xs n` counts the number of `x` in `xs` before the
+`i`th index for which `x == a` is true.
+
+For example:
+```
+countBefore 1 [5, 1, 3, 2, 4, 0, 1, 4] 6 = 1
+```
+-/
+def countBefore [BEq α] (a : α) : List α → Nat → Nat :=
+  countPBefore (· == a)
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
@@ -575,7 +638,7 @@ where
 
 /--
 `pwFilter R l` is a maximal sublist of `l` which is `Pairwise R`.
-`pwFilter (·≠·)` is the erase duplicates function (cf. `eraseDup`), and `pwFilter (·<·)` finds
+`pwFilter (·≠·)` is the erase duplicates function (cf. `eraseDups`), and `pwFilter (·<·)` finds
 a maximal increasing subsequence in `l`. For example,
 ```
 pwFilter (·<·) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4]
@@ -634,11 +697,9 @@ Chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
 @[deprecated IsChain (since := "2025-09-19")]
 def Chain' : (α → α → Prop) → List α → Prop := (IsChain · ·)
 
-/-- `eraseDup l` removes duplicates from `l` (taking only the first occurrence).
-Defined as `pwFilter (≠)`.
-
-    eraseDup [1, 0, 2, 2, 1] = [0, 2, 1] -/
-@[inline] def eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
+/-- **Deprecated:** Use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups` instead. -/
+@[deprecated "use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups`" (since := "2026-01-03")]
+abbrev eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
 
 /--
 `rotate l n` rotates the elements of `l` to the left by `n`
