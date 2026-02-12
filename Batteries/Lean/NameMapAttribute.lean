@@ -11,15 +11,18 @@ public import Lean.Attributes
 
 namespace Lean
 
+/-- TODO: This instance should be in lean core. -/
+local instance [Inhabited α] : Inhabited (Thunk α) := ⟨.pure default⟩
+
 /-- Maps declaration names to `α`. -/
-def NameMapExtension (α : Type) := SimplePersistentEnvExtension (Name × α) (NameMap α)
+def NameMapExtension (α : Type) := SimplePersistentEnvExtension (Name × α) (Thunk (NameMap α))
 
 instance : Inhabited (NameMapExtension α) :=
   inferInstanceAs <| Inhabited (SimplePersistentEnvExtension ..)
 
 /-- Look up a value in the given extension in the environment. -/
 def NameMapExtension.find? (ext : NameMapExtension α) (env : Environment) : Name → Option α :=
-  (SimplePersistentEnvExtension.getState ext env).find?
+  (SimplePersistentEnvExtension.getState ext env).get.find?
 
 /-- Add the given k,v pair to the NameMapExtension. -/
 def NameMapExtension.add [Monad M] [MonadEnv M] [MonadError M]
@@ -34,11 +37,8 @@ def registerNameMapExtension (α) (name : Name := by exact decl_name%) :
     IO (NameMapExtension α) := do
   registerSimplePersistentEnvExtension {
     name
-    addImportedFn := fun ass =>
-      ass.foldl (init := ∅) fun names as =>
-        as.foldl (init := names) fun names (a, b) => names.insert a b
-    addEntryFn    := fun s n => s.insert n.1 n.2
-    toArrayFn     := fun es => es.toArray
+    addImportedFn arr := .mk fun _ => arr.foldl (·.insertMany ·) ∅
+    addEntryFn s n := s.map (·.insert n.1 n.2)
   }
 
 /-- The inputs to `registerNameMapAttribute`. -/
