@@ -1369,9 +1369,6 @@ theorem sum_singleton [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (·
 theorem sum_pair [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (· + ·) 0] {a b : α} :
   [a, b].sum = a + b := by simp [Std.LawfulRightIdentity.right_id]
 
--- defined in `Std`, which currently only `simp`-annotates `sum_append_nat` and `sum_append_int`
-attribute [simp] sum_append
-
 theorem sum_concat [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 0]
     [Std.Associative (α := α) (· + ·)] {l : List α} {a : α} :
     (l.concat a).sum = l.sum + a := by simp [Std.LawfulRightIdentity.right_id]
