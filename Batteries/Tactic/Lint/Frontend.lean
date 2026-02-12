@@ -105,12 +105,6 @@ def traceLintCore (msg : String) (inIO : Bool) : CoreM Unit := do
   else
     trace[Batteries.Lint] msg
 
-/-- Prepends `currentModule` and `linter` (if present) in the appropriate format. -/
-def prefixLintMsg (currentModule linterName : Option Name) (msg : String) :=
-  s!"{if let some m := currentModule then s!"[{m}] " else ""}\
-      {if let some l := linterName then s!"- {l}: " else ""}\
-      {msg}"
-
 /-- Traces via `IO.println` if `inIO` is `true`, and via `trace[...]` otherwise. Prepends
 `currentModule` and `linter` (if present).
 
@@ -118,7 +112,10 @@ This declaration is `macro_inline`, so it should have the same thunky behavior a
 @[macro_inline, expose]
 def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Name := none) :
     CoreM Unit :=
-  traceLintCore (inIO := inIO) <| prefixLintMsg currentModule linterName msg
+  traceLintCore (inIO := inIO)
+    s!"{if let some m := currentModule then s!"[{m}] " else ""}\
+      {if let some l := linterName then s!"- {l}: " else ""}\
+      {msg}"
 
 /--
 Runs all the specified linters on all the specified declarations in parallel,
