@@ -1,4 +1,3 @@
-module
 import Batteries.Tactic.HelpCmd
 
 /-! The `#help` command
