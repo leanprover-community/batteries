@@ -1,3 +1,4 @@
+module
 import Batteries.Tactic.HelpCmd
 
 /-! The `#help` command
@@ -95,10 +96,10 @@ info:
 syntax "("... [«prec(_)»]
   Parentheses are used for grouping precedence expressions.
 
-syntax "+"... [Lean.Parser.Syntax.addPrec]
+syntax ..."+"... [Lean.Parser.Syntax.addPrec]
   Addition of precedences. This is normally used only for offsetting, e.g. `max + 1`.
 
-syntax "-"... [Lean.Parser.Syntax.subPrec]
+syntax ..."-"... [Lean.Parser.Syntax.subPrec]
   Subtraction of precedences. This is normally used only for offsetting, e.g. `max - 1`.
 
 syntax "arg"... [precArg]
@@ -117,7 +118,7 @@ syntax "min"... [precMin]
 syntax "min1"... [precMin1]
   `(min+1)` (we can only write `min+1` after `Meta.lean`)
 
-syntax ... [Lean.Parser.Syntax.numPrec]
+syntax "num"... [Lean.Parser.Syntax.numPrec]
 -/
 #guard_msgs in
 #help cat prec
@@ -129,11 +130,11 @@ syntax "("... [«prec(_)»]
 + macro «_aux_Init_Notation___macroRules_prec(_)_1»
   Parentheses are used for grouping precedence expressions.
 
-syntax "+"... [Lean.Parser.Syntax.addPrec]
+syntax ..."+"... [Lean.Parser.Syntax.addPrec]
   Addition of precedences. This is normally used only for offsetting, e.g. `max + 1`.
 + macro Lean._aux_Init_Meta___macroRules_Lean_Parser_Syntax_addPrec_1
 
-syntax "-"... [Lean.Parser.Syntax.subPrec]
+syntax ..."-"... [Lean.Parser.Syntax.subPrec]
   Subtraction of precedences. This is normally used only for offsetting, e.g. `max - 1`.
 + macro Lean._aux_Init_Meta___macroRules_Lean_Parser_Syntax_subPrec_1
 
@@ -164,7 +165,7 @@ syntax "min1"... [precMin1]
 + macro _aux_Init_Notation___macroRules_precMin1_1
   `(min+1)` (we can only write `min+1` after `Meta.lean`)
 
-syntax ... [Lean.Parser.Syntax.numPrec]
+syntax "num"... [Lean.Parser.Syntax.numPrec]
 -/
 #guard_msgs in
 #help cat+ prec
