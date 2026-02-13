@@ -11,7 +11,7 @@ public import Lean.Attributes
 
 namespace Lean
 
-/-- TODO: This instance should be in lean core. -/
+/-- Forward port of lean4#12469 -/
 local instance [Inhabited α] : Inhabited (Thunk α) := ⟨.pure default⟩
 
 /-- Maps declaration names to `α`. -/
