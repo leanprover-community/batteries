@@ -105,7 +105,7 @@ theorem heapifyDown_get_of_not_child [Ord α] {v : Vector α sz} {i k : Fin sz}
     <;> intros
     <;> (try simp only [Fin.getElem_fin])
     <;> rw [heapifyDown_getElem_of_not_inSubtree' _ (by grind only [InSubtree.not_of_lt])]
-    <;> omega
+    <;> rfl
 
 /-- If v dominates all values in the subtree, v dominates the result at root -/
 theorem heapifyDown_preserves_ge_root_of_subtree [Ord α] [Std.TransOrd α]
