@@ -130,8 +130,8 @@ May be asserted to be true in an unsafe context via `Array.unsafe_sizeFitsUsize`
 private abbrev SizeFitsUSize (a : Array α) : Prop := a.size < USize.size
 
 @[grind .]
-private theorem nat_index_eq_usize_index {n : Nat} {a : Array α}
-    {h : a.SizeFitsUSize} {hn : n ≤ a.size} :
+private theorem SizeFitsUSize.toNat_ofNat_eq {n : Nat} {a : Array α}
+    (h : a.SizeFitsUSize) (hn : n ≤ a.size) :
     (USize.ofNat n).toNat = n :=
   USize.toNat_ofNat_of_lt' (Nat.lt_of_le_of_lt ‹_› ‹_›)
 
@@ -218,8 +218,8 @@ private theorem scanlM_loop_eq_scanlMFast_loop [Monad m]
   induction n using Nat.strongRecOn generalizing start acc init
   rename_i n ih
   rw [scanlM.loop, scanlMFast.loop]
-  have h_stop_usize := nat_index_eq_usize_index (h := h_size) (hn := h_stop)
-  have h_start_usize := nat_index_eq_usize_index (h := h_size) (hn := h_start)
+  have h_stop_usize := h_size.toNat_ofNat_eq h_stop
+  have h_start_usize := h_size.toNat_ofNat_eq h_start
   split
   case isTrue h_lt =>
     simp_all only [USize.toNat_ofNat', ↓reduceDIte, uget,
@@ -228,7 +228,7 @@ private theorem scanlM_loop_eq_scanlMFast_loop [Monad m]
     intro next
     have h_start_succ : USize.ofNat start + 1 = USize.ofNat (start + 1) := by
       simp_all only [← USize.toNat_inj, USize.toNat_add]
-      grind only [USize.size_eq, nat_index_eq_usize_index]
+      grind only [USize.size_eq, SizeFitsUSize.toNat_ofNat_eq]
     rw [h_start_succ]
     apply ih (stop - (start + 1)) <;> omega
   case isFalse h_nlt => grind [USize.lt_iff_toNat_lt]
@@ -254,14 +254,14 @@ private def scanrMFast [Monad m] (f : α → β → m β) (init : β) (as : Arra
     (start := USize.ofNat start) (stop := USize.ofNat stop)
     (h_start := by grind only [USize.size_eq, USize.ofNat_eq_iff_mod_eq_toNat, = Nat.min_def])
     (acc := Array.replicate (start - stop + 1) init)
-    (by grind only [!Array.size_replicate, = Nat.min_def, Array.nat_index_eq_usize_index])
+    (by grind only [!Array.size_replicate, = Nat.min_def, SizeFitsUSize.toNat_ofNat_eq])
 where
   @[specialize]
   loop (f : α → β → m β) (init : β) (as : Array α)
        (start stop : USize)
        (h_start : start.toNat ≤ as.size)
        (acc : Array β)
-       (h_bound : start.toNat - stop.toNat  < acc.size) :
+       (h_bound : start.toNat - stop.toNat < acc.size) :
         m (Array β) := do
     if h_gt : stop < start then
       let startM1 := start - 1
@@ -385,8 +385,9 @@ def scanl (f : β → α → β) (init : β) (as : Subarray α) : Array β :=
   as.array.scanl f init (start := as.start) (stop := as.stop)
 
 /--
-Fold a function `f` over the subarray from the left, returning the list of partial results.
+Fold a function `f` over the subarray from the right, returning the list of partial results.
 -/
+@[inline]
 def scanr (f : α → β → β) (init : β) (as : Subarray α) : Array β :=
   as.array.scanr f init (start := as.start) (stop := as.stop)
 

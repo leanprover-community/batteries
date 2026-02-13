@@ -1045,3 +1045,12 @@ theorem sum_eq_foldr [Add α] [Zero α] {l : List α} :
 theorem sum_eq_foldl [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
     [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} :
     l.sum = l.foldl (· + ·) 0 := foldr_eq_foldl ..
+
+theorem take_succ_drop {l : List α} {n stop : Nat}
+    (h : n < l.length - stop) :
+    (l.drop stop |>.take (n + 1)) = (l.drop stop |>.take n) ++ [l[stop + n]'(by omega)] := by
+  rw [← List.take_append_getElem (by simpa [← List.length_drop] using h)]
+  simp [List.getElem_drop]
+
+@[simp]
+theorem reverse_singleton {a : α} : [a].reverse = [a] := rfl
