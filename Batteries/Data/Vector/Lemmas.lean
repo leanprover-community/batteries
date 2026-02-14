@@ -277,19 +277,19 @@ theorem toList_scanr {f : α → β → β} {as : Vector α n} :
 
 @[grind =]
 theorem scanl_empty {f : β → α → β} :
-    (#v[] : Vector α 0).scanl f init = #v[init] := by
+    #v[].scanl f init = #v[init] := by
   apply toArray_inj.mp
   simp only [toArray_scanl, toArray_empty, Array.scanl_empty]
 
 @[grind =]
 theorem scanr_empty {f : α → β → β} :
-    (#v[] : Vector α 0).scanr f init = #v[init] := by
+    #v[].scanr f init = #v[init] := by
   apply toArray_inj.mp
   simp only [toArray_scanr, toArray_empty, Array.scanr_empty]
 
 @[grind =]
 theorem scanl_singleton {f : β → α → β} {a : α} :
-    (#v[a] : Vector α 1).scanl f init = #v[init, f init a] := by
+    #v[a].scanl f init = #v[init, f init a] := by
   apply toArray_inj.mp
   simp only [toArray_scanl, Array.scanl_singleton]
 
