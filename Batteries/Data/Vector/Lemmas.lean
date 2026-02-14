@@ -409,7 +409,7 @@ private theorem flip_flip {f : α → β → γ} : flip (flip f) = f := rfl
 @[simp, grind =]
 theorem back_scanr {f : α → β → β} {as : Vector α n} :
     (as.scanr f init).back = init := by
-  rw[← reverse_reverse (xs := as.scanr _ _), ← flip_flip (f := f), ← scanl_reverse]
+  rw [← reverse_reverse (xs := as.scanr _ _), ← flip_flip (f := f), ← scanl_reverse]
   simp [foldl, back_eq_getElem]
 
 theorem back?_scanl {f : β → α → β} {as : Vector α n} :
@@ -420,5 +420,5 @@ theorem back?_scanl {f : β → α → β} {as : Vector α n} :
 
 theorem back?_scanr {f : α → β → β} {as : Vector α n} :
     (as.scanr f init).back? = some init := by
-  rw[← reverse_reverse (xs := as.scanr _ _), ← flip_flip (f := f), ← scanl_reverse]
+  rw [← reverse_reverse (xs := as.scanr _ _), ← flip_flip (f := f), ← scanl_reverse]
   simp [back?_eq_getElem?, foldl]
