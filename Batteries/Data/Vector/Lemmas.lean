@@ -423,3 +423,9 @@ theorem scanl_reverse {f : β → α → β} {as : Vector α n} :
     (as.reverse).scanl f init = (as.scanr (flip f) init).reverse := by
   apply toArray_inj.mp
   simp only [toArray_scanl, toArray_reverse, toArray_scanr, Array.scanl_reverse]
+
+@[grind =]
+theorem scanr_reverse {f : α → β → β} {as : Vector α n} :
+    (as.reverse).scanr f init = (as.scanl (flip f) init).reverse := by
+  apply toArray_inj.mp
+  simp only [toArray_scanr, toArray_reverse, toArray_scanl, Array.scanr_reverse]
