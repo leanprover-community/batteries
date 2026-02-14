@@ -378,6 +378,18 @@ theorem scanr_map {f : β → γ → γ} {g : α → β} {as : Vector α n} :
   apply toArray_inj.mp
   simp only [toArray_scanr, toArray_map, Array.scanr_map]
 
+@[grind =]
+theorem scanl_reverse {f : β → α → β} {as : Vector α n} :
+    (as.reverse).scanl f init = (as.scanr (flip f) init).reverse := by
+  apply toArray_inj.mp
+  simp only [toArray_scanl, toArray_reverse, toArray_scanr, Array.scanl_reverse]
+
+@[grind =]
+theorem scanr_reverse {f : α → β → β} {as : Vector α n} :
+    (as.reverse).scanr f init = (as.scanl (flip f) init).reverse := by
+  apply toArray_inj.mp
+  simp only [toArray_scanr, toArray_reverse, toArray_scanl, Array.scanr_reverse]
+
 @[simp, grind =]
 theorem back_scanl {f : β → α → β} {as : Vector α n} :
     (as.scanl f init).back = as.foldl f init := by
@@ -392,19 +404,13 @@ theorem back_scanl {f : β → α → β} {as : Vector α n} :
     rw [Vector.size_toArray as]
     omega
 
+private theorem flip_flip {f : α → β → γ} : flip (flip f) = f := rfl
+
 @[simp, grind =]
 theorem back_scanr {f : α → β → β} {as : Vector α n} :
     (as.scanr f init).back = init := by
-  rw [back, ← getElem_toArray]
-  conv => lhs; arg 1; rw [toArray_scanr]
-  conv => lhs; arg 2; rw [← Vector.size_toArray as, ← Array.size_scanr (f := f) init]
-  rw [← Array.back_eq_getElem]
-  apply Array.back_scanr
-  . simp only [Array.size_scanr]
-    omega
-  . simp only [Vector.toArray_scanr, Array.size_scanr]
-    rw [Vector.size_toArray as]
-    omega
+  rw[← reverse_reverse (xs := as.scanr _ _), ← flip_flip (f := f), ← scanl_reverse]
+  simp [foldl, back_eq_getElem]
 
 theorem back?_scanl {f : β → α → β} {as : Vector α n} :
     (as.scanl f init).back? = some (as.foldl f init) := by
@@ -414,18 +420,5 @@ theorem back?_scanl {f : β → α → β} {as : Vector α n} :
 
 theorem back?_scanr {f : α → β → β} {as : Vector α n} :
     (as.scanr f init).back? = some init := by
-  rw [back?_eq_getElem?, getElem?_eq_some_iff]
-  constructor
-  rw [← back_eq_getElem, back_scanr]
-
-@[grind =]
-theorem scanl_reverse {f : β → α → β} {as : Vector α n} :
-    (as.reverse).scanl f init = (as.scanr (flip f) init).reverse := by
-  apply toArray_inj.mp
-  simp only [toArray_scanl, toArray_reverse, toArray_scanr, Array.scanl_reverse]
-
-@[grind =]
-theorem scanr_reverse {f : α → β → β} {as : Vector α n} :
-    (as.reverse).scanr f init = (as.scanl (flip f) init).reverse := by
-  apply toArray_inj.mp
-  simp only [toArray_scanr, toArray_reverse, toArray_scanl, Array.scanr_reverse]
+  rw[← reverse_reverse (xs := as.scanr _ _), ← flip_flip (f := f), ← scanl_reverse]
+  simp [back?_eq_getElem?, foldl]
