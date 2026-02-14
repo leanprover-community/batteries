@@ -7,6 +7,8 @@ module
 
 public import Batteries.Data.List.Basic
 public import Batteries.Data.List.Lemmas
+import Batteries.Util.ProofWanted
+meta import Batteries.Tactic.Init
 
 @[expose] public section
 
@@ -297,6 +299,13 @@ theorem scanl_reverse {f : β → α → β} {as : List α} :
   induction as generalizing init <;> simp_all [scanl_append]
   rfl
 
+@[simp, grind =]
+theorem scanr_reverse {f : α → β → β} (b : β) (l : List α) :
+    scanr f b l.reverse = reverse (scanl (flip f) b l) := by
+  induction l generalizing b
+  case nil => rfl
+  case cons head tail ih => simp [scanr_append, ih]; rfl
+
 /-! ### partialSums/partialProd -/
 
 @[simp, grind =]
@@ -399,3 +408,109 @@ theorem getElem?_partialProds [Mul α] [One α] [Std.Associative (α := α) (· 
 theorem take_partialProds [Mul α] [One α] {l : List α} :
     l.partialProds.take (i+1) = (l.take i).partialProds := by
   simp [partialProds, take_scanl]
+
+/-! ### flatten -/
+
+theorem length_flatten_mem_partialSums_map_length (L : List (List α)) :
+    L.flatten.length ∈ (L.map length).partialSums := by
+  induction L with
+  | nil => simp
+  | cons l L ih =>
+    simp [flatten_cons, partialSums_cons]
+    right
+    simpa using ih
+
+theorem getElem_flatten_aux₁ (L : List (List α)) (i : Nat) (h : i < L.flatten.length) :
+    (L.map length).partialSums.findIdx (· > i) - 1 < L.length := by
+  have := findIdx_lt_length_of_exists
+    (xs := (L.map length).partialSums) (p := fun x => decide (x > i))
+  specialize this ⟨L.flatten.length,
+    length_flatten_mem_partialSums_map_length L, by grind⟩
+  simp at this
+  simp
+  have : 0 < findIdx (fun x => decide (i < x)) (map length L).partialSums := by
+    by_contra w
+    simp at w
+  omega
+
+theorem getElem_flatten_aux₂ (L : List (List α)) (i : Nat) (h : i < L.flatten.length) :
+    let j := (L.map length).partialSums.findIdx (· > i) - 1
+    have hj : j < L.length := getElem_flatten_aux₁ L i h
+    let k := i - (L.take j).flatten.length
+    k < L[j].length := by
+  induction L generalizing i with
+  | nil => simp at h
+  | cons l L ih =>
+    simp only [map_cons, partialSums_cons, findIdx_cons, Nat.not_lt_zero, decide_false,
+      findIdx_map, Function.comp_def, cond_false, Nat.add_one_sub_one, length_flatten, map_take,
+      getElem_cons]
+    split <;> rename_i h'
+    · simp only [h', take_zero, sum_nil, Nat.sub_zero]
+      rw [findIdx_eq (by simp)] at h'
+      simp_all
+    · have : l.length ≤ i := by
+        rw [findIdx_eq (by simp)] at h'
+        simp_all
+      rw [take_cons (by grind)]
+      specialize ih (i - l.length) (by grind)
+      have p : ∀ x, i - l.length < x ↔ i < l.length + x := by grind
+      simp only [p, length_flatten, map_take] at ih
+      grind
+
+/--
+Indexing into a flattened list: `L.flatten[i]` equals `L[j][k]` where
+`j` is the sublist index and `k` is the offset within that sublist.
+
+The indices are computed as:
+- `j` is one less than where the cumulative sum first exceeds `i`
+- `k` is `i` minus the total length of the first `j` sublists
+
+This theorem states that these indices are in range and the equality holds.
+-/
+theorem getElem_flatten (L : List (List α)) (i : Nat) (h : i < L.flatten.length) :
+    L.flatten[i] =
+      let j := (L.map length).partialSums.findIdx (· > i) - 1
+      have hj : j < L.length := getElem_flatten_aux₁ L i h
+      let k := i - (L.take j).flatten.length
+      have hk : k < L[j].length := getElem_flatten_aux₂ L i h
+      L[j][k] := by
+  induction L generalizing i with
+  | nil => simp at h
+  | cons l L ih =>
+    simp only [flatten_cons, getElem_append]
+    split <;> rename_i h'
+    · have : findIdx (fun x => decide (x > i)) (map length (l :: L)).partialSums = 1 := by
+        simp [partialSums_cons, findIdx_cons]
+        rw [findIdx_eq] <;> grind
+      simp only [this]
+      simp
+    · rw [ih]
+      have : findIdx (fun x => decide (x > i)) (map length (l :: L)).partialSums =
+          findIdx (fun x => decide (x > i - l.length)) (map length L).partialSums + 1 := by
+        simp [partialSums_cons, findIdx_cons, Function.comp_def]
+        congr
+        funext x
+        grind
+      simp only [this]
+      simp only [getElem_cons]
+      split <;> rename_i h''
+      · simp [findIdx_eq] at h''
+      · congr 1
+        rw [take_cons]
+        · simp
+          omega
+        · simp
+
+/--
+Taking the first `i` elements of a flattened list
+can be expressed as the flattening of the first `j` complete sublists, plus the first
+`k` elements of the `j`-th sublist.
+
+The indices are computed as:
+- `j` is one less than where the cumulative sum first exceeds `i`
+- `k` is `i` minus the total length of the first `j` sublists
+-/
+proof_wanted take_flatten (L : List (List α)) (i : Nat) :
+    let j := (L.map length).partialSums.findIdx (· > i) - 1
+    let k := i - (L.take j).flatten.length
+    L.flatten.take i = (L.take j).flatten ++ (L[j]?.getD []).take k
