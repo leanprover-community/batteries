@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Shreyas Srinivas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Shreyas Srinivas, François G. Dorais
+Authors: Shreyas Srinivas, François G. Dorais, Chad Sharp
 -/
 module
 
@@ -54,7 +54,7 @@ private theorem USize.toNat_ofNat_eq  {i : Nat}
 
 @[inline]
 private def scanlMFast [Monad m] (f : β → α → m β) (init : β) (as : Vector α n)
-    (h_su : n < USize.size) : m (Vector β (n + 1)) := do
+    (h_su : n < USize.size) : m (Vector β (n + 1)) :=
   loop init (i := 0) (n_usize := USize.ofNat n)
     (h_n := USize.toNat_ofNat_eq h_su (Nat.le_refl n))
     (h_i := by simp [USize.toNat_zero])
@@ -86,7 +86,7 @@ Fold an effectful function `f` over the array from the left, returning the list 
 -/
 @[implemented_by scanlMUnsafe]
 def scanlM [Monad m] (f : β → α → m β) (init : β) (as : Vector α n)
-    : m (Vector β (n + 1)) := do
+    : m (Vector β (n + 1)) :=
   loop init 0 (Nat.zero_le n) #v[]
 where
   /-- Auxiliary tail-recursive function for scanlM -/
@@ -100,7 +100,7 @@ where
 
 @[inline]
 private def scanrMFast [Monad m] (f : α → β → m β) (init : β) (as : Vector α n)
-    (h_su : n < USize.size) : m (Vector β (n + 1)) := do
+    (h_su : n < USize.size) : m (Vector β (n + 1)) :=
   have h_n := USize.toNat_ofNat_eq h_su (Nat.le_refl n)
   loop init (i := USize.ofNat n) (n_usize := USize.ofNat n)
     (h_n := h_n) (h_i := by simp [h_n]) (acc := Vector.replicate (n + 1) init)
@@ -131,7 +131,7 @@ Fold an effectful function `f` over the array from the right, returning the list
 -/
 @[implemented_by scanrMUnsafe]
 def scanrM [Monad m] (f : α → β → m β) (init : β) (as : Vector α n) :
-    m (Vector β (n + 1)) := do
+    m (Vector β (n + 1)) :=
   loop init n (Nat.le_refl n) (#v[].cast (by omega))
 where
   /-- Auxiliary tail-recursive function for scanrM -/
