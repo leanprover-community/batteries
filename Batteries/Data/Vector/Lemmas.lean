@@ -130,7 +130,7 @@ theorem isNone_finIdxOf? [BEq α] [PartialEquivBEq α] {v : Vector α n} {a : α
   obtain ⟨v, rfl⟩ := v
   simp
 
-private theorem scanlM_loop_toArray [Monad m] [LawfulMonad m] (f : β → α → m β) (as : Vector α n)
+private theorem scanlM.loop_toArray [Monad m] [LawfulMonad m] (f : β → α → m β) (as : Vector α n)
     (h_stop : n ≤ as.toArray.size) (i : Nat) (hi : i ≤ n) (cur : β)
     (acc_v : Vector β i) (acc_a : Array β) (h_acc : acc_v.toArray = acc_a) :
     Vector.toArray <$> Vector.scanlM.loop f as cur i hi acc_v =
@@ -150,9 +150,9 @@ private theorem scanlM_loop_toArray [Monad m] [LawfulMonad m] (f : β → α →
 
 theorem toArray_scanlM [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Vector α n} :
     Vector.toArray <$> as.scanlM f init = as.toArray.scanlM f init := by
-  simp_all [scanlM_loop_toArray, scanlM, Array.scanlM]
+  simp_all [scanlM.loop_toArray, scanlM, Array.scanlM]
 
-private theorem scanrM_loop_toArray [Monad m] [LawfulMonad m] {f : α → β → m β}
+private theorem scanrM.loop_toArray [Monad m] [LawfulMonad m] {f : α → β → m β}
     {as : Vector α n} {i : Nat} {hi : i ≤ n} {acc_v : Vector β (n - i)}
     {acc_a : Array β} {h_acc : acc_v.toArray = acc_a} :
     Vector.toArray <$> Vector.scanrM.loop f as cur i hi acc_v =
@@ -171,7 +171,7 @@ private theorem scanrM_loop_toArray [Monad m] [LawfulMonad m] {f : α → β →
 
 theorem toArray_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Vector α n} :
     Vector.toArray <$> as.scanrM f init = as.toArray.scanrM f init := by
-  simp_all [scanrM, Array.scanrM, scanrM_loop_toArray]
+  simp_all [scanrM, Array.scanrM, scanrM.loop_toArray]
 
 /-! ### scanlM/scanrM lemmas -/
 
@@ -416,7 +416,7 @@ theorem back?_scanr {f : α → β → β} {as : Vector α n} :
     (as.scanr f init).back? = some init := by
   rw [back?_eq_getElem?, getElem?_eq_some_iff]
   constructor
-  rw [← back_eq_getElem (xs := scanr f init as), back_scanr]
+  rw [← back_eq_getElem, back_scanr]
 
 @[grind =]
 theorem scanl_reverse {f : β → α → β} {as : Vector α n} :

@@ -47,7 +47,7 @@ private theorem USize.pred_toNat {i : USize}
     simp_all only [USize.size, USize.toNat_sub, USize.reduceToNat]
     omega
 
-private theorem usize_index_eq_nat_index  {i : Nat}
+private theorem USize.toNat_ofNat_eq  {i : Nat}
     (h : n < USize.size) (hn : i ≤ n) :
     (USize.ofNat i).toNat = i :=
   USize.toNat_ofNat_of_lt' (Nat.lt_of_le_of_lt ‹_› ‹_›)
@@ -56,7 +56,7 @@ private theorem usize_index_eq_nat_index  {i : Nat}
 private def scanlMFast [Monad m] (f : β → α → m β) (init : β) (as : Vector α n)
     (h_su : n < USize.size) : m (Vector β (n + 1)) := do
   loop init (i := 0) (n_usize := USize.ofNat n)
-    (h_n := usize_index_eq_nat_index h_su (Nat.le_refl n))
+    (h_n := USize.toNat_ofNat_eq h_su (Nat.le_refl n))
     (h_i := by simp [USize.toNat_zero])
     (acc := Vector.emptyWithCapacity (n + 1))
 where
@@ -101,11 +101,9 @@ where
 @[inline]
 private def scanrMFast [Monad m] (f : α → β → m β) (init : β) (as : Vector α n)
     (h_su : n < USize.size) : m (Vector β (n + 1)) := do
-  have h_n := usize_index_eq_nat_index h_su (Nat.le_refl n)
+  have h_n := USize.toNat_ofNat_eq h_su (Nat.le_refl n)
   loop init (i := USize.ofNat n) (n_usize := USize.ofNat n)
-    (h_n := h_n)
-    (h_i := by simp [h_n])
-    (acc := Vector.replicate (n + 1) init)
+    (h_n := h_n) (h_i := by simp [h_n]) (acc := Vector.replicate (n + 1) init)
 where
   @[specialize]
   loop (cur : β) (i n_usize : USize) (h_n : n_usize.toNat = n)
