@@ -10,7 +10,7 @@ public import Batteries.Tactic.Alias
 
 @[expose] public section
 
-namespace Std.Range
+namespace Std.Legacy.Range
 
 theorem size_stop_le_start : ∀ r : Range, r.stop ≤ r.start → r.size = 0
   | ⟨start, stop, step, _⟩, h => by
