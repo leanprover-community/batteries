@@ -101,7 +101,7 @@ def encodeChar (c : Char) : Fin Char.count :=
 
 /-- Decode `Char` from `Fin Char.count`. -/
 @[pp_nodot] def decodeChar (i : Fin Char.count) : Char :=
-  if _ : i.val < 0xD800 then
+  if _ : i.val < Char.minSurrogate then
     Char.ofNatAux i.val (by grind)
   else
     Char.ofNatAux (i.val + (Char.maxSurrogate + 1 - Char.minSurrogate)) (by grind)
