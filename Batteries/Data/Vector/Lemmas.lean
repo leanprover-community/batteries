@@ -390,11 +390,9 @@ theorem scanr_reverse {f : α → β → β} {as : Vector α n} :
   apply toArray_inj.mp
   simp only [toArray_scanr, toArray_reverse, toArray_scanl, Array.scanr_reverse]
 
-private theorem flip_flip {f : α → β → γ} : flip (flip f) = f := rfl
-
 private theorem scanr_eq_reverse_scanl_reverse {f : α → β → β} {as : Vector α n} :
     as.scanr f init = (as.reverse.scanl (flip f) init).reverse := by
-  rw [← reverse_reverse (xs := as.scanr _ _), ← flip_flip (f := f), ← scanl_reverse]
+  rw [scanl_reverse, reverse_reverse]
   rfl
 
 @[simp, grind =]
