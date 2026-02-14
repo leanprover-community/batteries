@@ -314,9 +314,8 @@ theorem getElem?_scanl {f : β → α → β} {as : Vector α n} :
     (as.scanl f init)[i]? = if i ≤ n then some ((as.take i).foldl f init) else none := by
   rw [← getElem?_toArray, Vector.foldl]
   conv => lhs; arg 1; rw [toArray_scanl]
-  conv => rhs; arg 1; rw [← Vector.size_toArray as]
-  rw [Vector.toArray_take]
-  apply Array.getElem?_scanl
+  conv => rhs; arg 1; rw [← size_toArray as]
+  simp only [toArray_take, Array.getElem?_scanl]
 
 @[grind =]
 theorem getElem?_scanr {f : α → β → β} {as : Vector α n} :
@@ -324,9 +323,8 @@ theorem getElem?_scanr {f : α → β → β} {as : Vector α n} :
       else none := by
   rw [← getElem?_toArray, Vector.foldr]
   conv => lhs; arg 1; rw [toArray_scanr]
-  conv => rhs; arg 1; rw [← Vector.size_toArray as]
-  unfold drop
-  apply Array.getElem?_scanr
+  conv => rhs; arg 1; rw [← size_toArray as]
+  simp only [drop, Array.getElem?_scanr]
 
 theorem getElem_scanl_zero {f : β → α → β} {as : Vector α n} :
     (as.scanl f init)[0] = init := by simp [foldl]
