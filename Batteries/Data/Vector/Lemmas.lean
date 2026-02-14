@@ -390,6 +390,13 @@ theorem scanr_reverse {f : α → β → β} {as : Vector α n} :
   apply toArray_inj.mp
   simp only [toArray_scanr, toArray_reverse, toArray_scanl, Array.scanr_reverse]
 
+private theorem flip_flip {f : α → β → γ} : flip (flip f) = f := rfl
+
+private theorem scanr_eq_reverse_scanl_reverse {f : α → β → β} {as : Vector α n} :
+    as.scanr f init = (as.reverse.scanl (flip f) init).reverse := by
+  rw [← reverse_reverse (xs := as.scanr _ _), ← flip_flip (f := f), ← scanl_reverse]
+  rfl
+
 @[simp, grind =]
 theorem back_scanl {f : β → α → β} {as : Vector α n} :
     (as.scanl f init).back = as.foldl f init := by
@@ -404,13 +411,10 @@ theorem back_scanl {f : β → α → β} {as : Vector α n} :
     rw [Vector.size_toArray as]
     omega
 
-private theorem flip_flip {f : α → β → γ} : flip (flip f) = f := rfl
-
 @[simp, grind =]
 theorem back_scanr {f : α → β → β} {as : Vector α n} :
     (as.scanr f init).back = init := by
-  rw [← reverse_reverse (xs := as.scanr _ _), ← flip_flip (f := f), ← scanl_reverse]
-  simp [foldl, back_eq_getElem]
+  simp [scanr_eq_reverse_scanl_reverse, foldl, back_eq_getElem]
 
 theorem back?_scanl {f : β → α → β} {as : Vector α n} :
     (as.scanl f init).back? = some (as.foldl f init) := by
@@ -420,5 +424,4 @@ theorem back?_scanl {f : β → α → β} {as : Vector α n} :
 
 theorem back?_scanr {f : α → β → β} {as : Vector α n} :
     (as.scanr f init).back? = some init := by
-  rw [← reverse_reverse (xs := as.scanr _ _), ← flip_flip (f := f), ← scanl_reverse]
-  simp [back?_eq_getElem?, foldl]
+  simp [scanr_eq_reverse_scanl_reverse, back?_eq_getElem?, foldl]
