@@ -611,7 +611,7 @@ theorem increaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
       (WF.parentGeChildren_set_of_ge hbu h_ge)
 
 /-- The inner loop of toSortedArray produces a sorted array -/
-private theorem toSortedArray_loop_sorted [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
+private theorem toSortedArray.loop_sorted [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {out : Array α} (hwf : WF heap) (h_out_sorted : out.toList.Pairwise (compare · · |>.isGE))
     (h_heap_le_out : ∀ x ∈ heap, ∀ y ∈ out, compare x y |>.isLE) :
     (toSortedArray.loop heap out).toList.Pairwise (compare · · |>.isGE) := by
@@ -619,7 +619,7 @@ private theorem toSortedArray_loop_sorted [Ord α] [Std.TransOrd α] {heap : Bin
   split <;> try assumption
   rename_i x h
   have h_pos : 0 < heap.size := size_pos_of_max h
-  apply toSortedArray_loop_sorted
+  apply toSortedArray.loop_sorted
   · exact popMax_wf hwf
   · have : x ∈ heap := by simp_all [BinaryHeap.mem_def, BinaryHeap.max, Array.mem_of_getElem? h]
     rw [Array.toList_push, List.pairwise_append]
@@ -638,7 +638,7 @@ private theorem toSortedArray_loop_sorted [Ord α] [Std.TransOrd α] {heap : Bin
 /-- toSortedArray produces a sorted array if the heap is well-formed -/
 theorem toSortedArray_sorted [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (hwf : WF heap) :
     heap.toSortedArray.toList.Pairwise (compare · · |>.isGE) := by
-  simp_all [toSortedArray, toSortedArray_loop_sorted]
+  simp_all [toSortedArray, toSortedArray.loop_sorted]
 
 @[simp]
 theorem size_toSortedArray [Ord α] {heap : BinaryHeap α} : heap.toSortedArray.size = heap.size :=
