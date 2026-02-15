@@ -104,30 +104,28 @@ def Below [Ord α] (a : Vector α sz) (i : Nat) : Prop :=
   ∀ j : Fin sz, i < j.val → WF.Children a j
 
 /-- WF.Below is monotone: larger threshold means weaker condition. -/
-theorem below_of_le {a : Vector α sz} {i j : Nat} [Ord α]
+theorem below_of_le {a : Vector α sz} [Ord α]
     (hij : i ≤ j) (hbelow : WF.Below a i) : WF.Below a j := by
   grind only [WF.Below]
 
 /-- if i < j, and the heap is well formed below i, then a[i] and a[j] can be swapped
   and the heap will still be well-formed below j --/
-theorem below_swap [Ord α] {a : Vector α sz} {i j : Fin sz}
-    {hbelow : WF.Below a i} {hij : i < j} :
-    WF.Below (a.swap i j) j := by
+theorem below_swap [Ord α] {a : Vector α sz} {i j : Fin sz} {hbelow : WF.Below a i} {hij : i < j} :
+    WF.Below (a.swap i j i.isLt j.isLt) j := by
   intro k hk_gt_j
   apply WF.children_congr (hbelow k (Nat.lt_trans hij hk_gt_j))
     <;> intros <;> apply Vector.getElem_swap_of_ne <;> omega
 
 /-- For k < i where neither child equals i, set at i preserves WF.children at k -/
-theorem children_set_of_ne [Ord α] {v : Vector α sz} {i k : Fin sz} {x : α}
+theorem children_set_of_ne [Ord α] {v : Vector α sz} {i k : Fin sz}
     (hwf : WF.Children v k) (hki : k.val ≠ i.val)
     (hleft_ne : i.val ≠ 2 * k.val + 1) (hright_ne : i.val ≠ 2 * k.val + 2) :
-    WF.Children (v.set i x) k := by
+    WF.Children (v.set i x i.isLt) k := by
   apply WF.children_congr hwf <;> intros <;> apply Vector.getElem_set_ne <;> omega
 
 /-- Setting a smaller value preserves WF.Below -/
-theorem below_set [Ord α] {v : Vector α sz} {i : Fin sz} {x : α}
-    (htd : WF.TopDown v) :
-    WF.Below (v.set i x) i := by
+theorem below_set [Ord α] {v : Vector α sz} {i : Fin sz} (htd : WF.TopDown v) :
+    WF.Below (v.set i x i.isLt) i := by
   intro j hj
   apply children_set_of_ne (htd j) <;> omega
 
@@ -146,7 +144,7 @@ theorem topDown_iff_root_and_below [Ord α] {a : Vector α sz} {h0 : 0 < sz} :
 
 /-- A node dominates all descendants in its subtree in a well-formed heap. -/
 theorem parent_ge_subtree [Ord α] [Std.TransOrd α]
-    {a : Vector α sz} {j k : Nat} {hk : k < sz} {hj : j < sz} (hwf_at : WF.Children a ⟨j, hj⟩)
+    {a : Vector α sz} {hk : k < sz} {hj : j < sz} (hwf_at : WF.Children a ⟨j, hj⟩)
     (hwf_below : WF.Below a j) (hsub : InSubtree j k) :
     (compare a[j] a[k]).isGE := by
   induction hsub
@@ -157,9 +155,8 @@ theorem parent_ge_subtree [Ord α] [Std.TransOrd α]
     grind only [= Fin.getElem_fin, !Std.TransOrd.isGE_trans]
 
 /-- Parent dominates all descendants after setting a smaller value -/
-theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α]
-    {v : Vector α sz} {i : Fin sz} {x : α}
-    (htd : WF.TopDown v) (h_le : compare x v[i] |>.isLE) (hi : 0 < i.val)
+theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] {v : Vector α sz} {i : Fin sz}
+    (htd : WF.TopDown v) (h_le : compare v[i] x |>.isGE) (hi : 0 < i.val)
     (m : Fin sz) (hsub : InSubtree i.val m.val) :
     (compare v[(i.val - 1) / 2] (v.set i x i.isLt)[m]).isGE := by
   let parent : Fin sz := ⟨(i.val - 1) / 2, by omega⟩
@@ -172,7 +169,6 @@ theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α]
   -- Show: parent ≥ x, by transitivity: parent ≥ v[i] ≥ x
   · simp_all only [Fin.getElem_fin, Vector.getElem_set_self]
     apply Std.TransOrd.isGE_trans h_parent_ge_i
-    rw [Std.OrientedOrd.eq_swap]
     simp_all
   -- Case: m ≠ i (m is an unmodified descendant)
   -- m's value unchanged by set, so use original parent_ge_subtree relationship
@@ -205,26 +201,20 @@ theorem root_ge_all [Ord α] [Std.TransOrd α]
     (hwf_below := fun j _ => hwf j)
     (hsub := InSubtree.mem_of_zero k.val)
 
-/-- "Dual" correctness property to WF.children. A node should be <= its parent
+/-- "Dual" correctness property to WF.children. A parent should be >= current node.
     Used when verifying heapifyUp -/
 def Parent [Ord α] (a : Vector α sz) (i : Fin sz) : Prop :=
-  ∀ _ : 0 < i.val, compare a[i] a[(i.val - 1)/2] |>.isLE
-
-/-- The comparison gives us the parent property -/
-theorem parent_of_ge [Ord α] [Std.OrientedOrd α] {a : Vector α sz} {i : Fin sz} (hi : 0 < i.val)
-    (h : compare a[(i.val - 1) / 2] a[i] |>.isGE) :
-    Parent a i := by
-  grind only [Std.OrientedOrd.eq_swap, !Ordering.isGE_swap, Parent]
+  ∀ _ : 0 < i.val, compare a[(i.val - 1)/2] a[i] |>.isGE
 
 /-- The children of node `i` are <= node `i`'s parent
     Part of the invariant required/maintained by heapifyUp
 -/
-def ChildLeParent [Ord α] (a: Vector α sz) (i : Fin sz) : Prop :=
+def ParentGeChildren [Ord α] (a: Vector α sz) (i : Fin sz) : Prop :=
   let parent := (i.val - 1) / 2
   let left := 2 * i.val + 1
   let right := left + 1
-  (∀ _ : left < sz, compare a[left] a[parent] |>.isLE) ∧
-  (∀ _ : right < sz, compare a[right] a[parent] |>.isLE)
+  (∀ _ : left < sz, compare a[parent] a[left] |>.isGE) ∧
+  (∀ _ : right < sz, compare a[parent] a[right] |>.isGE)
 
 /-- Every other node (except possibly i) is <= its parent (if it has one)
     Part of the invariant required/maintained by heapifyUp
@@ -232,12 +222,12 @@ def ChildLeParent [Ord α] (a: Vector α sz) (i : Fin sz) : Prop :=
 def ExceptAt [Ord α] (a : Vector α sz) (i : Fin sz) : Prop :=
   ∀ j : Fin sz, i ≠ j → Parent a j
 
-/-- If exceptAt i and childLeParent i, swap preserves exceptAt at parent -/
+/-- If exceptAt i and parentGeChildren i, swap preserves exceptAt at parent -/
 theorem exceptAt_swap_parent [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {i : Fin sz}
-    (h_le : compare a[(i.val - 1) / 2] a[i] |>.isLE)
+    (h_ge : compare a[i] a[(i.val - 1) / 2] |>.isGE)
     (hexcept : ExceptAt a i)
-    (hchildren : ChildLeParent a i) :
+    (hchildren : ParentGeChildren a i) :
     ExceptAt (a.swap i ((i.val - 1) / 2)) ⟨(i.val - 1) / 2, by omega⟩ := by
   intro k hkj hk_pos
   by_cases hki : k.val = i.val
@@ -248,14 +238,14 @@ theorem exceptAt_swap_parent [Ord α] [Std.TransOrd α]
       have hk_ne_parent : k.val ≠ (i.val - 1) / 2 := by omega
       rcases hk_is_child with hk_left | hk_right <;> simp_all
     · unfold ExceptAt Parent at *
-      grind only [Fin.getElem_fin, !Std.TransOrd.isLE_trans, Vector.getElem_swap]
+      grind only [= Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isGE_trans]
 
-/-- If exceptAt a i, swap preserves childLeParent at parent -/
-theorem childLeParent_swap_parent [Ord α] [Std.TransOrd α]
+/-- If exceptAt a i, swap preserves parentGeChildren at parent -/
+theorem parentGeChildren_swap_parent [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {i : Fin sz}
-    (h_le : compare a[(i.val - 1) / 2] a[i] |>.isLE)
+    (h_ge : compare a[i] a[(i.val - 1)/2] |>.isGE)
     (hexcept : ExceptAt a i) :
-    ChildLeParent
+    ParentGeChildren
       (a.swap i ((i.val - 1) / 2) i.isLt (by omega)) ⟨(i.val - 1) / 2, by omega⟩ := by
   let j := (i.val - 1) / 2
   constructor
@@ -270,7 +260,7 @@ theorem childLeParent_swap_parent [Ord α] [Std.TransOrd α]
     · have hparent_eq : (targetIdx - 1) / 2 = j := by omega
       have h1 := hexcept ⟨targetIdx, hside⟩ (by grind only) (by grind only)
       by_cases hj_pos : 0 < j <;>
-        grind only [= Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isLE_trans]
+        grind only [= Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isGE_trans]
 
 /- Dual global correctness property to `WF`. The vector underlying a BinaryHeap is well-formed
   iff all nodes are ≤ their parent.
@@ -285,13 +275,12 @@ theorem iff_bottomUp [Ord α] [Std.OrientedOrd α] (a : Vector α sz) :
   constructor
   · intro htd i
     have := htd ⟨(i.val - 1) / 2, by omega⟩
-    grind only [Ordering.isGE_swap, Std.OrientedOrd.eq_swap, WF.Children,
-      Parent, = Fin.getElem_fin]
+    grind only [WF.Children, Parent, = Fin.getElem_fin]
   · intro hbu i
     constructor <;> intro hchild
     case' mpr.left => have := hbu ⟨2 * i.val + 1, hchild⟩
     case' mpr.right => have := hbu ⟨2 * i.val + 2, hchild⟩
-    all_goals grind only [Std.OrientedOrd.eq_swap, Parent, = Fin.getElem_fin, !Ordering.isGE_swap]
+    all_goals grind only [Parent, = Fin.getElem_fin]
 
 /-- If exception is at 0, then bottomUp holds -/
 theorem bottomUp_of_exceptAt_root [Ord α] {a : Vector α sz} (h : 0 < sz)
@@ -324,14 +313,12 @@ theorem exceptAt_set_of_ge [Ord α] [Std.TransOrd α]
   by_cases hparent_eq : (j.val - 1) / 2 = i.val
   all_goals
     have hj_parent := hbu j hj_pos
-    grind only [Std.OrientedOrd.eq_swap, = Fin.getElem_fin, = Vector.getElem_set,
-      !Ordering.isGE_swap, !Std.TransOrd.isLE_trans]
+    grind only [= Fin.getElem_fin, = Vector.getElem_set, !Std.TransOrd.isGE_trans]
 
-/-- Setting a larger value preserves WF.childLeParent when original heap is well-formed -/
-theorem childLeParent_set_of_ge [Ord α] [Std.TransOrd α]
-    {v : Vector α sz} {i : Fin sz} {x : α}
-    (hbu : WF.BottomUp v) (h_ge : compare x v[i] |>.isGE) :
-    ChildLeParent (v.set i x i.isLt) i := by
+/-- Setting a larger value preserves WF.parentGeChildren when original heap is well-formed -/
+theorem parentGeChildren_set_of_ge [Ord α] [Std.TransOrd α]
+    {v : Vector α sz} {i : Fin sz} (hbu : WF.BottomUp v) (h_ge : compare x v[i] |>.isGE) :
+    ParentGeChildren (v.set i x i.isLt) i := by
   let parent := (i.val - 1) / 2
   have htd : WF.TopDown v := by rwa [← WF.iff_bottomUp] at hbu
   have ⟨htd_left, htd_right⟩ := htd i
@@ -341,11 +328,9 @@ theorem childLeParent_set_of_ge [Ord α] [Std.TransOrd α]
   all_goals
     by_cases hi : i.val = 0
     · have hset_parent : (v.set i x i.isLt)[parent] = x := by simp_all [parent]
-      grind only [!Std.TransOrd.isLE_trans, Std.OrientedOrd.eq_swap, !Ordering.isGE_swap,
-        Vector.getElem_set_ne]
+      grind only [!Std.TransOrd.isGE_trans, !Ordering.isGE_swap, Vector.getElem_set_ne]
     · have h_parent := hbu i (by omega)
-      grind only [!Std.TransOrd.isLE_trans, Std.OrientedOrd.eq_swap, !Ordering.isGE_swap,
-        Parent, Vector.getElem_set_ne]
+      grind only [!Std.TransOrd.isGE_trans, Parent, Vector.getElem_set_ne]
 
 /-- Swapping the root with the last element and then popping maintains the Below invariant at the
   root for heapifyDown. -/
