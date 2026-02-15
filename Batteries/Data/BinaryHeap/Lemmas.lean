@@ -259,7 +259,7 @@ the parent property and `i`'s children are ≤ `i`'s parent. -/
 theorem heapifyUp_topDown [Ord α] [Std.TransOrd α]
     {a : Vector α sz} (hexcept : WF.ExceptAt a i) (hchildren : WF.ParentGeChildren a i) :
     WF.TopDown (heapifyUp a i) :=
-  WF.iff_bottomUp _ |>.mpr (heapifyUp_bottomUp hexcept hchildren)
+  WF.topDown_iff_bottomUp.mpr <| heapifyUp_bottomUp hexcept hchildren
 
 end heapifyUp
 
@@ -449,10 +449,10 @@ theorem size_increaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x 
 theorem insert_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : heap.WF) :
     (heap.insert x).WF := by
   apply WF.of_topDown_toArray
-  rw [WF.iff_bottomUp]
+  apply WF.topDown_iff_bottomUp.mpr
   apply heapifyUp_bottomUp
   . intro i _
-    rw [WF, WF.iff_bottomUp, WF.BottomUp] at h_wf
+    rw [WF, WF.topDown_iff_bottomUp, WF.BottomUp] at h_wf
     intro h_nz
     simp only [Fin.getElem_fin]
     rw [Vector.getElem_push_lt, Vector.getElem_push_lt]
@@ -605,9 +605,9 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
 theorem increaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare x (heap.get i) |>.isGE) :
     WF (heap.increaseKey i x) := by
-  have hbu : WF.BottomUp heap.vector := by rwa [WF, WF.iff_bottomUp] at h_wf
+  have hbu : WF.BottomUp heap.vector := by rwa [WF, WF.topDown_iff_bottomUp] at h_wf
   apply WF.of_topDown_toArray
-  rw [WF.iff_bottomUp]
+  apply WF.topDown_iff_bottomUp.mpr
   apply heapifyUp_bottomUp
   . exact WF.exceptAt_set_of_ge hbu h_ge
   . exact WF.parentGeChildren_set_of_ge hbu h_ge

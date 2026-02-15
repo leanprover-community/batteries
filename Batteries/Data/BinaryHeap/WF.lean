@@ -270,7 +270,7 @@ def BottomUp [Ord α] (v : Vector α sz) : Prop :=
   ∀ i : Fin sz, Parent v i
 
 /- WF and WF.BottomUp are equivalent -/
-theorem iff_bottomUp [Ord α] [Std.OrientedOrd α] (a : Vector α sz) :
+theorem topDown_iff_bottomUp [Ord α] [Std.OrientedOrd α] {a : Vector α sz} :
     WF.TopDown a ↔ WF.BottomUp a := by
   constructor
   · intro htd i
@@ -320,7 +320,7 @@ theorem parentGeChildren_set_of_ge [Ord α] [Std.TransOrd α]
     {v : Vector α sz} {i : Fin sz} (hbu : WF.BottomUp v) (h_ge : compare x v[i] |>.isGE) :
     ParentGeChildren (v.set i x i.isLt) i := by
   let parent := (i.val - 1) / 2
-  have htd : WF.TopDown v := by rwa [← WF.iff_bottomUp] at hbu
+  have htd : WF.TopDown v := by rwa [← WF.topDown_iff_bottomUp] at hbu
   have ⟨htd_left, htd_right⟩ := htd i
   constructor <;> intro hchild
   case' left  => have := htd_left hchild
