@@ -155,14 +155,6 @@ theorem heapifyDown_set_of_le_preserves_children [Ord α] [Std.TransOrd α] {v :
       rw [Vector.getElem_set_ne _ _ (by simp only [ne_eq]; omega)]
       simp_all [childIdx, parent]
 
-/-- `heapifyDown` is a permutation—it only rearranges elements, doesn't change the multiset. -/
-theorem heapifyDown_perm [Ord α] {a : Vector α sz} :
-    (heapifyDown a i).Perm a := by
-  induction a, i using heapifyDown.induct with
-  | case1 => simp_all [heapifyDown_eq_of_maxChild_none]
-  | case2 => simp_all [heapifyDown_eq_of_lt_child, Vector.Perm.trans ‹_›, Vector.swap_perm]
-  | case3 => simp_all [heapifyDown_eq_of_not_lt_child]
-
 theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] {a : Vector α sz} {i j : Fin sz}
     (hmaxChild : maxChild a i = some j) (h_lt : (compare a[i] a[j]).isLT) (hbelow : WF.Below a i) :
     WF.Children (heapifyDown (a.swap i j i.isLt j.isLt) j) i := by
@@ -270,17 +262,24 @@ theorem heapifyUp_topDown [Ord α] [Std.TransOrd α]
   rw [WF.iff_bottomUp]
   exact heapifyUp_bottomUp hexcept hchildren
 
-theorem heapifyUp_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
-    (heapifyUp a i).Perm a := by
-  induction a, i using heapifyUp.induct
-  all_goals
-    unfold heapifyUp
-    grind only [Vector.Perm.trans, Vector.swap_perm, Vector.Perm.refl]
-
 end heapifyUp
 
 /-! Other permutation related lemmas -/
 section perm
+
+/-- `heapifyDown` is a permutation -/
+theorem heapifyDown_perm [Ord α] {a : Vector α sz} : (heapifyDown a i).Perm a := by
+  induction a, i using heapifyDown.induct with
+  | case1 => simp_all [heapifyDown_eq_of_maxChild_none]
+  | case2 => simp_all [heapifyDown_eq_of_lt_child, Vector.Perm.trans ‹_›, Vector.swap_perm]
+  | case3 => simp_all [heapifyDown_eq_of_not_lt_child]
+
+/-- `heapifyUp` is a permutation -/
+theorem heapifyUp_perm [Ord α] {a : Vector α sz} {i : Fin sz} : (heapifyUp a i).Perm a := by
+  induction a, i using heapifyUp.induct
+  all_goals
+    unfold heapifyUp
+    grind only [Vector.Perm.trans, Vector.swap_perm, Vector.Perm.refl]
 
 theorem List.cons_perm_append_singleton {l : List α} (x : α) : (x :: l).Perm (l ++ [x]) := by
   induction l with
