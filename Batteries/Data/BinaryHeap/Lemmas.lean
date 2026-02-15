@@ -38,6 +38,7 @@ theorem maxChild_ge_right [Ord α] [Std.OrientedOrd α] (a : Vector α sz)
   grind only [= Fin.getElem_fin, Std.OrientedOrd.eq_swap, Ordering.swap_lt, Ordering.isGE,
     Ordering.isLT, maxChild]
 
+/-! ### heapifyDown related lemmas -/
 section heapifyDown
 
 /-- When maxChild returns none, heapifyDown is the identity. -/
@@ -235,6 +236,7 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α]
 
 end heapifyDown
 
+/-! ### heapifyUp related lemmas -/
 section heapifyUp
 
 /-- heapifyUp fixes the heap when the only violation is at i
@@ -277,6 +279,7 @@ theorem heapifyUp_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
 
 end heapifyUp
 
+/-! Other permutation related lemmas -/
 section perm
 
 theorem List.cons_perm_append_singleton {l : List α} (x : α) : (x :: l).Perm (l ++ [x]) := by
