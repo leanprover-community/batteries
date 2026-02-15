@@ -1373,9 +1373,6 @@ theorem sum_singleton [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (·
 theorem sum_pair [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (· + ·) 0] {a b : α} :
   [a, b].sum = a + b := by simp [Std.LawfulRightIdentity.right_id]
 
--- defined in `Std`, which currently only `simp`-annotates `sum_append_nat` and `sum_append_int`
-attribute [simp] sum_append
-
 theorem sum_concat [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 0]
     [Std.Associative (α := α) (· + ·)] {l : List α} {a : α} :
     (l.concat a).sum = l.sum + a := by simp [Std.LawfulRightIdentity.right_id]
@@ -1396,5 +1393,4 @@ theorem take_succ_drop {l : List α} {n stop : Nat}
   rw [← List.take_append_getElem (by simpa [← List.length_drop] using h)]
   simp [List.getElem_drop]
 
-@[simp]
-theorem reverse_singleton {a : α} : [a].reverse = [a] := rfl
+attribute [simp] reverse_singleton
