@@ -248,7 +248,7 @@ theorem heapifyUp_bottomUp [Ord α] [Std.TransOrd α] {a : Vector α sz}
     apply ih
     . exact WF.exceptAt_swap_parent h_ge h_exc h_clp
     . exact WF.parentGeChildren_swap_parent h_ge h_exc
-  | case3 _ _ _ j h_lt =>
+  | case3 _ _ _ j =>
     simp_all only [heapifyUp, j]
     apply WF.bottomUp_of_parent_and_exceptAt h_exc
     intro

@@ -206,7 +206,7 @@ theorem root_ge_all [Ord α] [Std.TransOrd α]
 def Parent [Ord α] (a : Vector α sz) (i : Fin sz) : Prop :=
   ∀ _ : 0 < i.val, compare a[(i.val - 1)/2] a[i] |>.isGE
 
-/-- The children of node `i` are <= node `i`'s parent
+/-- The parent of node `i` is >= node `i`'s chilren
     Part of the invariant required/maintained by heapifyUp
 -/
 def ParentGeChildren [Ord α] (a: Vector α sz) (i : Fin sz) : Prop :=
