@@ -603,12 +603,12 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
   -/
 theorem increaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare x (heap.get i) |>.isGE) :
-    WF (heap.increaseKey i x) := by
+    WF (heap.increaseKey i x) :=
   have hbu : WF.BottomUp heap.vector := by rwa [WF, WF.topDown_iff_bottomUp] at h_wf
-  apply WF.of_topDown_toArray
-  apply heapifyUp_topDown
-  . exact WF.exceptAt_set_of_ge hbu h_ge
-  . exact WF.parentGeChildren_set_of_ge hbu h_ge
+  WF.of_topDown_toArray <|
+    heapifyUp_topDown
+      (WF.exceptAt_set_of_ge hbu h_ge)
+      (WF.parentGeChildren_set_of_ge hbu h_ge)
 
 /-- The inner loop of toSortedArray produces a sorted array -/
 private theorem toSortedArray_loop_sorted [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
