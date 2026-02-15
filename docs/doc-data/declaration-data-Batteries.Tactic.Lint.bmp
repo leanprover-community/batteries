@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init","Batteries.Tactic.Lint.Basic","Batteries.Tactic.Lint.Misc","Batteries.Tactic.Lint.Simp","Batteries.Tactic.Lint.TypeClass","Batteries.Tactic.Lint.Frontend"],"instances":[],"name":"Batteries.Tactic.Lint"}

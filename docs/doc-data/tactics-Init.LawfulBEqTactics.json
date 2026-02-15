@@ -1,0 +1,33 @@
+[{"userName": "deriving_LawfulEq_tactic_step",
+  "tags": [],
+  "internalName": "tacticDeriving_LawfulEq_tactic_step",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p", true, [], [{"text": "This tactic has no documentation."}]]}]]},
+  "definingModule": "Init.LawfulBEqTactics"},
+ {"userName": "deriving_ReflEq_tactic",
+  "tags": [],
+  "internalName": "DerivingHelpers.tacticDeriving_ReflEq_tactic",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p", true, [], [{"text": "This tactic has no documentation."}]]}]]},
+  "definingModule": "Init.LawfulBEqTactics"},
+ {"userName": "deriving_LawfulEq_tactic",
+  "tags": [],
+  "internalName": "tacticDeriving_LawfulEq_tactic",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p", true, [], [{"text": "This tactic has no documentation."}]]}]]},
+  "definingModule": "Init.LawfulBEqTactics"}]

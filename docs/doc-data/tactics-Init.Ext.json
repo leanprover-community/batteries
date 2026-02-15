@@ -1,0 +1,162 @@
+[{"userName": "ext1",
+  "tags": [],
+  "internalName": "Lean.Elab.Tactic.Ext.tacticExt1___",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p",
+       true,
+       [],
+       [{"element":
+         ["code",
+          true,
+          [],
+          [{"text": "ext1"}, {"text": " "}, {"text": "pat*"}]]},
+        {"text": " is like "},
+        {"element":
+         ["code",
+          true,
+          [],
+          [{"text": "ext"}, {"text": " "}, {"text": "pat*"}]]},
+        {"text":
+         " except that it only applies a single extensionality theorem rather"},
+        {"raw": "\n"},
+        {"text":
+         "than recursively applying as many extensionality theorems as possible."}]]},
+     {"element":
+      ["p",
+       true,
+       [],
+       [{"text": "The "},
+        {"element": ["code", true, [], [{"text": "pat*"}]]},
+        {"text": " patterns are processed using the "},
+        {"element": ["code", true, [], [{"text": "rintro"}]]},
+        {"text": " tactic."},
+        {"raw": "\n"},
+        {"text":
+         "If no patterns are supplied, then variables are introduced anonymously using the "},
+        {"element": ["code", true, [], [{"text": "intros"}]]},
+        {"text": " tactic."}]]}]]},
+  "definingModule": "Init.Ext"},
+ {"userName": "ext",
+  "tags": [],
+  "internalName": "Lean.Elab.Tactic.Ext.ext",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p",
+       true,
+       [],
+       [{"text": "Applies extensionality lemmas that are registered with the "},
+        {"element": ["code", true, [], [{"text": "@[ext]"}]]},
+        {"text": " attribute."}]]},
+     {"element":
+      ["ul",
+       true,
+       [],
+       [{"element":
+         ["li",
+          true,
+          [],
+          [{"element":
+            ["code",
+             true,
+             [],
+             [{"text": "ext"}, {"text": " "}, {"text": "pat*"}]]},
+           {"text": " applies extensionality theorems as much as possible,"},
+           {"raw": "\n"},
+           {"text": "using the patterns "},
+           {"element": ["code", true, [], [{"text": "pat*"}]]},
+           {"text":
+            " to introduce the variables in extensionality theorems using "},
+           {"element": ["code", true, [], [{"text": "rintro"}]]},
+           {"text": "."},
+           {"raw": "\n"},
+           {"text":
+            "For example, the patterns are used to name the variables introduced by lemmas such as "},
+           {"element":
+            ["code",
+             true,
+             [],
+             [{"element":
+               ["a",
+                true,
+                [["href", "./Init/Core.html#funext"]],
+                [{"text": "funext"}]]}]]},
+           {"text": "."}]]},
+        {"element":
+         ["li",
+          true,
+          [],
+          [{"text": "Without patterns,"},
+           {"element": ["code", true, [], [{"text": "ext"}]]},
+           {"text": " applies extensionality lemmas as much"},
+           {"raw": "\n"},
+           {"text":
+            "as possible but introduces anonymous hypotheses whenever needed."}]]},
+        {"element":
+         ["li",
+          true,
+          [],
+          [{"element":
+            ["code",
+             true,
+             [],
+             [{"text": "ext"},
+              {"text": " "},
+              {"text": "pat*"},
+              {"text": " "},
+              {"text": ":"},
+              {"text": " "},
+              {"text": "n"}]]},
+           {"text": " applies ext theorems only up to depth "},
+           {"element": ["code", true, [], [{"text": "n"}]]},
+           {"text": "."}]]}]]},
+     {"element":
+      ["p",
+       true,
+       [],
+       [{"text": "The "},
+        {"element":
+         ["code",
+          true,
+          [],
+          [{"text": "ext1"}, {"text": " "}, {"text": "pat*"}]]},
+        {"text": " tactic is like "},
+        {"element":
+         ["code",
+          true,
+          [],
+          [{"text": "ext"}, {"text": " "}, {"text": "pat*"}]]},
+        {"text":
+         " except that it only applies a single extensionality theorem."}]]},
+     {"element":
+      ["p",
+       true,
+       [],
+       [{"text": "Unused patterns will generate warning."},
+        {"raw": "\n"},
+        {"text":
+         "Patterns that don't match the variables will typically result in the introduction of anonymous hypotheses."}]]}]]},
+  "definingModule": "Init.Ext"},
+ {"userName": "apply_ext_theorem",
+  "tags": [],
+  "internalName": "Lean.Elab.Tactic.Ext.applyExtTheorem",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p",
+       true,
+       [],
+       [{"text":
+         "Apply a single extensionality theorem to the current goal."}]]}]]},
+  "definingModule": "Init.Ext"}]

@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.Command","Init.Grind.Lint","Lean.Data.Name","Lean.Meta.Tactic.Grind.EMatchTheorem","Lean.EnvExtension","Lean.Elab.Tactic.Grind.Config","Lean.Meta.Tactic.TryThis","Lean.PrettyPrinter"],"instances":[],"name":"Lean.Elab.Tactic.Grind.Lint"}

@@ -1,0 +1,53 @@
+[{"userName": "intro",
+  "tags": [],
+  "internalName": "Batteries.Tactic.introDot",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p",
+       true,
+       [],
+       [{"text": "The syntax "},
+        {"element": ["code", true, [], [{"text": "intro."}]]},
+        {"text": " is deprecated in favor of "},
+        {"element": ["code", true, [], [{"text": "nofun"}]]},
+        {"text": "."}]]}]]},
+  "definingModule": "Batteries.Tactic.NoMatch"},
+ {"userName": "match",
+  "tags": [],
+  "internalName": "Batteries.Tactic.«tacticMatch_,,With.»",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p",
+       true,
+       [],
+       [{"text": "The syntax "},
+        {"element":
+         ["code",
+          true,
+          [],
+          [{"text": "match"},
+           {"text": " "},
+           {"text": "⋯"},
+           {"text": " "},
+           {"text": "with."}]]},
+        {"text": " has been deprecated in favor of "},
+        {"element":
+         ["code",
+          true,
+          [],
+          [{"text": "nomatch"}, {"text": " "}, {"text": "⋯"}]]},
+        {"text": "."}]]},
+     {"element":
+      ["p",
+       true,
+       [],
+       [{"text": "Both now support multiple discriminants."}]]}]]},
+  "definingModule": "Batteries.Tactic.NoMatch"}]
