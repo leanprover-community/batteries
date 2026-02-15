@@ -200,22 +200,39 @@ private def elabHelpCat (more : Option Syntax) (catStx : Ident) (id : Option Str
   let some cat := categories.find? catName
     | throwErrorAt catStx "{catStx} is not a syntax category"
   liftTermElabM <| Term.addCategoryInfo catStx catName
+  let mut declsArray : Array (SyntaxNodeKind × List String × Bool) := {}
+  let mut tokenUsage : Std.HashMap String Nat := {}
   for (k, _) in cat.kinds do
     let mut used := false
     try
       let (leading, parser) ← liftCoreM <| Parser.mkParserOfConstant categories k
       let tks := tokensToList parser.info.firstTokens
       let tks := tks.filter (· != "$") -- filter antiquotations
-      let mainTk :: _ := tks | pure ()
+      -- collect the usage of every token regardless of filtering to make sure that the
+      -- token detection is independent of a filter
+      for tk in tks.eraseDups do
+        tokenUsage := tokenUsage.alter tk fun n => some (n.getD 0 + 1)
       if let some id := id then
         unless tks.any (·.startsWith id) do
           continue
-      used := true
-      decls := decls.insert mainTk ((decls.getD mainTk #[]).push (k, leading))
+      unless tks.isEmpty do
+        used := true
+        declsArray := declsArray.push (k, tks, leading)
     catch _ =>
       pure ()
     if !used && id.isNone then
       rest := rest.insert (k.toString false) k
+  for (kind, tks, leading) in declsArray do
+    -- we choose the first, least common token
+    let firstTk :: moreTks := tks | unreachable!
+    let mut winnerTk := firstTk
+    let mut winnerCount := tokenUsage[firstTk]!
+    for tk in moreTks do
+      let count := tokenUsage[tk]!
+      if count < winnerCount then
+        winnerTk := tk
+        winnerCount := count
+    decls := decls.alter winnerTk fun arr => some (arr.getD #[] |>.push (kind, leading))
   let mut msg := MessageData.nil
   if decls.isEmpty && rest.isEmpty then
     match id with
