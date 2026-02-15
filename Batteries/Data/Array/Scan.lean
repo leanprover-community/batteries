@@ -231,7 +231,7 @@ theorem back_scanl {f : β → α → β} {as : Array α} :
     (as.scanl f init).back = as.foldl f init := by
   simp [Array.back_eq_getElem]
 
-theorem back_scanl? {f : β → α → β} {as : Array α} :
+theorem back?_scanl {f : β → α → β} {as : Array α} :
     (as.scanl f init).back? = some (as.foldl f init) := by
   simp [Array.back?_eq_getElem?]
 
@@ -310,6 +310,13 @@ theorem scanr_map {f : β → γ → γ} {g : α → β} (init : γ) (as : Array
 @[grind =]
 theorem scanl_reverse {f : β → α → β} {as : Array α} :
     scanl f init as.reverse = reverse (scanr (flip f) init as) := by
+  apply toList_inj.mp
+  simp only [scanl_eq_scanl_toList, scanr_eq_scanr_toList]
+  simp
+
+@[grind =]
+theorem scanr_reverse {f : α → β → β} {as : Array α} :
+    scanr f init as.reverse = reverse (scanl (flip f) init as) := by
   apply toList_inj.mp
   simp only [scanl_eq_scanl_toList, scanr_eq_scanr_toList]
   simp
