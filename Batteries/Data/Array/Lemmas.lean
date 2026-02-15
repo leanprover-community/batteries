@@ -41,6 +41,10 @@ theorem idxOf?_toList [BEq α] {a : α} {l : Array α} :
     (a.eraseIdxIfInBounds i).size = if i < a.size then a.size-1 else a.size := by
   grind
 
+theorem toList_drop (as: Array α) (n : Nat) :
+    (as.drop n).toList = as.toList.drop n := by
+  simp only [drop, toList_extract, size_eq_length_toList, List.drop_eq_extract]
+
 /-! ### set -/
 
 theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp

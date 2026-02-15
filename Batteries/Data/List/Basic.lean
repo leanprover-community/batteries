@@ -236,7 +236,8 @@ also receives each element's index added to an optional parameter `start`
 (i.e. the numbers that `f` takes as its first argument will be greater than or equal to `start` and
 less than `start + l.length`).
 -/
-@[specialize] def foldlIdx (f : Nat → α → β → α) (init : α) : List β → (start : Nat := 0) → α
+@[specialize] def foldlIdx (f : Nat → α → β → α) (init : α) :
+    List β → (start : Nat := 0) → α
   | [], _ => init
   | b :: l, s => foldlIdx f (f s init b) l (s + 1)
 
@@ -261,9 +262,9 @@ def foldrIdx {α : Type u} {β : Type v} (f : Nat → α → β → β) (init : 
     (foldrIdx f i xs s, s) := by induction xs generalizing s <;> grind [foldrIdx]
   grind [foldrIdxTR]
 
-/-- `findIdxs p l` is the list of indexes of elements of `l` that satisfy `p`, added to an
-optional parameter `start` (so that the members of `findIdxs p l` will be greater than or
-equal to `start` and less than `l.length + start`).  -/
+/-- `findIdxs p l s` is the list of indexes of elements of `l` that satisfy `p`, added to an
+optional parameter `s` (so that the members of `findIdxs p l s` will be greater than or
+equal to `s` and less than `l.length + s`).  -/
 @[inline] def findIdxs (p : α → Bool) (l : List α) (start : Nat := 0) : List Nat :=
   foldrIdx (fun i a is => bif p a then i :: is else is) [] l start
 
@@ -278,9 +279,22 @@ We have `l.findIdxsValues p s = (l.findIdxs p s).zip (l.filter p)`.
 @[deprecated (since := "2025-11-06")]
 alias indexsValues := findIdxsValues
 
+/-- `findIdxNth p xs n` returns the index of the `n`th element for which `p` returns `true`.
+For example:
+```
+findIdxNth (· < 3) [5, 1, 3, 2, 4, 0, 1, 4] 2 = 5
+```
+-/
+@[inline] def findIdxNth (p : α → Bool) (xs : List α) (n : Nat) : Nat := go xs n 0 where
+  /-- Auxiliary for `findIdxNth`: `findIdxNth.go p l n acc = findIdxNth p l n + acc`. -/
+  @[specialize] go : (xs : List α) → (n : Nat) → (s : Nat) → Nat
+  | [], _, s => s
+  | a :: xs, 0, s => bif p a then s else go xs 0 (s + 1)
+  | a :: xs, n + 1, s => bif !(p a) then go xs (n + 1) (s + 1) else go xs n (s + 1)
+
 /--
-`idxsOf a l` is the list of all indexes of `a` in `l`,  added to an
-optional parameter `start`. For example:
+`idxsOf a l s` is the list of all indexes of `a` in `l`,  added to an
+optional parameter `s`. For example:
 ```
 idxsOf b [a, b, a, a] = [1]
 idxsOf a [a, b, a, a] 5 = [5, 7, 8]
@@ -291,6 +305,42 @@ idxsOf a [a, b, a, a] 5 = [5, 7, 8]
 
 @[deprecated (since := "2025-11-06")]
 alias indexesOf := idxsOf
+
+/-- `idxOfNth a xs n` returns the index of the `n`th instance of `a` in `xs`, counting from `0`.
+
+For example:
+```
+idxOfNth 1 [5, 1, 3, 2, 4, 0, 1, 4] 1 = 6
+```
+-/
+def idxOfNth [BEq α] (a : α) (xs : List α) (n : Nat) : Nat :=
+  xs.findIdxNth (· == a) n
+
+/-- `countPBefore p xs i hip` counts the number of `x` in `xs` before the `i`th index for
+which `p x = true`.
+
+For example:
+```
+countPBefore (· < 3) [5, 1, 3, 2, 4, 0, 1, 4] 5 = 2
+```
+-/
+def countPBefore (p : α → Bool) (xs : List α) (i : Nat) : Nat := go xs i 0 where
+  /-- Auxiliary for `countPBefore`: `countPBefore.go p l i acc = countPBefore p l i + acc`. -/
+  @[specialize] go : (xs : List α) → (i : Nat) → (s : Nat) → Nat
+  | _ :: _, 0, s => s
+  | a :: xs, i + 1, s => bif p a then go xs i (s + 1) else go xs i s
+  | [], _, s => s
+
+/-- `countBefore a xs n` counts the number of `x` in `xs` before the
+`i`th index for which `x == a` is true.
+
+For example:
+```
+countBefore 1 [5, 1, 3, 2, 4, 0, 1, 4] 6 = 1
+```
+-/
+def countBefore [BEq α] (a : α) : List α → Nat → Nat :=
+  countPBefore (· == a)
 
 /--
 `lookmap` is a combination of `lookup` and `filterMap`.
@@ -597,10 +647,12 @@ pwFilter (·<·) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4]
 def pwFilter (R : α → α → Prop) [DecidableRel R] (l : List α) : List α :=
   l.foldr (fun x IH => if ∀ y ∈ IH, R x y then x :: IH else IH) []
 
-/-- `IsChain R l` means that `R` holds between adjacent elements of `l`.
+/--
+`IsChain R l` means that `R` holds between adjacent elements of `l`. Example:
 ```
 IsChain R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
-``` -/
+```
+-/
 inductive IsChain (R : α → α → Prop) : List α → Prop where
   /-- A list of length 0 is a chain. -/
   | nil : IsChain R []
@@ -615,13 +667,13 @@ attribute [simp, grind ←] IsChain.singleton
 @[simp, grind =] theorem isChain_cons_cons : IsChain R (a :: b :: l) ↔ R a b ∧ IsChain R (b :: l) :=
   ⟨fun | .cons_cons hr h => ⟨hr, h⟩, fun ⟨hr, h⟩ => .cons_cons hr h⟩
 
-instance instDecidableIsChain {R : α → α → Prop} [h : DecidableRel R] (l : List α) :
-    Decidable (l.IsChain R) := match l with | [] => isTrue .nil | a :: l => go a l
-  where
-    go (a : α) (l : List α) : Decidable ((a :: l).IsChain R) :=
-      match l with
-      | [] => isTrue <| .singleton a
-      | b :: l => haveI := (go b l); decidable_of_iff' _ isChain_cons_cons
+instance {R : α → α → Prop} [h : DecidableRel R] : (l : List α) → Decidable (l.IsChain R)
+  | [] => isTrue .nil | a :: l => go a l
+where
+  go (a : α) (l : List α) : Decidable ((a :: l).IsChain R) :=
+    match l with
+    | [] => isTrue <| .singleton a
+    | b :: l => haveI := (go b l); decidable_of_iff' _ isChain_cons_cons
 
 /-- `Chain R a l` means that `R` holds between adjacent elements of `a::l`.
 ```

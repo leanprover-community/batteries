@@ -7,3 +7,4 @@ public import Batteries.Data.Array.Match
 public import Batteries.Data.Array.Merge
 public import Batteries.Data.Array.Monadic
 public import Batteries.Data.Array.Pairwise
+public import Batteries.Data.Array.Scan
