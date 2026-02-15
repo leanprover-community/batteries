@@ -136,7 +136,7 @@ local grind_pattern List.eq_nil_of_length_eq_zero => l.length where
   guard l.length = 0
 
 @[simp]
-theorem scanl_iff_nil {f : β → α → β} (c : β) : scanl f b l = [c] ↔ c = b ∧ l = [] := by
+theorem scanl_eq_singleton_iff {f : β → α → β} (c : β) : scanl f b l = [c] ↔ c = b ∧ l = [] := by
   grind
 
 @[simp, grind =]
