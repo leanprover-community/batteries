@@ -449,8 +449,7 @@ theorem size_increaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x 
 theorem insert_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : heap.WF) :
     (heap.insert x).WF := by
   apply WF.of_topDown_toArray
-  apply WF.topDown_iff_bottomUp.mpr
-  apply heapifyUp_bottomUp
+  apply heapifyUp_topDown
   . intro i _
     rw [WF, WF.topDown_iff_bottomUp, WF.BottomUp] at h_wf
     intro h_nz
@@ -607,8 +606,7 @@ theorem increaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     WF (heap.increaseKey i x) := by
   have hbu : WF.BottomUp heap.vector := by rwa [WF, WF.topDown_iff_bottomUp] at h_wf
   apply WF.of_topDown_toArray
-  apply WF.topDown_iff_bottomUp.mpr
-  apply heapifyUp_bottomUp
+  apply heapifyUp_topDown
   . exact WF.exceptAt_set_of_ge hbu h_ge
   . exact WF.parentGeChildren_set_of_ge hbu h_ge
 
