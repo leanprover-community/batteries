@@ -507,7 +507,19 @@ theorem findIdxs_singleton :
 
 theorem findIdxs_start :
     (xs : List α).findIdxs p s = (xs.findIdxs p).map (· + s) := by
-  induction xs generalizing s <;> grind [map_inj_left]
+  -- FIXME: until nightly-2026-02-15 this was `induction xs generalizing s with grind`.
+  induction xs generalizing s with
+  | nil => simp
+  | cons x xs ih =>
+    rw [findIdxs_cons, findIdxs_cons]
+    split
+    · rw [ih, ih (s := 1)]
+      simp
+      grind
+    · rw [ih, ih (s := 1)]
+      simp
+      grind
+
 
 theorem findIdxs_eq_filterMap_zipIdx : (xs : List α).findIdxs p s =
     ((xs.zipIdx s).filterMap fun ab => bif p ab.1 then ab.2 else none) := by
