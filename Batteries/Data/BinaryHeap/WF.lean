@@ -64,7 +64,7 @@ namespace InSubtree
 theorem le (ins : InSubtree j k) : j ≤ k := by
   induction ins with omega
 
-theorem not_of_lt (hlt : k < j): ¬InSubtree j k := by
+theorem not_of_lt (hlt : k < j) : ¬InSubtree j k := by
   intro hsub
   have := hsub.le
   omega
@@ -98,7 +98,6 @@ theorem of_child (h : j = 2 * i + 1 ∨ j = 2 * i + 2) : InSubtree i j := by
 end InSubtree
 
 namespace WF
-variable {α : Type w} {sz : Nat}
 /-- All nodes at indices greater than `i` are well-formed (according to WF.children)
     Used when verifying `heapifyDown` -/
 def Below [Ord α] (a : Vector α sz) (i : Nat) : Prop :=
@@ -158,7 +157,7 @@ theorem parent_ge_subtree [Ord α] [Std.TransOrd α]
     grind only [= Fin.getElem_fin, !Std.TransOrd.isGE_trans]
 
 /-- Parent dominates all descendants after setting a smaller value -/
-theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α]
     {v : Vector α sz} {i : Fin sz} {x : α}
     (htd : WF.TopDown v) (h_le : compare x v[i] |>.isLE) (hi : 0 < i.val)
     (m : Fin sz) (hsub : InSubtree i.val m.val) :
@@ -185,7 +184,7 @@ theorem parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       (hsub := InSubtree.trans (by grind only [InSubtree]) hsub)
 
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
-theorem swap_preserves_ge_subtree [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem swap_preserves_ge_subtree [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {i j : Fin sz} (h_ij : i < j) (h_lt : (compare a[i] a[j]).isLT)
     (hbelow : WF.Below a i) (k : Fin sz) (hsub : InSubtree j k) :
     (compare a[j] (a.swap i j i.isLt j.isLt)[k]).isGE := by
@@ -234,7 +233,7 @@ def ExceptAt [Ord α] (a : Vector α sz) (i : Fin sz) : Prop :=
   ∀ j : Fin sz, i ≠ j → Parent a j
 
 /-- If exceptAt i and childLeParent i, swap preserves exceptAt at parent -/
-theorem exceptAt_swap_parent [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem exceptAt_swap_parent [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {i : Fin sz}
     (h_le : compare a[(i.val - 1) / 2] a[i] |>.isLE)
     (hexcept : ExceptAt a i)
@@ -252,7 +251,7 @@ theorem exceptAt_swap_parent [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       grind only [Fin.getElem_fin, !Std.TransOrd.isLE_trans, Vector.getElem_swap]
 
 /-- If exceptAt a i, swap preserves childLeParent at parent -/
-theorem childLeParent_swap_parent [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem childLeParent_swap_parent [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {i : Fin sz}
     (h_le : compare a[(i.val - 1) / 2] a[i] |>.isLE)
     (hexcept : ExceptAt a i) :
@@ -317,7 +316,7 @@ theorem of_topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.TopDown v) : W
     <;> simp_all [Vector.size_toArray, BinaryHeap.size]
 
 /-- Setting a larger value preserves WF.exceptAt -/
-theorem exceptAt_set_of_ge [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem exceptAt_set_of_ge [Ord α] [Std.TransOrd α]
     {v : Vector α sz} {i : Fin sz} {x : α}
     (hbu : WF.BottomUp v) (h_ge : compare x v[i] |>.isGE) :
     ExceptAt (v.set i x i.isLt) i := by
@@ -329,7 +328,7 @@ theorem exceptAt_set_of_ge [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
       !Ordering.isGE_swap, !Std.TransOrd.isLE_trans]
 
 /-- Setting a larger value preserves WF.childLeParent when original heap is well-formed -/
-theorem childLeParent_set_of_ge [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem childLeParent_set_of_ge [Ord α] [Std.TransOrd α]
     {v : Vector α sz} {i : Fin sz} {x : α}
     (hbu : WF.BottomUp v) (h_ge : compare x v[i] |>.isGE) :
     ChildLeParent (v.set i x i.isLt) i := by

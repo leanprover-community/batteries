@@ -126,7 +126,7 @@ theorem heapifyDown_preserves_ge_root_of_subtree [Ord α] [Std.TransOrd α]
   | case3 => simp_all [heapifyDown_eq_of_not_lt_child, InSubtree.refl]
 
 /-- heapifyDown at i preserves WF.Children at parent of i when value decreased -/
-theorem heapifyDown_set_of_le_preserves_children [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem heapifyDown_set_of_le_preserves_children [Ord α] [Std.TransOrd α]
     {v : Vector α sz} {i : Fin sz} {x : α}
     (htd : WF.TopDown v) (h_le : compare x v[i] |>.isLE) (hi : 0 < i.val) :
     WF.Children (heapifyDown (v.set i x i.isLt) i) ⟨(i.val - 1) / 2, by omega⟩ := by
@@ -166,7 +166,7 @@ theorem heapifyDown_perm [Ord α] {a : Vector α sz} {i : Fin sz} :
   | case2 => simp_all [heapifyDown_eq_of_lt_child, Vector.Perm.trans ‹_›, Vector.swap_perm]
   | case3 => simp_all [heapifyDown_eq_of_not_lt_child]
 
-theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {i j : Fin sz}
     (hmaxChild : maxChild a i = some j)
     (h_lt : (compare a[i] a[j]).isLT)
@@ -202,7 +202,7 @@ theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] [Std.OrientedOrd α
     assumption
 
 /-- If parent >= maxChild, then WF.Children holds at that position. -/
-theorem children_of_ge_maxChild [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α sz}
+theorem children_of_ge_maxChild [Ord α] [Std.TransOrd α] {a : Vector α sz}
     (hmaxChild : maxChild a i = some j) (h_ge : (compare a[i] a[j]).isGE) :
     WF.Children a i := by
   constructor
@@ -213,7 +213,7 @@ theorem children_of_ge_maxChild [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] 
 
 /-- `heapifyDown` restores the heap property at node `i` and below, given that all nodes
 below `i` already satisfy `WF.Children`. -/
-theorem heapifyDown_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem heapifyDown_wf [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {i : Fin sz}
     (hbelow : WF.Below a i) :
     WF.Children (heapifyDown a i) i ∧ WF.Below (heapifyDown a i) i := by
@@ -246,7 +246,7 @@ section heapifyUp
 
 /-- heapifyUp fixes the heap when the only violation is at i
     and i's children are already ≤ i's parent -/
-theorem heapifyUp_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem heapifyUp_bottomUp [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {i : Fin sz} (h_exc : WF.ExceptAt a i) (h_clp : WF.ChildLeParent a i) :
     WF.BottomUp (heapifyUp a i) := by
   induction a, i using heapifyUp.induct with
@@ -266,7 +266,7 @@ theorem heapifyUp_bottomUp [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
 
 /-- `heapifyUp` restores the full heap property, given that all nodes except `i` satisfy
 the parent property and `i`'s children are ≤ `i`'s parent. -/
-theorem heapifyUp_topDown [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem heapifyUp_topDown [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {i : Fin sz} (hexcept : WF.ExceptAt a i) (hchildren : WF.ChildLeParent a i) :
     WF.TopDown (heapifyUp a i) := by
   rw [WF.iff_bottomUp]
@@ -370,7 +370,7 @@ end perm
 
 /-- The inner loop of `mkHeap` establishes `WF.Children` for all nodes, given that
 nodes at index ≥ n already satisfy the invariant. -/
-theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α]
     {n : Nat} {a : Vector α sz} {h : n ≤ sz}
     (hinv : ∀ k : Fin sz, n ≤ k.val → WF.Children a k) :
     ∀ k : Fin sz, WF.Children (mkHeap.loop n a h) k := by
@@ -413,7 +413,7 @@ theorem max_singleton [Ord α] {x : α} : (singleton x).max = some x := by
 
 /-- Constructing a heap from a vector produces a well-formed heap. -/
 @[simp, grind .]
-theorem mkHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {a : Vector α sz} :
+theorem mkHeap_wf [Ord α] [Std.TransOrd α] {a : Vector α sz} :
     WF.TopDown (mkHeap a) := by
   apply mkHeap.loop_wf
   grind only [WF.Children]
@@ -449,7 +449,7 @@ theorem size_increaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x 
   simp [increaseKey, size]
 
 @[grind .]
-theorem insert_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
+theorem insert_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {x : α} (h_wf : heap.WF) :
     (heap.insert x).WF := by
   apply WF.of_topDown_toArray
@@ -491,7 +491,7 @@ theorem max_ge_all [Ord α] [Std.TransOrd α]
   simp_all [vector, max]
 
 /-- Removing the maximum element from a well-formed heap preserves well-formedness. -/
-theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem popMax_wf [Ord α] [Std.TransOrd α]
     {heap : BinaryHeap α} (h_wf : WF heap) :
     WF (heap.popMax) := by
   unfold popMax
@@ -503,7 +503,7 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
     . grind only [WF.Children, WF.TopDown]
 
 /-- Replacing the maximum element in a well-formed heap preserves well-formedness. -/
-theorem replaceMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem replaceMax_wf [Ord α] [Std.TransOrd α]
     {heap : BinaryHeap α} {x : α} (h_wf : WF heap) :
     WF (heap.replaceMax x).2 := by
   unfold replaceMax
@@ -512,7 +512,7 @@ theorem replaceMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
   · apply WF.topDown_iff_root_and_below.mp
     exact heapifyDown_wf (WF.below_set h_wf)
 
-theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem insertExtractMax_wf [Ord α] [Std.TransOrd α]
     {heap : BinaryHeap α} {x : α} (h_wf : WF heap) :
     WF (heap.insertExtractMax x).2 := by
   have htd : WF.TopDown heap.vector := by rwa [WF] at h_wf
@@ -588,7 +588,7 @@ theorem mem_of_mem_popMax [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ he
 
 /-- Decreasing a key value in a well-formed heap and reheapifying downward preserves
   well-formedness. -/
-theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
+theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_leq : compare x (heap.get i) |>.isLE) :
     WF (heap.decreaseKey i x) := by
   apply WF.of_topDown_toArray
@@ -609,7 +609,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
 
 /-- Increasing a key value in a well-formed heap and reheapifying upward preserves well-formedness.
   -/
-theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : BinaryHeap α}
+theorem increaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare x (heap.get i) |>.isGE) :
     WF (heap.increaseKey i x) := by
   have hbu : WF.BottomUp heap.vector := by rwa [WF, WF.iff_bottomUp] at h_wf
@@ -620,7 +620,7 @@ theorem increaseKey_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α] {heap : B
   . exact WF.childLeParent_set_of_ge hbu h_ge
 
 /-- The inner loop of toSortedArray produces a sorted array -/
-private theorem toSortedArray_loop_sorted [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+private theorem toSortedArray_loop_sorted [Ord α] [Std.TransOrd α]
     {heap : BinaryHeap α} {out : Array α}
     (hwf : WF heap) (h_out_sorted : out.toList.Pairwise (compare · · |>.isGE))
     (h_heap_le_out : ∀ x ∈ heap, ∀ y ∈ out, compare x y |>.isLE) :
@@ -646,7 +646,7 @@ private theorem toSortedArray_loop_sorted [Ord α] [Std.TransOrd α] [Std.Orient
     all_goals simp_all [mem_of_mem_popMax]
 
 /-- toSortedArray produces a sorted array if the heap is well-formed -/
-theorem toSortedArray_sorted [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem toSortedArray_sorted [Ord α] [Std.TransOrd α]
     {heap : BinaryHeap α} (hwf : WF heap) :
     heap.toSortedArray.toList.Pairwise (compare · · |>.isGE) := by
   simp_all [toSortedArray, toSortedArray_loop_sorted]
@@ -668,13 +668,13 @@ public section
 open Batteries.BinaryHeap
 
 /-- Converting an array to a binary heap produces a well-formed heap. -/
-theorem Array.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem Array.toBinaryHeap_wf [Ord α] [Std.TransOrd α]
     {a : Array α} :
     WF (a.toBinaryHeap) := by
   simp [WF.of_topDown_toArray, Array.toBinaryHeap]
 
 /-- Converting a vector to a binary heap produces a well-formed heap. -/
-theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α]
     {a : Vector α sz} :
     WF (Batteries.Vector.toBinaryHeap a) := by
   simp [WF.of_topDown_toArray, Vector.toBinaryHeap]
@@ -712,7 +712,7 @@ theorem Array.size_heapSort [instOrd : Ord α] {a : Array α} :
   Array.heapSort_perm.size_eq
 
 /-- `heapSort` produces a sorted array. -/
-theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] [Std.OrientedOrd α]
+theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α]
     {a : Array α} :
     a.heapSort.toList.Pairwise (compare · · |>.isLE) := by
   letI := instOrd.opposite

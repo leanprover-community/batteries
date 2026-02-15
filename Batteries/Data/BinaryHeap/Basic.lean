@@ -15,7 +15,6 @@ structure BinaryHeap (α : Type w) [Ord α] where
   arr : Array α
 
 namespace BinaryHeap
-variable {α : Type w}
 
 /-- Given a node, return the index of its larger child, if it exists -/
 @[inline]
