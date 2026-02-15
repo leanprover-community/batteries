@@ -5,6 +5,8 @@ Authors: Shreyas Srinivas, François G. Dorais, Chad Sharp
 -/
 module
 
+import Batteries.Data.UInt
+
 @[expose] public section
 
 /-!
@@ -28,7 +30,7 @@ Set an element of a vector using a `USize` index and a proof that the index is w
 def uset (xs : Vector α n) (i : USize) (v : α) (h : i.toNat < n) : Vector α n :=
   ⟨xs.toArray.uset i v (xs.size_toArray.symm ▸ h), by simp⟩
 
-private theorem USize.succ_toNat {start stop : USize} {n : Nat}
+private theorem USize.succ_toNat_of_lt {start stop : USize} {n : Nat}
     (h_lt : start < stop) (h_stop : stop.toNat ≤ n) (h_su : n < USize.size) :
     (start + 1).toNat = start.toNat + 1 := by
   have h_lt_nat := USize.lt_iff_toNat_lt.mp h_lt
@@ -37,26 +39,11 @@ private theorem USize.succ_toNat {start stop : USize} {n : Nat}
     simp_all only [USize.size, USize.toNat_add, USize.reduceToNat]
     omega
 
-private theorem USize.pred_toNat {i : USize}
-    (h_gt : 0 < i) :
-    (i - 1).toNat = i.toNat - 1 := by
-  have h_gt_nat := USize.lt_iff_toNat_lt.mp h_gt
-  have h_bound := i.toNat_lt_size
-  cases System.Platform.numBits_eq
-  all_goals
-    simp_all only [USize.size, USize.toNat_sub, USize.reduceToNat]
-    omega
-
-private theorem USize.toNat_ofNat_eq  {i : Nat}
-    (h : n < USize.size) (hn : i ≤ n) :
-    (USize.ofNat i).toNat = i :=
-  USize.toNat_ofNat_of_lt' (Nat.lt_of_le_of_lt ‹_› ‹_›)
-
 @[inline]
 private def scanlMFast [Monad m] (f : β → α → m β) (init : β) (as : Vector α n)
     (h_su : n < USize.size) : m (Vector β (n + 1)) :=
   loop init (i := 0) (n_usize := USize.ofNat n)
-    (h_n := USize.toNat_ofNat_eq h_su (Nat.le_refl n))
+    (h_n := USize.toNat_ofNat_of_le_of_lt h_su (Nat.le_refl n))
     (h_i := by simp [USize.toNat_zero])
     (acc := Vector.emptyWithCapacity (n + 1))
 where
@@ -65,7 +52,7 @@ where
       (h_i : i.toNat ≤ n) (acc : Vector β i.toNat) : m (Vector β (n + 1)) := do
     if h_lt : i < n_usize then
       have h_lt_nat : i.toNat < n := by rw [← h_n]; exact USize.lt_iff_toNat_lt.mp h_lt
-      have h_inc : (i + 1).toNat = i.toNat + 1 := USize.succ_toNat h_lt (by omega) h_su
+      have h_inc : (i + 1).toNat = i.toNat + 1 := USize.succ_toNat_of_lt h_lt (by omega) h_su
       let next ← f cur (as.uget i (by omega))
       loop next (i + 1) n_usize h_n (by omega) (acc.push cur |>.cast h_inc.symm)
     else
@@ -101,7 +88,7 @@ where
 @[inline]
 private def scanrMFast [Monad m] (f : α → β → m β) (init : β) (as : Vector α n)
     (h_su : n < USize.size) : m (Vector β (n + 1)) :=
-  have h_n := USize.toNat_ofNat_eq h_su (Nat.le_refl n)
+  have h_n := USize.toNat_ofNat_of_le_of_lt h_su (Nat.le_refl n)
   loop init (i := USize.ofNat n) (n_usize := USize.ofNat n)
     (h_n := h_n) (h_i := by simp [h_n]) (acc := Vector.replicate (n + 1) init)
 where
