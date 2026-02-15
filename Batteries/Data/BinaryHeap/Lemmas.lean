@@ -199,7 +199,7 @@ theorem children_of_ge_maxChild [Ord α] [Std.TransOrd α] {a : Vector α sz}
 
 /-- `heapifyDown` restores the heap property at node `i` and below, given that all nodes
 below `i` already satisfy `WF.Children`. -/
-theorem heapifyDown_wf [Ord α] [Std.TransOrd α]
+theorem heapifyDown_topDown [Ord α] [Std.TransOrd α]
     {a : Vector α sz} {i : Fin sz}
     (hbelow : WF.Below a i) :
     WF.Children (heapifyDown a i) i ∧ WF.Below (heapifyDown a i) i := by
@@ -258,9 +258,8 @@ theorem heapifyUp_bottomUp [Ord α] [Std.TransOrd α] {a : Vector α sz}
 the parent property and `i`'s children are ≤ `i`'s parent. -/
 theorem heapifyUp_topDown [Ord α] [Std.TransOrd α]
     {a : Vector α sz} (hexcept : WF.ExceptAt a i) (hchildren : WF.ParentGeChildren a i) :
-    WF.TopDown (heapifyUp a i) := by
-  rw [WF.iff_bottomUp]
-  exact heapifyUp_bottomUp hexcept hchildren
+    WF.TopDown (heapifyUp a i) :=
+  WF.iff_bottomUp _ |>.mpr (heapifyUp_bottomUp hexcept hchildren)
 
 end heapifyUp
 
@@ -376,7 +375,7 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α]
   | zero => simp_all [mkHeap.loop]
   | succ i ih =>
     have hi_lt : i < sz := by omega
-    have ⟨hwf_at, hwf_below⟩:= heapifyDown_wf (i := ⟨i, hi_lt⟩) hinv
+    have ⟨hwf_at, hwf_below⟩:= heapifyDown_topDown (i := ⟨i, hi_lt⟩) hinv
     apply ih
     intro k hk
     by_cases hk_eq : k = i
@@ -495,7 +494,7 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF h
   . exact h_wf
   . split <;> apply WF.of_topDown_toArray
     . apply WF.topDown_iff_root_and_below.mp
-      exact heapifyDown_wf (WF.below_swap_pop h_wf (by omega))
+      exact heapifyDown_topDown (WF.below_swap_pop h_wf (by omega))
     . grind only [WF.Children, WF.TopDown]
 
 /-- Replacing the maximum element in a well-formed heap preserves well-formedness. -/
@@ -505,7 +504,7 @@ theorem replaceMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : 
   split <;> apply WF.of_topDown_toArray
   · simp_all [WF.TopDown, WF.Children]
   · apply WF.topDown_iff_root_and_below.mp
-    exact heapifyDown_wf (WF.below_set h_wf)
+    exact heapifyDown_topDown (WF.below_set h_wf)
 
 theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF heap) :
     WF (heap.insertExtractMax x).2 := by
@@ -516,7 +515,7 @@ theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h
   · split
     · apply WF.of_topDown_toArray
       apply WF.topDown_iff_root_and_below.mp
-      exact heapifyDown_wf (WF.below_set htd)
+      exact heapifyDown_topDown (WF.below_set htd)
     · exact h_wf
 
 @[simp]
@@ -588,7 +587,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
   apply WF.of_topDown_toArray
   have htd : WF.TopDown heap.vector := by simp_all [WF]
   have hbelow : WF.Below (heap.vector.set i x _) i := WF.below_set htd
-  have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_wf hbelow
+  have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_topDown hbelow
   intro k
   rcases Nat.lt_trichotomy k.val i.val with hki | hki_eq | hik
   · by_cases hk_parent : k.val = (i.val - 1) / 2 ∧ 0 < i.val
