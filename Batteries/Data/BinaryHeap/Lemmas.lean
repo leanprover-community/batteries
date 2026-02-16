@@ -173,14 +173,13 @@ theorem heapifyDown_set_of_le_preserves_children [Ord α] [Std.TransOrd α] {v :
     WF.Children (heapifyDown (v.set i x i.isLt) i) ⟨(i.val - 1) / 2, by omega⟩ := by
   let parent : Fin sz := ⟨(i.val - 1) / 2, by omega⟩
   have h_parent_child : i.val = 2 * parent.val + 1 ∨ i.val = 2 * parent.val + 2 := by grind only
-
   apply heapifyDown_children_of_ge_subtree h_parent_child
   . intro m hsub
     have := htd.parent_ge_subtree_of_set h_ge hi m hsub
     grind only [Fin.getElem_fin, Vector.getElem_set_ne]
-  . apply (htd parent).set_of_ge_child h_parent_child
-    have ⟨_, _⟩ := htd parent
-    grind only [Fin.getElem_fin, Std.TransOrd.isGE_trans]
+  . have hparent := htd parent
+    apply hparent.set_of_ge_child h_parent_child
+    grind only [WF.Children, Std.TransOrd.isGE_trans, Fin.getElem_fin]
 
 theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] {a : Vector α sz} {i j : Fin sz}
     (hmaxChild : maxChild a i = some j) (h_ge : compare a[j] a[i] |>.isGE) (hbelow : WF.Below a i) :
