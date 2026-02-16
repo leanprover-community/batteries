@@ -449,7 +449,7 @@ theorem size_increaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x 
 @[grind .]
 theorem insert_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : heap.WF) :
     (heap.insert x).WF := by
-  apply WF.of_topDown_toArray
+  apply WF.of_topDown
   apply heapifyUp_topDown
   . intro i _
     rw [WF, WF.TopDown.iff_bottomUp, WF.BottomUp] at h_wf
@@ -492,7 +492,7 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF h
   unfold popMax
   split
   . exact h_wf
-  . split <;> apply WF.of_topDown_toArray
+  . split <;> apply WF.of_topDown
     . apply WF.TopDown.iff_root_and_below.mp
       exact heapifyDown_topDown (.of_topDown_swap_pop h_wf (by omega))
     . grind only [WF.Children, WF.TopDown]
@@ -501,7 +501,7 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF h
 theorem replaceMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF heap) :
     WF (heap.replaceMax x).2 := by
   unfold replaceMax
-  split <;> apply WF.of_topDown_toArray
+  split <;> apply WF.of_topDown
   · simp_all [WF.TopDown, WF.Children]
   · apply WF.TopDown.iff_root_and_below.mp
     exact heapifyDown_topDown (.of_topDown_set h_wf)
@@ -513,7 +513,7 @@ theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h
   split
   · exact h_wf
   · split
-    · apply WF.of_topDown_toArray
+    · apply WF.of_topDown
       apply WF.TopDown.iff_root_and_below.mp
       exact heapifyDown_topDown (.of_topDown_set htd)
     · exact h_wf
@@ -584,7 +584,7 @@ theorem mem_of_mem_popMax [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ he
 theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare (heap.get i) x |>.isGE) :
     WF (heap.decreaseKey i x) := by
-  apply WF.of_topDown_toArray
+  apply WF.of_topDown
   have htd : WF.TopDown heap.vector := by simp_all [WF]
   have hbelow : WF.Below (heap.vector.set i x _) i := WF.Below.of_topDown_set htd
   have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_topDown hbelow
@@ -606,7 +606,7 @@ theorem increaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare x (heap.get i) |>.isGE) :
     WF (heap.increaseKey i x) :=
   have hbu : WF.BottomUp heap.vector := by rwa [WF, WF.TopDown.iff_bottomUp] at h_wf
-  .of_topDown_toArray <|
+  .of_topDown <|
     heapifyUp_topDown (.set_of_ge hbu h_ge) (.set_of_ge hbu h_ge)
 
 /-- The inner loop of toSortedArray produces a sorted array -/
@@ -656,12 +656,12 @@ open Batteries.BinaryHeap
 
 /-- Converting an array to a binary heap produces a well-formed heap. -/
 theorem Array.toBinaryHeap_wf [Ord α] [Std.TransOrd α] {a : Array α} : WF (a.toBinaryHeap) := by
-  simp [WF.of_topDown_toArray, Array.toBinaryHeap]
+  simp [WF.of_topDown, Array.toBinaryHeap]
 
 /-- Converting a vector to a binary heap produces a well-formed heap. -/
 theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] {a : Vector α sz} :
     WF (Batteries.Vector.toBinaryHeap a) := by
-  simp [WF.of_topDown_toArray, Vector.toBinaryHeap]
+  simp [WF.of_topDown, Vector.toBinaryHeap]
 
 @[simp]
 theorem Array.size_toBinaryHeap [Ord α] {a : Array α} : a.toBinaryHeap.size = a.size := by

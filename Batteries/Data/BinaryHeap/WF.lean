@@ -326,7 +326,7 @@ theorem BottomUp.of_parent_and_exceptAt [Ord α] {a : Vector α sz} {i : Fin sz}
 
 /-- A well-formed vector transfers its well-formedness to a BinaryHeap created from its array
   representation. -/
-theorem of_topDown_toArray {v : Vector α sz} [Ord α] (h_td : WF.TopDown v) : WF ⟨v.toArray⟩ := by
+theorem of_topDown {v : Vector α sz} [Ord α] (h_td : WF.TopDown v) : WF ⟨v.toArray⟩ := by
   intro ⟨ival, _⟩
   have ⟨hleft, hright⟩ := h_td ⟨ival, by simp_all [size]⟩
   constructor
