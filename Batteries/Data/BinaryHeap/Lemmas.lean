@@ -57,6 +57,16 @@ theorem WF.Children.of_swap_maxChild [Ord α] [Std.TransOrd α] {a : Vector α s
     first | apply maxChild_ge_left | apply maxChild_ge_right
     assumption
 
+/-- If parent >= maxChild, then WF.Children holds at that position. -/
+theorem WF.Children.of_ge_maxChild [Ord α] [Std.TransOrd α] {a : Vector α sz}
+    (hmaxChild : maxChild a i = some j) (h_ge : (compare a[i] a[j]).isGE) :
+    WF.Children a i := by
+  constructor
+    <;> intros
+    <;> apply Std.TransOrd.isGE_trans h_ge
+    <;> (first | apply maxChild_ge_left | apply maxChild_ge_right)
+    <;> assumption
+
 /-! ### heapifyDown related lemmas -/
 section heapifyDown
 
@@ -190,16 +200,6 @@ theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] {a : Vector α sz} 
   . apply WF.Children.of_swap_maxChild hmaxChild
     simp_all
 
-/-- If parent >= maxChild, then WF.Children holds at that position. -/
-theorem children_of_ge_maxChild [Ord α] [Std.TransOrd α] {a : Vector α sz}
-    (hmaxChild : maxChild a i = some j) (h_ge : (compare a[i] a[j]).isGE) :
-    WF.Children a i := by
-  constructor
-    <;> intros
-    <;> apply Std.TransOrd.isGE_trans h_ge
-    <;> (first | apply maxChild_ge_left | apply maxChild_ge_right)
-    <;> assumption
-
 /-- `heapifyDown` restores the heap property at node `i` and below, given that all nodes
 below `i` already satisfy `WF.Children`. -/
 theorem heapifyDown_topDown [Ord α] [Std.TransOrd α]
@@ -227,7 +227,7 @@ theorem heapifyDown_topDown [Ord α] [Std.TransOrd α]
       -- (not affected by heapify at j)
       · exact heapifyDown_swap_children_of_lt hchild (by omega) hgt (hbelow k hik)
   | case3 =>
-    simp_all [heapifyDown_eq_of_not_lt_child, children_of_ge_maxChild, Ordering.isGE_iff_ne_lt]
+    simp_all [heapifyDown_eq_of_not_lt_child, WF.Children.of_ge_maxChild, Ordering.isGE_iff_ne_lt]
 
 end heapifyDown
 
