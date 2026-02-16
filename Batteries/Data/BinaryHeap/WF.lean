@@ -120,7 +120,7 @@ theorem Below.swap [Ord α] {a : Vector α sz} {i j : Fin sz} (hbelow : WF.Below
   apply WF.Children.congr (hbelow k (Nat.lt_trans hij hk_gt_j))
     <;> intros <;> apply Vector.getElem_swap_of_ne <;> omega
 
-/-- For k < i where neither child equals i, set at i preserves WF.children at k -/
+/-- For k ≠ i where neither child of k equals i, set at i preserves WF.children at k -/
 theorem Children.set_of_ne [Ord α] {v : Vector α sz} {i k : Fin sz}
     (hwf : WF.Children v k) (hki : k.val ≠ i.val)
     (hleft_ne : i.val ≠ 2 * k.val + 1) (hright_ne : i.val ≠ 2 * k.val + 2) :
