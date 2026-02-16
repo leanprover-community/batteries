@@ -137,7 +137,7 @@ theorem Children.set_of_ge_child [Ord α] [Std.TransOrd α] {v : Vector α sz} {
   cases h_child <;> grind only [WF.Children, = Fin.getElem_fin, = Vector.getElem_set]
 
 /-- Setting a smaller value preserves WF.Below -/
-theorem Below._set [Ord α] {v : Vector α sz} {i : Fin sz} (htd : WF.TopDown v) :
+theorem Below.of_topDown_set [Ord α] {v : Vector α sz} {i : Fin sz} (htd : WF.TopDown v) :
     WF.Below (v.set i x i.isLt) i := by
   intro j hj
   apply (htd j).set_of_ne <;> omega
