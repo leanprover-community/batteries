@@ -137,7 +137,7 @@ theorem Children.set_of_ge_child [Ord α] [Std.TransOrd α] {v : Vector α sz} {
   cases h_child <;> grind only [WF.Children, = Fin.getElem_fin, = Vector.getElem_set]
 
 /-- Setting a smaller value preserves WF.Below -/
-theorem Below.of_topDown_set [Ord α] {v : Vector α sz} {i : Fin sz} (htd : WF.TopDown v) :
+theorem Below._set [Ord α] {v : Vector α sz} {i : Fin sz} (htd : WF.TopDown v) :
     WF.Below (v.set i x i.isLt) i := by
   intro j hj
   apply (htd j).set_of_ne <;> omega
@@ -210,15 +210,14 @@ theorem TopDown.parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] {v : Vector 
 
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
 theorem swap_preserves_ge_subtree [Ord α] [Std.TransOrd α]
-    {a : Vector α sz} {i j : Fin sz} (h_ij : i < j) (h_lt : (compare a[i] a[j]).isLT)
+    {a : Vector α sz} {i j : Fin sz} (h_ij : i < j) (h_ge : (compare a[j] a[i]).isGE)
     (hbelow : WF.Below a i) (k : Fin sz) (hsub : InSubtree j k) :
     (compare a[j] (a.swap i j i.isLt j.isLt)[k]).isGE := by
   have hge : (compare a[j] a[j]).isGE := by grind only [Ordering.isGE]
   have hwf_at := hbelow j h_ij
   have hwf_below := hbelow.of_le (Fin.le_of_lt h_ij)
   apply ge_subtree_of_modify hge hwf_at hwf_below
-  · rw [Std.OrientedOrd.eq_swap]
-    simp_all
+  · simp_all
   · intro m hsub hne
     exact Vector.getElem_swap_of_ne (InSubtree.ne_of_lt h_ij hsub) (Ne.symm hne)
   · exact hsub
