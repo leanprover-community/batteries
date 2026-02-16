@@ -9,12 +9,48 @@ public import Batteries.Data.BinaryHeap.WF
 import all Batteries.Data.BinaryHeap.WF
 import all Batteries.Data.BinaryHeap.Basic
 
-namespace Batteries.BinaryHeap
+
+/-! ### Utility lemmas -/
+section Utility
 
 theorem isGE_of_swap_isLT [Ord α] [Std.OrientedOrd α] {x y : α} (hlt : compare x y |>.isLT) :
       compare y x |>.isGE := by
   rw [Std.OrientedOrd.eq_swap]
   simp_all
+
+theorem List.cons_perm_append_singleton {l : List α} (x : α) : (x :: l).Perm (l ++ [x]) := by
+  induction l with
+  | nil => rfl
+  | cons x' xs ih => exact List.Perm.swap x' x xs |>.trans (ih.cons x')
+
+theorem Vector.last_cons_pop_perm {v : Vector α (n+1)} :
+    (v[n] :: v.pop.toList).Perm v.toList := by
+  have hne : v.toList ≠ [] := by simp
+  have hdrop : v.pop.toList = v.toList.dropLast := by
+    rw [← Vector.toList_toArray]
+    simp only [Vector.toArray_pop, Array.toList_pop, Vector.toList_toArray]
+  have hlast : v[n] = v.toList.getLast hne := by
+    simp [List.getLast_eq_getElem, Vector.length_toList, Vector.getElem_toList]
+  rw [hdrop, hlast]
+  apply List.cons_perm_append_singleton _ |>.trans
+  rw [List.dropLast_concat_getLast hne]
+
+@[simp]
+theorem Vector.swap_same {v : Vector α n} {i : Nat} (hi : i < n) :
+    v.swap i i hi hi = v := by
+  ext k hk
+  simp_all [Vector.getElem_swap]
+
+theorem Vector.swap_last_pop_perm {v : Vector α (n+1)} {i : Fin (n+1)} (hi : i.val < n) :
+    (v[i] :: (v.swap i n (by omega) (by omega) |>.pop).toList).Perm v.toList := by
+  simp only [Fin.getElem_fin]
+  rw [← Vector.getElem_swap_right]
+  apply Vector.last_cons_pop_perm.trans
+  exact Vector.swap_perm (by omega) (by omega) |>.toList
+
+end Utility
+
+namespace Batteries.BinaryHeap
 
 /-- If maxChild returns none, there are no children in bounds. -/
 theorem maxChild_none_iff [Ord α] {a : Vector α sz} :
@@ -278,36 +314,6 @@ theorem heapifyUp_perm [Ord α] {a : Vector α sz} {i : Fin sz} : (heapifyUp a i
   all_goals
     unfold heapifyUp
     grind only [Vector.Perm.trans, Vector.swap_perm, Vector.Perm.refl]
-
-theorem List.cons_perm_append_singleton {l : List α} (x : α) : (x :: l).Perm (l ++ [x]) := by
-  induction l with
-  | nil => rfl
-  | cons x' xs ih => exact List.Perm.swap x' x xs |>.trans (ih.cons x')
-
-theorem Vector.last_cons_pop_perm {v : Vector α (n+1)} :
-    (v[n] :: v.pop.toList).Perm v.toList := by
-  have hne : v.toList ≠ [] := by simp
-  have hdrop : v.pop.toList = v.toList.dropLast := by
-    rw [← Vector.toList_toArray]
-    simp only [Vector.toArray_pop, Array.toList_pop, Vector.toList_toArray]
-  have hlast : v[n] = v.toList.getLast hne := by
-    simp [List.getLast_eq_getElem, Vector.length_toList, Vector.getElem_toList]
-  rw [hdrop, hlast]
-  apply List.cons_perm_append_singleton _ |>.trans
-  rw [List.dropLast_concat_getLast hne]
-
-@[simp]
-theorem Vector.swap_same {v : Vector α n} {i : Nat} (hi : i < n) :
-    v.swap i i hi hi = v := by
-  ext k hk
-  simp_all [Vector.getElem_swap]
-
-theorem Vector.swap_last_pop_perm {v : Vector α (n+1)} {i : Fin (n+1)} (hi : i.val < n) :
-    (v[i] :: (v.swap i n (by omega) (by omega) |>.pop).toList).Perm v.toList := by
-  simp only [Fin.getElem_fin]
-  rw [← Vector.getElem_swap_right]
-  apply Vector.last_cons_pop_perm.trans
-  exact Vector.swap_perm (by omega) (by omega) |>.toList
 
 /-- popMax returns a permutation: the original is a perm of max :: popMax -/
 theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
