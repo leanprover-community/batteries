@@ -258,7 +258,7 @@ theorem ExceptAt.swap_parent [Ord α] [Std.TransOrd α]
     (h_ge : compare a[i] a[(i.val - 1) / 2] |>.isGE)
     (hexcept : ExceptAt a i)
     (hchildren : ParentGeChildren a i) :
-    ExceptAt (a.swap i ((i.val - 1) / 2)) ⟨(i.val - 1) / 2, by omega⟩ := by
+    ExceptAt (a.swap i ((i.val - 1) / 2) i.isLt (by omega)) ⟨(i.val - 1) / 2, by omega⟩ := by
   intro k hkj hk_pos
   by_cases hki : k.val = i.val
   · simp_all
