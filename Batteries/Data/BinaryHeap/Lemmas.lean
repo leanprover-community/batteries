@@ -246,9 +246,7 @@ theorem heapifyUp_bottomUp [Ord α] [Std.TransOrd α] {a : Vector α sz}
   | case2 a i hisucc j h_lt ih =>
     have h_ge := isGE_of_swap_isLT h_lt
     simp only [heapifyUp, h_lt, ↓reduceIte, j]
-    apply ih
-    . exact h_exc.swap_parent h_ge h_clp
-    . exact .swap_parent h_ge h_exc
+    exact ih (h_exc.swap_parent h_ge h_clp) (.swap_parent h_ge h_exc)
   | case3 _ _ _ j =>
     simp_all only [heapifyUp, j]
     apply WF.BottomUp.of_parent_and_exceptAt h_exc
