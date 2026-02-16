@@ -13,8 +13,9 @@ import all Batteries.Data.BinaryHeap.Basic
 /-! ### Utility lemmas -/
 section Utility
 
-theorem isGE_of_swap_isLT [Ord α] [Std.OrientedOrd α] {x y : α} (hlt : compare x y |>.isLT) :
-      compare y x |>.isGE := by
+theorem Ordering.isGE_of_swap_isLT [Ord α] [Std.OrientedOrd α]
+    {x y : α} (hlt : compare x y |>.isLT) :
+    compare y x |>.isGE := by
   rw [Std.OrientedOrd.eq_swap]
   simp_all
 
@@ -70,7 +71,7 @@ theorem maxChild_isChild [Ord α] {a : Vector α sz} (h : maxChild a i = some j)
 theorem maxChild_ge_left [Ord α] [Std.OrientedOrd α] (a : Vector α sz) (i j : Fin sz)
     (hmc : maxChild a i = some j) (hleft : 2 * i.val + 1 < sz) :
     compare a[j] a[2 * i.val + 1] |>.isGE := by
-  grind only [isGE_of_swap_isLT, Ordering.isGE, Ordering.isLT, maxChild, Fin.getElem_fin]
+  grind only [Ordering.isGE_of_swap_isLT, Ordering.isGE, Ordering.isLT, maxChild, Fin.getElem_fin]
 
 theorem maxChild_ge_right [Ord α] [Std.OrientedOrd α] (a : Vector α sz)
     (i j : Fin sz) (hmc : maxChild a i = some j) (hright : 2 * i.val + 2 < sz) :
@@ -250,7 +251,7 @@ theorem heapifyDown_topDown [Ord α] [Std.TransOrd α]
     have hchild := maxChild_isChild hmaxChild
     constructor
     -- (1) WF.Children at i: a[j] (now at i) dominates both children of i
-    · exact heapifyDown_children_swap hmaxChild (isGE_of_swap_isLT h_lt) hbelow
+    · exact heapifyDown_children_swap hmaxChild (Ordering.isGE_of_swap_isLT h_lt) hbelow
     -- (2) WF.Below at i: all nodes k > i satisfy WF.Children.
     -- Split by position of k relative to j (the node we recursed into):
     · intro k hik
@@ -280,7 +281,7 @@ theorem heapifyUp_bottomUp [Ord α] [Std.TransOrd α] {a : Vector α sz}
     simp only [heapifyUp]
     exact .of_exceptAt_root (by omega) h_exc
   | case2 a i hisucc j h_lt ih =>
-    have h_ge := isGE_of_swap_isLT h_lt
+    have h_ge := Ordering.isGE_of_swap_isLT h_lt
     simp only [heapifyUp, h_lt, ↓reduceIte, j]
     exact ih (h_exc.swap_parent h_ge h_clp) (.swap_parent h_ge h_exc)
   | case3 _ _ _ j =>
