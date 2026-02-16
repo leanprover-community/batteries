@@ -38,6 +38,22 @@ theorem maxChild_ge_right [Ord α] [Std.OrientedOrd α] (a : Vector α sz)
   grind only [= Fin.getElem_fin, Std.OrientedOrd.eq_swap, Ordering.swap_lt, Ordering.isGE,
     Ordering.isLT, maxChild]
 
+/-- After swapping with maxChild, `a[j]` (now at position `i`) dominates both children. -/
+theorem swap_of_maxChild [Ord α] [Std.TransOrd α] {a : Vector α sz} {i j : Fin sz}
+    (hmaxChild : maxChild a i = some j) (h_ge : (compare a[j] a[i]).isGE) :
+    WF.Children (a.swap i j i.isLt j.isLt) i := by
+  have hchild := maxChild_isChild hmaxChild
+  constructor
+  all_goals
+    intro hside
+    simp only [Fin.getElem_fin, Vector.getElem_swap_left]
+    cases hchild
+  case left.inl | right.inr => simp_all
+  all_goals
+    rw [Vector.getElem_swap_of_ne (by omega) (by omega)]
+    first | apply maxChild_ge_left | apply maxChild_ge_right
+    assumption
+
 /-! ### heapifyDown related lemmas -/
 section heapifyDown
 
@@ -86,7 +102,7 @@ theorem heapifyDown_swap_children_of_lt [Ord α] {a : Vector α sz} {i j k : Fin
     (hchild : j.val = 2 * i.val + 1 ∨ j.val = 2 * i.val + 2)
     (hik : i < k) (hkj : k < j) (hwf : WF.Children a k) :
     WF.Children (heapifyDown (a.swap i j i.isLt j.isLt) j) k := by
-  apply WF.children_congr hwf
+  apply WF.Children.congr hwf
     <;> intros
     <;> (try simp only [Fin.getElem_fin])
     <;> rw [heapifyDown_getElem_of_not_inSubtree' _ (by grind only [InSubtree.not_of_lt])]
@@ -100,7 +116,7 @@ theorem heapifyDown_get_of_not_child [Ord α] {v : Vector α sz}
     (hki : k < i) (hwf : WF.Children v k)
     (hleft_ne : i.val ≠ 2 * k.val + 1) (hright_ne : i.val ≠ 2 * k.val + 2) :
     WF.Children (heapifyDown v i) k := by
-  apply WF.children_congr hwf
+  apply WF.Children.congr hwf
     <;> intros
     <;> (try simp only [Fin.getElem_fin])
     <;> rw [heapifyDown_getElem_of_not_inSubtree' _ (by grind only [InSubtree.not_of_lt])]
@@ -123,69 +139,57 @@ theorem heapifyDown_preserves_ge_root_of_subtree [Ord α] [Std.TransOrd α]
     simp_all [Vector.getElem_swap_left]
   | case3 => simp_all [heapifyDown_eq_of_not_lt_child, InSubtree.refl]
 
+/-- heapifyDown at j preserves WF.Children at k when j is a child of k,
+    k dominates everything in j's subtree, and WF.Children already holds at k -/
+theorem heapifyDown_children_of_ge_subtree [Ord α] [Std.TransOrd α]
+    {b : Vector α sz} {j k : Fin sz}
+    (hj_child : j.val = 2 * k.val + 1 ∨ j.val = 2 * k.val + 2)
+    (hge_subtree : ∀ m : Fin sz, InSubtree j.val m.val → (compare b[k] b[m]).isGE)
+    (hwf_k : WF.Children b k) :
+    WF.Children (heapifyDown b j) k := by
+  have hk_not_sub : ¬InSubtree j k := InSubtree.not_of_lt (by omega)
+  have ⟨hwf_l, hwf_r⟩ := hwf_k
+  constructor
+  all_goals
+    intro hside
+    simp only [heapifyDown_getElem_of_not_inSubtree hk_not_sub, Fin.getElem_fin]
+    cases hj_child
+  -- Matching cases: j is the child we're proving about
+  case left.inl | right.inr =>
+    rename_i hj
+    simp only [← hj]
+    exact heapifyDown_preserves_ge_root_of_subtree hge_subtree
+
+  all_goals
+    rw [heapifyDown_getElem_of_not_inSubtree' hside (by grind only [InSubtree.not_of_lt])]
+    first | exact hwf_l hside | exact hwf_r hside
+
 /-- heapifyDown at i preserves WF.Children at parent of i when value decreased -/
 theorem heapifyDown_set_of_le_preserves_children [Ord α] [Std.TransOrd α] {v : Vector α sz}
     {i : Fin sz} (htd : WF.TopDown v) (h_ge : compare v[i] x |>.isGE) (hi : 0 < i.val) :
     WF.Children (heapifyDown (v.set i x i.isLt) i) ⟨(i.val - 1) / 2, by omega⟩ := by
   let parent : Fin sz := ⟨(i.val - 1) / 2, by omega⟩
-  have hk_not_sub : ¬InSubtree i parent := by grind only [InSubtree.not_of_lt]
-  have ⟨hwf_parent_l, hwf_parent_r⟩ := htd parent
   have h_parent_child : i.val = 2 * parent.val + 1 ∨ i.val = 2 * parent.val + 2 := by grind only
-  constructor
-  -- Four cases arise from:
-  -- (prove parent ≥ left and right child) × (is this child i or the sibling?)
-  case' left  => let childIdx := 2 * parent.val + 1    -- left.inl: prove parent ≥ left child
-  case' right => let childIdx := 2 * parent.val + 2    -- right.inl: prove parent ≥ right child
-  all_goals
-    intro hside
-    rw [heapifyDown_getElem_of_not_inSubtree hk_not_sub]
-    have : parent.val ≠ i.val := by omega
-    simp only [Fin.getElem_fin]
-    rw [Vector.getElem_set_ne _ _ (by omega)]
-    -- Split: is childIdx the element we modified (i), or the untouched sibling?
-    by_cases heq : childIdx = i.val
-    -- Case: childIdx = i (we modified this child, heap property preserved because key increased)
-    -- parent
-    · simp only [parent, heq, childIdx]
-      apply heapifyDown_preserves_ge_root_of_subtree
-      exact WF.parent_ge_subtree_of_set htd h_ge ‹_›
-    -- Case: childIdx ≠ i (this is the untouched sibling)
-    · have hsub : ¬InSubtree i.val childIdx :=  by grind only [InSubtree.not_of_lt]
-      rw [heapifyDown_getElem_of_not_inSubtree' hside hsub]
-      rw [Vector.getElem_set_ne _ _ (by simp only [ne_eq]; omega)]
-      simp_all [childIdx, parent]
+
+  apply heapifyDown_children_of_ge_subtree h_parent_child
+  . intro m hsub
+    have := htd.parent_ge_subtree_of_set h_ge hi m hsub
+    grind only [Fin.getElem_fin, Vector.getElem_set_ne]
+  . apply (htd parent).set_of_ge_child h_parent_child
+    have ⟨_, _⟩ := htd parent
+    grind only [Fin.getElem_fin, Std.TransOrd.isGE_trans]
 
 theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] {a : Vector α sz} {i j : Fin sz}
     (hmaxChild : maxChild a i = some j) (h_lt : (compare a[i] a[j]).isLT) (hbelow : WF.Below a i) :
     WF.Children (heapifyDown (a.swap i j i.isLt j.isLt) j) i := by
-  have h_ij : i < j := maxChild_gt hmaxChild
-  have hnsub_i : ¬InSubtree j.val i.val := InSubtree.not_of_lt h_ij
   have hchild := maxChild_isChild hmaxChild
-  -- Need to prove i ≥ left_child and i ≥ right_child
-  constructor
-  all_goals
-    intro hside
-    simp only [heapifyDown_getElem_of_not_inSubtree hnsub_i, Fin.getElem_fin,
-      Vector.getElem_swap_left]
-    -- Split by which child j is. Four cases arise from:
-    -- (prove i ≥ left and right child) × (is j this child or the sibling?)
-    cases hchild
-  -- Matching cases: j is the child we're proving about
-  case left.inl | right.inr =>
-    rename_i hj
-    simp only [← hj]
-    apply heapifyDown_preserves_ge_root_of_subtree
-    exact WF.swap_preserves_ge_subtree h_ij h_lt hbelow
-  -- Sibling cases: j is the untouched sibling of the child we're proving about
-  case' left.inr  => let childIdx := 2 * i.val + 1
-  case' right.inl => let childIdx := 2 * i.val + 2
-  all_goals
-    -- j (the sibling) is outside its own subtree, so heapifyDown doesn't touch it
-    have hnsub : ¬InSubtree j.val childIdx := by grind only [InSubtree.not_of_lt]
-    rw [heapifyDown_getElem_of_not_inSubtree' hside hnsub,
-      Vector.getElem_swap_of_ne (by omega) (by omega)]
-    first | apply maxChild_ge_left | apply maxChild_ge_right
-    assumption
+  apply heapifyDown_children_of_ge_subtree hchild
+  . intro m hsub
+    simp only [Vector.getElem_swap_left, Fin.getElem_fin]
+    apply WF.swap_preserves_ge_subtree (maxChild_gt hmaxChild) <;> assumption
+  . apply swap_of_maxChild hmaxChild
+    rw [Std.OrientedOrd.eq_swap]
+    simp_all
 
 /-- If parent >= maxChild, then WF.Children holds at that position. -/
 theorem children_of_ge_maxChild [Ord α] [Std.TransOrd α] {a : Vector α sz}
@@ -207,7 +211,7 @@ theorem heapifyDown_topDown [Ord α] [Std.TransOrd α]
   | case1 => grind only [heapifyDown_eq_of_maxChild_none, WF.Children, maxChild_none_iff]
   | case2 a i j hmaxChild h_ij h_lt ih =>
     rw [heapifyDown_eq_of_lt_child hmaxChild h_lt]
-    have ⟨ih_at, ih_below⟩ := ih (WF.below_swap (hbelow := hbelow) (hij := h_ij))
+    have ⟨ih_at, ih_below⟩ := ih (hbelow.swap h_ij)
     have hchild := maxChild_isChild hmaxChild
     constructor
     -- (1) WF.Children at i: a[j] (now at i) dominates both children of i
@@ -239,18 +243,18 @@ theorem heapifyUp_bottomUp [Ord α] [Std.TransOrd α] {a : Vector α sz}
   induction a, i using heapifyUp.induct with
   | case1 =>
     simp only [heapifyUp]
-    exact WF.bottomUp_of_exceptAt_root (by omega) h_exc
+    exact .of_exceptAt_root (by omega) h_exc
   | case2 a i hisucc j h_lt ih =>
     have h_ge : compare a[i+1] a[j] |>.isGE := by
       rw [Std.OrientedOrd.eq_swap]
       simp_all
     simp only [heapifyUp, h_lt, ↓reduceIte, j]
     apply ih
-    . exact WF.exceptAt_swap_parent h_ge h_exc h_clp
-    . exact WF.parentGeChildren_swap_parent h_ge h_exc
+    . exact h_exc.swap_parent h_ge h_clp
+    . exact .swap_parent h_ge h_exc
   | case3 _ _ _ j =>
     simp_all only [heapifyUp, j]
-    apply WF.bottomUp_of_parent_and_exceptAt h_exc
+    apply WF.BottomUp.of_parent_and_exceptAt h_exc
     intro
     simp_all [Ordering.isGE_iff_ne_lt]
 
@@ -259,7 +263,7 @@ the parent property and `i`'s children are ≤ `i`'s parent. -/
 theorem heapifyUp_topDown [Ord α] [Std.TransOrd α]
     {a : Vector α sz} (hexcept : WF.ExceptAt a i) (hchildren : WF.ParentGeChildren a i) :
     WF.TopDown (heapifyUp a i) :=
-  WF.topDown_iff_bottomUp.mpr <| heapifyUp_bottomUp hexcept hchildren
+  WF.TopDown.iff_bottomUp.mpr <| heapifyUp_bottomUp hexcept hchildren
 
 end heapifyUp
 
@@ -394,11 +398,11 @@ theorem size_singleton [Ord α] {x : α} : (singleton x).size = 1 := by
 
 @[simp, grind .]
 theorem empty_wf [Ord α] : WF (empty : BinaryHeap α) := by
-  simp [empty, WF, vector, WF.topDown_empty]
+  simp [empty, WF, vector]
 
 @[simp, grind .]
 theorem singleton_wf [Ord α] {x : α} : WF (singleton x) := by
-  simp [WF, singleton, vector, WF.topDown_singleton]
+  simp [WF, singleton, vector]
 
 @[simp]
 theorem max_empty [Ord α] : (empty : BinaryHeap α).max = none := by
@@ -451,7 +455,7 @@ theorem insert_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : heap
   apply WF.of_topDown_toArray
   apply heapifyUp_topDown
   . intro i _
-    rw [WF, WF.topDown_iff_bottomUp, WF.BottomUp] at h_wf
+    rw [WF, WF.TopDown.iff_bottomUp, WF.BottomUp] at h_wf
     intro h_nz
     simp only [Fin.getElem_fin]
     rw [Vector.getElem_push_lt, Vector.getElem_push_lt]
@@ -482,7 +486,7 @@ theorem max_ge_all [Ord α] [Std.TransOrd α]
     let root := heap.max.get (by simp_all [max, size])
     compare root y |>.isGE := by
   have ⟨idx, h_sz, h_ge⟩ := Array.mem_iff_getElem.mp h_in
-  have := WF.root_ge_all hwf h_ne ⟨idx, h_sz⟩
+  have := hwf.toTopDown.root_ge_all h_ne ⟨idx, h_sz⟩
   simp_all [vector, max]
 
 /-- Removing the maximum element from a well-formed heap preserves well-formedness. -/
@@ -492,8 +496,8 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF h
   split
   . exact h_wf
   . split <;> apply WF.of_topDown_toArray
-    . apply WF.topDown_iff_root_and_below.mp
-      exact heapifyDown_topDown (WF.below_swap_pop h_wf (by omega))
+    . apply WF.TopDown.iff_root_and_below.mp
+      exact heapifyDown_topDown (.of_topDown_swap_pop h_wf (by omega))
     . grind only [WF.Children, WF.TopDown]
 
 /-- Replacing the maximum element in a well-formed heap preserves well-formedness. -/
@@ -502,8 +506,8 @@ theorem replaceMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : 
   unfold replaceMax
   split <;> apply WF.of_topDown_toArray
   · simp_all [WF.TopDown, WF.Children]
-  · apply WF.topDown_iff_root_and_below.mp
-    exact heapifyDown_topDown (WF.below_set h_wf)
+  · apply WF.TopDown.iff_root_and_below.mp
+    exact heapifyDown_topDown (.of_topDown_set h_wf)
 
 theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF heap) :
     WF (heap.insertExtractMax x).2 := by
@@ -513,8 +517,8 @@ theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h
   · exact h_wf
   · split
     · apply WF.of_topDown_toArray
-      apply WF.topDown_iff_root_and_below.mp
-      exact heapifyDown_topDown (WF.below_set htd)
+      apply WF.TopDown.iff_root_and_below.mp
+      exact heapifyDown_topDown (.of_topDown_set htd)
     · exact h_wf
 
 @[simp]
@@ -585,7 +589,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     WF (heap.decreaseKey i x) := by
   apply WF.of_topDown_toArray
   have htd : WF.TopDown heap.vector := by simp_all [WF]
-  have hbelow : WF.Below (heap.vector.set i x _) i := WF.below_set htd
+  have hbelow : WF.Below (heap.vector.set i x _) i := WF.Below.of_topDown_set htd
   have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_topDown hbelow
   intro k
   rcases Nat.lt_trichotomy k.val i.val with hki | hki_eq | hik
@@ -595,7 +599,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     · have hleft : i.val ≠ 2 * k.val + 1 := by omega
       have hright : i.val ≠ 2 * k.val + 2 := by omega
       apply heapifyDown_get_of_not_child hki _ hleft hright
-      exact WF.children_set_of_ne (htd k) (by omega) hleft hright
+      exact (htd k).set_of_ne (by omega) hleft hright
   · exact Fin.ext hki_eq ▸ hchildren_i
   · exact hbelow_i k hik
 
@@ -604,11 +608,11 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
 theorem increaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare x (heap.get i) |>.isGE) :
     WF (heap.increaseKey i x) :=
-  have hbu : WF.BottomUp heap.vector := by rwa [WF, WF.topDown_iff_bottomUp] at h_wf
+  have hbu : WF.BottomUp heap.vector := by rwa [WF, WF.TopDown.iff_bottomUp] at h_wf
   WF.of_topDown_toArray <|
     heapifyUp_topDown
-      (WF.exceptAt_set_of_ge hbu h_ge)
-      (WF.parentGeChildren_set_of_ge hbu h_ge)
+      (WF.ExceptAt.set_of_ge hbu h_ge)
+      (WF.ParentGeChildren.set_of_ge hbu h_ge)
 
 /-- The inner loop of toSortedArray produces a sorted array -/
 private theorem toSortedArray.loop_sorted [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
