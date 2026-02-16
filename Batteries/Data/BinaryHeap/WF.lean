@@ -358,7 +358,7 @@ theorem ParentGeChildren.set_of_ge [Ord α] [Std.TransOrd α]
   all_goals
     by_cases hi : i.val = 0
     · have hset_parent : (v.set i x i.isLt)[parent] = x := by simp_all [parent]
-      grind only [!Std.TransOrd.isGE_trans, !Ordering.isGE_swap, Vector.getElem_set_ne]
+      grind only [!Std.TransOrd.isGE_trans, Vector.getElem_set_ne]
     · have h_parent := hbu i (by omega)
       grind only [!Std.TransOrd.isGE_trans, Parent, Vector.getElem_set_ne]
 
