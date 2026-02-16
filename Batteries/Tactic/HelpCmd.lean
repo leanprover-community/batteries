@@ -74,7 +74,7 @@ private def elabHelpOption (id : Option Ident) : CommandElabM Unit := do
     | .ofNat val => s!"Nat := {repr val}"
     | .ofInt val => s!"Int := {repr val}"
     | .ofSyntax val => s!"Syntax := {repr val}"
-    if let some val := opts.find (.mkSimple name) then
+    if let some val := opts.find? (.mkSimple name) then
       msg1 := s!"{msg1} (currently: {val})"
     msg := msg ++ .nest 2 (f!"option {name} : {msg1}" ++ .line ++ decl.descr) ++ .line ++ .line
   logInfo msg
@@ -128,43 +128,6 @@ private def elabHelpAttr (id : Option Ident) : CommandElabM Unit := do
 elab_rules : command
   | `(#help attr $(id)?) => elabHelpAttr id
   | `(#help attribute $(id)?) => elabHelpAttr id
-
-/-- Gets the initial string token in a parser description. For example, for a declaration like
-`syntax "bla" "baz" term : tactic`, it returns `some "bla"`. Returns `none` for syntax declarations
-that don't start with a string constant. -/
-partial def getHeadTk (e : Expr) : Option String :=
-  match e.getAppFnArgs with
-  | (``ParserDescr.node, #[_, _, p])
-  | (``ParserDescr.trailingNode, #[_, _, _, p])
-  | (``ParserDescr.unary, #[.app _ (.lit (.strVal "withPosition")), p])
-  | (``ParserDescr.unary, #[.app _ (.lit (.strVal "atomic")), p])
-  | (``ParserDescr.unary, #[.app _ (.lit (.strVal "ppRealGroup")), p])
-  | (``ParserDescr.unary, #[.app _ (.lit (.strVal "ppRealFill")), p])
-  | (``Parser.ppRealFill, #[p])
-  | (``Parser.withAntiquot, #[_, p])
-  | (``Parser.leadingNode, #[_, _, p])
-  | (``Parser.trailingNode, #[_, _, _, p])
-  | (``Parser.group, #[p])
-  | (``Parser.withCache, #[_, p])
-  | (``Parser.withResetCache, #[p])
-  | (``Parser.withPosition, #[p])
-  | (``Parser.withOpen, #[p])
-  | (``Parser.withPositionAfterLinebreak, #[p])
-  | (``Parser.suppressInsideQuot, #[p])
-  | (``Parser.ppRealGroup, #[p])
-  | (``Parser.ppIndent, #[p])
-  | (``Parser.ppDedent, #[p])
-    => getHeadTk p
-  | (``ParserDescr.binary, #[.app _ (.lit (.strVal "andthen")), p, q])
-  | (``HAndThen.hAndThen, #[_, _, _, _, p, .lam _ _ q _])
-    => getHeadTk p <|> getHeadTk q
-  | (``ParserDescr.nonReservedSymbol, #[.lit (.strVal tk), _])
-  | (``ParserDescr.symbol, #[.lit (.strVal tk)])
-  | (``Parser.nonReservedSymbol, #[.lit (.strVal tk), _])
-  | (``Parser.symbol, #[.lit (.strVal tk)])
-  | (``Parser.unicodeSymbol, #[.lit (.strVal tk), _])
-    => pure tk
-  | _ => none
 
 /--
 The command `#help cats` shows all syntax categories that have been defined in the
@@ -223,24 +186,34 @@ name of the syntax (which you can also click to go to the definition), and the d
 syntax withPosition("#help " colGt &"cat" "+"? colGt ident
     (colGt ppSpace (Parser.rawIdent <|> str))?) : command
 
+private def tokensToList (tks : Parser.FirstTokens) : List String :=
+  match tks with
+  | .epsilon | .unknown => []
+  | .tokens tks | .optTokens tks => tks
+
 private def elabHelpCat (more : Option Syntax) (catStx : Ident) (id : Option String) :
     CommandElabM Unit := do
   let mut decls : Std.TreeMap _ _ compare := {}
   let mut rest : Std.TreeMap _ _ compare := {}
   let catName := catStx.getId.eraseMacroScopes
-  let some cat := (Parser.parserExtension.getState (← getEnv)).categories.find? catName
+  let categories := (Parser.parserExtension.getState (← getEnv)).categories
+  let some cat := categories.find? catName
     | throwErrorAt catStx "{catStx} is not a syntax category"
   liftTermElabM <| Term.addCategoryInfo catStx catName
-  let env ← getEnv
   for (k, _) in cat.kinds do
     let mut used := false
-    if let some tk := do getHeadTk (← (← env.find? k).value?) then
-      let tk := tk.trimAscii
+    try
+      let (leading, parser) ← liftCoreM <| Parser.mkParserOfConstant categories k
+      let tks := tokensToList parser.info.firstTokens
+      let tks := tks.filter (· != "$") -- filter antiquotations
+      let mainTk :: _ := tks | pure ()
       if let some id := id then
-        if !tk.startsWith id then
+        unless tks.any (·.startsWith id) do
           continue
       used := true
-      decls := decls.insert tk.copy ((decls.getD tk.copy #[]).push k)
+      decls := decls.insert mainTk ((decls.getD mainTk #[]).push (k, leading))
+    catch _ =>
+      pure ()
     if !used && id.isNone then
       rest := rest.insert (k.toString false) k
   let mut msg := MessageData.nil
@@ -272,8 +245,11 @@ private def elabHelpCat (more : Option Syntax) (catStx : Ident) (id : Option Str
       | _ => pure ()
     return msg ++ msg1 ++ (.line ++ .line : Format)
   for (name, ks) in decls do
-    for k in ks do
-      msg ← addMsg k msg m!"syntax {repr name}... [{mkConst k}]"
+    for (k, leading) in ks do
+      if leading then
+        msg ← addMsg k msg m!"syntax {repr name}... [{mkConst k}]"
+      else
+        msg ← addMsg k msg m!"syntax ...{repr name}... [{mkConst k}]"
   for (_, k) in rest do
     msg ← addMsg k msg m!"syntax ... [{mkConst k}]"
   logInfo msg

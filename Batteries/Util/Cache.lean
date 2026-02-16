@@ -50,26 +50,22 @@ instance : Nonempty (Cache α) := inferInstanceAs <| Nonempty (IO.Ref _)
 /-- Creates a cache with an initialization function. -/
 def Cache.mk (init : MetaM α) : IO (Cache α) := IO.mkRef <| Sum.inl init
 
+@[inherit_doc Core.wrapAsync]
+def _root_.Lean.Meta.wrapAsync {α : Type} (act : α → MetaM β)  (cancelTk? : Option IO.CancelToken) :
+    MetaM (α → EIO Exception β) := do
+  let metaCtx ← readThe Meta.Context
+  let metaSt ← getThe Meta.State
+  Core.wrapAsync (fun a => act a |>.run' metaCtx metaSt) cancelTk?
+
 /--
 Access the cache. Calling this function for the first time will initialize the cache
 with the function provided in the constructor.
 -/
-def Cache.get [Monad m] [MonadEnv m] [MonadLog m] [MonadOptions m] [MonadLiftT BaseIO m]
-    [MonadExcept Exception m] (cache : Cache α) : m α := do
+def Cache.get (cache : Cache α) : MetaM α := do
   let t ← match ← ST.Ref.get (m := BaseIO) cache with
     | .inr t => pure t
     | .inl init =>
-      let env ← getEnv
-      let fileName ← getFileName
-      let fileMap ← getFileMap
-      let options ← getOptions -- TODO: sanitize options?
-      -- Default heartbeats to a reasonable value.
-      -- otherwise exact? times out on mathlib
-      -- TODO: add customization option
-      let options := maxHeartbeats.set options <|
-        options.get? maxHeartbeats.name |>.getD 1000000
-      let res ← EIO.asTask <|
-        init {} |>.run' {} { options, fileName, fileMap } |>.run' { env }
+      let res ← EIO.asTask <| (← Meta.wrapAsync (fun _ => init) (cancelTk? := none)) ()
       cache.set (m := BaseIO) (.inr res)
       pure res
   match t.get with
@@ -147,7 +143,7 @@ def DiscrTreeCache.mk [BEq α] (profilingName : String)
     IO (DiscrTreeCache α) :=
   let updateTree := fun name constInfo tree => do
     return (← processDecl name constInfo).foldl (init := tree) fun t (k, v) =>
-      t.insertCore k v
+      t.insertKeyValue k v
   let addDecl := fun name constInfo (tree₁, tree₂) =>
     return (← updateTree name constInfo tree₁, tree₂)
   let addLibraryDecl := fun name constInfo (tree₁, tree₂) =>
