@@ -124,9 +124,7 @@ theorem Children.set_of_ge_child [Ord α] [Std.TransOrd α] {v : Vector α sz} {
     (hwf : WF.Children v k) (h_child : i.val = 2 * k.val + 1 ∨ i.val = 2 * k.val + 2)
     (h_ge : compare v[k] x |>.isGE) :
     WF.Children (v.set i x i.isLt) k := by
-  have hki : k.val ≠ i.val := by omega
-  have ⟨hwf_l, hwf_r⟩ := hwf
-  cases h_child <;> grind only [WF.Children, = Fin.getElem_fin, = Vector.getElem_set]
+  grind only [WF.Children, = Fin.getElem_fin, = Vector.getElem_set]
 
 /-- Setting a smaller value preserves WF.Below -/
 theorem Below.of_topDown_set [Ord α] {v : Vector α sz} {i : Fin sz} (htd : WF.TopDown v) :
@@ -253,10 +251,7 @@ theorem ExceptAt.swap_parent [Ord α] [Std.TransOrd α]
   by_cases hki : k.val = i.val
   · simp_all
   · by_cases hk_child_of_i : (k.val - 1) / 2 = i.val
-    · have ⟨hleft, hright⟩ := hchildren
-      have hk_is_child : k.val = 2 * i.val + 1 ∨ k.val = 2 * i.val + 2 := by omega
-      have hk_ne_parent : k.val ≠ (i.val - 1) / 2 := by omega
-      rcases hk_is_child with hk_left | hk_right <;> simp_all
+    · grind only [Vector.getElem_swap, Fin.getElem_fin, ParentGeChildren]
     · unfold ExceptAt Parent at *
       grind only [= Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isGE_trans]
 
@@ -275,12 +270,9 @@ theorem ParentGeChildren.swap_parent [Ord α] [Std.TransOrd α]
     intro hside
     unfold ExceptAt Parent at hexcept
     by_cases hli : i.val = targetIdx
-    · have hji : j ≠ i.val := by omega
-      grind only [= Fin.getElem_fin, = Vector.getElem_swap]
-    · have hparent_eq : (targetIdx - 1) / 2 = j := by omega
-      have h1 := hexcept ⟨targetIdx, hside⟩ (by grind only) (by grind only)
-      by_cases hj_pos : 0 < j <;>
-        grind only [= Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isGE_trans]
+    · grind only [= Fin.getElem_fin, = Vector.getElem_swap]
+    · have h1 := hexcept ⟨targetIdx, hside⟩ (by grind only) (by grind only)
+      grind only [= Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isGE_trans]
 
 /- Dual global correctness property to `WF`. The vector underlying a BinaryHeap is well-formed
   iff all nodes are ≤ their parent.
@@ -322,7 +314,7 @@ theorem of_topDown {v : Vector α sz} [Ord α] (h_td : WF.TopDown v) : WF ⟨v.t
   constructor
     <;> intros
     <;> (first | apply hleft | apply hright)
-    <;> simp_all [Vector.size_toArray, BinaryHeap.size]
+    <;> simp_all [Vector.size_toArray, size]
 
 /-- Setting a larger value preserves WF.exceptAt -/
 theorem ExceptAt.set_of_ge [Ord α] [Std.TransOrd α]
