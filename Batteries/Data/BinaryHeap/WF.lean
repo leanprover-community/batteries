@@ -31,14 +31,6 @@ def WF.TopDown [Ord α] (v : Vector α sz) : Prop :=
 def WF [Ord α] (heap : BinaryHeap α) : Prop :=
   WF.TopDown heap.vector
 
-instance [Ord α] {a : Vector α sz} {i : Fin sz} : Decidable (WF.Children a i) :=
-  instDecidableAnd
-
-instance [Ord α] {v : Vector α sz} : Decidable (WF.TopDown v) :=
-  Nat.decidableForallFin (WF.Children v)
-
-instance [Ord α] {heap : BinaryHeap α} : Decidable (WF heap) := instDecidableTopDown
-
 end
 
 def WF.toTopDown [Ord α] {heap : BinaryHeap α} (hwf : WF heap) : WF.TopDown heap.vector := by
