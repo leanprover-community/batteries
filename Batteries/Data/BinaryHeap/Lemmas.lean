@@ -318,14 +318,11 @@ theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
   unfold popMax
   simp only [hne, reduceDIte]
   split <;> rename_i hsz
-  · let n := heap.size - 1
-    let v : Vector α (n + 1) := heap.vector.cast (by omega)
-    have hdown := heapifyDown_perm (a := v.swap 0 n |>.pop) (i := ⟨0, hsz⟩)
-    have hswap := Vector.swap_last_pop_perm (v := v) (i := ⟨0, by omega⟩) (by omega)
-    exact hdown.toList.cons _ |>.trans hswap
-  · have : heap.size = 1 := by omega
-    have hswap := Vector.last_cons_pop_perm (n := 0) (v := heap.vector.cast (by omega))
-    simp_all [vector]
+  · apply heapifyDown_perm.toList.cons _ |>.trans
+    apply Vector.swap_last_pop_perm (v := heap.vector.cast (by omega)) (i := ⟨0, by omega⟩)
+    omega
+  · simpa [show heap.size = 1 by omega]
+      using Vector.last_cons_pop_perm (v := heap.vector.cast (by omega))
 
 /-- When max returns some, the value equals arr[0]. -/
 theorem max_eq_arr_zero [Ord α] {heap : BinaryHeap α} (h : heap.max = some x) :
