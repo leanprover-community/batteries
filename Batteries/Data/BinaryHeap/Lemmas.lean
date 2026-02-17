@@ -248,16 +248,9 @@ theorem heapifyDown_topDown [Ord α] [Std.TransOrd α] {a : Vector α sz} {i : F
     -- (1) WF.Children at i: a[j] (now at i) dominates both children of i
     · exact heapifyDown_children_swap hmaxChild (Ordering.isGE_of_swap_isLT h_lt) hbelow
     -- (2) WF.Below at i: all nodes k > i satisfy WF.Children.
-    -- Split by position of k relative to j (the node we recursed into):
-    · intro k hik
-      rcases Nat.lt_trichotomy j.val k.val with hlt | heq | hgt
-      -- k < j: follows from ih
-      · exact ih_below k hlt
-      -- k = j: follows from ih
-      · exact Fin.ext heq ▸ ih_at
-      -- k > j and k > i: children of k between i and j satisfy property
-      -- (not affected by heapify at j)
-      · exact heapifyDown_swap_children_of_lt hchild (by omega) hgt (hbelow k hik)
+    · apply ih_below.of_children_below_and_between ih_at
+      intro k hik hkj
+      exact heapifyDown_swap_children_of_lt hchild (by omega) hkj (hbelow k hik)
   | case3 =>
     simp_all [heapifyDown_eq_of_not_lt_child, WF.Children.of_ge_maxChild, Ordering.isGE_iff_ne_lt]
 
@@ -580,17 +573,15 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
   have htd : WF.TopDown heap.vector := by simp_all [WF]
   have hbelow : WF.Below (heap.vector.set i x _) i := WF.Below.of_topDown_set htd
   have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_topDown hbelow
-  intro k
-  rcases Nat.lt_trichotomy k.val i.val with hki | hki_eq | hik
-  · by_cases hk_parent : k.val = (i.val - 1) / 2 ∧ 0 < i.val
-    · rw [show k = ⟨_, _⟩ from Fin.ext hk_parent.1]
-      exact heapifyDown_set_of_le_preserves_children htd h_ge hk_parent.2
-    · have hleft : i.val ≠ 2 * k.val + 1 := by omega
-      have hright : i.val ≠ 2 * k.val + 2 := by omega
-      apply heapifyDown_get_of_not_child hki _ hleft hright
-      exact (htd k).set_of_ne (by omega) hleft hright
-  · exact Fin.ext hki_eq ▸ hchildren_i
-  · exact hbelow_i k hik
+  apply WF.TopDown.of_children_below_and_above hchildren_i hbelow_i
+  intro k hki
+  by_cases hk_parent : k.val = (i.val - 1) / 2 ∧ 0 < i.val
+  · rw [show k = ⟨_, _⟩ from Fin.ext hk_parent.1]
+    exact heapifyDown_set_of_le_preserves_children htd h_ge hk_parent.2
+  · have hleft : i.val ≠ 2 * k.val + 1 := by omega
+    have hright : i.val ≠ 2 * k.val + 2 := by omega
+    apply heapifyDown_get_of_not_child hki _ hleft hright
+    exact (htd k).set_of_ne (by omega) hleft hright
 
 /-- Increasing a key value in a well-formed heap and reheapifying upward preserves well-formedness.
   -/

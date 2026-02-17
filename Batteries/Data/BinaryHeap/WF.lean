@@ -363,5 +363,38 @@ theorem Below.of_topDown_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.TopDown 
   case' right => have := hwf_r (show 2 * j.val + 2 < sz by omega)
   all_goals grind only [Vector.getElem_swap, Vector.getElem_pop, Fin.getElem_fin]
 
+/-- Prove WF.Children for all k ≥ lo by splitting at pivot i:
+    k > i from hbelow, k = i from hchildren, k ∈ [lo, i) from hrange -/
+theorem children_of_split [Ord α] {a : Vector α sz} {lo : Nat} {i : Fin sz}
+    (hchildren_i : WF.Children a i)
+    (hbelow_i : WF.Below a i)
+    (hrange : ∀ k : Fin sz, lo ≤ k.val → k.val < i.val → WF.Children a k) :
+    ∀ {k : Fin sz}, lo ≤ k.val → WF.Children a k := by
+  intro k hlo
+  rcases Nat.lt_trichotomy i.val k.val with hik | heq | hki
+  · exact hbelow_i k hik
+  · exact Fin.ext heq ▸ hchildren_i
+  · exact hrange k hlo hki
+
+/-- Build WF.TopDown from WF.Children at i, WF.Below at i, and a proof for positions < i -/
+theorem TopDown.of_children_below_and_above [Ord α] {a : Vector α sz} {i : Fin sz}
+    (hchildren_i : WF.Children a i)
+    (hbelow_i : WF.Below a i)
+    (habove : ∀ k : Fin sz, k.val < i.val → WF.Children a k) :
+    WF.TopDown a := by
+  intro
+  apply children_of_split hchildren_i hbelow_i
+  . intro k _ hki
+    exact habove k hki
+  . exact Nat.zero_le _
+
+/-- Build WF.Below at i from WF.Children at j, WF.Below at j, and a proof for positions between -/
+theorem Below.of_children_below_and_between [Ord α] {a : Vector α sz} {i j : Fin sz}
+    (hchildren_j : WF.Children a j)
+    (hbelow_j : WF.Below a j)
+    (hbetween : ∀ k : Fin sz, i.val < k.val → k.val < j.val → WF.Children a k) :
+    WF.Below a i := by
+  grind only [Below, children_of_split]
+
 end WF
 end Batteries.BinaryHeap
