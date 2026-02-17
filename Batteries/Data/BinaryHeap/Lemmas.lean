@@ -336,16 +336,16 @@ theorem toSortedArray.loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α)
   unfold toSortedArray.loop
   split
   · simp_all [size]
-  · rename_i x h_some
-    have h_pos : 0 < heap.size := size_pos_of_max h_some
-    have h_x : x = heap.arr[0] := max_eq_arr_zero h_some
-    apply toSortedArray.loop_perm heap.popMax (out.push x) |>.trans
+  · rename_i h_some
+    rw [max_eq_arr_zero h_some]
+    have hpos := size_pos_of_max h_some
+    apply toSortedArray.loop_perm heap.popMax (out.push _) |>.trans
     simp only [Array.toList_push]
     apply List.perm_append_comm.append_left _ |>.trans
     simp only [← List.append_assoc]
     apply List.Perm.append_right
-    apply List.cons_perm_append_singleton x |>.symm.trans
-    simp_all [popMax_perm]
+    apply List.cons_perm_append_singleton _ |>.symm.trans
+    exact popMax_perm hpos
 
 /-- `toSortedArray` produces a permutation of the heap. -/
 theorem toSortedArray_perm [Ord α] (heap : BinaryHeap α) :
@@ -376,7 +376,7 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α]
     apply ih
     intro k hk
     by_cases hk_eq : k = i
-    · grind only
+    · simpa [← hk_eq] using hwf_at
     · exact hwf_below k (show i < k by omega)
 
 public section
