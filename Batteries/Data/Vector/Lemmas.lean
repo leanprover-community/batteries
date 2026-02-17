@@ -3,12 +3,9 @@ Copyright (c) 2024 Shreyas Srinivas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shreyas Srinivas, François G. Dorais, Eric Wieser
 -/
+module
 
-import Batteries.Data.Vector.Basic
-import Batteries.Data.List.Basic
-import Batteries.Data.List.Lemmas
-import Batteries.Data.Array.Lemmas
-import Batteries.Tactic.Lint.Simp
+@[expose] public section
 
 namespace Vector
 
@@ -103,7 +100,7 @@ theorem get_tail (v : Vector α (n + 1)) (i : Fin n) :
 
 @[simp]
 theorem finIdxOf?_empty [BEq α] (v : Vector α 0) : v.finIdxOf? a = none := by
-  simp [v.eq_empty]
+  simp [v.eq_empty]; rfl
 
 @[simp]
 theorem finIdxOf?_eq_none_iff [BEq α] [LawfulBEq α] {v : Vector α n} {a : α} :

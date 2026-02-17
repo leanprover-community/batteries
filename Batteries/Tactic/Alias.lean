@@ -3,11 +3,15 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, David Renshaw, François G. Dorais
 -/
-import Lean.Elab.Command
-import Lean.Elab.DeclarationRange
-import Lean.Compiler.NoncomputableAttr
-import Lean.DocString
-import Batteries.CodeAction.Deprecated
+module
+
+public meta import Lean.Elab.Command
+public meta import Lean.Elab.DeclarationRange
+public meta import Lean.Compiler.NoncomputableAttr
+public meta import Lean.DocString
+public meta import Batteries.CodeAction.Deprecated
+
+public meta section
 
 /-!
 # The `alias` command
@@ -45,19 +49,15 @@ def AliasInfo.toString : AliasInfo → String
 
 
 /-- Environment extension for registering aliases -/
-initialize aliasExt : SimpleScopedEnvExtension (Name × AliasInfo) (NameMap AliasInfo) ←
-  registerSimpleScopedEnvExtension {
-    addEntry := fun st (n, i) => st.insert n i
-    initial := {}
-  }
+initialize aliasExt : MapDeclarationExtension AliasInfo ← mkMapDeclarationExtension
 
 /-- Get the alias information for a name -/
 def getAliasInfo [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
-  return aliasExt.getState (← getEnv) |>.find? name
+  return aliasExt.find? (← getEnv) name
 
 /-- Set the alias info for a new declaration -/
 def setAliasInfo [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit :=
-  modifyEnv (aliasExt.addEntry · (declName, info))
+  modifyEnv (aliasExt.insert · declName info)
 
 /-- Updates the `deprecated` declaration to point to `target` if no target is provided. -/
 def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribute × Bool :=
@@ -80,11 +80,13 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
 
   These commands accept all modifiers and attributes that `def` and `theorem` do.
  -/
-elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident : command =>
+elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident : command => do
+  Lean.withExporting (isExporting := (← Command.getScope).isPublic) do
   Command.liftTermElabM do
     let name ← realizeGlobalConstNoOverloadWithInfo name
     let cinfo ← getConstInfo name
     let declMods ← elabModifiers mods
+    Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
     let (attrs, machineApplicable) := setDeprecatedTarget name declMods.attrs
     let declMods := { declMods with
       computeKind :=
@@ -94,10 +96,10 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
       attrs
     }
     let (declName, _) ← mkDeclName (← getCurrNamespace) declMods alias.getId
-    let decl : Declaration := if let .thmInfo t := cinfo then
-      .thmDecl { t with
+    let decl : Declaration := if wasOriginallyTheorem (← getEnv) name then
+      .thmDecl { cinfo.toConstantVal with
         name := declName
-        value := mkConst name (t.levelParams.map mkLevelParam)
+        value := mkConst name (cinfo.toConstantVal.levelParams.map mkLevelParam)
       }
     else
       .defnDecl { cinfo.toConstantVal with
@@ -113,7 +115,8 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
       addAndCompile decl
     addDeclarationRangesFromSyntax declName (← getRef) alias
     Term.addTermInfo' alias (← mkConstWithLevelParams declName) (isBinder := true)
-    addDocString' declName declMods.docString?
+    if let some (doc, isVerso) := declMods.docString? then
+      addDocStringOf isVerso declName (mkNullNode #[]) doc
     enableRealizationsForConst declName
     Term.applyAttributes declName declMods.attrs
     let info := (← getAliasInfo name).getD <| AliasInfo.plain name
@@ -139,17 +142,19 @@ def mkIffMpApp (mp : Bool) (ty prf : Expr) : MetaM Expr := do
     Meta.mkLambdaFVars xs <|
       mkApp3 (mkConst (if mp then ``Iff.mp else ``Iff.mpr)) lhs rhs (mkAppN prf xs)
 
-private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : TheoremVal) :
+private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : ConstantInfo) :
     TermElabM Unit := do
   checkNotAlreadyDeclared declName
-  let value ← mkIffMpApp mp thm.type thm.value
+  let value ← mkIffMpApp mp thm.type (mkConst thm.name (thm.levelParams.map mkLevelParam))
   let type ← Meta.inferType value
-  addDecl <| Declaration.thmDecl { thm with
+  addDecl <| Declaration.thmDecl {
     name := declName
     value := value
     type := type
+    levelParams := thm.levelParams
   }
-  addDocString' declName declMods.docString?
+  if let some (doc, isVerso) := declMods.docString? then
+    addDocStringOf isVerso declName (mkNullNode #[]) doc
   Term.applyAttributes declName declMods.attrs
   let info := match ← getAliasInfo thm.name with
     | some (.plain name) => if mp then AliasInfo.forward name else AliasInfo.reverse name
@@ -165,12 +170,14 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
 
 @[inherit_doc «alias»]
 elab (name := aliasLR) mods:declModifiers "alias "
-    "⟨" aliasFwd:binderIdent ", " aliasRev:binderIdent "⟩" " := " name:ident : command =>
+    "⟨" aliasFwd:binderIdent ", " aliasRev:binderIdent "⟩" " := " name:ident : command => do
+  Lean.withExporting (isExporting := (← Command.getScope).isPublic) do
   Command.liftTermElabM do
     let name ← realizeGlobalConstNoOverloadWithInfo name
     let declMods ← elabModifiers mods
     let declMods := { declMods with attrs := (setDeprecatedTarget name declMods.attrs).1 }
-    let .thmInfo thm ← getConstInfo name | throwError "Target must be a theorem"
+    Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
+    let thm ← getConstInfo name
     if let `(binderIdent| $idFwd:ident) := aliasFwd then
       let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idFwd.getId
       addSide true declName declMods thm

@@ -3,7 +3,12 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais, Quang Dao
 -/
-import Batteries.Data.Fin.Basic
+module
+
+public import Batteries.Tactic.Alias
+public import Batteries.Data.Fin.Basic
+
+@[expose] public section
 
 namespace Fin
 
@@ -15,6 +20,8 @@ theorem dfoldrM_loop_zero [Monad m] (f : (i : Fin n) → α i.succ → m (α i.c
 theorem dfoldrM_loop_succ [Monad m] (f : (i : Fin n) → α i.succ → m (α i.castSucc)) (x) :
     dfoldrM.loop n α f (i+1) h x = f ⟨i, by omega⟩ x >>= dfoldrM.loop n α f i (by omega) := rfl
 
+-- TODO: This proof needs adjustment for lean4#12179 (backward.isDefEq.respectTransparency)
+set_option backward.isDefEq.respectTransparency false in
 theorem dfoldrM_loop [Monad m] [LawfulMonad m] (f : (i : Fin (n+1)) → α i.succ → m (α i.castSucc))
     (x) : dfoldrM.loop (n+1) α f (i+1) h x =
       dfoldrM.loop n (α ∘ succ) (f ·.succ) i (by omega) x >>= f 0 := by
@@ -72,10 +79,10 @@ theorem dfoldlM_loop_lt [Monad m] (f : ∀ (i : Fin n), α i.castSucc → m (α 
 
 theorem dfoldlM_loop_eq [Monad m] (f : ∀ (i : Fin n), α i.castSucc → m (α i.succ)) (x) :
     dfoldlM.loop n α f n (Nat.le_refl _) x = pure x := by
-  rw [dfoldlM.loop, dif_neg (Nat.lt_irrefl _), cast_eq]
+  rw [dfoldlM.loop, dif_neg (Nat.lt_irrefl _)]; rfl
 
 @[simp] theorem dfoldlM_zero [Monad m] (f : (i : Fin 0) → α i.castSucc → m (α i.succ)) (x) :
-    dfoldlM 0 α f x = pure x := rfl
+    dfoldlM 0 α f x = pure x := by simp [dfoldlM, dfoldlM.loop]
 
 theorem dfoldlM_loop [Monad m] (f : (i : Fin (n+1)) → α i.castSucc → m (α i.succ)) (h : i < n+1)
     (x) : dfoldlM.loop (n+1) α f i (Nat.lt_add_right 1 h) x =
@@ -86,9 +93,9 @@ theorem dfoldlM_loop [Monad m] (f : (i : Fin (n+1)) → α i.castSucc → m (α 
     rw [dfoldlM_loop_lt _ h' _, dfoldlM_loop]; rfl
   else
     cases Nat.le_antisymm (Nat.le_of_lt_succ h) (Nat.not_lt.1 h')
-    rw [dfoldlM_loop_lt]
+    rw [dfoldlM_loop_lt _ h]
     congr; funext
-    rw [dfoldlM_loop_eq, dfoldlM_loop_eq]
+    rw [dfoldlM_loop_eq, dfoldlM_loop_eq]; rfl
 
 theorem dfoldlM_succ [Monad m] (f : (i : Fin (n+1)) → α i.castSucc → m (α i.succ)) (x) :
     dfoldlM (n+1) α f x = f 0 x >>= (dfoldlM n (α ∘ succ) (f ·.succ ·) .) :=
@@ -105,7 +112,7 @@ theorem dfoldlM_eq_foldlM [Monad m] (f : (i : Fin n) → α → m α) (x : α) :
 /-! ### dfoldl -/
 
 @[simp] theorem dfoldl_zero (f : (i : Fin 0) → α i.castSucc → α i.succ) (x) :
-    dfoldl 0 α f x = x := rfl
+    dfoldl 0 α f x = x := by simp [dfoldl, pure]
 
 theorem dfoldl_succ (f : (i : Fin (n+1)) → α i.castSucc → α i.succ) (x) :
     dfoldl (n+1) α f x = dfoldl n (α ∘ succ) (f ·.succ ·) (f 0 x) := dfoldlM_succ ..
@@ -114,7 +121,7 @@ theorem dfoldl_succ_last (f : (i : Fin (n+1)) → α i.castSucc → α i.succ) (
     dfoldl (n+1) α f x = f (last n) (dfoldl n (α ∘ castSucc) (f ·.castSucc ·) x) := by
   rw [dfoldl_succ]
   induction n with
-  | zero => simp [dfoldl_succ, last]
+  | zero => simp [last]
   | succ n ih => rw [dfoldl_succ, @ih (α ∘ succ) (f ·.succ ·), dfoldl_succ]; congr
 
 theorem dfoldl_eq_dfoldlM (f : (i : Fin n) → α i.castSucc → α i.succ) (x) :
@@ -129,12 +136,6 @@ theorem dfoldl_eq_foldl (f : Fin n → α → α) (x : α) :
     congr; simp only [ih]
 
 /-! ### `Fin.fold{l/r}{M}` equals `List.fold{l/r}{M}` -/
-
-@[deprecated (since := "2024-11-19")]
-alias foldlM_eq_foldlM_list := foldlM_eq_foldlM_finRange
-
-@[deprecated (since := "2024-11-19")]
-alias foldrM_eq_foldrM_list := foldrM_eq_foldrM_finRange
 
 theorem foldl_eq_foldl_finRange (f : α → Fin n → α) (x) :
     foldl n f x = (List.finRange n).foldl f x := by

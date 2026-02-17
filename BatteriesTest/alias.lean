@@ -16,9 +16,13 @@ alias foo1 := foo
 @[deprecated foo2 "it was never a good idea anyway" (since := "last thursday")] alias foo4 := foo
 
 example : 1 + 1 = 2 := foo1
-/-- warning: `A.foo2` has been deprecated: use `A.foo` instead -/
+/-- warning: `A.foo2` has been deprecated: Use `A.foo` instead -/
 #guard_msgs in example : 1 + 1 = 2 := foo2
-/-- warning: `B.foo3` has been deprecated: use `A.foo2` instead -/
+/--
+warning: `B.foo3` has been deprecated: Use `A.foo2` instead
+
+Note: The updated constant is in a different namespace. Dot notation may need to be changed (e.g., from `x.foo3` to `foo2 x`).
+-/
 #guard_msgs in example : 1 + 1 = 2 := B.foo3
 /-- warning: `A.foo4` has been deprecated: it was never a good idea anyway -/
 #guard_msgs in example : 1 + 1 = 2 := foo4
@@ -41,7 +45,7 @@ def foobar : Nat → Nat := id
 /-- doc string for foobar2 -/
 def foobar3 (n : Nat) := foobar1 n
 
-/-- error: simp made no progress -/
+/-- error: `simp` made no progress -/
 #guard_msgs in
 example : foobar1 x = foobar x := by simp
 example : foobar2 x = foobar x := by simp
@@ -50,7 +54,7 @@ example : foobar2 x = foobar x := by simp
 
 /-- doc string for Foo.barbaz -/
 protected alias Foo.barbaz := trivial
-/-- error: unknown identifier 'barbaz' -/
+/-- error: Unknown identifier `barbaz` -/
 #guard_msgs in example : True := barbaz
 example : True := Foo.barbaz
 
@@ -60,17 +64,11 @@ example : True := Foo.barbaz
 noncomputable def foobaz : Nat → Nat := id
 alias foobaz1 := foobaz
 
-/--
-error: failed to compile definition, consider marking it as 'noncomputable' because
-it depends on 'A.foobaz1', and it does not have executable code
--/
+/-- error: Failed to find LCNF signature for A.foobaz1 -/
 #guard_msgs in def foobaz2 (n : Nat) := foobaz1 n
 
 noncomputable alias foobaz3 := id
-/--
-error: failed to compile definition, consider marking it as 'noncomputable' because
-it depends on 'A.foobaz3', and it does not have executable code
--/
+/-- error: Failed to find LCNF signature for A.foobaz3 -/
 #guard_msgs in def foobaz4 (n : Nat) := foobaz3 n
 
 /- Test unsafe -/
@@ -95,9 +93,23 @@ unsafe alias barbaz3 := id
 #guard_msgs in #check mprId
 
 /--
-warning: `A.mpId` has been deprecated: use `Iff.rfl` instead
+warning: `A.mpId` has been deprecated: Use `Iff.rfl` instead
+
+Note: The updated constant has a different type:
+  ∀ {a : Prop}, a ↔ a
+instead of
+  ∀ {a : Prop}, a → a
+
+Note: The updated constant is in a different namespace. Dot notation may need to be changed (e.g., from `x.mpId` to `Iff.rfl x`).
 ---
-warning: `A.mprId` has been deprecated: use `Iff.rfl` instead
+warning: `A.mprId` has been deprecated: Use `Iff.rfl` instead
+
+Note: The updated constant has a different type:
+  ∀ {a : Prop}, a ↔ a
+instead of
+  ∀ {a : Prop}, a → a
+
+Note: The updated constant is in a different namespace. Dot notation may need to be changed (e.g., from `x.mprId` to `Iff.rfl x`).
 -/
 #guard_msgs in example := And.intro @mpId @mprId
 

@@ -3,9 +3,13 @@ Copyright (c) 2024 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Edward van de Meent
 -/
-import Lean.Elab.Syntax
-import Lean.DocString
-import Batteries.Util.LibraryNote
+module
+
+public meta import Lean.Elab.Syntax
+public meta import Lean.DocString
+public meta import Batteries.Util.LibraryNote
+
+public meta section
 
 /-!
 
@@ -49,8 +53,8 @@ syntax withPosition("#help " colGt &"option" (colGt ppSpace Parser.rawIdent)?) :
 
 private def elabHelpOption (id : Option Ident) : CommandElabM Unit := do
   let id := id.map (·.raw.getId.toString false)
-  let mut decls : Lean.RBMap _ _ compare := {}
-  for (name, decl) in show Lean.RBMap .. from ← getOptionDecls do
+  let mut decls : Std.TreeMap _ _ compare := {}
+  for (name, decl) in show NameMap OptionDecl from ← getOptionDecls do
     let name := name.toString false
     if let some id := id then
       if !id.isPrefixOf name then
@@ -70,7 +74,7 @@ private def elabHelpOption (id : Option Ident) : CommandElabM Unit := do
     | .ofNat val => s!"Nat := {repr val}"
     | .ofInt val => s!"Int := {repr val}"
     | .ofSyntax val => s!"Syntax := {repr val}"
-    if let some val := opts.find (.mkSimple name) then
+    if let some val := opts.find? (.mkSimple name) then
       msg1 := s!"{msg1} (currently: {val})"
     msg := msg ++ .nest 2 (f!"option {name} : {msg1}" ++ .line ++ decl.descr) ++ .line ++ .line
   logInfo msg
@@ -96,7 +100,7 @@ syntax withPosition("#help " colGt (&"attr" <|> &"attribute")
 
 private def elabHelpAttr (id : Option Ident) : CommandElabM Unit := do
   let id := id.map (·.raw.getId.toString false)
-  let mut decls : Lean.RBMap _ _ compare := {}
+  let mut decls : Std.TreeMap _ _ compare := {}
   /-
   #adaptation_note
   On nightly-2024-06-21, added the `.toList` here:
@@ -117,50 +121,13 @@ private def elabHelpAttr (id : Option Ident) : CommandElabM Unit := do
   for (name, decl) in decls do
     let mut msg1 := s!"[{name}]: {decl.descr}"
     if let some doc ← findDocString? env decl.ref then
-      msg1 := s!"{msg1}\n{doc.trim}"
+      msg1 := s!"{msg1}\n{doc.trimAscii}"
     msg := msg ++ .nest 2 msg1 ++ .line ++ .line
   logInfo msg
 
 elab_rules : command
   | `(#help attr $(id)?) => elabHelpAttr id
   | `(#help attribute $(id)?) => elabHelpAttr id
-
-/-- Gets the initial string token in a parser description. For example, for a declaration like
-`syntax "bla" "baz" term : tactic`, it returns `some "bla"`. Returns `none` for syntax declarations
-that don't start with a string constant. -/
-partial def getHeadTk (e : Expr) : Option String :=
-  match e.getAppFnArgs with
-  | (``ParserDescr.node, #[_, _, p])
-  | (``ParserDescr.trailingNode, #[_, _, _, p])
-  | (``ParserDescr.unary, #[.app _ (.lit (.strVal "withPosition")), p])
-  | (``ParserDescr.unary, #[.app _ (.lit (.strVal "atomic")), p])
-  | (``ParserDescr.unary, #[.app _ (.lit (.strVal "ppRealGroup")), p])
-  | (``ParserDescr.unary, #[.app _ (.lit (.strVal "ppRealFill")), p])
-  | (``Parser.ppRealFill, #[p])
-  | (``Parser.withAntiquot, #[_, p])
-  | (``Parser.leadingNode, #[_, _, p])
-  | (``Parser.trailingNode, #[_, _, _, p])
-  | (``Parser.group, #[p])
-  | (``Parser.withCache, #[_, p])
-  | (``Parser.withResetCache, #[p])
-  | (``Parser.withPosition, #[p])
-  | (``Parser.withOpen, #[p])
-  | (``Parser.withPositionAfterLinebreak, #[p])
-  | (``Parser.suppressInsideQuot, #[p])
-  | (``Parser.ppRealGroup, #[p])
-  | (``Parser.ppIndent, #[p])
-  | (``Parser.ppDedent, #[p])
-    => getHeadTk p
-  | (``ParserDescr.binary, #[.app _ (.lit (.strVal "andthen")), p, q])
-  | (``HAndThen.hAndThen, #[_, _, _, _, p, .lam _ _ q _])
-    => getHeadTk p <|> getHeadTk q
-  | (``ParserDescr.nonReservedSymbol, #[.lit (.strVal tk), _])
-  | (``ParserDescr.symbol, #[.lit (.strVal tk)])
-  | (``Parser.nonReservedSymbol, #[.lit (.strVal tk), _])
-  | (``Parser.symbol, #[.lit (.strVal tk)])
-  | (``Parser.unicodeSymbol, #[.lit (.strVal tk), _])
-    => pure tk
-  | _ => none
 
 /--
 The command `#help cats` shows all syntax categories that have been defined in the
@@ -179,7 +146,7 @@ syntax withPosition("#help " colGt &"cats" (colGt ppSpace Parser.rawIdent)?) : c
 
 private def elabHelpCats (id : Option Ident) : CommandElabM Unit := do
   let id := id.map (·.raw.getId.toString false)
-  let mut decls : Lean.RBMap _ _ compare := {}
+  let mut decls : Std.TreeMap _ _ compare := {}
   for (name, cat) in (Parser.parserExtension.getState (← getEnv)).categories do
     let name := name.toString false
     if let some id := id then
@@ -195,7 +162,7 @@ private def elabHelpCats (id : Option Ident) : CommandElabM Unit := do
   for (name, cat) in decls do
     let mut msg1 := m!"category {name} [{mkConst cat.declName}]"
     if let some doc ← findDocString? env cat.declName then
-      msg1 := msg1 ++ Format.line ++ doc.trim
+      msg1 := msg1 ++ Format.line ++ doc.trimAscii.copy
     msg := msg ++ .nest 2 msg1 ++ (.line ++ .line : Format)
   logInfo msg
 
@@ -219,24 +186,34 @@ name of the syntax (which you can also click to go to the definition), and the d
 syntax withPosition("#help " colGt &"cat" "+"? colGt ident
     (colGt ppSpace (Parser.rawIdent <|> str))?) : command
 
+private def tokensToList (tks : Parser.FirstTokens) : List String :=
+  match tks with
+  | .epsilon | .unknown => []
+  | .tokens tks | .optTokens tks => tks
+
 private def elabHelpCat (more : Option Syntax) (catStx : Ident) (id : Option String) :
     CommandElabM Unit := do
-  let mut decls : Lean.RBMap _ _ compare := {}
-  let mut rest : Lean.RBMap _ _ compare := {}
+  let mut decls : Std.TreeMap _ _ compare := {}
+  let mut rest : Std.TreeMap _ _ compare := {}
   let catName := catStx.getId.eraseMacroScopes
-  let some cat := (Parser.parserExtension.getState (← getEnv)).categories.find? catName
+  let categories := (Parser.parserExtension.getState (← getEnv)).categories
+  let some cat := categories.find? catName
     | throwErrorAt catStx "{catStx} is not a syntax category"
   liftTermElabM <| Term.addCategoryInfo catStx catName
-  let env ← getEnv
   for (k, _) in cat.kinds do
     let mut used := false
-    if let some tk := do getHeadTk (← (← env.find? k).value?) then
-      let tk := tk.trim
+    try
+      let (leading, parser) ← liftCoreM <| Parser.mkParserOfConstant categories k
+      let tks := tokensToList parser.info.firstTokens
+      let tks := tks.filter (· != "$") -- filter antiquotations
+      let mainTk :: _ := tks | pure ()
       if let some id := id then
-        if !id.isPrefixOf tk then
+        unless tks.any (·.startsWith id) do
           continue
       used := true
-      decls := decls.insert tk ((decls.findD tk #[]).push k)
+      decls := decls.insert mainTk ((decls.getD mainTk #[]).push (k, leading))
+    catch _ =>
+      pure ()
     if !used && id.isNone then
       rest := rest.insert (k.toString false) k
   let mut msg := MessageData.nil
@@ -248,7 +225,7 @@ private def elabHelpCat (more : Option Syntax) (catStx : Ident) (id : Option Str
   let addMsg (k : SyntaxNodeKind) (msg msg1 : MessageData) : CommandElabM MessageData := do
     let mut msg1 := msg1
     if let some doc ← findDocString? env k then
-      msg1 := msg1 ++ Format.line ++ doc.trim
+      msg1 := msg1 ++ Format.line ++ doc.trimAscii.copy
     msg1 := .nest 2 msg1
     if more.isSome then
       let addElabs {α} (type : String) (attr : KeyedDeclsAttribute α)
@@ -258,7 +235,7 @@ private def elabHelpCat (more : Option Syntax) (catStx : Ident) (id : Option Str
           let x := e.declName
           msg := msg ++ Format.line ++ m!"+ {type} {mkConst x}"
           if let some doc ← findDocString? env x then
-            msg := msg ++ .nest 2 (Format.line ++ doc.trim)
+            msg := msg ++ .nest 2 (Format.line ++ doc.trimAscii.copy)
         pure msg
       msg1 ← addElabs "macro" macroAttribute msg1
       match catName with
@@ -268,8 +245,11 @@ private def elabHelpCat (more : Option Syntax) (catStx : Ident) (id : Option Str
       | _ => pure ()
     return msg ++ msg1 ++ (.line ++ .line : Format)
   for (name, ks) in decls do
-    for k in ks do
-      msg ← addMsg k msg m!"syntax {repr name}... [{mkConst k}]"
+    for (k, leading) in ks do
+      if leading then
+        msg ← addMsg k msg m!"syntax {repr name}... [{mkConst k}]"
+      else
+        msg ← addMsg k msg m!"syntax ...{repr name}... [{mkConst k}]"
   for (_, k) in rest do
     msg ← addMsg k msg m!"syntax ... [{mkConst k}]"
   logInfo msg
@@ -278,11 +258,6 @@ elab_rules : command
   | `(#help cat $[+%$more]? $cat) => elabHelpCat more cat none
   | `(#help cat $[+%$more]? $cat $id:ident) => elabHelpCat more cat (id.getId.toString false)
   | `(#help cat $[+%$more]? $cat $id:str) => elabHelpCat more cat id.getString
-
-/--
-format the string to be included in a single markdown bullet
--/
-def _root_.String.makeBullet (s:String) := "* " ++ ("\n  ").intercalate (s.splitOn "\n")
 
 open Lean Parser Batteries.Util.LibraryNote in
 /--
@@ -299,23 +274,32 @@ elab "#help " colGt &"note" colGt ppSpace name:strLit : command => do
   let local_entries := (libraryNoteExt.getEntries env).reverse
   let imported_entries := (libraryNoteExt.toEnvExtension.getState env).importedEntries
 
+  -- The key for searching and sorting library notes is their value as a string,
+  -- without any «escaping using french quotes».
+  let key (n : LibraryNoteEntry) := n.toString (escape := false)
+
   -- filter for the appropriate notes while casting to list
   let label_prefix := name.getString
   let imported_entries_filtered := imported_entries.flatten.toList.filterMap
-    fun x => if label_prefix.isPrefixOf x.fst then some x else none
-  let valid_entries := imported_entries_filtered ++ local_entries.filterMap
-    fun x => if label_prefix.isPrefixOf x.fst then some x else none
-  let grouped_valid_entries := valid_entries.mergeSort (·.fst ≤ ·.fst)
-    |>.splitBy (·.fst == ·.fst)
+    fun x => if label_prefix.isPrefixOf (key x) then some x else none
+  let valid_entries := (imported_entries_filtered ++ local_entries.filterMap
+    fun x => if label_prefix.isPrefixOf (key x) then some x else none)
+    |>.mergeSort (key · ≤ key ·)
 
   -- display results in a readable style
-  if grouped_valid_entries.isEmpty then
+  if valid_entries.isEmpty then
     logError "Note not found"
   else
     logInfo <| "\n\n".intercalate <|
-      grouped_valid_entries.map
-        fun l => "library_note \"" ++ l.head!.fst ++ "\"\n" ++
-          "\n\n".intercalate (l.map (·.snd.trim.makeBullet))
+      ← valid_entries.filterMapM
+        fun x => do
+          -- Use encoded name (spaces → underscores) for docstring lookup,
+          -- matching the declaration name created by `library_note`
+          let encodedName := encodeNameForExport x
+          let some doc ← findDocString? env <| (`LibraryNote).eraseMacroScopes.append encodedName |
+            return none
+          return "library_note " ++ x.toString (escape := true) ++ "\n" ++
+            "/-- " ++ doc.trimAscii ++ " -/"
 
 /--
 The command `#help term` shows all term syntaxes that have been defined in the current environment.

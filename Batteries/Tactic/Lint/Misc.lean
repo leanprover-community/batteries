@@ -3,14 +3,17 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 -/
-import Lean.Util.CollectLevelParams
-import Lean.Util.ForEachExpr
-import Lean.Meta.ForEachExpr
-import Lean.Meta.GlobalInstances
-import Lean.Meta.Check
-import Lean.Util.Recognizers
-import Lean.DocString
-import Batteries.Tactic.Lint.Basic
+module
+
+public meta import Lean.Util.CollectLevelParams
+public meta import Lean.Util.ForEachExpr
+public meta import Lean.Meta.Check
+public meta import Lean.Meta.Instances
+public meta import Lean.Util.Recognizers
+public meta import Lean.DocString
+public meta import Batteries.Tactic.Lint.Basic
+
+public meta section
 
 open Lean Meta Std
 
@@ -28,7 +31,7 @@ This file defines several small linters.
   errorsFound := "DUPLICATED NAMESPACES IN NAME:"
   test declName := do
     if ← isAutoDecl declName then return none
-    if isGlobalInstance (← getEnv) declName then return none
+    if ← isInstanceReducible declName then return none
     let nm := declName.components
     let some (dup, _) := nm.zip nm.tail! |>.find? fun (x, y) => x == y
       | return none
@@ -65,8 +68,13 @@ We skip all declarations that contain `sorry` in their value. -/
   noErrorsFound := "No definitions are missing documentation."
   errorsFound := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
-    if (← isAutoDecl declName) || isGlobalInstance (← getEnv) declName then
+    -- leanprover/lean4#12263: isGlobalInstance was removed, use isInstance instead
+    if (← isAutoDecl declName) || (← isInstance declName) then
       return none -- FIXME: scoped/local instances should also not be linted
+    if let .str p _ := declName then
+      if ← isInstance p then
+        -- auxillary functions for instances should not be linted
+        return none
     if let .str _ s := declName then
       if s == "parenthesizer" || s == "formatter" || s == "delaborator" || s == "quot" then
       return none
@@ -74,8 +82,7 @@ We skip all declarations that contain `sorry` in their value. -/
       | .axiomInfo .. => pure "axiom"
       | .opaqueInfo .. => pure "constant"
       | .defnInfo info =>
-          -- leanprover/lean4#2575:
-          -- projections are generated as `def`s even when they should be `theorem`s
+          -- leanprover/lean4#2575: Prop projections are generated as `def`s
           if ← isProjectionFn declName <&&> isProp info.type then
             return none
           pure "definition"
@@ -110,7 +117,7 @@ has been used. -/
   noErrorsFound := "All declarations correctly marked as def/lemma."
   errorsFound := "INCORRECT DEF/LEMMA:"
   test declName := do
-    if (← isAutoDecl declName) || isGlobalInstance (← getEnv) declName then
+    if (← isAutoDecl declName) || (← isInstanceReducible declName) then
       return none
     -- leanprover/lean4#2575:
     -- projections are generated as `def`s even when they should be `theorem`s
@@ -225,19 +232,27 @@ with rfl when elaboration results in a different term than the user intended. -/
       return none
 
 /--
-Return a list of unused `let_fun` terms in an expression.
+Return a list of unused `let_fun` terms in an expression that introduce proofs.
 -/
-def findUnusedHaves (e : Expr) : MetaM (Array MessageData) := do
+@[nolint unusedArguments]
+def findUnusedHaves (_ : Expr) : MetaM (Array MessageData) := do
+  -- adaptation note: kmill 2025-06-29. `Expr.letFun?` is deprecated.
+  -- This linter needs to be updated for `Expr.letE (nondep := true)`, but it has false
+  -- positives, so I am disabling it for now.
+  return #[]
+  /-
   let res ← IO.mkRef #[]
   forEachExpr e fun e => do
     match e.letFun? with
     | some (n, t, _, b) =>
       if n.isInternal then return
       if b.hasLooseBVars then return
+      unless ← Meta.isProp t do return
       let msg ← addMessageContextFull m!"unnecessary have {n.eraseMacroScopes} : {t}"
       res.modify (·.push msg)
     | _ => return
   res.get
+  -/
 
 /-- A linter for checking that declarations don't have unused term mode have statements. -/
 @[env_linter] def unusedHavesSuffices : Linter where

@@ -3,7 +3,11 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Elab.Tactic.SimpTrace
+module
+
+public meta import Lean.Elab.Tactic.SimpTrace
+
+public meta section
 
 /-!
 # `squeeze_scope` tactic
@@ -55,7 +59,8 @@ macro (name := squeezeScope) "squeeze_scope " seq:tacticSeq : tactic => do
   let a ← withFreshMacroScope `(a)
   let seq ← seq.raw.rewriteBottomUpM fun stx =>
     match stx.getKind with
-    | ``dsimp | ``simpAll | ``simp => do
+    | ``dsimp | ``simpAll | ``simp
+    | ``dsimpTrace | ``simpAllTrace | ``simpTrace => do
       withFreshMacroScope `(tactic| squeeze_wrap $a x => $stx)
     | _ => pure stx
   `(tactic| squeeze_scope $a => $seq)
@@ -93,12 +98,14 @@ elab_rules : tactic
 elab_rules : tactic
   | `(tactic| squeeze_wrap $a $x => $tac) => do
     let stx := tac.raw
-    let stats ← match stx.getKind with
+    -- Returns (stats, syntaxToStore) where syntaxToStore is the non-trace syntax for mkSimpCallStx
+    let (stats, stxToStore) ← match stx.getKind with
     | ``Parser.Tactic.simp => do
-      let { ctx, simprocs, dischargeWrapper } ←
+      let { ctx, simprocs, dischargeWrapper, .. } ←
         withMainContext <| mkSimpContext stx (eraseLocal := false)
-      dischargeWrapper.with fun discharge? =>
+      let stats ← dischargeWrapper.with fun discharge? =>
         simpLocation ctx simprocs discharge? (expandOptLocation stx[5])
+      pure (stats, stx)
     | ``Parser.Tactic.simpAll => do
       let { ctx, simprocs, .. } ← mkSimpContext stx
         (eraseLocal := true) (kind := .simpAll) (ignoreStarArg := true)
@@ -106,16 +113,62 @@ elab_rules : tactic
       match result? with
       | none => replaceMainGoal []
       | some mvarId => replaceMainGoal [mvarId]
-      pure stats
+      pure (stats, stx)
     | ``Parser.Tactic.dsimp => do
       let { ctx, simprocs, .. } ← withMainContext <|
         mkSimpContext stx (eraseLocal := false) (kind := .dsimp)
-      dsimpLocation' ctx simprocs (expandOptLocation stx[5])
+      let stats ← dsimpLocation' ctx simprocs (expandOptLocation stx[5])
+      pure (stats, stx)
+    | ``simpTrace => do
+      -- Convert simp? to simp and run
+      match tac with
+      | `(tactic| simp?%$tk $[!%$bang]? $cfg:optConfig $(discharger)? $[only%$o]?
+          $[[$args,*]]? $(loc)?) =>
+        let simpStx ← if bang.isSome then
+          `(tactic| simp!%$tk $cfg:optConfig $[$discharger]? $[only%$o]? $[[$args,*]]? $[$loc]?)
+        else
+          `(tactic| simp%$tk $cfg:optConfig $[$discharger]? $[only%$o]? $[[$args,*]]? $[$loc]?)
+        let { ctx, simprocs, dischargeWrapper, .. } ←
+          withMainContext <| mkSimpContext simpStx.raw (eraseLocal := false)
+        let stats ← dischargeWrapper.with fun discharge? =>
+          simpLocation ctx simprocs discharge? (expandOptLocation simpStx.raw[5])
+        pure (stats, simpStx.raw)
+      | _ => Elab.throwUnsupportedSyntax
+    | ``simpAllTrace => do
+      -- Convert simp_all? to simp_all and run
+      match tac with
+      | `(tactic| simp_all?%$tk $[!%$bang]? $cfg:optConfig $(discharger)? $[only%$o]?
+          $[[$args,*]]?) =>
+        let simpStx ← if bang.isSome then
+          `(tactic| simp_all!%$tk $cfg:optConfig $[$discharger]? $[only%$o]? $[[$args,*]]?)
+        else
+          `(tactic| simp_all%$tk $cfg:optConfig $[$discharger]? $[only%$o]? $[[$args,*]]?)
+        let { ctx, simprocs, .. } ← mkSimpContext simpStx.raw
+          (eraseLocal := true) (kind := .simpAll) (ignoreStarArg := true)
+        let (result?, stats) ← simpAll (← getMainGoal) ctx simprocs
+        match result? with
+        | none => replaceMainGoal []
+        | some mvarId => replaceMainGoal [mvarId]
+        pure (stats, simpStx.raw)
+      | _ => Elab.throwUnsupportedSyntax
+    | ``dsimpTrace => do
+      -- Convert dsimp? to dsimp and run
+      match tac with
+      | `(tactic| dsimp?%$tk $[!%$bang]? $cfg:optConfig $[only%$o]? $[[$args,*]]? $(loc)?) =>
+        let simpStx ← if bang.isSome then
+          `(tactic| dsimp!%$tk $cfg:optConfig $[only%$o]? $[[$args,*]]? $[$loc]?)
+        else
+          `(tactic| dsimp%$tk $cfg:optConfig $[only%$o]? $[[$args,*]]? $[$loc]?)
+        let { ctx, simprocs, .. } ← withMainContext <|
+          mkSimpContext simpStx.raw (eraseLocal := false) (kind := .dsimp)
+        let stats ← dsimpLocation' ctx simprocs (expandOptLocation simpStx.raw[5])
+        pure (stats, simpStx.raw)
+      | _ => Elab.throwUnsupportedSyntax
     | _ => Elab.throwUnsupportedSyntax
     let a := a.getId; let x := x.getId
     squeezeScopes.modify fun map => Id.run do
       let some map1 := map.find? a | return map
       let newSimps := match map1.find? x with
       | some (stx, oldSimps) => (stx, stats.usedTheorems :: oldSimps)
-      | none => (stx, [stats.usedTheorems])
+      | none => (stxToStore, [stats.usedTheorems])
       map.insert a (map1.insert x newSimps)

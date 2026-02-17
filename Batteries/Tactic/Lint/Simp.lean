@@ -3,10 +3,15 @@ Copyright (c) 2020 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
-import Lean.Meta.Tactic.Simp.Main
-import Batteries.Tactic.Lint.Basic
-import Batteries.Tactic.OpenPrivate
-import Batteries.Util.LibraryNote
+module
+
+public meta import Lean.Meta.Tactic.Simp.Main
+public meta import Batteries.Tactic.Lint.Basic
+public meta import Batteries.Tactic.OpenPrivate
+public meta import Batteries.Util.LibraryNote
+import all Lean.Meta.Tactic.Simp.SimpTheorems
+
+public meta section
 open Lean Meta
 
 namespace Batteries.Tactic.Lint
@@ -37,7 +42,6 @@ def isCondition (h : Expr) : MetaM Bool := do
   if ldecl.binderInfo.isInstImplicit then return false
   isProp ldecl.type
 
-open private preprocess from Lean.Meta.Tactic.Simp.SimpTheorems in
 /-- Runs the continuation on all the simp theorems encoded in the given type. -/
 def withSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM α) : MetaM (Array α) :=
   withReducible do
@@ -53,7 +57,11 @@ def isSimpEq (a b : Expr) (whnfFirst := true) : MetaM Bool := withReducible do
   let a ← if whnfFirst then whnf a else pure a
   let b ← if whnfFirst then whnf b else pure b
   if a.getAppFn.constName? != b.getAppFn.constName? then return false
-  isDefEq a b
+  -- We use the old `isDefEq` behavior that does not respect transparency when checking
+  -- implicit arguments. Without this, `simp`/`dsimp` changes to implicit arguments
+  -- (e.g. unfolding carrier types) would cause false positives.
+  withOptions (fun opts => opts.setBool `backward.isDefEq.respectTransparency false) do
+    isDefEq a b
 
 /-- Constructs a message from all the simp theorems encoded in the given type. -/
 def checkAllSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM (Option MessageData)) :
@@ -98,8 +106,10 @@ def formatLemmas (usedSimps : Simp.UsedSimps) (simpName : String) (higherOrder :
 @[env_linter] def simpNF : Linter where
   noErrorsFound := "All left-hand sides of simp lemmas are in simp-normal form."
   errorsFound := "SOME SIMP LEMMAS ARE NOT IN SIMP-NORMAL FORM.
-see note [simp-normal form] for tips how to debug this.
-https://leanprover-community.github.io/mathlib_docs/notes.html#simp-normal%20form"
+Please change the lemma to make sure their left-hand sides are in simp normal form.
+To learn about simp normal forms, see
+https://leanprover-community.github.io/extras/simp.html#simp-normal-form
+and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/."
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
     withConfig Elab.Term.setElabConfig do

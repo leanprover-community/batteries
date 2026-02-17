@@ -3,14 +3,17 @@ Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
-import Batteries.Data.String.Basic
-import Lean.LocalContext
+module
+
+public import Lean.LocalContext
+
+public section
 
 open Lean Lean.Meta
 
 namespace Lean.Name
 
-private def parseIndexSuffix (s : Substring) : Option Nat :=
+private def parseIndexSuffix (s : String.Slice) : Option Nat :=
   if s.isEmpty then
     none
   else if s.front == '_' then
