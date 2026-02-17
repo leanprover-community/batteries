@@ -382,11 +382,7 @@ theorem TopDown.of_children_below_and_above [Ord α] {a : Vector α sz} {i : Fin
     (hbelow_i : WF.Below a i)
     (habove : ∀ k : Fin sz, k.val < i.val → WF.Children a k) :
     WF.TopDown a := by
-  intro
-  apply children_of_split hchildren_i hbelow_i
-  . intro k _ hki
-    exact habove k hki
-  . exact Nat.zero_le _
+  grind only [children_of_split, Below, TopDown]
 
 /-- Build WF.Below at i from WF.Children at j, WF.Below at j, and a proof for positions between -/
 theorem Below.of_children_below_and_between [Ord α] {a : Vector α sz} {i j : Fin sz}
@@ -394,7 +390,7 @@ theorem Below.of_children_below_and_between [Ord α] {a : Vector α sz} {i j : F
     (hbelow_j : WF.Below a j)
     (hbetween : ∀ k : Fin sz, i.val < k.val → k.val < j.val → WF.Children a k) :
     WF.Below a i := by
-  grind only [Below, children_of_split]
+  grind only [children_of_split, Below]
 
 end WF
 end Batteries.BinaryHeap
