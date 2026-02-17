@@ -371,10 +371,9 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α]
   induction n generalizing a with
   | zero => simp_all [mkHeap.loop]
   | succ i ih =>
-    have hi_lt : i < sz := by omega
-    have ⟨hwf_at, hwf_below⟩:= heapifyDown_topDown (i := ⟨i, hi_lt⟩) hinv
     apply ih
     intro k hk
+    have ⟨hwf_at, hwf_below⟩:= heapifyDown_topDown (i := ⟨i, by omega⟩) hinv
     by_cases hk_eq : k = i
     · simpa [← hk_eq] using hwf_at
     · exact hwf_below k (show i < k by omega)
