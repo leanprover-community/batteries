@@ -367,8 +367,8 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α]
     apply ih
     intro k hk
     have ⟨hwf_at, hwf_below⟩:= heapifyDown_topDown (i := ⟨i, by omega⟩) hinv
-    by_cases hk_eq : k = i
-    · simpa [← hk_eq] using hwf_at
+    by_cases hk_eq : i = k
+    · simpa [hk_eq] using hwf_at
     · exact hwf_below k (show i < k by omega)
 
 public section
@@ -570,10 +570,10 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare (heap.get i) x |>.isGE) :
     WF (heap.decreaseKey i x) := by
   apply WF.of_topDown
-  have htd : WF.TopDown heap.vector := by simp_all [WF]
+  have htd : WF.TopDown heap.vector := by rwa [WF] at h_wf
   have hbelow : WF.Below (heap.vector.set i x _) i := WF.Below.of_topDown_set htd
   have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_topDown hbelow
-  apply WF.TopDown.of_children_below_and_above hchildren_i hbelow_i
+  refine .of_children_below_and_above hchildren_i hbelow_i ?_
   intro k hki
   by_cases hk_parent : k.val = (i.val - 1) / 2 ∧ 0 < i.val
   · rw [show k = ⟨_, _⟩ from Fin.ext hk_parent.1]
@@ -595,7 +595,7 @@ theorem increaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
 /-- The inner loop of toSortedArray produces a sorted array -/
 private theorem toSortedArray.loop_sorted [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {out : Array α} (hwf : WF heap) (h_out_sorted : out.toList.Pairwise (compare · · |>.isGE))
-    (h_heap_le_out : ∀ x ∈ heap, ∀ y ∈ out, compare x y |>.isLE) :
+    (h_heap_le_out : ∀ x ∈ heap, ∀ y ∈ out, compare y x |>.isGE) :
     (toSortedArray.loop heap out).toList.Pairwise (compare · · |>.isGE) := by
   unfold toSortedArray.loop
   split <;> try assumption
@@ -607,14 +607,12 @@ private theorem toSortedArray.loop_sorted [Ord α] [Std.TransOrd α] {heap : Bin
     rw [Array.toList_push, List.pairwise_append]
     refine ⟨by assumption, by simp, ?_⟩
     intros
-    rw [Std.OrientedOrd.eq_swap]
     simp_all
   · have hx_ge_heap : ∀ y ∈ heap, compare x y |>.isGE := fun _ hy => by
       simpa [h] using max_ge_all hwf hy h_pos
     intro _ _ _ hy
     rw [Array.mem_push] at hy
     cases hy
-    case' inr => rw [Std.OrientedOrd.eq_swap]
     all_goals simp_all [mem_of_mem_popMax]
 
 /-- toSortedArray produces a sorted array if the heap is well-formed -/
