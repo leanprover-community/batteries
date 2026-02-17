@@ -605,7 +605,7 @@ private theorem toSortedArray.loop_sorted [Ord α] [Std.TransOrd α] {heap : Bin
   · exact popMax_wf hwf
   · have : x ∈ heap := by simp_all [BinaryHeap.mem_def, BinaryHeap.max, Array.mem_of_getElem? h]
     rw [Array.toList_push, List.pairwise_append]
-    refine ⟨by assumption, by simp, by simp_all⟩
+    exact ⟨by assumption, by simp, by simp_all⟩
   · have hx_ge_heap : ∀ y ∈ heap, compare x y |>.isGE := fun _ hy => by
       simpa [h] using max_ge_all hwf hy h_pos
     intro _ _ _ hy
