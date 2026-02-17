@@ -19,6 +19,7 @@ Prove basic results about `Array.scanl`, `Array.scanr`, `Array.scanlM` and `Arra
 -/
 namespace Array
 
+set_option backward.isDefEq.respectTransparency false in
 theorem scanlM.loop_toList [Monad m] [LawfulMonad m]
     {f : β → α → m β} {stop : Nat} (h : stop ≤ as.size) :
     Array.toList <$> scanlM.loop f init as start stop h acc =
