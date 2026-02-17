@@ -133,10 +133,9 @@ theorem heapifyDown_getElem_of_not_inSubtree [Ord α] {a : Vector α sz} {i : Fi
   induction a, i using heapifyDown.induct with
   | case1 => simp_all
   | case2 a i j hmc hij hlt ih =>
-    rw [heapifyDown_eq_of_lt_child hmc hlt]
     have hnsub_j : ¬InSubtree j k := fun hsub_jk =>
       hnsub (InSubtree.of_child (maxChild_isChild hmc) |>.trans hsub_jk)
-    rw [ih hnsub_j]
+    rw [heapifyDown_eq_of_lt_child hmc hlt, ih hnsub_j]
     apply Vector.getElem_swap_of_ne <;> grind only [InSubtree]
   | case3 => simp_all [heapifyDown_eq_of_not_lt_child]
 
@@ -183,10 +182,10 @@ theorem heapifyDown_preserves_ge_root_of_subtree [Ord α] [Std.TransOrd α]
   induction a, j using heapifyDown.induct with
   | case1 => simp_all [heapifyDown_eq_of_maxChild_none, InSubtree.refl]
   | case2 a j child hmaxChild _ h_lt _ =>
-    have := InSubtree.of_child (maxChild_isChild hmaxChild)
+    have hchild_in_subtree := InSubtree.of_child (maxChild_isChild hmaxChild)
     rw [heapifyDown_eq_of_lt_child hmaxChild h_lt,
-        heapifyDown_getElem_of_not_inSubtree (InSubtree.not_of_lt (maxChild_gt hmaxChild))]
-    simp_all [Vector.getElem_swap_left]
+        heapifyDown_getElem_of_not_inSubtree <| InSubtree.not_of_lt <| maxChild_gt hmaxChild]
+    simpa [Vector.getElem_swap_left] using hge child hchild_in_subtree
   | case3 => simp_all [heapifyDown_eq_of_not_lt_child, InSubtree.refl]
 
 /-- heapifyDown at j preserves WF.Children at k when j is a child of k,
@@ -205,10 +204,8 @@ theorem heapifyDown_children_of_ge_subtree [Ord α] [Std.TransOrd α]
     simp only [heapifyDown_getElem_of_not_inSubtree hk_not_sub, Fin.getElem_fin]
     cases hj_child
   -- Matching cases: j is the child we're proving about
-  case left.inl | right.inr =>
-    rename_i hj
-    simp only [← hj]
-    exact heapifyDown_preserves_ge_root_of_subtree hge_subtree
+  case left.inl hj | right.inr hj =>
+    simpa only [← hj] using heapifyDown_preserves_ge_root_of_subtree hge_subtree
 
   all_goals
     rw [heapifyDown_getElem_of_not_inSubtree' hside (by grind only [InSubtree.not_of_lt])]
@@ -232,15 +229,13 @@ theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] {a : Vector α sz} 
   have hchild := maxChild_isChild hmaxChild
   apply heapifyDown_children_of_ge_subtree hchild
   . intro m hsub
-    simp only [Vector.getElem_swap_left, Fin.getElem_fin]
-    apply WF.swap_preserves_ge_subtree (maxChild_gt hmaxChild) <;> assumption
-  . apply WF.Children.of_swap_maxChild hmaxChild
-    simp_all
+    simpa [Vector.getElem_swap_left] using
+      WF.swap_preserves_ge_subtree (maxChild_gt hmaxChild) h_ge hbelow hsub
+  . simpa using WF.Children.of_swap_maxChild hmaxChild h_ge
 
 /-- `heapifyDown` restores the heap property at node `i` and below, given that all nodes
 below `i` already satisfy `WF.Children`. -/
-theorem heapifyDown_topDown [Ord α] [Std.TransOrd α]
-    {a : Vector α sz} {i : Fin sz}
+theorem heapifyDown_topDown [Ord α] [Std.TransOrd α] {a : Vector α sz} {i : Fin sz}
     (hbelow : WF.Below a i) :
     WF.Children (heapifyDown a i) i ∧ WF.Below (heapifyDown a i) i := by
   induction a, i using heapifyDown.induct with

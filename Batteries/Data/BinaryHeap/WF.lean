@@ -210,8 +210,8 @@ theorem TopDown.parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] {v : Vector 
 
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
 theorem swap_preserves_ge_subtree [Ord α] [Std.TransOrd α]
-    {a : Vector α sz} {i j : Fin sz} (h_ij : i < j) (h_ge : (compare a[j] a[i]).isGE)
-    (hbelow : WF.Below a i) (k : Fin sz) (hsub : InSubtree j k) :
+    {a : Vector α sz} {i j k : Fin sz} (h_ij : i < j) (h_ge : (compare a[j] a[i]).isGE)
+    (hbelow : WF.Below a i) (hsub : InSubtree j k) :
     (compare a[j] (a.swap i j i.isLt j.isLt)[k]).isGE := by
   have hge : (compare a[j] a[j]).isGE := by grind only [Ordering.isGE]
   have hwf_at := hbelow j h_ij
