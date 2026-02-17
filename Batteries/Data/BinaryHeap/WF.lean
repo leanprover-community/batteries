@@ -313,7 +313,7 @@ theorem of_topDown {v : Vector α sz} [Ord α] (h_td : WF.TopDown v) : WF ⟨v.t
   have ⟨hleft, hright⟩ := h_td ⟨ival, by simp_all [size]⟩
   constructor
     <;> intros
-    <;> (first | apply hleft | apply hright)
+    <;> apply_assumption
     <;> simp_all [Vector.size_toArray, size]
 
 /-- Setting a larger value preserves WF.exceptAt -/
@@ -323,8 +323,7 @@ theorem ExceptAt.set_of_ge [Ord α] [Std.TransOrd α]
     ExceptAt (v.set i x i.isLt) i := by
   intro j hji hj_pos
   have hj_parent := hbu j hj_pos
-  simp_all only [Fin.getElem_fin, Vector.getElem_set, show i.val ≠ j.val by omega]
-  split <;> simp_all [Std.TransOrd.isGE_trans h_ge]
+  grind only [= Fin.getElem_fin, Vector.getElem_set, !Std.TransOrd.isGE_trans]
 
 /-- Setting a larger value preserves WF.parentGeChildren when original heap is well-formed -/
 theorem ParentGeChildren.set_of_ge [Ord α] [Std.TransOrd α]
