@@ -196,8 +196,8 @@ theorem TopDown.parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] {v : Vector 
   apply ge_subtree_of_modify h_parent_ge_i h_child h_below
   . simp only [Fin.getElem_fin, Vector.getElem_set_self]
     exact Std.TransOrd.isGE_trans h_parent_ge_i h_le
-  . intro _ _ hj
-    exact Vector.getElem_set_ne _ _ hj
+  . intros
+    exact Vector.getElem_set_ne _ _ ‹_›
   . exact hsub
 
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
@@ -218,10 +218,8 @@ theorem swap_preserves_ge_subtree [Ord α] [Std.TransOrd α]
 theorem TopDown.root_ge_all [Ord α] [Std.TransOrd α]
     {a : Vector α sz} (hwf : WF.TopDown a) (hne : 0 < sz) (k : Fin sz) :
     (compare a[0] a[k]).isGE :=
-  parent_ge_subtree
-    (hwf_at := hwf ⟨0, hne⟩)
-    (hwf_below := fun j _ => hwf j)
-    (hsub := InSubtree.mem_of_zero k.val)
+  have ⟨hwf_at, hwf_below⟩ := hwf.children_and_below ⟨0, hne⟩
+  parent_ge_subtree hwf_at hwf_below (InSubtree.mem_of_zero k.val)
 
 /-- "Dual" correctness property to WF.children. A parent should be >= current node.
     Used when verifying heapifyUp -/
