@@ -224,14 +224,7 @@ private def elabHelpCat (more : Option Syntax) (catStx : Ident) (id : Option Str
       rest := rest.insert (k.toString false) k
   for (kind, tks, leading) in declsArray do
     -- we choose the first, least common token
-    let firstTk :: moreTks := tks | unreachable!
-    let mut winnerTk := firstTk
-    let mut winnerCount := tokenUsage[firstTk]!
-    for tk in moreTks do
-      let count := tokenUsage[tk]!
-      if count < winnerCount then
-        winnerTk := tk
-        winnerCount := count
+    let winnerTk := tks.minOn? (tokenUsage[·]!) |>.get!
     decls := decls.alter winnerTk fun arr => some (arr.getD #[] |>.push (kind, leading))
   let mut msg := MessageData.nil
   if decls.isEmpty && rest.isEmpty then
