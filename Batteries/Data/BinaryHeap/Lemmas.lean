@@ -328,8 +328,7 @@ theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
 theorem max_eq_arr_zero [Ord α] {heap : BinaryHeap α} (h : heap.max = some x) :
     x = heap.arr[0]'(size_pos_of_max h) := by
   unfold max at h
-  have := Array.getElem_eq_iff (x := x) (h := size_pos_of_max h)
-  simp_all
+  simp [Array.getElem_eq_iff.mpr h]
 
 /-- The inner loop of toSortedArray produces a permutation of heap ++ out -/
 theorem toSortedArray.loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α) :
