@@ -151,7 +151,7 @@ theorem heapifyDown_swap_children_of_lt [Ord α] {a : Vector α sz} {i j k : Fin
     (hchild : j.val = 2 * i.val + 1 ∨ j.val = 2 * i.val + 2)
     (hik : i < k) (hkj : k < j) (hwf : WF.Children a k) :
     WF.Children (heapifyDown (a.swap i j i.isLt j.isLt) j) k := by
-  apply WF.Children.congr hwf
+  apply hwf.congr
     <;> intros
     <;> (try simp only [Fin.getElem_fin])
     <;> rw [heapifyDown_getElem_of_not_inSubtree' _ (by grind only [InSubtree.not_of_lt])]
@@ -165,7 +165,7 @@ theorem heapifyDown_get_of_not_child [Ord α] {v : Vector α sz}
     (hki : k < i) (hwf : WF.Children v k)
     (hleft_ne : i.val ≠ 2 * k.val + 1) (hright_ne : i.val ≠ 2 * k.val + 2) :
     WF.Children (heapifyDown v i) k := by
-  apply WF.Children.congr hwf
+  apply hwf.congr
     <;> intros
     <;> (try simp only [Fin.getElem_fin])
     <;> rw [heapifyDown_getElem_of_not_inSubtree' _ (by grind only [InSubtree.not_of_lt])]
@@ -332,7 +332,7 @@ theorem toSortedArray.loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α)
   · rename_i h_some
     rw [max_eq_arr_zero h_some]
     have hpos := size_pos_of_max h_some
-    apply toSortedArray.loop_perm heap.popMax (out.push _) |>.trans
+    apply toSortedArray.loop_perm .. |>.trans
     simp only [Array.toList_push]
     apply List.perm_append_comm.append_left _ |>.trans
     simp only [← List.append_assoc]
@@ -344,7 +344,7 @@ theorem toSortedArray.loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α)
 theorem toSortedArray_perm [Ord α] (heap : BinaryHeap α) :
     heap.toSortedArray.Perm heap.arr := by
   apply Array.Perm.of_toList_perm
-  apply toSortedArray.loop_perm heap #[] |>.trans
+  apply toSortedArray.loop_perm heap _ |>.trans
   simp
 
 theorem mkHeap.loop_perm [Ord α] {a : Vector α sz} {h : n ≤ sz} :
@@ -439,9 +439,8 @@ theorem insert_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : heap
     (heap.insert x).WF := by
   apply WF.of_topDown
   apply heapifyUp_topDown
-  . intro i _
+  . intro i _ h_nz
     rw [WF, WF.TopDown.iff_bottomUp, WF.BottomUp] at h_wf
-    intro h_nz
     simp only [Fin.getElem_fin]
     rw [Vector.getElem_push_lt, Vector.getElem_push_lt]
     exact h_wf ⟨i.val, by grind only⟩ h_nz
@@ -468,8 +467,7 @@ theorem mem_iff_get [Ord α] {heap : BinaryHeap α} :
 @[grind .]
 theorem max_ge_all [Ord α] [Std.TransOrd α]
     {heap : BinaryHeap α} {y: α} (hwf : WF heap) (h_in: y ∈ heap) (h_ne : heap.size > 0) :
-    let root := heap.max.get (by simp_all [max, size])
-    compare root y |>.isGE := by
+    compare (heap.max.get <| by simp_all [max,size]) y |>.isGE := by
   have ⟨idx, h_sz, h_ge⟩ := Array.mem_iff_getElem.mp h_in
   simpa [vector, max, h_ge] using hwf.toTopDown.root_ge_all h_ne ⟨idx, h_sz⟩
 
@@ -666,7 +664,7 @@ theorem Array.heapSort_perm [instOrd : Ord α] {a : Array α} : a.heapSort.Perm 
   exact mkHeap_perm
 
 @[simp]
-theorem Array.size_heapSort [instOrd : Ord α] {a : Array α} : a.heapSort.size = a.size :=
+theorem Array.size_heapSort [Ord α] {a : Array α} : a.heapSort.size = a.size :=
   Array.heapSort_perm.size_eq
 
 /-- `heapSort` produces a sorted array. -/
