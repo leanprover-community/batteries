@@ -479,8 +479,7 @@ theorem max_ge_all [Ord α] [Std.TransOrd α]
     let root := heap.max.get (by simp_all [max, size])
     compare root y |>.isGE := by
   have ⟨idx, h_sz, h_ge⟩ := Array.mem_iff_getElem.mp h_in
-  have := hwf.toTopDown.root_ge_all h_ne ⟨idx, h_sz⟩
-  simp_all [vector, max]
+  simpa [vector, max, h_ge] using hwf.toTopDown.root_ge_all h_ne ⟨idx, h_sz⟩
 
 /-- Removing the maximum element from a well-formed heap preserves well-formedness. -/
 theorem popMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF heap) :
@@ -568,11 +567,9 @@ theorem extractMax_empty [Ord α] : (empty : BinaryHeap α).extractMax = (none, 
 /-- Elements in popMax were in the original heap -/
 theorem mem_of_mem_popMax [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ heap.popMax) :
     x ∈ heap := by
-  have hperm := popMax_perm (heap := heap)
   by_cases h_sz : heap.size = 0
   · simp_all [popMax, mem_def]
-  · have h_pos : 0 < heap.size := by omega
-    have hmem := hperm h_pos |>.mem_iff (a := x)
+  · have hmem := popMax_perm (heap := heap) (by omega) |>.mem_iff (a := x)
     simp_all [mem_def]
 
 /-- Decreasing a key value in a well-formed heap and reheapifying downward preserves
