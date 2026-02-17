@@ -27,100 +27,110 @@ arrays, remove duplicates and then compare them elementwise.
 def equalSet [BEq α] (xs ys : Array α) : Bool :=
   xs.all (ys.contains ·) && ys.all (xs.contains ·)
 
-set_option linter.unusedVariables.funArgs false in
 /--
 Returns the first minimal element among `d` and elements of the array.
-If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+If `start` and `stop` are given, only the subarray `xs[start...stop]` is
 considered (in addition to `d`).
 -/
 @[inline]
-protected def minWith [ord : Ord α]
+protected def rangeMinWith [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
   xs.foldl (init := d) (start := start) (stop := stop) fun min x =>
     if compare x min |>.isLT then x else min
 
-set_option linter.unusedVariables.funArgs false in
+@[inherit_doc Array.rangeMinWith, deprecated Array.rangeMinWith (since := "2026-01-08")]
+protected def minWith := @Array.rangeMinWith
+
 /--
 Find the first minimal element of an array. If the array is empty, `d` is
-returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+returned. If `start` and `stop` are given, only the subarray `xs[start...stop]` is
 considered.
 -/
 @[inline]
-protected def minD [ord : Ord α]
+protected def rangeMinD [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
   if h: start < xs.size ∧ start < stop then
-    xs.minWith xs[start] (start + 1) stop
+    xs.rangeMinWith xs[start] (start + 1) stop
   else
     d
 
-set_option linter.unusedVariables.funArgs false in
+@[inherit_doc Array.rangeMinD, deprecated Array.rangeMinD (since := "2026-01-08")]
+protected def minD := @Array.rangeMinD
+
 /--
 Find the first minimal element of an array. If the array is empty, `none` is
-returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+returned. If `start` and `stop` are given, only the subarray `xs[start...stop]` is
 considered.
 -/
 @[inline]
-protected def min? [ord : Ord α]
+protected def rangeMin? [ord : Ord α]
     (xs : Array α) (start := 0) (stop := xs.size) : Option α :=
   if h : start < xs.size ∧ start < stop then
-    some $ xs.minD xs[start] start stop
+    some $ xs.rangeMinD xs[start] start stop
   else
     none
 
-set_option linter.unusedVariables.funArgs false in
 /--
 Find the first minimal element of an array. If the array is empty, `default` is
-returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+returned. If `start` and `stop` are given, only the subarray `xs[start...stop]` is
 considered.
 -/
 @[inline]
-protected def minI [ord : Ord α] [Inhabited α]
+protected def rangeMinI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
-  xs.minD default start stop
+  xs.rangeMinD default start stop
 
-set_option linter.unusedVariables.funArgs false in
+@[inherit_doc Array.rangeMinI, deprecated Array.rangeMinI (since := "2026-01-08")]
+protected def minI := @Array.rangeMinI
+
 /--
 Returns the first maximal element among `d` and elements of the array.
-If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+If `start` and `stop` are given, only the subarray `xs[start...stop]` is
 considered (in addition to `d`).
 -/
 @[inline]
-protected def maxWith [ord : Ord α]
+protected def rangeMaxWith [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
-  xs.minWith (ord := ord.opposite) d start stop
+  xs.rangeMinWith (ord := ord.opposite) d start stop
 
-set_option linter.unusedVariables.funArgs false in
+@[inherit_doc Array.rangeMaxWith, deprecated Array.rangeMaxWith (since := "2026-01-08")]
+protected def maxWith := @Array.rangeMaxWith
+
 /--
 Find the first maximal element of an array. If the array is empty, `d` is
-returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+returned. If `start` and `stop` are given, only the subarray `xs[start...stop]` is
 considered.
 -/
 @[inline]
-protected def maxD [ord : Ord α]
+protected def rangeMaxD [ord : Ord α]
     (xs : Array α) (d : α) (start := 0) (stop := xs.size) : α :=
-  xs.minD (ord := ord.opposite) d start stop
+  xs.rangeMinD (ord := ord.opposite) d start stop
 
-set_option linter.unusedVariables.funArgs false in
+@[inherit_doc Array.rangeMaxD, deprecated Array.rangeMaxD (since := "2026-01-08")]
+protected def maxD := @Array.rangeMaxD
+
 /--
 Find the first maximal element of an array. If the array is empty, `none` is
-returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+returned. If `start` and `stop` are given, only the subarray `xs[start...stop]` is
 considered.
 -/
 @[inline]
-protected def max? [ord : Ord α]
+protected def rangeMax? [ord : Ord α]
     (xs : Array α) (start := 0) (stop := xs.size) : Option α :=
-  xs.min? (ord := ord.opposite) start stop
+  xs.rangeMin? (ord := ord.opposite) start stop
 
-set_option linter.unusedVariables.funArgs false in
 /--
 Find the first maximal element of an array. If the array is empty, `default` is
-returned. If `start` and `stop` are given, only the subarray `xs[start:stop]` is
+returned. If `start` and `stop` are given, only the subarray `xs[start...stop]` is
 considered.
 -/
 @[inline]
-protected def maxI [ord : Ord α] [Inhabited α]
+protected def rangeMaxI [ord : Ord α] [Inhabited α]
     (xs : Array α) (start := 0) (stop := xs.size) : α :=
-  xs.minI (ord := ord.opposite) start stop
+  xs.rangeMinI (ord := ord.opposite) start stop
+
+@[inherit_doc Array.rangeMaxI, deprecated Array.rangeMaxI (since := "2026-01-08")]
+protected def maxI := @Array.rangeMaxI
 
 @[deprecated set (since := "2026-02-02")]
 alias setN := set

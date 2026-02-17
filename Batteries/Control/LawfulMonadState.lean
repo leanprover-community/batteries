@@ -222,4 +222,4 @@ instance {m σ ρ} [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadSta
 
 instance {m ω σ} [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m] :
     LawfulMonadStateOf σ (StateRefT' ω σ m) :=
-  inferInstanceAs (LawfulMonadStateOf σ (ReaderT _ _))
+  inferInstanceAs (LawfulMonadStateOf σ (ReaderT (ST.Ref ω σ) m))
