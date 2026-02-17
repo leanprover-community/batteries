@@ -605,15 +605,12 @@ private theorem toSortedArray.loop_sorted [Ord α] [Std.TransOrd α] {heap : Bin
   · exact popMax_wf hwf
   · have : x ∈ heap := by simp_all [BinaryHeap.mem_def, BinaryHeap.max, Array.mem_of_getElem? h]
     rw [Array.toList_push, List.pairwise_append]
-    refine ⟨by assumption, by simp, ?_⟩
-    intros
-    simp_all
+    refine ⟨by assumption, by simp, by simp_all⟩
   · have hx_ge_heap : ∀ y ∈ heap, compare x y |>.isGE := fun _ hy => by
       simpa [h] using max_ge_all hwf hy h_pos
     intro _ _ _ hy
     rw [Array.mem_push] at hy
-    cases hy
-    all_goals simp_all [mem_of_mem_popMax]
+    cases hy <;> simp_all [mem_of_mem_popMax]
 
 /-- toSortedArray produces a sorted array if the heap is well-formed -/
 theorem toSortedArray_sorted [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (hwf : WF heap) :
