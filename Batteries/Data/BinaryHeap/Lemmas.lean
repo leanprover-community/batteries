@@ -595,7 +595,7 @@ theorem increaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
 /-- The inner loop of toSortedArray produces a sorted array -/
 private theorem toSortedArray.loop_sorted [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {out : Array α} (hwf : WF heap) (h_out_sorted : out.toList.Pairwise (compare · · |>.isGE))
-    (h_heap_le_out : ∀ x ∈ heap, ∀ y ∈ out, compare y x |>.isGE) :
+    (h_heap_le_out : ∀ x ∈ out, ∀ y ∈ heap, compare x y |>.isGE) :
     (toSortedArray.loop heap out).toList.Pairwise (compare · · |>.isGE) := by
   unfold toSortedArray.loop
   split <;> try assumption
@@ -603,12 +603,12 @@ private theorem toSortedArray.loop_sorted [Ord α] [Std.TransOrd α] {heap : Bin
   have h_pos : 0 < heap.size := size_pos_of_max h
   apply toSortedArray.loop_sorted
   · exact popMax_wf hwf
-  · have : x ∈ heap := by simp_all [BinaryHeap.mem_def, BinaryHeap.max, Array.mem_of_getElem? h]
+  · have : x ∈ heap := by simp_all [mem_def, max, Array.mem_of_getElem? h]
     rw [Array.toList_push, List.pairwise_append]
     exact ⟨by assumption, by simp, by simp_all⟩
   · have hx_ge_heap : ∀ y ∈ heap, compare x y |>.isGE := fun _ hy => by
       simpa [h] using max_ge_all hwf hy h_pos
-    intro _ _ _ hy
+    intro _ hy
     rw [Array.mem_push] at hy
     cases hy <;> simp_all [mem_of_mem_popMax]
 
