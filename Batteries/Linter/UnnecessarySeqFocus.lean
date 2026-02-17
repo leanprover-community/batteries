@@ -149,6 +149,7 @@ partial def markUsedTactics : InfoTree → M ω Unit
   | .context _ t => markUsedTactics t
   | .hole _ => pure ()
 
+
 end
 
 @[inherit_doc Batteries.Linter.linter.unnecessarySeqFocus]
