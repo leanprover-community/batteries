@@ -471,7 +471,7 @@ theorem max_ge_all [Ord α] [Std.TransOrd α]
     {heap : BinaryHeap α} (hwf : WF heap) (h_in: y ∈ heap) (h_ne : heap.size > 0) :
     compare (heap.max.get <| by simp_all [max,size]) y |>.isGE := by
   have ⟨idx, h_sz, h_ge⟩ := Array.mem_iff_getElem.mp h_in
-  simpa [vector, max, h_ge] using hwf.toTopDown.root_ge_all h_ne ⟨idx, h_sz⟩
+  simpa [vector, max, h_ge] using hwf.root_ge_all h_ne ⟨idx, h_sz⟩
 
 /-- Removing the maximum element from a well-formed heap preserves well-formedness. -/
 @[simp, grind .]
@@ -500,7 +500,7 @@ theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h
   split
   · exact h_wf
   · split
-    · exact .of_topDown <| .of_root_and_below <| heapifyDown_topDown h_wf.toTopDown.below_of_set
+    · exact .of_topDown <| .of_root_and_below <| heapifyDown_topDown h_wf.below_of_set
     · exact h_wf
 
 @[simp, grind =]
@@ -570,7 +570,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare (heap.get i) x |>.isGE) :
     WF (heap.decreaseKey i x) := by
   apply WF.of_topDown
-  have htd := h_wf.toTopDown
+  have htd : WF.TopDown heap.vector := h_wf
   have hbelow : WF.Below (heap.vector.set i x _) i := htd.below_of_set
   have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_topDown hbelow
   refine .of_children_below_and_above hchildren_i hbelow_i ?_
@@ -586,7 +586,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
 theorem increaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare x (heap.get i) |>.isGE) :
     WF (heap.increaseKey i x) :=
-  have hbu := h_wf.toBottomUp
+  have hbu : WF.BottomUp heap.vector := rwa [WF, WF.TopDown.iff_bottomUp] at h_wf
   .of_topDown <|
     heapifyUp_topDown (.set_of_ge hbu h_ge) (.set_of_ge hbu h_ge)
 

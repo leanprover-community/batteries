@@ -33,9 +33,6 @@ def WF [Ord α] (heap : BinaryHeap α) : Prop :=
 
 end
 
-def WF.topDown [Ord α] {heap : BinaryHeap α} (hwf : WF heap) : WF.TopDown heap.vector := by
-  rwa [WF] at hwf
-
 /-- `WF.children` depends only on the values at position `k` and its two children.
     If those values agree between two vectors, `WF.children` transfers. -/
 theorem WF.Children.congr [Ord α] {a b : Vector α sz} {k : Fin sz}
@@ -290,10 +287,6 @@ theorem TopDown.iff_bottomUp [Ord α] [Std.OrientedOrd α] {a : Vector α sz} :
     case' left  => have := hbu ⟨2 * i.val + 1, hchild⟩
     case' right => have := hbu ⟨2 * i.val + 2, hchild⟩
     all_goals grind only [Parent, = Fin.getElem_fin]
-
-theorem toBottomUp [Ord α] [Std.OrientedOrd α] {heap : BinaryHeap α} (hwf : WF heap)
-    : BottomUp heap.vector := by
-  rwa [WF, TopDown.iff_bottomUp] at hwf
 
 /-- If exception is at 0, then bottomUp holds -/
 theorem BottomUp.of_exceptAt_root [Ord α] {a : Vector α sz} (h : 0 < sz)
