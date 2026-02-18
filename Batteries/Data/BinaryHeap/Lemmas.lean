@@ -433,7 +433,7 @@ theorem size_increaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x 
     (heap.increaseKey i x).size = heap.size := by
   simp [increaseKey, size]
 
-@[grind .]
+@[simp, grind .]
 theorem insert_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : heap.WF) :
     (heap.insert x).WF := by
   apply WF.of_topDown
@@ -462,7 +462,7 @@ theorem mem_iff_get [Ord α] {heap : BinaryHeap α} :
     a ∈ heap ↔ ∃ i : Fin heap.size, heap.get i = a := by
   simp_all [mem_def, get, Array.mem_iff_getElem, size, Fin.exists_iff]
 
-@[grind .]
+@[simp, grind .]
 theorem max_ge_all [Ord α] [Std.TransOrd α]
     {heap : BinaryHeap α} {y: α} (hwf : WF heap) (h_in: y ∈ heap) (h_ne : heap.size > 0) :
     compare (heap.max.get <| by simp_all [max,size]) y |>.isGE := by
@@ -470,7 +470,7 @@ theorem max_ge_all [Ord α] [Std.TransOrd α]
   simpa [vector, max, h_ge] using hwf.toTopDown.root_ge_all h_ne ⟨idx, h_sz⟩
 
 /-- Removing the maximum element from a well-formed heap preserves well-formedness. -/
-@[grind .]
+@[simp, grind .]
 theorem popMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF heap) :
     WF (heap.popMax) := by
   unfold popMax
@@ -482,7 +482,7 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF h
     . grind only [WF.Children, WF.TopDown]
 
 /-- Replacing the maximum element in a well-formed heap preserves well-formedness. -/
-@[grind .]
+@[simp, grind .]
 theorem replaceMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF heap) :
     WF (heap.replaceMax x).2 := by
   unfold replaceMax
@@ -491,7 +491,7 @@ theorem replaceMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : 
   · apply WF.TopDown.iff_root_and_below.mp
     exact heapifyDown_topDown (.of_topDown_set h_wf)
 
-@[grind .]
+@[simp, grind .]
 theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF heap) :
     WF (heap.insertExtractMax x).2 := by
   have htd : WF.TopDown heap.vector := by rwa [WF] at h_wf
@@ -568,7 +568,7 @@ theorem mem_of_mem_popMax [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ he
 
 /-- Decreasing a key value in a well-formed heap and reheapifying downward preserves
   well-formedness. -/
-@[grind .]
+@[simp, grind .]
 theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare (heap.get i) x |>.isGE) :
     WF (heap.decreaseKey i x) := by
@@ -588,7 +588,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
 
 /-- Increasing a key value in a well-formed heap and reheapifying upward preserves well-formedness.
   -/
-@[grind .]
+@[simp, grind .]
 theorem increaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare x (heap.get i) |>.isGE) :
     WF (heap.increaseKey i x) :=
@@ -636,12 +636,12 @@ public section
 open Batteries.BinaryHeap
 
 /-- Converting an array to a binary heap produces a well-formed heap. -/
-@[grind .]
+@[simp, grind .]
 theorem Array.toBinaryHeap_wf [Ord α] [Std.TransOrd α] {a : Array α} : WF (a.toBinaryHeap) := by
   simp [WF.of_topDown, Array.toBinaryHeap]
 
 /-- Converting a vector to a binary heap produces a well-formed heap. -/
-@[grind .]
+@[simp, grind .]
 theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] {a : Vector α sz} :
     WF (Batteries.Vector.toBinaryHeap a) := by
   simp [WF.of_topDown, Vector.toBinaryHeap]
