@@ -482,7 +482,7 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF h
   . exact h_wf
   . split <;> apply WF.of_topDown
     . apply WF.TopDown.iff_root_and_below.mp
-      exact heapifyDown_topDown (.of_topDown_swap_pop h_wf (by omega))
+      exact heapifyDown_topDown <| h_wf.below_swap_pop (by omega)
     . grind only [WF.Children, WF.TopDown]
 
 /-- Replacing the maximum element in a well-formed heap preserves well-formedness. -/
@@ -492,20 +492,16 @@ theorem replaceMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : 
   unfold replaceMax
   split <;> apply WF.of_topDown
   · simp_all [WF.TopDown, WF.Children]
-  · apply WF.TopDown.iff_root_and_below.mp
-    exact heapifyDown_topDown (.of_topDown_set h_wf)
+  · exact .iff_root_and_below |>.mp (heapifyDown_topDown h_wf.set_below)
 
 @[simp, grind .]
 theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF heap) :
     WF (heap.insertExtractMax x).2 := by
-  have htd : WF.TopDown heap.vector := by rwa [WF] at h_wf
   unfold insertExtractMax
   split
   · exact h_wf
   · split
-    · apply WF.of_topDown
-      apply WF.TopDown.iff_root_and_below.mp
-      exact heapifyDown_topDown (.of_topDown_set htd)
+    · exact .of_topDown (.iff_root_and_below |>.mp (heapifyDown_topDown h_wf.toTopDown.set_below))
     · exact h_wf
 
 @[simp, grind =]
@@ -529,13 +525,11 @@ theorem insertExtractMax_fst_of_not_lt [Ord α] {heap : BinaryHeap α}
   grind only [insertExtractMax]
 
 @[simp, grind =]
-theorem insertExtractMax_empty [Ord α] (x : α) :
-    empty.insertExtractMax x = (x, empty) := by
+theorem insertExtractMax_empty [Ord α] (x : α) : empty.insertExtractMax x = (x, empty) := by
   simp [insertExtractMax, empty, max]
 
 @[simp, grind =]
-theorem replaceMax_empty [Ord α] (x : α) :
-    empty.replaceMax x = (none, singleton x) := by
+theorem replaceMax_empty [Ord α] (x : α) : empty.replaceMax x = (none, singleton x) := by
   simp [replaceMax, empty, singleton, max, vector]
 
 @[simp, grind =]
@@ -563,7 +557,7 @@ theorem extractMax_empty [Ord α] : (empty : BinaryHeap α).extractMax = (none, 
   simp [extractMax]
 
 /-- Elements in popMax were in the original heap -/
-theorem mem_of_mem_popMax [Ord α] {heap : BinaryHeap α} {x : α} (h : x ∈ heap.popMax) :
+theorem mem_of_mem_popMax [Ord α] {heap : BinaryHeap α} (h : x ∈ heap.popMax) :
     x ∈ heap := by
   by_cases h_sz : heap.size = 0
   · simp_all [popMax, mem_def]
@@ -577,18 +571,15 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare (heap.get i) x |>.isGE) :
     WF (heap.decreaseKey i x) := by
   apply WF.of_topDown
-  have htd : WF.TopDown heap.vector := by rwa [WF] at h_wf
-  have hbelow : WF.Below (heap.vector.set i x _) i := WF.Below.of_topDown_set htd
+  have htd := h_wf.toTopDown
+  have hbelow : WF.Below (heap.vector.set i x _) i := htd.set_below
   have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_topDown hbelow
   refine .of_children_below_and_above hchildren_i hbelow_i ?_
   intro k hki
   by_cases hk_parent : k.val = (i.val - 1) / 2 ∧ 0 < i.val
   · rw [show k = ⟨_, _⟩ from Fin.ext hk_parent.1]
     exact heapifyDown_set_of_le_preserves_children htd h_ge hk_parent.2
-  · have hleft : i.val ≠ 2 * k.val + 1 := by omega
-    have hright : i.val ≠ 2 * k.val + 2 := by omega
-    apply heapifyDown_get_of_not_child hki _ hleft hright
-    exact (htd k).set_of_ne (by omega) hleft hright
+  · grind only [heapifyDown_get_of_not_child, (htd k).set_of_ne]
 
 /-- Increasing a key value in a well-formed heap and reheapifying upward preserves well-formedness.
   -/

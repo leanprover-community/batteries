@@ -115,17 +115,17 @@ theorem Children.set_of_ne [Ord α] {v : Vector α sz} {i k : Fin sz}
     (hwf : WF.Children v k) (hki : i.val ≠ k.val)
     (hleft_ne : i.val ≠ 2 * k.val + 1) (hright_ne : i.val ≠ 2 * k.val + 2) :
     WF.Children (v.set i x i.isLt) k := by
-  apply WF.Children.congr hwf <;> simp_all
+  simp_all [hwf.congr]
 
 /-- Setting a child to a smaller value preserves WF.Children at the parent -/
 theorem Children.set_of_ge_child [Ord α] [Std.TransOrd α] {v : Vector α sz} {k i : Fin sz}
     (hwf : WF.Children v k) (h_child : i.val = 2 * k.val + 1 ∨ i.val = 2 * k.val + 2)
     (h_ge : compare v[k] x |>.isGE) :
     WF.Children (v.set i x i.isLt) k := by
-  grind only [WF.Children, = Fin.getElem_fin, = Vector.getElem_set]
+  grind only [WF.Children, Vector.getElem_set, Fin.getElem_fin]
 
 /-- Setting a smaller value preserves WF.Below -/
-theorem Below.of_topDown_set [Ord α] {v : Vector α sz} {i : Fin sz} (htd : WF.TopDown v) :
+theorem TopDown.set_below [Ord α] {v : Vector α sz} {i : Fin sz} (htd : WF.TopDown v) :
     WF.Below (v.set i x i.isLt) i := by
   intro j hj
   apply (htd j).set_of_ne <;> omega
@@ -338,7 +338,7 @@ theorem ParentGeChildren.set_of_ge [Ord α] [Std.TransOrd α]
 
 /-- Swapping the root with the last element and then popping maintains the Below invariant at the
   root for heapifyDown. -/
-theorem Below.of_topDown_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.TopDown a) (h0 : 0 < sz) :
+theorem TopDown.below_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.TopDown a) (h0 : 0 < sz) :
     WF.Below (a.swap 0 (sz - 1) h0 (by omega) |>.pop) 0 := by
   intro j _
   have ⟨hwf_l, hwf_r⟩ := hwf ⟨j.val, by omega⟩
