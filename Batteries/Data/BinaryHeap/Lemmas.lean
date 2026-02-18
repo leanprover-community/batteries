@@ -10,7 +10,7 @@ import all Batteries.Data.BinaryHeap.WF
 import all Batteries.Data.BinaryHeap.Basic
 
 /-! ### Utility lemmas -/
-section Utility
+section Util
 
 theorem Ordering.isGE_of_swap_isLT [Ord α] [Std.OrientedOrd α]
     {x y : α} (hlt : compare x y |>.isLT) :
@@ -48,7 +48,11 @@ theorem Vector.swap_last_pop_perm {v : Vector α (n+1)} {i : Fin (n+1)} (hi : i.
   apply Vector.last_cons_pop_perm.trans
   exact Vector.swap_perm (by omega) (by omega) |>.toList
 
-end Utility
+theorem Ord.compare_opposite [instOrd: Ord α] (x y : α) :
+    instOrd.compare x y = instOrd.opposite.compare y x :=
+  rfl
+
+end Util
 
 namespace Batteries.BinaryHeap
 
@@ -450,7 +454,7 @@ theorem mem_empty [Ord α] {x : α} : ¬x ∈ empty := by
   simp [mem_def, empty]
 
 @[grind =]
-theorem mem_singleton [Ord α] {x y : α} : x ∈ singleton y ↔ x = y := by
+theorem mem_singleton [Ord α] {x : α} : x ∈ singleton y ↔ x = y := by
   simp [mem_def, singleton]
 
 @[grind =]
@@ -464,7 +468,7 @@ theorem mem_iff_get [Ord α] {heap : BinaryHeap α} :
 
 @[simp, grind .]
 theorem max_ge_all [Ord α] [Std.TransOrd α]
-    {heap : BinaryHeap α} {y: α} (hwf : WF heap) (h_in: y ∈ heap) (h_ne : heap.size > 0) :
+    {heap : BinaryHeap α} (hwf : WF heap) (h_in: y ∈ heap) (h_ne : heap.size > 0) :
     compare (heap.max.get <| by simp_all [max,size]) y |>.isGE := by
   have ⟨idx, h_sz, h_ge⟩ := Array.mem_iff_getElem.mp h_in
   simpa [vector, max, h_ge] using hwf.toTopDown.root_ge_all h_ne ⟨idx, h_sz⟩
@@ -681,6 +685,6 @@ theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] {a : Array α
   apply List.Pairwise.imp _ (toSortedArray_sorted Array.toBinaryHeap_wf)
   intro a b hge
   rw [Std.OrientedOrd.eq_swap] at hge
-  simp_all [show instOrd.compare a b = instOrd.opposite.compare b a from rfl]
+  simp_all [instOrd.compare_opposite a b]
 
 end
