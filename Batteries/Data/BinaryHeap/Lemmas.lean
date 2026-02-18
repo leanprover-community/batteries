@@ -315,10 +315,9 @@ theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
   simp only [hne, reduceDIte]
   split <;> rename_i hsz
   · apply heapifyDown_perm.toList.cons _ |>.trans
-    apply Vector.swap_last_pop_perm (v := heap.vector.cast (by omega)) (i := ⟨0, by omega⟩)
-    omega
+    exact heap.vector.cast (by omega) |>.swap_last_pop_perm (i := ⟨0, by omega⟩) (by omega)
   · simpa [show heap.size = 1 by omega]
-      using Vector.last_cons_pop_perm (v := heap.vector.cast (by omega))
+      using heap.vector.cast (by omega) |>.last_cons_pop_perm
 
 /-- When max returns some, the value equals arr[0]. -/
 theorem max_eq_arr_zero [Ord α] {heap : BinaryHeap α} (h : heap.max = some x) :
