@@ -108,16 +108,14 @@ theorem Below.of_le {a : Vector α sz} [Ord α]
 theorem Below.swap [Ord α] {a : Vector α sz} {i j : Fin sz} (hbelow : WF.Below a i) (hij : i
   < j) :
     WF.Below (a.swap i j i.isLt j.isLt) j := by
-  intro k hk_gt_j
-  apply hbelow k (Nat.lt_trans hij hk_gt_j) |>.congr
-    <;> intros <;> apply Vector.getElem_swap_of_ne <;> omega
+  grind only [Fin.getElem_fin, Vector.getElem_swap_of_ne, WF.Below, WF.Children]
 
 /-- For k ≠ i where neither child of k equals i, set at i preserves WF.children at k -/
 theorem Children.set_of_ne [Ord α] {v : Vector α sz} {i k : Fin sz}
     (hwf : WF.Children v k) (hki : k.val ≠ i.val)
     (hleft_ne : i.val ≠ 2 * k.val + 1) (hright_ne : i.val ≠ 2 * k.val + 2) :
     WF.Children (v.set i x i.isLt) k := by
-  apply hwf.congr <;> intros <;> apply Vector.getElem_set_ne <;> omega
+  grind only [WF.Children, Vector.getElem_set_ne, Fin.getElem_fin]
 
 /-- Setting a child to a smaller value preserves WF.Children at the parent -/
 theorem Children.set_of_ge_child [Ord α] [Std.TransOrd α] {v : Vector α sz} {k i : Fin sz}
@@ -159,9 +157,9 @@ theorem parent_ge_subtree [Ord α] [Std.TransOrd α]
   induction hsub
   case refl => grind only [Ordering.isGE]
   all_goals
-    have ⟨hwf_m, _⟩ : WF.Children a ⟨‹_›, by omega⟩ := by
+    have ⟨_, _⟩ : WF.Children a ⟨‹_›, by omega⟩ := by
       grind only [WF.Below, InSubtree.not_of_lt]
-    grind only [= Fin.getElem_fin, !Std.TransOrd.isGE_trans]
+    grind only [WF.Children, = Fin.getElem_fin, !Std.TransOrd.isGE_trans]
 
 /-- If v dominates the new value at j, v dominated the original value at j,
     the original array was well-formed at and below j, and b agrees with a outside position j,
@@ -188,8 +186,7 @@ theorem TopDown.parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] {v : Vector 
     (compare v[(i.val - 1) / 2] (v.set i x i.isLt)[m]).isGE := by
   let parent : Fin sz := ⟨(i.val - 1) / 2, by omega⟩
   have h_parent_ge_i : (compare v[parent] v[i]).isGE := by
-    have ⟨_, _⟩ := htd parent
-    grind only [= Fin.getElem_fin]
+    grind only [htd parent, = Fin.getElem_fin, WF.Children]
   have ⟨h_child, h_below⟩ := htd.children_and_below i
   apply ge_subtree_of_modify h_parent_ge_i h_child h_below
   . simp only [Fin.getElem_fin, Vector.getElem_set_self]
@@ -252,7 +249,7 @@ theorem ExceptAt.swap_parent [Ord α] [Std.TransOrd α]
   · simp_all
   · by_cases hk_child_of_i : (k.val - 1) / 2 = i.val
     · grind only [Vector.getElem_swap, Fin.getElem_fin, ParentGeChildren]
-    · unfold ExceptAt Parent at *
+    · unfold ExceptAt Parent at hexcept
       grind only [= Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isGE_trans]
 
 /-- If exceptAt a i, swap preserves parentGeChildren at parent -/
@@ -271,7 +268,7 @@ theorem ParentGeChildren.swap_parent [Ord α] [Std.TransOrd α]
     unfold ExceptAt Parent at hexcept
     by_cases hli : i.val = targetIdx
     · grind only [= Fin.getElem_fin, = Vector.getElem_swap]
-    · have h1 := hexcept ⟨targetIdx, hside⟩ (by grind only) (by grind only)
+    · have h1 := hexcept ⟨targetIdx, hside⟩ (by lia) (by lia)
       grind only [= Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isGE_trans]
 
 /- Dual global correctness property to `WF`. The vector underlying a BinaryHeap is well-formed
@@ -322,26 +319,22 @@ theorem ExceptAt.set_of_ge [Ord α] [Std.TransOrd α]
     (hbu : WF.BottomUp v) (h_ge : compare x v[i] |>.isGE) :
     ExceptAt (v.set i x i.isLt) i := by
   intro j hji hj_pos
-  have hj_parent := hbu j hj_pos
+  have := hbu j hj_pos
   grind only [= Fin.getElem_fin, Vector.getElem_set, !Std.TransOrd.isGE_trans]
 
 /-- Setting a larger value preserves WF.parentGeChildren when original heap is well-formed -/
 theorem ParentGeChildren.set_of_ge [Ord α] [Std.TransOrd α]
     {v : Vector α sz} {i : Fin sz} (hbu : WF.BottomUp v) (h_ge : compare x v[i] |>.isGE) :
     ParentGeChildren (v.set i x i.isLt) i := by
-  let parent := (i.val - 1) / 2
   have htd : WF.TopDown v := by rwa [← WF.TopDown.iff_bottomUp] at hbu
   have ⟨htd_left, htd_right⟩ := htd i
   constructor
   all_goals
     intro
     by_cases hi : i.val = 0
-    · simp_all only [Vector.getElem_set, reduceCtorEq]
-      apply Std.TransOrd.isGE_trans h_ge
-      lia
-    · repeat rw [Vector.getElem_set_ne _ _ (by omega)]
-      apply Std.TransOrd.isGE_trans (hbu i (by omega))
-      apply_assumption
+    · grind only [Std.TransOrd.isGE_trans, Vector.getElem_set]
+    · have := hbu i (by omega)
+      grind only [Std.TransOrd.isGE_trans, Vector.getElem_set_ne]
 
 /-- Swapping the root with the last element and then popping maintains the Below invariant at the
   root for heapifyDown. -/
@@ -356,16 +349,12 @@ theorem Below.of_topDown_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.TopDown 
 
 /-- Prove WF.Children for all k ≥ lo by splitting at pivot i:
     k > i from hbelow, k = i from hchildren, k ∈ [lo, i) from hrange -/
-theorem Children.of_split [Ord α] {a : Vector α sz} {lo : Nat} {i : Fin sz}
+theorem children_split [Ord α] {a : Vector α sz} {lo : Nat} {i : Fin sz}
     (hchildren_i : WF.Children a i)
     (hbelow_i : WF.Below a i)
     (hrange : ∀ k : Fin sz, lo ≤ k.val → k.val < i.val → WF.Children a k) :
     ∀ {k : Fin sz}, lo ≤ k.val → WF.Children a k := by
-  intro k hlo
-  rcases Nat.lt_trichotomy i.val k.val with hik | heq | hki
-  · exact hbelow_i k hik
-  · exact Fin.ext heq ▸ hchildren_i
-  · exact hrange k hlo hki
+  grind only [Below]
 
 /-- Build WF.TopDown from WF.Children at i, WF.Below at i, and a proof for positions < i -/
 theorem TopDown.of_children_below_and_above [Ord α] {a : Vector α sz} {i : Fin sz}
@@ -373,7 +362,7 @@ theorem TopDown.of_children_below_and_above [Ord α] {a : Vector α sz} {i : Fin
     (hbelow_i : WF.Below a i)
     (habove : ∀ k : Fin sz, k.val < i.val → WF.Children a k) :
     WF.TopDown a := by
-  grind only [Children.of_split, Below, TopDown]
+  grind only [children_split, Below, TopDown]
 
 /-- Build WF.Below at i from WF.Children at j, WF.Below at j, and a proof for positions between -/
 theorem Below.of_children_below_and_between [Ord α] {a : Vector α sz} {i j : Fin sz}
@@ -381,7 +370,7 @@ theorem Below.of_children_below_and_between [Ord α] {a : Vector α sz} {i j : F
     (hbelow_j : WF.Below a j)
     (hbetween : ∀ k : Fin sz, i.val < k.val → k.val < j.val → WF.Children a k) :
     WF.Below a i := by
-  grind only [Children.of_split, Below]
+  grind only [children_split, Below]
 
 end WF
 end Batteries.BinaryHeap

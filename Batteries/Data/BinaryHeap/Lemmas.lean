@@ -9,7 +9,6 @@ public import Batteries.Data.BinaryHeap.WF
 import all Batteries.Data.BinaryHeap.WF
 import all Batteries.Data.BinaryHeap.Basic
 
-
 /-! ### Utility lemmas -/
 section Utility
 
@@ -209,7 +208,7 @@ theorem heapifyDown_children_of_ge_subtree [Ord α] [Std.TransOrd α]
 
   all_goals
     rw [heapifyDown_getElem_of_not_inSubtree' hside (by grind only [InSubtree.not_of_lt])]
-    first | exact hwf_l hside | exact hwf_r hside
+    apply_assumption
 
 /-- heapifyDown at i preserves WF.Children at parent of i when value decreased -/
 theorem heapifyDown_set_of_le_preserves_children [Ord α] [Std.TransOrd α] {v : Vector α sz}
@@ -455,10 +454,8 @@ theorem mem_singleton [Ord α] {x y : α} : x ∈ singleton y ↔ x = y := by
   simp [mem_def, singleton]
 
 theorem mem_insert [Ord α] {heap : BinaryHeap α} :
-    y ∈ heap.insert x ↔ y = x ∨ y ∈ heap := by
-  simp only [insert, mem_def, Vector.mem_toArray_iff]
-  rw [Vector.Perm.mem_iff heapifyUp_perm]
-  simp_all [vector, or_comm]
+    y ∈ heap.insert x ↔ y ∈ heap ∨ y = x := by
+  simp_all [heapifyUp_perm.mem_iff, insert, vector, mem_def]
 
 theorem mem_iff_get [Ord α] {heap : BinaryHeap α} :
     a ∈ heap ↔ ∃ i : Fin heap.size, heap.get i = a := by
@@ -602,8 +599,7 @@ private theorem toSortedArray.loop_sorted [Ord α] [Std.TransOrd α] {heap : Bin
   apply toSortedArray.loop_sorted
   · exact popMax_wf hwf
   · have : x ∈ heap := by simp_all [mem_def, max, Array.mem_of_getElem? h]
-    rw [Array.toList_push, List.pairwise_append]
-    exact ⟨by assumption, by simp, by simp_all⟩
+    simp_all [List.pairwise_append]
   · have hx_ge_heap : ∀ y ∈ heap, compare x y |>.isGE := fun _ hy => by
       simpa [h] using max_ge_all hwf hy h_pos
     intro _ hy
