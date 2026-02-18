@@ -112,10 +112,10 @@ theorem Below.swap [Ord α] {a : Vector α sz} {i j : Fin sz} (hbelow : WF.Below
 
 /-- For k ≠ i where neither child of k equals i, set at i preserves WF.children at k -/
 theorem Children.set_of_ne [Ord α] {v : Vector α sz} {i k : Fin sz}
-    (hwf : WF.Children v k) (hki : k.val ≠ i.val)
+    (hwf : WF.Children v k) (hki : i.val ≠ k.val)
     (hleft_ne : i.val ≠ 2 * k.val + 1) (hright_ne : i.val ≠ 2 * k.val + 2) :
     WF.Children (v.set i x i.isLt) k := by
-  grind only [WF.Children, Vector.getElem_set_ne, Fin.getElem_fin]
+  apply WF.Children.congr hwf <;> simp_all
 
 /-- Setting a child to a smaller value preserves WF.Children at the parent -/
 theorem Children.set_of_ge_child [Ord α] [Std.TransOrd α] {v : Vector α sz} {k i : Fin sz}

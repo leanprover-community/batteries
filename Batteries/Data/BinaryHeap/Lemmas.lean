@@ -48,7 +48,7 @@ theorem Vector.swap_last_pop_perm {v : Vector α (n+1)} {i : Fin (n+1)} (hi : i.
   apply Vector.last_cons_pop_perm.trans
   exact Vector.swap_perm (by omega) (by omega) |>.toList
 
-theorem Ord.compare_opposite [instOrd: Ord α] (x y : α) :
+theorem Ord.compare_opposite [instOrd: Ord α] {x y : α} :
     instOrd.compare x y = instOrd.opposite.compare y x :=
   rfl
 
@@ -683,8 +683,8 @@ theorem Array.heapSort_sorted [instOrd : Ord α] [Std.TransOrd α] {a : Array α
     a.heapSort.toList.Pairwise (compare · · |>.isLE) := by
   letI := instOrd.opposite
   apply List.Pairwise.imp _ (toSortedArray_sorted Array.toBinaryHeap_wf)
-  intro a b hge
+  intro _ _ hge
   rw [Std.OrientedOrd.eq_swap] at hge
-  simp_all [instOrd.compare_opposite a b]
+  simp_all [instOrd.compare_opposite]
 
 end
