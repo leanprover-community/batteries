@@ -567,18 +567,17 @@ theorem mem_of_mem_popMax [Ord α] {heap : BinaryHeap α} (h : x ∈ heap.popMax
   well-formedness. -/
 @[simp, grind .]
 theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
-    {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare (heap.get i) x |>.isGE) :
+    {i : Fin heap.size} (hwf : WF heap) (h_ge : compare (heap.get i) x |>.isGE) :
     WF (heap.decreaseKey i x) := by
   apply WF.of_topDown
-  have htd : WF.TopDown heap.vector := h_wf
-  have hbelow : WF.Below (heap.vector.set i x _) i := htd.below_of_set
+  have hbelow : WF.Below (heap.vector.set i x _) i := WF.TopDown.below_of_set hwf
   have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_topDown hbelow
   refine .of_children_below_and_above hchildren_i hbelow_i ?_
   intro k hki
   by_cases hk_parent : k.val = (i.val - 1) / 2 ∧ 0 < i.val
   · rw [show k = ⟨_, _⟩ from Fin.ext hk_parent.1]
-    exact heapifyDown_set_of_le_preserves_children htd h_ge hk_parent.2
-  · grind only [heapifyDown_get_of_not_child, (htd k).set_of_ne]
+    exact heapifyDown_set_of_le_preserves_children hwf h_ge hk_parent.2
+  · grind only [heapifyDown_get_of_not_child, (hwf k).set_of_ne]
 
 /-- Increasing a key value in a well-formed heap and reheapifying upward preserves well-formedness.
   -/
