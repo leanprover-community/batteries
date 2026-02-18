@@ -33,8 +33,8 @@ def WF [Ord α] (heap : BinaryHeap α) : Prop :=
 
 end
 
-def WF.toTopDown [Ord α] {heap : BinaryHeap α} (hwf : WF heap) : WF.TopDown heap.vector := by
-  simp_all [WF]
+def WF.topDown [Ord α] {heap : BinaryHeap α} (hwf : WF heap) : WF.TopDown heap.vector := by
+  rwa [WF] at hwf
 
 /-- `WF.children` depends only on the values at position `k` and its two children.
     If those values agree between two vectors, `WF.children` transfers. -/
@@ -125,7 +125,7 @@ theorem Children.set_of_ge_child [Ord α] [Std.TransOrd α] {v : Vector α sz} {
   grind only [WF.Children, Vector.getElem_set, Fin.getElem_fin]
 
 /-- Setting a smaller value preserves WF.Below -/
-theorem TopDown.set_below [Ord α] {v : Vector α sz} {i : Fin sz} (htd : WF.TopDown v) :
+theorem TopDown.below_of_set [Ord α] {v : Vector α sz} {i : Fin sz} (htd : WF.TopDown v) :
     WF.Below (v.set i x i.isLt) i := by
   intro j hj
   apply (htd j).set_of_ne <;> omega
@@ -141,8 +141,8 @@ theorem TopDown.singleton [Ord α] {x : α} : WF.TopDown #v[x] := by
   simp [WF.TopDown, WF.Children]
 
 /-- WF.topDown follows from WF.children at 0 and WF.Below at 0 -/
-theorem TopDown.iff_root_and_below [Ord α] {a : Vector α sz} {h0 : 0 < sz} :
-   WF.Children a ⟨0, h0⟩ ∧  WF.Below a 0 ↔ WF.TopDown a := by
+theorem TopDown.of_root_and_below [Ord α] {a : Vector α sz} {h0 : 0 < sz} :
+   WF.Children a ⟨0, h0⟩ ∧  WF.Below a 0 → WF.TopDown a := by
   grind only [WF.Children, WF.TopDown, WF.Below]
 
 theorem TopDown.children_and_below [Ord α] {a : Vector α sz} (htd : WF.TopDown a) (i : Fin sz) :
@@ -291,6 +291,10 @@ theorem TopDown.iff_bottomUp [Ord α] [Std.OrientedOrd α] {a : Vector α sz} :
     case' right => have := hbu ⟨2 * i.val + 2, hchild⟩
     all_goals grind only [Parent, = Fin.getElem_fin]
 
+theorem toBottomUp [Ord α] [Std.OrientedOrd α] {heap : BinaryHeap α} (hwf : WF heap)
+    : BottomUp heap.vector := by
+  rwa [WF, TopDown.iff_bottomUp] at hwf
+
 /-- If exception is at 0, then bottomUp holds -/
 theorem BottomUp.of_exceptAt_root [Ord α] {a : Vector α sz} (h : 0 < sz)
     (hexcept : ExceptAt a ⟨0, h⟩) :
@@ -338,7 +342,7 @@ theorem ParentGeChildren.set_of_ge [Ord α] [Std.TransOrd α]
 
 /-- Swapping the root with the last element and then popping maintains the Below invariant at the
   root for heapifyDown. -/
-theorem TopDown.below_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.TopDown a) (h0 : 0 < sz) :
+theorem TopDown.below_of_swap_pop [Ord α] {a : Vector α sz} (hwf : WF.TopDown a) (h0 : 0 < sz) :
     WF.Below (a.swap 0 (sz - 1) h0 (by omega) |>.pop) 0 := by
   intro j _
   have ⟨hwf_l, hwf_r⟩ := hwf ⟨j.val, by omega⟩

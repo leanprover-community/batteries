@@ -481,8 +481,7 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF h
   split
   . exact h_wf
   . split <;> apply WF.of_topDown
-    . apply WF.TopDown.iff_root_and_below.mp
-      exact heapifyDown_topDown <| h_wf.below_swap_pop (by omega)
+    . exact .of_root_and_below <| heapifyDown_topDown <| h_wf.below_of_swap_pop (by omega)
     . grind only [WF.Children, WF.TopDown]
 
 /-- Replacing the maximum element in a well-formed heap preserves well-formedness. -/
@@ -492,7 +491,7 @@ theorem replaceMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : 
   unfold replaceMax
   split <;> apply WF.of_topDown
   · simp_all [WF.TopDown, WF.Children]
-  · exact .iff_root_and_below |>.mp (heapifyDown_topDown h_wf.set_below)
+  · exact .of_root_and_below <| heapifyDown_topDown h_wf.below_of_set
 
 @[simp, grind .]
 theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF heap) :
@@ -501,7 +500,7 @@ theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h
   split
   · exact h_wf
   · split
-    · exact .of_topDown (.iff_root_and_below |>.mp (heapifyDown_topDown h_wf.toTopDown.set_below))
+    · exact .of_topDown <| .of_root_and_below <| heapifyDown_topDown h_wf.toTopDown.below_of_set
     · exact h_wf
 
 @[simp, grind =]
@@ -572,7 +571,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     WF (heap.decreaseKey i x) := by
   apply WF.of_topDown
   have htd := h_wf.toTopDown
-  have hbelow : WF.Below (heap.vector.set i x _) i := htd.set_below
+  have hbelow : WF.Below (heap.vector.set i x _) i := htd.below_of_set
   have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_topDown hbelow
   refine .of_children_below_and_above hchildren_i hbelow_i ?_
   intro k hki
@@ -587,7 +586,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
 theorem increaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare x (heap.get i) |>.isGE) :
     WF (heap.increaseKey i x) :=
-  have hbu : WF.BottomUp heap.vector := by rwa [WF, WF.TopDown.iff_bottomUp] at h_wf
+  have hbu := h_wf.toBottomUp
   .of_topDown <|
     heapifyUp_topDown (.set_of_ge hbu h_ge) (.set_of_ge hbu h_ge)
 
