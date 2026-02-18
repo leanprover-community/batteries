@@ -440,13 +440,12 @@ theorem size_increaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x 
 theorem insert_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : heap.WF) :
     (heap.insert x).WF := by
   apply WF.of_topDown
-  apply heapifyUp_topDown
-  . intro i _ h_nz
-    rw [WF, WF.TopDown.iff_bottomUp, WF.BottomUp] at h_wf
-    simp only [Fin.getElem_fin]
-    rw [Vector.getElem_push_lt, Vector.getElem_push_lt]
-    exact h_wf ⟨i.val, by grind only⟩ h_nz
-  . grind only [WF.ParentGeChildren]
+  apply heapifyUp_topDown _ (by grind only [WF.ParentGeChildren])
+  intro i _ h_nz
+  rw [WF, WF.TopDown.iff_bottomUp, WF.BottomUp] at h_wf
+  simp only [Fin.getElem_fin]
+  rw [Vector.getElem_push_lt, Vector.getElem_push_lt]
+  exact h_wf ⟨i.val, by grind only⟩ h_nz
 
 @[simp, grind .]
 theorem mem_empty [Ord α] {x : α} : ¬x ∈ empty := by
@@ -584,7 +583,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
 theorem increaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     {i : Fin heap.size} (h_wf : WF heap) (h_ge : compare x (heap.get i) |>.isGE) :
     WF (heap.increaseKey i x) :=
-  have hbu : WF.BottomUp heap.vector := rwa [WF, WF.TopDown.iff_bottomUp] at h_wf
+  have hbu : WF.BottomUp heap.vector := by rwa [WF, WF.TopDown.iff_bottomUp] at h_wf
   .of_topDown <|
     heapifyUp_topDown (.set_of_ge hbu h_ge) (.set_of_ge hbu h_ge)
 
