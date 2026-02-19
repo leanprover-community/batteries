@@ -195,42 +195,6 @@ where
     | x :: xs, last, acc => do go xs (← f last x) (last :: acc)
 
 /--
-Folds a monadic function over a list from the left, accumulating partial results starting with
-`init`. The accumulated values are combined with the each element of the list in order, using `f`.
--/
-@[inline]
-def scanlM [Monad m] (f : β → α → m β) (init : β) (l : List α) : m (List β) :=
-  List.reverse <$> scanAuxM f init l
-
-/--
-Folds a monadic function over a list from the right, accumulating partial results starting with
-`init`. The accumulated values are combined with the each element of the list in order, using `f`.
--/
-@[inline]
-def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) :=
-  scanAuxM (flip f) init xs.reverse
-
-/--
-Fold a function `f` over the list from the left, returning the list of partial results.
-```
-scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]
-```
--/
-@[inline]
-def scanl (f : β → α → β) (init : β) (as : List α) : List β :=
-  Id.run <| as.scanlM (pure <| f · ·) init
-
-/--
-Fold a function `f` over the list from the right, returning the list of partial results.
-```
-scanr (+) 0 [1, 2, 3] = [6, 5, 3, 0]
-```
--/
-@[inline]
-def scanr (f : α → β → β) (init : β) (as : List α) : List β :=
-  Id.run <| as.scanrM (pure <| f · ·) init
-
-/--
 Fold a list from left to right as with `foldl`, but the combining function
 also receives each element's index added to an optional parameter `start`
 (i.e. the numbers that `f` takes as its first argument will be greater than or equal to `start` and
