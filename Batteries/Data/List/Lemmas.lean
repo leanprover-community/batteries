@@ -40,6 +40,15 @@ attribute [grind =] zipIdx_nil zipIdx_cons
 theorem getElem_mk {xs : List α} {i : Nat} (h : i < xs.length) :
     (Array.mk xs)[i] = xs[i] := List.getElem_toArray h
 
+/-! ### head and tail -/
+
+theorem head_cons_tail : ∀ (l : List α) (hne : l ≠ []), l.head hne :: l.tail = l
+  | _::_, _ => rfl
+
+theorem singleton_head_eq_self (l : List α) (hne : l ≠ []) (htl : l.tail = []) :
+    [l.head hne] = l := by
+  conv => rhs; rw [← head_cons_tail l hne, htl]
+
 /-! ### next? -/
 
 @[simp, grind =] theorem next?_nil : @next? α [] = none := rfl
@@ -345,6 +354,15 @@ theorem Sublist.erase_diff_erase_sublist {a : α} :
       exact (erase_cons_head b _ ▸ h.erase b).erase_diff_erase_sublist
 
 end Diff
+
+/-! ### prefix, suffix, infix -/
+
+theorem singleton_prefix_cons (a) : [a] <+: a :: l :=
+  (prefix_cons_inj a).mpr nil_prefix
+
+theorem ne_nil_of_not_prefix (h : ¬l₁ <+: l₂) : l₁ ≠ [] := by
+  intro heq
+  simp [heq, nil_prefix] at h
 
 /-! ### drop -/
 
