@@ -161,12 +161,9 @@ theorem parent_ge_subtree [Ord α] [Std.TransOrd α]
 /-- If v dominates the new value at j, v dominated the original value at j,
     the original array was well-formed at and below j, and b agrees with a outside position j,
     then v dominates everything in b's subtree at j. -/
-theorem ge_subtree_of_modify [Ord α] [Std.TransOrd α]
-    {a b : Vector α sz} {j : Fin sz} {v : α}
-    (hge : compare v a[j] |>.isGE)
-    (hwf_at : WF.Children a j)
-    (hwf_below : WF.Below a j)
-    (hge_new : compare v b[j] |>.isGE)
+theorem ge_subtree_of_modify [Ord α] [Std.TransOrd α] {a b : Vector α sz} {j : Fin sz}
+    (hge : compare v a[j] |>.isGE) (hwf_at : WF.Children a j)
+    (hwf_below : WF.Below a j) (hge_new : compare v b[j] |>.isGE)
     (hunchanged : ∀ k : Fin sz, InSubtree j.val k.val → j.val ≠ k.val → b[k] = a[k]) :
     ∀ m : Fin sz, InSubtree j.val m.val → (compare v b[m]).isGE := by
   intro m hsub

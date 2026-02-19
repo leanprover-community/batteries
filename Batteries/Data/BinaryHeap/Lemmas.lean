@@ -26,14 +26,7 @@ theorem List.cons_perm_append_singleton {l : List α} (x : α) : (x :: l).Perm (
 theorem Vector.last_cons_pop_perm {v : Vector α (n+1)} :
     (v[n] :: v.pop.toList).Perm v.toList := by
   have hne : v.toList ≠ [] := by simp
-  have hdrop : v.pop.toList = v.toList.dropLast := by
-    rw [← Vector.toList_toArray]
-    simp only [Vector.toArray_pop, Array.toList_pop, Vector.toList_toArray]
-  have hlast : v[n] = v.toList.getLast hne := by
-    simp [List.getLast_eq_getElem, Vector.length_toList, Vector.getElem_toList]
-  rw [hdrop, hlast]
-  apply List.cons_perm_append_singleton _ |>.trans
-  rw [List.dropLast_concat_getLast hne]
+  grind [List.dropLast_concat_getLast, List.cons_perm_append_singleton]
 
 @[simp]
 theorem Vector.swap_same {v : Vector α n} {i : Nat} (hi : i < n) :
@@ -238,7 +231,7 @@ theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] {a : Vector α sz} 
 
 /-- `heapifyDown` restores the heap property at node `i` and below, given that all nodes
 below `i` already satisfy `WF.Children`. -/
-theorem heapifyDown_topDown [Ord α] [Std.TransOrd α] {a : Vector α sz} {i : Fin sz}
+theorem heapifyDown_wf [Ord α] [Std.TransOrd α] {a : Vector α sz} {i : Fin sz}
     (hbelow : WF.Below a i) :
     WF.Children (heapifyDown a i) i ∧ WF.Below (heapifyDown a i) i := by
   induction a, i using heapifyDown.induct with
@@ -368,7 +361,7 @@ theorem mkHeap.loop_wf [Ord α] [Std.TransOrd α]
   | succ i ih =>
     apply ih
     intro k hk
-    have ⟨hwf_at, hwf_below⟩:= heapifyDown_topDown (i := ⟨i, by omega⟩) hinv
+    have ⟨hwf_at, hwf_below⟩:= heapifyDown_wf (i := ⟨i, by omega⟩) hinv
     by_cases hk_eq : i = k
     · simpa [hk_eq] using hwf_at
     · exact hwf_below k (show i < k by omega)
@@ -442,7 +435,7 @@ theorem insert_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : heap
   apply WF.of_topDown
   apply heapifyUp_topDown _ (by grind only [WF.ParentGeChildren])
   intro i _ h_nz
-  rw [WF, WF.TopDown.iff_bottomUp, WF.BottomUp] at h_wf
+  rw [WF, WF.TopDown.iff_bottomUp] at h_wf
   simp only [Fin.getElem_fin]
   rw [Vector.getElem_push_lt, Vector.getElem_push_lt]
   exact h_wf ⟨i.val, by grind only⟩ h_nz
@@ -479,7 +472,7 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF h
   split
   . exact h_wf
   . split <;> apply WF.of_topDown
-    . exact .of_root_and_below <| heapifyDown_topDown <| h_wf.below_of_swap_pop (by omega)
+    . exact .of_root_and_below <| heapifyDown_wf <| h_wf.below_of_swap_pop (by omega)
     . grind only [WF.Children, WF.TopDown]
 
 /-- Replacing the maximum element in a well-formed heap preserves well-formedness. -/
@@ -489,7 +482,7 @@ theorem replaceMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : 
   unfold replaceMax
   split <;> apply WF.of_topDown
   · simp_all [WF.TopDown, WF.Children]
-  · exact .of_root_and_below <| heapifyDown_topDown h_wf.below_of_set
+  · exact .of_root_and_below <| heapifyDown_wf h_wf.below_of_set
 
 @[simp, grind .]
 theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF heap) :
@@ -498,7 +491,7 @@ theorem insertExtractMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h
   split
   · exact h_wf
   · split
-    · exact .of_topDown <| .of_root_and_below <| heapifyDown_topDown h_wf.below_of_set
+    · exact .of_topDown <| .of_root_and_below <| heapifyDown_wf h_wf.below_of_set
     · exact h_wf
 
 @[simp, grind =]
@@ -569,7 +562,7 @@ theorem decreaseKey_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α}
     WF (heap.decreaseKey i x) := by
   apply WF.of_topDown
   have hbelow : WF.Below (heap.vector.set i x _) i := WF.TopDown.below_of_set hwf
-  have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_topDown hbelow
+  have ⟨hchildren_i, hbelow_i⟩ := heapifyDown_wf hbelow
   refine .of_children_below_and_above hchildren_i hbelow_i ?_
   intro k hki
   by_cases hk_parent : k.val = (i.val - 1) / 2 ∧ 0 < i.val
