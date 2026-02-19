@@ -147,6 +147,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
     options := opts  }
   let state := { env }
   Prod.fst <$> (CoreM.toIO · ctx state) do
+    traceLint s!"[Testing linter]" (inIO := true) (currentModule := module)
     traceLint s!"Starting lint..." (inIO := true) (currentModule := module)
     let decls ← getDeclsInPackage module.getRoot
     let linters ← getChecks (slow := true) (runAlways := none) (runOnly := none)
