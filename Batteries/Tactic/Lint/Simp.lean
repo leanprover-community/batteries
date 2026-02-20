@@ -57,7 +57,11 @@ def isSimpEq (a b : Expr) (whnfFirst := true) : MetaM Bool := withReducible do
   let a ← if whnfFirst then whnf a else pure a
   let b ← if whnfFirst then whnf b else pure b
   if a.getAppFn.constName? != b.getAppFn.constName? then return false
-  isDefEq a b
+  -- We use the old `isDefEq` behavior that does not respect transparency when checking
+  -- implicit arguments. Without this, `simp`/`dsimp` changes to implicit arguments
+  -- (e.g. unfolding carrier types) would cause false positives.
+  withOptions (fun opts => opts.setBool `backward.isDefEq.respectTransparency false) do
+    isDefEq a b
 
 /-- Constructs a message from all the simp theorems encoded in the given type. -/
 def checkAllSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM (Option MessageData)) :
