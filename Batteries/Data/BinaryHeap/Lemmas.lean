@@ -432,8 +432,7 @@ theorem size_increaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x 
 @[simp, grind .]
 theorem insert_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : heap.WF) :
     (heap.insert x).WF := by
-  apply WF.of_topDown
-  apply heapifyUp_topDown _ (by grind only [WF.ParentGeChildren])
+  refine .of_topDown <| heapifyUp_topDown ?_ (by grind only [WF.ParentGeChildren])
   intro i _ h_nz
   rw [WF, WF.TopDown.iff_bottomUp] at h_wf
   simp only [Fin.getElem_fin]

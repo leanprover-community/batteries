@@ -152,10 +152,9 @@ theorem parent_ge_subtree [Ord α] [Std.TransOrd α]
     (hwf_below : WF.Below a j) (hsub : InSubtree j k) :
     (compare a[j] a[k]).isGE := by
   induction hsub
-  case refl => grind only [Ordering.isGE]
-  all_goals
-    have ⟨_, _⟩ : WF.Children a ⟨‹_›, by omega⟩ := by
-      grind only [WF.Below, InSubtree.not_of_lt]
+  case refl => simp
+  case left k _ _ | right k _ _ =>
+    have : WF.Children a ⟨k, by omega⟩ := by grind only [WF.Below, InSubtree.lt_of_ne]
     grind only [WF.Children, = Fin.getElem_fin, !Std.TransOrd.isGE_trans]
 
 /-- If v dominates the new value at j, v dominated the original value at j,
