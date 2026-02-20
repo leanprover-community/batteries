@@ -232,10 +232,8 @@ def ExceptAt [Ord α] (a : Vector α sz) (i : Fin sz) : Prop :=
 
 /-- If exceptAt i and parentGeChildren i, swap preserves exceptAt at parent -/
 theorem ExceptAt.swap_parent [Ord α] [Std.TransOrd α]
-    {a : Vector α sz} {i : Fin sz}
-    (h_ge : compare a[i] a[(i.val - 1) / 2] |>.isGE)
-    (hexcept : ExceptAt a i)
-    (hchildren : ParentGeChildren a i) :
+    {a : Vector α sz} {i : Fin sz} (h_ge : compare a[i] a[(i.val - 1) / 2] |>.isGE)
+    (hexcept : ExceptAt a i) (hchildren : ParentGeChildren a i) :
     ExceptAt (a.swap i ((i.val - 1) / 2) i.isLt (by omega)) ⟨(i.val - 1) / 2, by omega⟩ := by
   intro k hkj hk_pos
   by_cases hki : k.val = i.val
@@ -246,10 +244,8 @@ theorem ExceptAt.swap_parent [Ord α] [Std.TransOrd α]
       grind only [= Fin.getElem_fin, = Vector.getElem_swap, !Std.TransOrd.isGE_trans]
 
 /-- If exceptAt a i, swap preserves parentGeChildren at parent -/
-theorem ParentGeChildren.swap_parent [Ord α] [Std.TransOrd α]
-    {a : Vector α sz} {i : Fin sz}
-    (h_ge : compare a[i] a[(i.val - 1)/2] |>.isGE)
-    (hexcept : ExceptAt a i) :
+theorem ParentGeChildren.swap_parent [Ord α] [Std.TransOrd α] {a : Vector α sz}
+    {i : Fin sz} (h_ge : compare a[i] a[(i.val - 1)/2] |>.isGE) (hexcept : ExceptAt a i) :
     ParentGeChildren
       (a.swap i ((i.val - 1) / 2) i.isLt (by omega)) ⟨(i.val - 1) / 2, by omega⟩ := by
   let j := (i.val - 1) / 2
@@ -308,12 +304,10 @@ theorem of_topDown {v : Vector α sz} [Ord α] (h_td : WF.TopDown v) : WF ⟨v.t
 
 /-- Setting a larger value preserves WF.exceptAt -/
 theorem ExceptAt.set_of_ge [Ord α] [Std.TransOrd α]
-    {v : Vector α sz} {i : Fin sz} {x : α}
-    (hbu : WF.BottomUp v) (h_ge : compare x v[i] |>.isGE) :
+    {v : Vector α sz} {i : Fin sz} (hbu : WF.BottomUp v) (h_ge : compare x v[i] |>.isGE) :
     ExceptAt (v.set i x i.isLt) i := by
-  intro j hji hj_pos
-  have := hbu j hj_pos
-  grind only [= Fin.getElem_fin, Vector.getElem_set, !Std.TransOrd.isGE_trans]
+  intro j _ hj_pos
+  grind only [hbu j hj_pos, = Fin.getElem_fin, Vector.getElem_set, !Std.TransOrd.isGE_trans]
 
 /-- Setting a larger value preserves WF.parentGeChildren when original heap is well-formed -/
 theorem ParentGeChildren.set_of_ge [Ord α] [Std.TransOrd α]
