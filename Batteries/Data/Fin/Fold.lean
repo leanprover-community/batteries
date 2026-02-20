@@ -20,6 +20,8 @@ theorem dfoldrM_loop_zero [Monad m] (f : (i : Fin n) → α i.succ → m (α i.c
 theorem dfoldrM_loop_succ [Monad m] (f : (i : Fin n) → α i.succ → m (α i.castSucc)) (x) :
     dfoldrM.loop n α f (i+1) h x = f ⟨i, by omega⟩ x >>= dfoldrM.loop n α f i (by omega) := rfl
 
+-- TODO: This proof needs adjustment for lean4#12179 (backward.isDefEq.respectTransparency)
+set_option backward.isDefEq.respectTransparency false in
 theorem dfoldrM_loop [Monad m] [LawfulMonad m] (f : (i : Fin (n+1)) → α i.succ → m (α i.castSucc))
     (x) : dfoldrM.loop (n+1) α f (i+1) h x =
       dfoldrM.loop n (α ∘ succ) (f ·.succ) i (by omega) x >>= f 0 := by
@@ -77,7 +79,7 @@ theorem dfoldlM_loop_lt [Monad m] (f : ∀ (i : Fin n), α i.castSucc → m (α 
 
 theorem dfoldlM_loop_eq [Monad m] (f : ∀ (i : Fin n), α i.castSucc → m (α i.succ)) (x) :
     dfoldlM.loop n α f n (Nat.le_refl _) x = pure x := by
-  rw [dfoldlM.loop, dif_neg (Nat.lt_irrefl _), cast_eq]
+  rw [dfoldlM.loop, dif_neg (Nat.lt_irrefl _)]; rfl
 
 @[simp] theorem dfoldlM_zero [Monad m] (f : (i : Fin 0) → α i.castSucc → m (α i.succ)) (x) :
     dfoldlM 0 α f x = pure x := by simp [dfoldlM, dfoldlM.loop]
@@ -93,7 +95,7 @@ theorem dfoldlM_loop [Monad m] (f : (i : Fin (n+1)) → α i.castSucc → m (α 
     cases Nat.le_antisymm (Nat.le_of_lt_succ h) (Nat.not_lt.1 h')
     rw [dfoldlM_loop_lt _ h]
     congr; funext
-    rw [dfoldlM_loop_eq, dfoldlM_loop_eq]
+    rw [dfoldlM_loop_eq, dfoldlM_loop_eq]; rfl
 
 theorem dfoldlM_succ [Monad m] (f : (i : Fin (n+1)) → α i.castSucc → m (α i.succ)) (x) :
     dfoldlM (n+1) α f x = f 0 x >>= (dfoldlM n (α ∘ succ) (f ·.succ ·) .) :=

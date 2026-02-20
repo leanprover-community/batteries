@@ -362,14 +362,12 @@ theorem disjoint_take_drop : ∀ {l : List α}, l.Nodup → m ≤ n → Disjoint
 
 attribute [simp, grind ←] Pairwise.nil
 
-@[grind →] protected theorem Pairwise.isChain (p : Pairwise R l) : IsChain R l := by
-  induction p with
-  | nil => grind
-  | cons _ l => cases l with grind
-
 @[grind =] theorem pairwise_cons_cons :
     Pairwise R (a :: b :: l) ↔ R a b ∧ Pairwise R (a :: l) ∧ Pairwise R (b :: l) := by
   grind [pairwise_cons]
+
+@[grind →] protected theorem Pairwise.isChain (p : Pairwise R l) : IsChain R l := by
+  induction p <;> grind [cases List]
 
 /-! ### IsChain -/
 
@@ -379,56 +377,62 @@ alias chain_cons := isChain_cons_cons
 theorem rel_of_isChain_cons_cons (p : IsChain R (a :: b :: l)) : R a b :=
   (isChain_cons_cons.1 p).1
 
+alias IsChain.rel := rel_of_isChain_cons_cons
+
 @[deprecated (since := "2025-09-19")]
 alias rel_of_chain_cons := rel_of_isChain_cons_cons
 
-theorem isChain_cons_of_isChain_cons_cons (p : IsChain R (a :: b :: l)) :
-    IsChain R (b :: l) := (isChain_cons_cons.1 p).2
+theorem isChain_of_isChain_cons (p : IsChain R (b :: l)) : IsChain R l := by grind [cases List]
+
+alias IsChain.of_cons := isChain_of_isChain_cons
+
+@[deprecated IsChain.of_cons (since := "2026-02-10")]
+theorem isChain_cons_of_isChain_cons_cons : IsChain R (a :: b :: l) →
+    IsChain R (b :: l) := IsChain.of_cons
 
 @[deprecated (since := "2025-09-19")]
 alias chain_of_chain_cons := isChain_cons_of_isChain_cons_cons
 
-theorem isChain_of_isChain_cons (p : IsChain R (b :: l)) :
-    IsChain R l := by
-  cases l
-  · exact .nil
-  · exact isChain_cons_of_isChain_cons_cons p
+@[deprecated IsChain.of_cons (since := "2026-02-10")]
+theorem isChain_of_isChain_cons_cons : IsChain R (a :: b :: l) →
+    IsChain R l := IsChain.of_cons ∘ IsChain.of_cons
 
-theorem isChain_of_isChain_cons_cons (p : IsChain R (a :: b :: l)) :
-    IsChain R l := isChain_of_isChain_cons (isChain_of_isChain_cons p)
-
+@[grind =>]
 theorem IsChain.imp (H : ∀ ⦃a b : α⦄, R a b → S a b)
     (p : IsChain R l) : IsChain S l := by induction p with grind
 
 @[deprecated (since := "2025-09-19")]
 alias Chain.imp := IsChain.imp
 
-theorem IsChain.cons_of_imp_of_cons (h : ∀ c, R a c → R b c) :
-    IsChain R (a :: l) → IsChain R (b :: l) := by cases l <;> grind
+theorem IsChain.cons_of_imp (h : ∀ c, R a c → R b c) :
+    IsChain R (a :: l) → IsChain R (b :: l) := by grind [cases List]
 
-@[deprecated "Use IsChain.imp and IsChain.change_head" (since := "2025-09-19")]
-theorem Chain.imp' (HRS : ∀ ⦃a b : α⦄, R a b → S a b)
-    (Hab : ∀ ⦃c⦄, R a c → S b c) : IsChain R (a :: l) → IsChain S (b :: l) := by
-  cases l with grind [IsChain.imp]
+@[deprecated (since := "2026-02-10")]
+alias IsChain.cons_of_imp_of_cons := IsChain.cons_of_imp
+
+theorem IsChain.cons_of_imp_of_imp (HRS : ∀ ⦃a b : α⦄, R a b → S a b)
+    (Hab : ∀ ⦃c⦄, R a c → S b c) (h : IsChain R (a :: l)) : IsChain S (b :: l) := by
+  grind [cases List]
+
+@[deprecated (since := "2025-09-19")]
+alias Chain.imp' := IsChain.cons_of_imp_of_imp
 
 @[deprecated (since := "2025-09-19")]
 protected alias Pairwise.chain := Pairwise.isChain
 
-@[grind →] protected theorem IsChain.pairwise [Trans R R R] (c : IsChain R l) :
-    Pairwise R l := by
-  induction c with
-  | nil | singleton => grind
-  | cons_cons hr h p =>
-    simp only [pairwise_cons, mem_cons, forall_eq_or_imp] at p ⊢
-    exact ⟨⟨hr, fun _ ha => Trans.trans hr <| p.1 _ ha⟩, p⟩
+theorem isChain_iff_pairwise [Trans R R R] : IsChain R l ↔ Pairwise R l := by
+  induction l with | nil => grind | cons a l IH => cases l with | nil => grind | cons b l =>
+  simp only [isChain_cons_cons, IH, pairwise_cons, mem_cons, forall_eq_or_imp, and_congr_left_iff,
+    iff_self_and, and_imp]
+  exact flip <| fun _ => flip (Trans.trans · <| · · ·)
 
-theorem isChain_iff_pairwise [Trans R R R] : IsChain R l ↔ Pairwise R l := by grind
+@[grind →] protected theorem IsChain.pairwise [Trans R R R] (c : IsChain R l) :
+    Pairwise R l := isChain_iff_pairwise.mp c
 
 theorem isChain_iff_getElem {l : List α} :
     IsChain R l ↔ ∀ (i : Nat) (_hi : i + 1 < l.length), R l[i] l[i + 1] := by
-  induction l with
-  | nil => grind
-  | cons a l IH => cases l with | nil => grind | cons b l => simp [IH, Nat.forall_lt_succ_left']
+  induction l with | nil => grind | cons a l IH => cases l with | nil => grind | cons b l =>
+  simp [IH, Nat.forall_lt_succ_left']
 
 theorem IsChain.getElem {l : List α} (c : IsChain R l) (i : Nat) (hi : i + 1 < l.length) :
     R l[i] l[i + 1] := isChain_iff_getElem.mp c _ _
@@ -1369,9 +1373,6 @@ theorem sum_singleton [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (·
 theorem sum_pair [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (· + ·) 0] {a b : α} :
   [a, b].sum = a + b := by simp [Std.LawfulRightIdentity.right_id]
 
--- defined in `Std`, which currently only `simp`-annotates `sum_append_nat` and `sum_append_int`
-attribute [simp] sum_append
-
 theorem sum_concat [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 0]
     [Std.Associative (α := α) (· + ·)] {l : List α} {a : α} :
     (l.concat a).sum = l.sum + a := by simp [Std.LawfulRightIdentity.right_id]
@@ -1385,3 +1386,11 @@ theorem sum_flatten [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 
 theorem sum_eq_foldl [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
     [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} :
     l.sum = l.foldl (· + ·) 0 := foldr_eq_foldl ..
+
+theorem take_succ_drop {l : List α} {n stop : Nat}
+    (h : n < l.length - stop) :
+    (l.drop stop |>.take (n + 1)) = (l.drop stop |>.take n) ++ [l[stop + n]'(by omega)] := by
+  rw [← List.take_append_getElem (by simpa [← List.length_drop] using h)]
+  simp [List.getElem_drop]
+
+attribute [simp] reverse_singleton
