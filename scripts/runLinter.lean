@@ -139,7 +139,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
   let env ←
     try
       importModules #[module, lintModule] {} (trustLevel := 1024) (loadExts := true)
-        (level := .exported)
+        (level := .server)
     catch _ =>
       -- For backwards compatability, we also support linting non-modules.
       importModules #[module, lintModule] {} (trustLevel := 1024) (loadExts := true)
