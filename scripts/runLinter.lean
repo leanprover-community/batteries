@@ -143,7 +143,6 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
     catch _ =>
       -- For backwards compatability, we also support linting non-modules.
       importModules #[module, lintModule] {} (trustLevel := 1024) (loadExts := true)
-  let env := env.setExporting false
   let mut opts : Options := {}
   -- Propagate `trace` to `CoreM`
   if trace then
