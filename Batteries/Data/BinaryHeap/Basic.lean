@@ -94,40 +94,40 @@ def singleton [Ord α] (x : α) : BinaryHeap α := ⟨#[x]⟩
 
 /-- `O(1)`. Get the number of elements in a `BinaryHeap`. -/
 @[inline]
-def size [Ord α] (self : BinaryHeap α) : Nat := self.arr.size
+def size [Ord α] (heap : BinaryHeap α) : Nat := heap.arr.size
 
 /-- `O(1)`. Get data vector of a `BinaryHeap`. -/
 @[inline]
-def vector [Ord α] (self : BinaryHeap α) : Vector α self.size := ⟨self.arr, rfl⟩
+def vector [Ord α] (heap : BinaryHeap α) : Vector α heap.size := ⟨heap.arr, rfl⟩
 
 /-- `O(1)`. Get an element in the heap by index. -/
 @[inline]
-def get [Ord α] (self : BinaryHeap α) (i : Fin self.size) : α := self.arr[i]'(i.2)
+def get [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) : α := heap.arr[i]'(i.2)
 
 /-- `O(log n)`. Insert an element into a `BinaryHeap`, preserving the max-heap property. -/
 @[inline]
-def insert [Ord α] (self : BinaryHeap α) (x : α) : BinaryHeap α where
-  arr := heapifyUp (self.vector.push x) ⟨_, Nat.lt_succ_self _⟩ |>.toArray
+def insert [Ord α] (heap : BinaryHeap α) (x : α) : BinaryHeap α where
+  arr := heapifyUp (heap.vector.push x) ⟨_, Nat.lt_succ_self _⟩ |>.toArray
 
 /-- `O(1)`. Get the maximum element in a `BinaryHeap`. -/
 @[inline]
-def max [Ord α] (self : BinaryHeap α) : Option α := self.arr[0]?
+def max [Ord α] (heap : BinaryHeap α) : Option α := heap.arr[0]?
 
 /-- `O(log n)`. Remove the maximum element from a `BinaryHeap`
 Call `max` first to actually retrieve the maximum element. -/
 @[inline]
-def popMax [Ord α] (self : BinaryHeap α) : BinaryHeap α :=
-  if h0 : self.size = 0 then self else
-    have hs : self.size - 1 < self.size := Nat.pred_lt h0
-    have h0 : 0 < self.size := Nat.zero_lt_of_ne_zero h0
-    let v := self.vector.swap _ _ h0 hs |>.pop
-    if h : 0 < self.size - 1 then
+def popMax [Ord α] (heap : BinaryHeap α) : BinaryHeap α :=
+  if h0 : heap.size = 0 then heap else
+    have hs : heap.size - 1 < heap.size := Nat.pred_lt h0
+    have h0 : 0 < heap.size := Nat.zero_lt_of_ne_zero h0
+    let v := heap.vector.swap _ _ h0 hs |>.pop
+    if h : 0 < heap.size - 1 then
       ⟨heapifyDown v ⟨0, h⟩ |>.toArray⟩
     else
       ⟨v.toArray⟩
 
-@[simp] theorem size_popMax [Ord α] (self : BinaryHeap α) :
-    self.popMax.size = self.size - 1 := by
+@[simp] theorem size_popMax [Ord α] (heap : BinaryHeap α) :
+    heap.popMax.size = heap.size - 1 := by
   simp only [popMax, size]
   split
   · simp [*]
@@ -135,65 +135,62 @@ def popMax [Ord α] (self : BinaryHeap α) : BinaryHeap α :=
 
 /-- `O(log n)`. Return and remove the maximum element from a `BinaryHeap`. -/
 @[inline]
-def extractMax [Ord α] (self : BinaryHeap α) : Option α × BinaryHeap α :=
-  (self.max, self.popMax)
+def extractMax [Ord α] (heap : BinaryHeap α) : Option α × BinaryHeap α :=
+  (heap.max, heap.popMax)
 
 @[simp]
 theorem max_eq_none_iff [Ord α] {heap : BinaryHeap α} :
     heap.max = none ↔ heap.size = 0 := by
   simp [max, size]
 
-theorem size_pos_of_max [Ord α] {self : BinaryHeap α} (h : self.max = some x) : 0 < self.size := by
+theorem size_of_some_max [Ord α] {heap : BinaryHeap α} (h : heap.max = some x) : 0 < heap.size := by
   simp only [max, getElem?_def] at h
   split at h
   · assumption
   · contradiction
 
-/-- `O(log n)`. Equivalent to `extractMax (self.insert x)`, except that extraction cannot fail. -/
+/-- `O(log n)`. Equivalent to `extractMax (heap.insert x)`, except that extraction cannot fail. -/
 @[inline]
-def insertExtractMax [Ord α] (self : BinaryHeap α) (x : α) : α × BinaryHeap α :=
-  match e : self.max with
-  | none => (x, self)
+def insertExtractMax [Ord α] (heap : BinaryHeap α) (x : α) : α × BinaryHeap α :=
+  match e : heap.max with
+  | none => (x, heap)
   | some m =>
     if compare x m |>.isLT then
-      let v := self.vector.set 0 x (size_pos_of_max e)
-      (m, ⟨heapifyDown v ⟨0, size_pos_of_max e⟩ |>.toArray⟩)
-    else (x, self)
+      let v := heap.vector.set 0 x (size_of_some_max e)
+      (m, ⟨heapifyDown v ⟨0, size_of_some_max e⟩ |>.toArray⟩)
+    else (x, heap)
 
-/-- `O(log n)`. Equivalent to `(self.max, self.popMax.insert x)`. -/
+/-- `O(log n)`. Equivalent to `(heap.max, heap.popMax.insert x)`. -/
 @[inline]
-def replaceMax [Ord α] (self : BinaryHeap α) (x : α) : Option α × BinaryHeap α :=
-  match e : self.max with
-  | none => (none, ⟨self.vector.push x |>.toArray⟩)
+def replaceMax [Ord α] (heap : BinaryHeap α) (x : α) : Option α × BinaryHeap α :=
+  match e : heap.max with
+  | none => (none, ⟨heap.vector.push x |>.toArray⟩)
   | some m =>
-    let v := self.vector.set 0 x (size_pos_of_max e)
-    (some m, ⟨heapifyDown v ⟨0, size_pos_of_max e⟩ |>.toArray⟩)
+    let v := heap.vector.set 0 x (size_of_some_max e)
+    (some m, ⟨heapifyDown v ⟨0, size_of_some_max e⟩ |>.toArray⟩)
 
-/-- `O(log n)`. Replace the value at index `i` by `x`. Assumes that `x ≤ self.get i`. -/
+/-- `O(log n)`. Replace the value at index `i` by `x`. Assumes that `x ≤ heap.get i`. -/
 @[inline]
-def decreaseKey [Ord α] (self : BinaryHeap α) (i : Fin self.size) (x : α) : BinaryHeap α where
-  arr := heapifyDown (self.vector.set i x) i |>.toArray
+def decreaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x : α) : BinaryHeap α where
+  arr := heapifyDown (heap.vector.set i x) i |>.toArray
 
-/-- `O(log n)`. Replace the value at index `i` by `x`. Assumes that `self.get i ≤ x`. -/
+/-- `O(log n)`. Replace the value at index `i` by `x`. Assumes that `heap.get i ≤ x`. -/
 @[inline]
-def increaseKey [Ord α] (self : BinaryHeap α) (i : Fin self.size) (x : α) : BinaryHeap α where
-  arr := heapifyUp (self.vector.set i x) i |>.toArray
+def increaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x : α) : BinaryHeap α where
+  arr := heapifyUp (heap.vector.set i x) i |>.toArray
 
-/-- `O(n log n)`. Return the contents of `self` as a sorted array -/
+/-- `O(n log n)`. Return the contents of `heap` as a sorted array -/
 @[inline]
-def toSortedArray [Ord α] (self : BinaryHeap α) : Array α :=
-  loop self #[]
+def toSortedArray [Ord α] (heap : BinaryHeap α) : Array α :=
+  loop heap #[]
 where
   @[specialize]
   loop [Ord α] (a : BinaryHeap α) (out : Array α) : Array α :=
-    match _: a.max with
+    match h: a.max with
     | none => out
-    | some x => loop a.popMax (out.push x)
-  termination_by a.size
-  decreasing_by
-    have := size_pos_of_max ‹_›
-    simp only [size_popMax]
-    omega
+    | some x =>
+      have := size_of_some_max h; -- termination hint
+      loop a.popMax (out.push x)
 end Batteries.BinaryHeap
 
 /-- `O(n)`. Convert an unsorted vector to a `BinaryHeap`. -/

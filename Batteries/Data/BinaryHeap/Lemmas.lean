@@ -314,7 +314,7 @@ theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
 
 /-- When max returns some, the value equals arr[0]. -/
 theorem max_eq_arr_zero [Ord α] {heap : BinaryHeap α} (h : heap.max = some x) :
-    x = heap.arr[0]'(size_pos_of_max h) := by
+    x = heap.arr[0]'(size_of_some_max h) := by
   unfold max at h
   simp [Array.getElem_eq_iff.mpr h]
 
@@ -325,8 +325,9 @@ theorem toSortedArray.loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α)
   split
   · simp_all [size]
   · rename_i h_some
-    rw [max_eq_arr_zero h_some]
-    have hpos := size_pos_of_max h_some
+    have := size_of_some_max ‹_›
+    simp only [max_eq_arr_zero h_some]
+    have hpos := size_of_some_max h_some
     apply toSortedArray.loop_perm .. |>.trans
     simp only [Array.toList_push]
     apply List.perm_append_comm.append_left _ |>.trans
@@ -587,7 +588,7 @@ private theorem toSortedArray.loop_sorted [Ord α] [Std.TransOrd α] {heap : Bin
   unfold toSortedArray.loop
   split <;> try assumption
   rename_i x h
-  have h_pos : 0 < heap.size := size_pos_of_max h
+  have h_pos : 0 < heap.size := size_of_some_max h
   apply toSortedArray.loop_sorted
   · exact popMax_wf hwf
   · have : x ∈ heap := by simp_all [mem_def, max, Array.mem_of_getElem? h]
