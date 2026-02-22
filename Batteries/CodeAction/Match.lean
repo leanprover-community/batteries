@@ -68,7 +68,8 @@ def pattern_from_constructor (ctor : Name) (env : Environment) (suffix : String)
   let some (.inductInfo indInfo) := env.find? ctorInfo.induct | panic! "not an inductive"
   let numParams := indInfo.numParams
   let ctor_short := toString (ctor.updatePrefix .anonymous)
-  let some namePrefix := indInfo.name.components.getLast? | panic "Not able to determine name of inductive"
+  let some namePrefix := indInfo.name.components.getLast? |
+    panic "Not able to determine name of inductive"
   let ctor_long := s!"{toString namePrefix}.{ctor_short}"
   let explicitCtorArgs := getExplicitArgs ctorInfo.type #[]
   let allCtorArgs := getAllArgs ctorInfo.type #[]
@@ -90,10 +91,10 @@ def pattern_from_constructor (ctor : Name) (env : Environment) (suffix : String)
   | (.str (.str .anonymous "Bool") "true") => "true"
   | (.str (.str .anonymous "Bool") "false") => "false"
   | _ =>
-    /- This is the Default case. It fills the constructor arguments with the variable names `arg` which were
-       used in the inductive type specification. When using this action with multiple (same-type)
-       arguments these might clash, so we fix it by appending a suffix like `_2` - you will
-       probably want to rename these suffixed names yourself.
+    /- This is the Default case. It fills the constructor arguments with the variable names `arg`
+       which were used in the inductive type specification. When using this action with multiple
+       (same-type) arguments these might clash, so we fix it by appending a suffix like `_2` -
+       you will probably want to rename these suffixed names yourself.
        If the the user wants the match to contain the implicit arguments as well, we
        additionally put `_` for every `parameter` (a parameter is an argument to the inductive
        type that is fixed over constructors), since these should already be determined by the
@@ -228,7 +229,7 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
     let some (.inductInfo indInfo) := snap.env.find? name | return #[]
     let ctors := indInfo.ctors
     constructors_rev :=
-      (ctors.map (fun ctor ↦ (ctor, hasImplicitNonparArg ctor snap.env)))
+      (ctors.map (fun ctor => (ctor, hasImplicitNonparArg ctor snap.env)))
         :: constructors_rev
 
   let mkAction (title : String) (explicitArgsOnly : Bool) : LazyCodeAction :=
@@ -266,8 +267,8 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
   }
   /- Show the code action with implicit arguments if at least one constructor has an implicit
      non-parameter argument. -/
-  let showExplicitCodeAction := constructors_rev.any (fun l ↦
-    l.any (fun (_, ctor_hasImplicitNonparArg) ↦ ctor_hasImplicitNonparArg))
+  let showExplicitCodeAction := constructors_rev.any (fun l =>
+    l.any (fun (_, ctor_hasImplicitNonparArg) => ctor_hasImplicitNonparArg))
 
   if (showExplicitCodeAction) then
     return #[mkAction "Generate a list of equations for this match." True,
