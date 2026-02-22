@@ -149,7 +149,7 @@ If it makes sense to use at least one of the constructors with `@` (i.e. iff it 
 implicit non-parameter argument) then we also show a codeaction that expands every such constructor
 with `@`. E.g. invoking `Generate a list of equations with implicit arguments for this match.` in
 the following
-```
+```lean
 inductive TermWithImplicit (F : Nat → Type u) (α : Type w)
   | var (x : α) : TermWithImplicit F α
   | func {l : Nat} (f : F l) (ts : Fin l → TermWithImplicit F α) : TermWithImplicit F α
@@ -158,7 +158,7 @@ def myfun4 (t : TermWithImplicit F α) : Nat := by
   match t with
 ```
 produces
-```
+```lean
 def myfun4 (t : TermWithImplicit F α) : Nat := by
   match t with
   | .var x => _
