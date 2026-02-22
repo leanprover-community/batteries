@@ -49,41 +49,76 @@ where
       children.foldl (fun currentAcc child => loop child currentAcc) acc'
     | .hole _              => acc
 
-/-- From a constructor-name e.g. 'Option.some' construct the corresponding match pattern, e.g.
-'.some val'. We implement special cases for Nat and List, Option and Bool to e.g.
-produce 'n + 1' instead of 'Nat.succ n'.
--/
+/-- Computes for a constructor, if it makes sense to use `@constr` in a match, by determining
+    if it has any non-parameter implicit arguments. -/
+def hasImplicitNonparArg (ctor : Name) (env : Environment) : Bool := Id.run do
+    let some (.ctorInfo ctorInfo) := env.find? ctor | panic! "bad inductive"
+    let explicitArgs := getExplicitArgs ctorInfo.type #[]
+    let allArgs := getAllArgs ctorInfo.type #[]
+    let some (.inductInfo indInfo) := env.find? ctorInfo.induct | panic! "not an inductive"
+    let numParams := indInfo.numParams
+    return (allArgs.size - (explicitArgs.size + numParams) > 0)
+
+/-- From a constructor-name e.g. `Option.some` construct the corresponding match pattern, e.g.
+    `.some val`. We implement special cases for `Nat` and `List`, `Option` and `Bool` to e.g.
+    produce `n + 1` instead of `Nat.succ n`. -/
 def pattern_from_constructor (ctor : Name) (env : Environment) (suffix : String)
-    : Option String := do
-  let some (.ctorInfo ci) := env.find? ctor | panic! "bad inductive"
+    (explicitArgsOnly : Bool) (ctor_hasImplicitNonparArg : Bool): Option String := do
+  let some (.ctorInfo ctorInfo) := env.find? ctor | panic! "bad inductive"
+  let some (.inductInfo indInfo) := env.find? ctorInfo.induct | panic! "not an inductive"
+  let numParams := indInfo.numParams
   let ctor_short := toString (ctor.updatePrefix .anonymous)
-  let mut str := ""
-  let explicit_args := getExplicitArgs ci.type #[]
+  let some namePrefix := indInfo.name.components.getLast? | panic "Not able to determine name of inductive"
+  let ctor_long := s!"{toString namePrefix}.{ctor_short}"
+  let explicitCtorArgs := getExplicitArgs ctorInfo.type #[]
+  let allCtorArgs := getAllArgs ctorInfo.type #[]
+
+  /- Special cases with nicer Notation. None of these constructors has any implicit arguments
+     that aren't parameters, i.e. that aren't already determined by the match discriminant.
+     So it doesn't make sense to use them with `@`. That's why we *always* nicely print them
+     regardless of the setting `explicitArgsOnly`. -/
   match ctor with
   | (.str (.str .anonymous "Nat") "zero") => "0"
   /- At the moment this evaluates to "n + 1": -/
-  | (.str (.str .anonymous "Nat") "succ") => s!"{explicit_args[0]!}{suffix} + 1" --
+  | (.str (.str .anonymous "Nat") "succ") => s!"{explicitCtorArgs[0]!}{suffix} + 1" --
   | (.str (.str .anonymous "List") "nil") => "[]"
   /- At the moment this evaluates to "head :: tail": -/
   | (.str (.str .anonymous "List") "cons") =>
-    s!"{explicit_args[0]!}{suffix} :: {explicit_args[1]!}{suffix}"
-  | (.str (.str .anonymous "Option") "some") => s!"some {explicit_args[0]!}{suffix}"
+    s!"{explicitCtorArgs[0]!}{suffix} :: {explicitCtorArgs[1]!}{suffix}"
+  | (.str (.str .anonymous "Option") "some") => s!"some {explicitCtorArgs[0]!}{suffix}"
   | (.str (.str .anonymous "Option") "none") => "none"
   | (.str (.str .anonymous "Bool") "true") => "true"
   | (.str (.str .anonymous "Bool") "false") => "false"
-  /- Default case: -/
   | _ =>
-    str := str ++ s!".{ctor_short}"
-    for arg in explicit_args do
-      /- This takes the variable names `arg` which were used in the
-      inductive type specification. When using this action with multiple (same-type)
-      arguments these might clash, so we fix it by appending a suffix like `_2` -
-      you will probably want to rename these suffixed names yourself. -/
-      str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}{suffix}"
-    return str
+    /- This is the Default case. It fills the constructor arguments with the variable names `arg` which were
+       used in the inductive type specification. When using this action with multiple (same-type)
+       arguments these might clash, so we fix it by appending a suffix like `_2` - you will
+       probably want to rename these suffixed names yourself.
+       If the the user wants the match to contain the implicit arguments as well, we
+       additionally put `_` for every `parameter` (a parameter is an argument to the inductive
+       type that is fixed over constructors), since these should already be determined by the
+       match discriminant. One could elaborate the type of this discriminant and fill the parameters
+       from there, but we don't see any value in this. -/
+      -- totalArgs - explicitargs - parameters
+    if explicitArgsOnly || Bool.not ctor_hasImplicitNonparArg then
+      let mut str := s!".{ctor_short}"
+      for arg in explicitCtorArgs do
+        str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}{suffix}"
+      return str
+    else
+      let mut str := s!"@{ctor_long}"
+      for i in [:allCtorArgs.size] do
+        let arg := allCtorArgs[i]!
+        str := str ++
+          if i < numParams || arg.hasNum || arg.isInternal then
+            " _"
+          else
+            s!" {arg}{suffix}"
+      return str
+
 
 /--
-Invoking tactic code action "Generate a list of alternatives for this match." in the
+Invoking tactic code action `Generate a list of alternatives for this match.` in the
 following:
 ```lean
 def myfun2 (n : Nat) : Nat :=
@@ -110,6 +145,30 @@ def myfun3 (o : Option Bool) (m : Nat) : Nat :=
   | some val_1, 0 => _
   | some val_1, n_2 + 1 => _
 ```
+If it makes sense to use at least one of the constructors with `@` (i.e. iff it has an
+implicit non-parameter argument) then we also show a codeaction that expands every such constructor
+with `@`. E.g. invoking `Generate a list of equations with implicit arguments for this match.` in
+the following
+```
+inductive TermWithImplicit (F : Nat → Type u) (α : Type w)
+  | var (x : α) : TermWithImplicit F α
+  | func {l : Nat} (f : F l) (ts : Fin l → TermWithImplicit F α) : TermWithImplicit F α
+
+def myfun4 (t : TermWithImplicit F α) : Nat := by
+  match t with
+```
+produces
+```
+def myfun4 (t : TermWithImplicit F α) : Nat := by
+  match t with
+  | .var x => _
+  | @TermWithImplicit.func _ _ l f ts => _
+```
+where the implicit argument `{l : Nat}` is now usable.
+Note that the arguments `F` and `α` were filled with `_` since they are `parameters`
+(a parameter is an argument to an inductive type that is fixed over constructors), i.e.
+they are already determined by the match discriminant `t`. We dont explicitly fill them,
+since they are rarely used in a match.
 -/
 @[command_code_action]
 def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
@@ -156,23 +215,28 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
   let withPresent :=
     (matchInfo.stx.getArgs.find? (fun s => s.isAtom && s.getAtomVal == "with")).isSome
 
-  /- Construct a list containing for each discriminant its list of constructor names.
-  The list contains the first discriminant constructors last, since we are prepending in the loop.-/
-  let mut constructors_rev : List (List Name) := []
+  /- Construct a list containing for each discriminant its list of constructor names paired with
+     a Bool that determines if it makes sense to use the constructor with `@`.
+     The list contains the first discriminant constructors last,
+     since we are prepending in the loop. -/
+  let mut constructors_rev : List (List (Name × Bool)) := []
   for discrTerm in discrTerms do
     let some (info : TermInfo) := findTermInfo? node discrTerm | return #[]
     let ty ← info.runMetaM ctx (Lean.Meta.inferType info.expr)
     let .const name _ := (← info.runMetaM ctx (whnf ty)).getAppFn | return #[]
     -- Find the inductive constructors of e:
-    let some (.inductInfo val) := snap.env.find? name | return #[]
-    constructors_rev := val.ctors :: constructors_rev
+    let some (.inductInfo indInfo) := snap.env.find? name | return #[]
+    let ctors := indInfo.ctors
+    constructors_rev :=
+      (ctors.map (fun ctor ↦ (ctor, hasImplicitNonparArg ctor snap.env)))
+        :: constructors_rev
 
-  let eager : Lsp.CodeAction := {
-    title := "Generate a list of equations for this match."
-    kind? := "quickfix"
-  }
-
-  return #[{ --rest is lightly adapted from eqnStub:
+  let mkAction (title : String) (explicitArgsOnly : Bool) : LazyCodeAction :=
+      let eager : Lsp.CodeAction := {
+      title := title
+      kind? := "quickfix"
+      }
+    { --rest is lightly adapted from eqnStub:
     eager
     lazy? := some do
       let holePos := headerRangeRaw.stop --where we start inserting
@@ -184,9 +248,11 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
       for l in constructor_combinations do
         str := str ++ indent ++ "| "
         for ctor_idx in [:l.length] do
-          let ctor := l[ctor_idx]!
+          let (ctor, existsExplicitNonparArg) := l[ctor_idx]!
           let suffix := if constructors_rev.length ≥ 2 then s!"_{ctor_idx + 1}" else ""
-          let some pat := pattern_from_constructor ctor snap.env suffix | panic! "bad inductive"
+          let some pat :=
+            pattern_from_constructor ctor snap.env suffix explicitArgsOnly existsExplicitNonparArg |
+              panic! "bad inductive"
           str := str ++ pat
           if ctor_idx < l.length - 1 then
             str := str ++ ", "
@@ -197,4 +263,14 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
           newText := str
         }
       }
-  }]
+  }
+  /- Show the code action with implicit arguments if at least one constructor has an implicit
+     non-parameter argument. -/
+  let showExplicitCodeAction := constructors_rev.any (fun l ↦
+    l.any (fun (_, ctor_hasImplicitNonparArg) ↦ ctor_hasImplicitNonparArg))
+
+  if (showExplicitCodeAction) then
+    return #[mkAction "Generate a list of equations for this match." True,
+             mkAction "Generate a list of equations with implicit arguments for this match." False]
+  else
+    return #[mkAction "Generate a list of equations for this match." True]
