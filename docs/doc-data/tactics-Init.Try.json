@@ -1,0 +1,95 @@
+[{"userName": "try_suggestions",
+  "tags": [],
+  "internalName": "Lean.Parser.Tactic.tryResult",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p",
+       true,
+       [],
+       [{"text": "Helper internal tactic used to implement "},
+        {"element": ["code", true, [], [{"text": "evalSuggest"}]]},
+        {"text": " in "},
+        {"element": ["code", true, [], [{"text": "try?"}]]}]]}]]},
+  "definingModule": "Init.Try"},
+ {"userName": "first_par",
+  "tags": [],
+  "internalName": "Lean.Parser.Tactic.firstPar",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p",
+       true,
+       [],
+       [{"text": "Helper internal tactic for implementing the tactic "},
+        {"element": ["code", true, [], [{"text": "try?"}]]},
+        {"text": " with parallel execution, returning first success."}]]}]]},
+  "definingModule": "Init.Try"},
+ {"userName": "∎",
+  "tags": [],
+  "internalName": "«tactic∎»",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p",
+       true,
+       [],
+       [{"element": ["code", true, [], [{"text": "∎"}]]},
+        {"text": " (typed as "},
+        {"element": ["code", true, [], [{"text": "\\qed"}]]},
+        {"text": ") is a macro that expands to "},
+        {"element": ["code", true, [], [{"text": "try?"}]]},
+        {"text": " in tactic mode."}]]}]]},
+  "definingModule": "Init.Try"},
+ {"userName": "attempt_all",
+  "tags": [],
+  "internalName": "Lean.Parser.Tactic.attemptAll",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p",
+       true,
+       [],
+       [{"text": "Helper internal tactic for implementing the tactic "},
+        {"element": ["code", true, [], [{"text": "try?"}]]},
+        {"text": "."}]]}]]},
+  "definingModule": "Init.Try"},
+ {"userName": "try?",
+  "tags": [],
+  "internalName": "Lean.Parser.Tactic.tryTrace",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p", true, [], [{"text": "This tactic has no documentation."}]]}]]},
+  "definingModule": "Init.Try"},
+ {"userName": "attempt_all_par",
+  "tags": [],
+  "internalName": "Lean.Parser.Tactic.attemptAllPar",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p",
+       true,
+       [],
+       [{"text": "Helper internal tactic for implementing the tactic "},
+        {"element": ["code", true, [], [{"text": "try?"}]]},
+        {"text": " with parallel execution."}]]}]]},
+  "definingModule": "Init.Try"}]

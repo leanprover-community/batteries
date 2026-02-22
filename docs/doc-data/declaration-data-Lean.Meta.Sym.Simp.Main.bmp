@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Meta.Sym.Simp.SimpM","Lean.Meta.Sym.AlphaShareBuilder","Lean.Meta.Sym.Simp.Simproc","Lean.Meta.Sym.Simp.App","Lean.Meta.Sym.Simp.Have","Lean.Meta.Sym.Simp.Forall"],"instances":[],"name":"Lean.Meta.Sym.Simp.Main"}

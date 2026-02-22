@@ -1,0 +1,35 @@
+[{"userName": "bv_check",
+  "tags": [],
+  "internalName": "Lean.Parser.Tactic.bvCheck",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p",
+       true,
+       [],
+       [{"text": "This tactic works just like "},
+        {"element": ["code", true, [], [{"text": "bv_decide"}]]},
+        {"text": " but skips calling a SAT solver by using a proof that is"},
+        {"raw": "\n"},
+        {"text":
+         "already stored on disk. It is called with the name of an LRAT file in the same directory as the"},
+        {"raw": "\n"},
+        {"text": "current Lean file:"}]]},
+     {"element":
+      ["pre",
+       true,
+       [],
+       [{"element":
+         ["code",
+          true,
+          [],
+          [{"text": "bv_check"},
+           {"text": " "},
+           {"text": "\"proof.lrat\""},
+           {"text": ""},
+           {"text": "\n"},
+           {"text": ""}]]}]]}]]},
+  "definingModule": "Std.Tactic.BVDecide.Syntax"}]

@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init","Batteries.Data.String.AsciiCasing","Batteries.Data.String.Basic","Batteries.Data.String.Legacy","Batteries.Data.String.Lemmas","Batteries.Data.String.Matcher"],"instances":[],"name":"Batteries.Data.String"}

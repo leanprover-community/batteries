@@ -1,0 +1,474 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../.././style.css"></link><link rel="icon" href="../../.././favicon.svg"></link><link rel="mask-icon" href="../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../.././/declarations/declaration-data.bmp" as="image"></link><title>Batteries.Data.Array.Basic</title><script defer="true" src="../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../.././";</script><script>const MODULE_NAME="Batteries.Data.Array.Basic";</script><script type="module" src="../../.././jump-src.js"></script><script type="module" src="../../.././search.js"></script><script type="module" src="../../.././expand-nav.js"></script><script type="module" src="../../.././how-about.js"></script><script type="module" src="../../.././instances.js"></script><script type="module" src="../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Batteries</span>.<span class="name">Data</span>.<span class="name">Array</span>.<span class="name">Basic</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../.././Init.html">Init</a></li><li><a href="../../.././Batteries/Data/UInt.html">Batteries.Data.UInt</a></li><li><a href="../../.././Batteries/Tactic/Alias.html">Batteries.Tactic.Alias</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Batteries.Data.Array.Basic" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Array.equalSet"><span class="name">Array</span>.<span class="name">equalSet</span></a></div><div class="nav_link"><a class="break_within" href="#Array.rangeMinWith"><span class="name">Array</span>.<span class="name">rangeMinWith</span></a></div><div class="nav_link"><a class="break_within" href="#Array.minWith"><span class="name">Array</span>.<span class="name">minWith</span></a></div><div class="nav_link"><a class="break_within" href="#Array.rangeMinD"><span class="name">Array</span>.<span class="name">rangeMinD</span></a></div><div class="nav_link"><a class="break_within" href="#Array.minD"><span class="name">Array</span>.<span class="name">minD</span></a></div><div class="nav_link"><a class="break_within" href="#Array.rangeMin?"><span class="name">Array</span>.<span class="name">rangeMin?</span></a></div><div class="nav_link"><a class="break_within" href="#Array.rangeMinI"><span class="name">Array</span>.<span class="name">rangeMinI</span></a></div><div class="nav_link"><a class="break_within" href="#Array.minI"><span class="name">Array</span>.<span class="name">minI</span></a></div><div class="nav_link"><a class="break_within" href="#Array.rangeMaxWith"><span class="name">Array</span>.<span class="name">rangeMaxWith</span></a></div><div class="nav_link"><a class="break_within" href="#Array.maxWith"><span class="name">Array</span>.<span class="name">maxWith</span></a></div><div class="nav_link"><a class="break_within" href="#Array.rangeMaxD"><span class="name">Array</span>.<span class="name">rangeMaxD</span></a></div><div class="nav_link"><a class="break_within" href="#Array.maxD"><span class="name">Array</span>.<span class="name">maxD</span></a></div><div class="nav_link"><a class="break_within" href="#Array.rangeMax?"><span class="name">Array</span>.<span class="name">rangeMax?</span></a></div><div class="nav_link"><a class="break_within" href="#Array.rangeMaxI"><span class="name">Array</span>.<span class="name">rangeMaxI</span></a></div><div class="nav_link"><a class="break_within" href="#Array.maxI"><span class="name">Array</span>.<span class="name">maxI</span></a></div><div class="nav_link"><a class="break_within" href="#Array.setN"><span class="name">Array</span>.<span class="name">setN</span></a></div><div class="nav_link"><a class="break_within" href="#Array.scanlM"><span class="name">Array</span>.<span class="name">scanlM</span></a></div><div class="nav_link"><a class="break_within" href="#Array.scanlM.loop"><span class="name">Array</span>.<span class="name">scanlM</span>.<span class="name">loop</span></a></div><div class="nav_link"><a class="break_within" href="#Array.scanrM"><span class="name">Array</span>.<span class="name">scanrM</span></a></div><div class="nav_link"><a class="break_within" href="#Array.scanrM.loop"><span class="name">Array</span>.<span class="name">scanrM</span>.<span class="name">loop</span></a></div><div class="nav_link"><a class="break_within" href="#Array.scanl"><span class="name">Array</span>.<span class="name">scanl</span></a></div><div class="nav_link"><a class="break_within" href="#Array.scanr"><span class="name">Array</span>.<span class="name">scanr</span></a></div><div class="nav_link"><a class="break_within" href="#Subarray.scanlM"><span class="name">Subarray</span>.<span class="name">scanlM</span></a></div><div class="nav_link"><a class="break_within" href="#Subarray.scanrM"><span class="name">Subarray</span>.<span class="name">scanrM</span></a></div><div class="nav_link"><a class="break_within" href="#Subarray.scanl"><span class="name">Subarray</span>.<span class="name">scanl</span></a></div><div class="nav_link"><a class="break_within" href="#Subarray.scanr"><span class="name">Subarray</span>.<span class="name">scanr</span></a></div><div class="nav_link"><a class="break_within" href="#Subarray.isEmpty"><span class="name">Subarray</span>.<span class="name">isEmpty</span></a></div><div class="nav_link"><a class="break_within" href="#Subarray.contains"><span class="name">Subarray</span>.<span class="name">contains</span></a></div><div class="nav_link"><a class="break_within" href="#Subarray.popHead?"><span class="name">Subarray</span>.<span class="name">popHead?</span></a></div></nav><main>
+<div class="mod_doc"><h2 id="Definitions-on-Arrays" class="markdown-heading">Definitions on Arrays <a class="hover-link" href="#Definitions-on-Arrays">#</a></h2><p>This file contains various definitions on <code><a href="../../.././Init/Prelude.html#Array">Array</a></code>. It does not contain
+proofs about these definitions, those are contained in other files in <code>Batteries.Data.<a href="../../.././Init/Prelude.html#Array">Array</a></code>.</p></div><div class="decl" id="Array.equalSet"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L21-L28">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.equalSet"><span class="name">Array</span>.<span class="name">equalSet</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs </span><span class="fn">ys</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../../.././Init/Prelude.html#Bool">Bool</a></div></div><p>Check whether <code>xs</code> and <code>ys</code> are equal as sets, i.e. they contain the same
+elements when disregarding order and duplicates. <code>O(n*m)</code>! If your element type
+has an <code><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a></code> instance, it is asymptotically more efficient to sort the two
+arrays, remove duplicates and then compare them elementwise.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.equalSet">equalSet</a></span> <span class="fn">ys</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> (<span class="fn">(<span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Data/Array/Basic.html#Array.all">all</a></span> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn"><span class="fn"><span class="fn">ys</span>.<a href="../../.././Init/Data/Array/Basic.html#Array.contains">contains</a></span> <span class="fn">x</span></span></span>)</span> <a href="../../.././Init/Prelude.html#Bool.and">&amp;&amp;</a> <span class="fn"><span class="fn"><span class="fn">ys</span>.<a href="../../.././Init/Data/Array/Basic.html#Array.all">all</a></span> <span class="fn">fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Data/Array/Basic.html#Array.contains">contains</a></span> <span class="fn">x</span></span></span></span>)</li></ul></details><details id="instances-for-list-Array.equalSet" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.rangeMinWith"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L30-L39">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinWith"><span class="name">Array</span>.<span class="name">rangeMinWith</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">ord</span> : <span class="fn"><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">d</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">α</span></div></div><p>Returns the first minimal element among <code>d</code> and elements of the array.
+If <code>start</code> and <code>stop</code> are given, only the subarray <code>xs[start...stop]</code> is
+considered (in addition to <code>d</code>).</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinWith">rangeMinWith</a></span> <span class="fn">d</span> <span class="fn">start</span> <span class="fn">stop</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a>   <span class="fn"><a href="../../.././Init/Data/Array/Basic.html#Array.foldl">Array.foldl</a> <span class="fn">(fun (<span class="fn">min</span> <span class="fn">x</span> : <span class="fn">α</span>) =&gt; <a href="../../.././Init/Prelude.html#ite">if</a> <span class="fn"><span class="fn">(<a href="../../.././Init/Data/Ord/Basic.html#Ord.compare">compare</a> <span class="fn">x</span> <span class="fn">min</span>)</span>.<a href="../../.././Init/Data/Ord/Basic.html#Ordering.isLT">isLT</a></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <a href="../../.././Init/Prelude.html#Bool.true">true</a> <a href="../../.././Init/Prelude.html#ite">then</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#ite">else</a> <span class="fn">min</span>)</span> <span class="fn">d</span> <span class="fn">xs</span> <span class="fn">start</span> <span class="fn">stop</span></span></li></ul></details><details id="instances-for-list-Array.rangeMinWith" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.minWith"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L41-L42">source</a></div><div class="attributes">@[deprecated Array.rangeMinWith (since := &quot;2026-01-08&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.minWith"><span class="name">Array</span>.<span class="name">minWith</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">ord</span> : <span class="fn"><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">d</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">α</span></div></div><p>Returns the first minimal element among <code>d</code> and elements of the array.
+If <code>start</code> and <code>stop</code> are given, only the subarray <code>xs[start...stop]</code> is
+considered (in addition to <code>d</code>).</p><details><summary>Equations</summary><ul class="equations"><li class="equation">@<a href="../../.././Batteries/Data/Array/Basic.html#Array.minWith">Array.minWith</a> <a href="../../.././Init/Prelude.html#Eq">=</a> @<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinWith">Array.rangeMinWith</a></li></ul></details><details id="instances-for-list-Array.minWith" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.rangeMinD"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L44-L55">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinD"><span class="name">Array</span>.<span class="name">rangeMinD</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">ord</span> : <span class="fn"><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">d</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">α</span></div></div><p>Find the first minimal element of an array. If the array is empty, <code>d</code> is
+returned. If <code>start</code> and <code>stop</code> are given, only the subarray <code>xs[start...stop]</code> is
+considered.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinD">rangeMinD</a></span> <span class="fn">d</span> <span class="fn">start</span> <span class="fn">stop</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">if h : <span class="fn">start</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span> <a href="../../.././Init/Prelude.html#And">∧</a> <span class="fn">start</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">stop</span> then <span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinWith">rangeMinWith</a></span> <span class="fn">xs</span><a href="../../.././Init/GetElem.html#GetElem.getElem">[</a><span class="fn">start</span><a href="../../.././Init/GetElem.html#GetElem.getElem">]</a> (<span class="fn">start</span> <a href="../../.././Init/Prelude.html#HAdd.hAdd">+</a> <span class="fn">1</span>) <span class="fn">stop</span></span> else <span class="fn">d</span></span></li></ul></details><details id="instances-for-list-Array.rangeMinD" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.minD"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L57-L58">source</a></div><div class="attributes">@[deprecated Array.rangeMinD (since := &quot;2026-01-08&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.minD"><span class="name">Array</span>.<span class="name">minD</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">ord</span> : <span class="fn"><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">d</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">α</span></div></div><p>Find the first minimal element of an array. If the array is empty, <code>d</code> is
+returned. If <code>start</code> and <code>stop</code> are given, only the subarray <code>xs[start...stop]</code> is
+considered.</p><details><summary>Equations</summary><ul class="equations"><li class="equation">@<a href="../../.././Batteries/Data/Array/Basic.html#Array.minD">Array.minD</a> <a href="../../.././Init/Prelude.html#Eq">=</a> @<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinD">Array.rangeMinD</a></li></ul></details><details id="instances-for-list-Array.minD" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.rangeMin?"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L60-L71">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMin?"><span class="name">Array</span>.<span class="name">rangeMin?</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">ord</span> : <span class="fn"><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span></div></div><p>Find the first minimal element of an array. If the array is empty, <code>none</code> is
+returned. If <code>start</code> and <code>stop</code> are given, only the subarray <code>xs[start...stop]</code> is
+considered.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMin?">rangeMin?</a></span> <span class="fn">start</span> <span class="fn">stop</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">if h : <span class="fn">start</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span> <a href="../../.././Init/Prelude.html#And">∧</a> <span class="fn">start</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn">stop</span> then <span class="fn"><a href="../../.././Init/Prelude.html#Option.some">some</a> <span class="fn">(<span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinD">rangeMinD</a></span> <span class="fn">xs</span><a href="../../.././Init/GetElem.html#GetElem.getElem">[</a><span class="fn">start</span><a href="../../.././Init/GetElem.html#GetElem.getElem">]</a> <span class="fn">start</span> <span class="fn">stop</span>)</span></span> else <a href="../../.././Init/Prelude.html#Option.none">none</a></span></li></ul></details><details id="instances-for-list-Array.rangeMin?" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.rangeMinI"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L73-L81">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinI"><span class="name">Array</span>.<span class="name">rangeMinI</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">ord</span> : <span class="fn"><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Inhabited">Inhabited</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">α</span></div></div><p>Find the first minimal element of an array. If the array is empty, <code>default</code> is
+returned. If <code>start</code> and <code>stop</code> are given, only the subarray <code>xs[start...stop]</code> is
+considered.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinI">rangeMinI</a></span> <span class="fn">start</span> <span class="fn">stop</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinD">rangeMinD</a></span> <a href="../../.././Init/Prelude.html#Inhabited.default">default</a> <span class="fn">start</span> <span class="fn">stop</span></span></li></ul></details><details id="instances-for-list-Array.rangeMinI" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.minI"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L83-L84">source</a></div><div class="attributes">@[deprecated Array.rangeMinI (since := &quot;2026-01-08&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.minI"><span class="name">Array</span>.<span class="name">minI</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">ord</span> : <span class="fn"><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Inhabited">Inhabited</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">α</span></div></div><p>Find the first minimal element of an array. If the array is empty, <code>default</code> is
+returned. If <code>start</code> and <code>stop</code> are given, only the subarray <code>xs[start...stop]</code> is
+considered.</p><details><summary>Equations</summary><ul class="equations"><li class="equation">@<a href="../../.././Batteries/Data/Array/Basic.html#Array.minI">Array.minI</a> <a href="../../.././Init/Prelude.html#Eq">=</a> @<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinI">Array.rangeMinI</a></li></ul></details><details id="instances-for-list-Array.minI" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.rangeMaxWith"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L86-L94">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMaxWith"><span class="name">Array</span>.<span class="name">rangeMaxWith</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">ord</span> : <span class="fn"><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">d</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">α</span></div></div><p>Returns the first maximal element among <code>d</code> and elements of the array.
+If <code>start</code> and <code>stop</code> are given, only the subarray <code>xs[start...stop]</code> is
+considered (in addition to <code>d</code>).</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMaxWith">rangeMaxWith</a></span> <span class="fn">d</span> <span class="fn">start</span> <span class="fn">stop</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinWith">rangeMinWith</a></span> <span class="fn">d</span> <span class="fn">start</span> <span class="fn">stop</span></span></li></ul></details><details id="instances-for-list-Array.rangeMaxWith" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.maxWith"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L96-L97">source</a></div><div class="attributes">@[deprecated Array.rangeMaxWith (since := &quot;2026-01-08&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.maxWith"><span class="name">Array</span>.<span class="name">maxWith</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">ord</span> : <span class="fn"><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">d</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">α</span></div></div><p>Returns the first maximal element among <code>d</code> and elements of the array.
+If <code>start</code> and <code>stop</code> are given, only the subarray <code>xs[start...stop]</code> is
+considered (in addition to <code>d</code>).</p><details><summary>Equations</summary><ul class="equations"><li class="equation">@<a href="../../.././Batteries/Data/Array/Basic.html#Array.maxWith">Array.maxWith</a> <a href="../../.././Init/Prelude.html#Eq">=</a> @<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMaxWith">Array.rangeMaxWith</a></li></ul></details><details id="instances-for-list-Array.maxWith" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.rangeMaxD"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L99-L107">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMaxD"><span class="name">Array</span>.<span class="name">rangeMaxD</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">ord</span> : <span class="fn"><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">d</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">α</span></div></div><p>Find the first maximal element of an array. If the array is empty, <code>d</code> is
+returned. If <code>start</code> and <code>stop</code> are given, only the subarray <code>xs[start...stop]</code> is
+considered.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMaxD">rangeMaxD</a></span> <span class="fn">d</span> <span class="fn">start</span> <span class="fn">stop</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinD">rangeMinD</a></span> <span class="fn">d</span> <span class="fn">start</span> <span class="fn">stop</span></span></li></ul></details><details id="instances-for-list-Array.rangeMaxD" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.maxD"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L109-L110">source</a></div><div class="attributes">@[deprecated Array.rangeMaxD (since := &quot;2026-01-08&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.maxD"><span class="name">Array</span>.<span class="name">maxD</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">ord</span> : <span class="fn"><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">d</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">α</span></div></div><p>Find the first maximal element of an array. If the array is empty, <code>d</code> is
+returned. If <code>start</code> and <code>stop</code> are given, only the subarray <code>xs[start...stop]</code> is
+considered.</p><details><summary>Equations</summary><ul class="equations"><li class="equation">@<a href="../../.././Batteries/Data/Array/Basic.html#Array.maxD">Array.maxD</a> <a href="../../.././Init/Prelude.html#Eq">=</a> @<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMaxD">Array.rangeMaxD</a></li></ul></details><details id="instances-for-list-Array.maxD" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.rangeMax?"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L112-L120">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMax?"><span class="name">Array</span>.<span class="name">rangeMax?</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">ord</span> : <span class="fn"><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> <span class="fn">α</span></span></div></div><p>Find the first maximal element of an array. If the array is empty, <code>none</code> is
+returned. If <code>start</code> and <code>stop</code> are given, only the subarray <code>xs[start...stop]</code> is
+considered.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMax?">rangeMax?</a></span> <span class="fn">start</span> <span class="fn">stop</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMin?">rangeMin?</a></span> <span class="fn">start</span> <span class="fn">stop</span></span></li></ul></details><details id="instances-for-list-Array.rangeMax?" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.rangeMaxI"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L122-L130">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMaxI"><span class="name">Array</span>.<span class="name">rangeMaxI</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">ord</span> : <span class="fn"><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Inhabited">Inhabited</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">α</span></div></div><p>Find the first maximal element of an array. If the array is empty, <code>default</code> is
+returned. If <code>start</code> and <code>stop</code> are given, only the subarray <code>xs[start...stop]</code> is
+considered.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMaxI">rangeMaxI</a></span> <span class="fn">start</span> <span class="fn">stop</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">xs</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMinI">rangeMinI</a></span> <span class="fn">start</span> <span class="fn">stop</span></span></li></ul></details><details id="instances-for-list-Array.rangeMaxI" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.maxI"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L132-L133">source</a></div><div class="attributes">@[deprecated Array.rangeMaxI (since := &quot;2026-01-08&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.maxI"><span class="name">Array</span>.<span class="name">maxI</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">ord</span> : <span class="fn"><a href="../../.././Init/Data/Ord/Basic.html#Ord">Ord</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Inhabited">Inhabited</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">α</span></div></div><p>Find the first maximal element of an array. If the array is empty, <code>default</code> is
+returned. If <code>start</code> and <code>stop</code> are given, only the subarray <code>xs[start...stop]</code> is
+considered.</p><details><summary>Equations</summary><ul class="equations"><li class="equation">@<a href="../../.././Batteries/Data/Array/Basic.html#Array.maxI">Array.maxI</a> <a href="../../.././Init/Prelude.html#Eq">=</a> @<a href="../../.././Batteries/Data/Array/Basic.html#Array.rangeMaxI">Array.rangeMaxI</a></li></ul></details><details id="instances-for-list-Array.maxI" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.setN"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L135-L136">source</a></div><div class="attributes">@[deprecated Array.set (since := &quot;2026-02-02&quot;)]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.setN"><span class="name">Array</span>.<span class="name">setN</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">i</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">v</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">i</span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span> := by get_elem_tactic)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span></div></div><p><strong>Alias</strong> of <code><a href="../../.././Init/Data/Array/Set.html#Array.set">Array.set</a></code>.</p><details><summary>Equations</summary><ul class="equations"><li class="equation">@<a href="../../.././Batteries/Data/Array/Basic.html#Array.setN">Array.setN</a> <a href="../../.././Init/Prelude.html#Eq">=</a> @<a href="../../.././Init/Data/Array/Set.html#Array.set">Array.set</a></li></ul></details><details id="instances-for-list-Array.setN" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.scanlM"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L175-L214">source</a></div><div class="attributes">@[implemented_by _private.Batteries.Data.Array.Basic.0.Array.scanlMFast]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.scanlM"><span class="name">Array</span>.<span class="name">scanlM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">β</span>)</span></span></div></div><p>Folds a monadic function over an array from the left, accumulating the partial results starting with
+<code>init</code>. The accumulated value is combined with the each element of the list in order, using <code>f</code>.</p><p>The optional parameters <code>start</code> and <code>stop</code> control the region of the array to be folded. Folding
+proceeds from <code>start</code> (inclusive) to <code>stop</code> (exclusive), so no folding occurs unless <code>start &lt; stop</code>.
+By default, the entire array is folded.</p><p>Examples:</p><pre><code class="language-lean">example [Monad m] (f : α → β → m α) :
+    <a href="../../.././Batteries/Data/Array/Basic.html#Array.scanlM">Array.scanlM</a> f x₀ #[a, b, c] = (do
+      let x₁ ← f x₀ a
+      let x₂ ← f x₁ b
+      let x₃ ← f x₂ c
+      pure #[x₀, x₁, x₂, x₃])
+    := by simp [scanlM, scanlM.loop]
+</code></pre><pre><code class="language-lean">example [Monad m] (f : α → β → m α) :
+    <a href="../../.././Batteries/Data/Array/Basic.html#Array.scanlM">Array.scanlM</a> f x₀ #[a, b, c] (start := 1) (stop := 3) = (do
+      let x₁ ← f x₀ b
+      let x₂ ← f x₁ c
+      pure #[x₀, x₁, x₂])
+    := by simp [scanlM, scanlM.loop]
+</code></pre><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><a href="../../.././Batteries/Data/Array/Basic.html#Array.scanlM">Array.scanlM</a> <span class="fn">f</span> <span class="fn">init</span> <span class="fn">as</span> <span class="fn">start</span> <span class="fn">stop</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Batteries/Data/Array/Basic.html#Array.scanlM.loop">Array.scanlM.loop</a> <span class="fn">f</span> <span class="fn">init</span> <span class="fn">as</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Min.min">min</a> <span class="fn">start</span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Min.min">min</a> <span class="fn">stop</span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span> <span class="fn">⋯</span> <a href="../../.././Init/Prelude.html#List.toArray">#[</a><a href="../../.././Init/Prelude.html#List.toArray">]</a></span></li></ul></details><details id="instances-for-list-Array.scanlM" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.scanlM.loop"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L209-L214">source</a></div><div class="attributes">@[irreducible]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.scanlM.loop"><span class="name">Array</span>.<span class="name">scanlM</span>.<span class="name">loop</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start </span><span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h_stop</span> : <span class="fn">stop</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">acc</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">β</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">β</span>)</span></span></div></div><p>auxiliary tail-recursive function for scanlM</p><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Array.scanlM.loop" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.scanrM"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L301-L346">source</a></div><div class="attributes">@[implemented_by _private.Batteries.Data.Array.Basic.0.Array.scanrMUnsafe]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.scanrM"><span class="name">Array</span>.<span class="name">scanrM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">β</span>)</span></span></div></div><p>Folds a monadic function over an array from the right, accumulating the partial results starting
+with <code>init</code>. The accumulated value is combined with the each element of the list in order using <code>f</code>.</p><p>The optional parameters <code>start</code> and <code>stop</code> control the region of the array to be folded. Folding
+proceeds from <code>start</code> (exclusive) to <code>stop</code> (inclusive), so no folding occurs unless <code>start &gt; stop</code>.
+By default, the entire array is folded.</p><p>Examples:</p><pre><code class="language-lean">example [Monad m] (f : α → β → m β) :
+    <a href="../../.././Batteries/Data/Array/Basic.html#Array.scanrM">Array.scanrM</a> f x₀ #[a, b, c] = (do
+      let x₁ ← f c x₀
+      let x₂ ← f b x₁
+      let x₃ ← f a x₂
+      pure #[x₃, x₂, x₁, x₀])
+    := by simp [scanrM, scanrM.loop]
+</code></pre><pre><code class="language-lean">example [Monad m] (f : α → β → m β) :
+    <a href="../../.././Batteries/Data/Array/Basic.html#Array.scanrM">Array.scanrM</a> f x₀ #[a, b, c] (start := 3) (stop := 1) = (do
+      let x₁ ← f c x₀
+      let x₂ ← f b x₁
+      pure #[x₂, x₁, x₀])
+    := by simp [scanrM, scanrM.loop]
+</code></pre><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><a href="../../.././Batteries/Data/Array/Basic.html#Array.scanrM">Array.scanrM</a> <span class="fn">f</span> <span class="fn">init</span> <span class="fn">as</span> <span class="fn">start</span> <span class="fn">stop</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Batteries/Data/Array/Basic.html#Array.scanrM.loop">Array.scanrM.loop</a> <span class="fn">f</span> <span class="fn">init</span> <span class="fn">as</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Min.min">min</a> <span class="fn">start</span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span> <span class="fn">stop</span> <span class="fn">⋯</span> <a href="../../.././Init/Prelude.html#List.toArray">#[</a><a href="../../.././Init/Prelude.html#List.toArray">]</a></span></li></ul></details><details id="instances-for-list-Array.scanrM" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.scanrM.loop"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L336-L346">source</a></div><div class="attributes">@[irreducible]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.scanrM.loop"><span class="name">Array</span>.<span class="name">scanrM</span>.<span class="name">loop</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start </span><span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">h_start</span> : <span class="fn">start</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">acc</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">β</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">β</span>)</span></span></div></div><p>auxiliary tail-recursive function for scanrM</p><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Array.scanrM.loop" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.scanl"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L348-L356">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.scanl"><span class="name">Array</span>.<span class="name">scanl</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">β</span></span></div></div><p>Fold a function <code>f</code> over the array from the left, returning the array of partial results.</p><pre><code><a href="../../.././Batteries/Data/Array/Basic.html#Array.scanl">scanl</a> (· + ·) 0 #[1, 2, 3] = #[0, 1, 3, 6]
+</code></pre><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><a href="../../.././Batteries/Data/Array/Basic.html#Array.scanl">Array.scanl</a> <span class="fn">f</span> <span class="fn">init</span> <span class="fn">as</span> <span class="fn">start</span> <span class="fn">stop</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../.././Batteries/Data/Array/Basic.html#Array.scanlM">Array.scanlM</a> <span class="fn">(fun (<span class="fn">x1</span> : <span class="fn">β</span>) (<span class="fn">x2</span> : <span class="fn">α</span>) =&gt; <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x1</span> <span class="fn">x2</span>)</span></span>)</span> <span class="fn">init</span> <span class="fn">as</span> <span class="fn">start</span> <span class="fn">stop</span>)</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span></li></ul></details><details id="instances-for-list-Array.scanl" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Array.scanr"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L358-L366">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Array.scanr"><span class="name">Array</span>.<span class="name">scanr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">start</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Prelude.html#Array.size">size</a></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">stop</span> : <a href="../../.././Init/Prelude.html#Nat">Nat</a> := <span class="fn">0</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">β</span></span></div></div><p>Fold a function <code>f</code> over the array from the right, returning the array of partial results.</p><pre><code><a href="../../.././Batteries/Data/Array/Basic.html#Array.scanr">scanr</a> (· + ·) 0 #[1, 2, 3] = #[6, 5, 3, 0]
+</code></pre><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><a href="../../.././Batteries/Data/Array/Basic.html#Array.scanr">Array.scanr</a> <span class="fn">f</span> <span class="fn">init</span> <span class="fn">as</span> <span class="fn">start</span> <span class="fn">stop</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">(<a href="../../.././Batteries/Data/Array/Basic.html#Array.scanrM">Array.scanrM</a> <span class="fn">(fun (<span class="fn">x1</span> : <span class="fn">α</span>) (<span class="fn">x2</span> : <span class="fn">β</span>) =&gt; <span class="fn"><a href="../../.././Init/Prelude.html#Pure.pure">pure</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x1</span> <span class="fn">x2</span>)</span></span>)</span> <span class="fn">init</span> <span class="fn">as</span> <span class="fn">start</span> <span class="fn">stop</span>)</span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span></li></ul></details><details id="instances-for-list-Array.scanr" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Subarray.scanlM"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L372-L377">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Subarray.scanlM"><span class="name">Subarray</span>.<span class="name">scanlM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Data/Array/Subarray.html#Subarray">Subarray</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">β</span>)</span></span></div></div><p>Fold a monadic function <code>f</code> over the subarray from the left, returning the list of partial results.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><a href="../../.././Batteries/Data/Array/Basic.html#Subarray.scanlM">Subarray.scanlM</a> <span class="fn">f</span> <span class="fn">init</span> <span class="fn">as</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Batteries/Data/Array/Basic.html#Array.scanlM">Array.scanlM</a> <span class="fn">f</span> <span class="fn">init</span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Data/Array/Subarray.html#Subarray.array">array</a></span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Data/Array/Subarray.html#Subarray.start">start</a></span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Data/Array/Subarray.html#Subarray.stop">stop</a></span></span></li></ul></details><details id="instances-for-list-Subarray.scanlM" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Subarray.scanrM"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L379-L384">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Subarray.scanrM"><span class="name">Subarray</span>.<span class="name">scanrM</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u_1 → <a href="../../.././foundational_types.html">Type</a> u_2</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_3}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">m</span> <span class="fn">β</span></span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Data/Array/Subarray.html#Subarray">Subarray</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">β</span>)</span></span></div></div><p>Fold a monadic function <code>f</code> over the subarray from the right, returning the list of partial results.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><a href="../../.././Batteries/Data/Array/Basic.html#Subarray.scanrM">Subarray.scanrM</a> <span class="fn">f</span> <span class="fn">init</span> <span class="fn">as</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Batteries/Data/Array/Basic.html#Array.scanrM">Array.scanrM</a> <span class="fn">f</span> <span class="fn">init</span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Data/Array/Subarray.html#Subarray.array">array</a></span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Data/Array/Subarray.html#Subarray.start">start</a></span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Data/Array/Subarray.html#Subarray.stop">stop</a></span></span></li></ul></details><details id="instances-for-list-Subarray.scanrM" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Subarray.scanl"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L386-L391">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Subarray.scanl"><span class="name">Subarray</span>.<span class="name">scanl</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">β</span> → <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Data/Array/Subarray.html#Subarray">Subarray</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">β</span></span></div></div><p>Fold a function <code>f</code> over the subarray from the left, returning the list of partial results.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><a href="../../.././Batteries/Data/Array/Basic.html#Subarray.scanl">Subarray.scanl</a> <span class="fn">f</span> <span class="fn">init</span> <span class="fn">as</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Batteries/Data/Array/Basic.html#Array.scanl">Array.scanl</a> <span class="fn">f</span> <span class="fn">init</span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Data/Array/Subarray.html#Subarray.array">array</a></span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Data/Array/Subarray.html#Subarray.start">start</a></span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Data/Array/Subarray.html#Subarray.stop">stop</a></span></span></li></ul></details><details id="instances-for-list-Subarray.scanl" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Subarray.scanr"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L393-L398">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Subarray.scanr"><span class="name">Subarray</span>.<span class="name">scanr</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_2}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn"><span class="fn">β</span> → <span class="fn">β</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">init</span> : <span class="fn">β</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Data/Array/Subarray.html#Subarray">Subarray</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">β</span></span></div></div><p>Fold a function <code>f</code> over the subarray from the right, returning the list of partial results.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><a href="../../.././Batteries/Data/Array/Basic.html#Subarray.scanr">Subarray.scanr</a> <span class="fn">f</span> <span class="fn">init</span> <span class="fn">as</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Batteries/Data/Array/Basic.html#Array.scanr">Array.scanr</a> <span class="fn">f</span> <span class="fn">init</span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Data/Array/Subarray.html#Subarray.array">array</a></span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Data/Array/Subarray.html#Subarray.start">start</a></span> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Data/Array/Subarray.html#Subarray.stop">stop</a></span></span></li></ul></details><details id="instances-for-list-Subarray.scanr" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Subarray.isEmpty"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L400-L405">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Subarray.isEmpty"><span class="name">Subarray</span>.<span class="name">isEmpty</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Data/Array/Subarray.html#Subarray">Subarray</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../../.././Init/Prelude.html#Bool">Bool</a></div></div><p>Check whether a subarray is empty.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn">as</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Subarray.isEmpty">isEmpty</a></span> <a href="../../.././Init/Prelude.html#Eq">=</a> (<span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Data/Array/Subarray.html#Subarray.start">start</a></span> <a href="../../.././Init/Prelude.html#BEq.beq">==</a> <span class="fn"><span class="fn">as</span>.<a href="../../.././Init/Data/Array/Subarray.html#Subarray.stop">stop</a></span>)</li></ul></details><details id="instances-for-list-Subarray.isEmpty" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Subarray.contains"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L407-L412">source</a></div><div class="attributes">@[inline]</div>
+<div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Subarray.contains"><span class="name">Subarray</span>.<span class="name">contains</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#BEq">BEq</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Data/Array/Subarray.html#Subarray">Subarray</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">a</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../../.././Init/Prelude.html#Bool">Bool</a></div></div><p>Check whether a subarray contains a given element.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><span class="fn"><span class="fn">as</span>.<a href="../../.././Batteries/Data/Array/Basic.html#Subarray.contains">contains</a></span> <span class="fn">a</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Data/Array/Subarray.html#Subarray.any">Subarray.any</a> <span class="fn">(fun (<span class="fn">x</span> : <span class="fn">α</span>) =&gt; <span class="fn">x</span> <a href="../../.././Init/Prelude.html#BEq.beq">==</a> <span class="fn">a</span>)</span> <span class="fn">as</span></span></li></ul></details><details id="instances-for-list-Subarray.contains" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Subarray.popHead?"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover-community/batteries/blob/77d10578945b31d794214a66937b75a6d4311674/Batteries/Data/Array/Basic.lean#L414-L428">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Batteries/Data/Array/Basic.html#Subarray.popHead?"><span class="name">Subarray</span>.<span class="name">popHead?</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">as</span> : <span class="fn"><a href="../../.././Init/Data/Array/Subarray.html#Subarray">Subarray</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Option">Option</a> (<span class="fn">α</span> <a href="../../.././Init/Prelude.html#Prod">×</a> <span class="fn"><a href="../../.././Init/Data/Array/Subarray.html#Subarray">Subarray</a> <span class="fn">α</span></span>)</span></div></div><p>Remove the first element of a subarray. Returns the element and the remaining
+subarray, or <code>none</code> if the subarray is empty.</p><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Subarray.popHead?" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div></main>
+<nav class="nav"><iframe src="../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

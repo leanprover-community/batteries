@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Data.String.Lemmas.Pattern.Basic","Init.Data.String.Lemmas.Pattern.Memcmp","Init.Data.String.Lemmas.Pattern.Pred","Init.Data.String.Lemmas.Pattern.Char","Init.Data.String.Lemmas.Pattern.String","Init.Data.String.Lemmas.Pattern.Split"],"instances":[],"name":"Init.Data.String.Lemmas.Pattern"}

@@ -1,0 +1,425 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../.././style.css"></link><link rel="icon" href="../../.././favicon.svg"></link><link rel="mask-icon" href="../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../.././/declarations/declaration-data.bmp" as="image"></link><title>Init.Data.Order.MinMaxOn</title><script defer="true" src="../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../.././";</script><script>const MODULE_NAME="Init.Data.Order.MinMaxOn";</script><script type="module" src="../../.././jump-src.js"></script><script type="module" src="../../.././search.js"></script><script type="module" src="../../.././expand-nav.js"></script><script type="module" src="../../.././how-about.js"></script><script type="module" src="../../.././instances.js"></script><script type="module" src="../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Init</span>.<span class="name">Data</span>.<span class="name">Order</span>.<span class="name">MinMaxOn</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../.././Init/Data/Order/Lemmas.html">Init.Data.Order.Lemmas</a></li><li><a href="../../.././Init/Data/Order/Opposite.html">Init.Data.Order.Opposite</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Init.Data.Order.MinMaxOn" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#minOn"><span class="name">minOn</span></a></div><div class="nav_link"><a class="break_within" href="#maxOn"><span class="name">maxOn</span></a></div><div class="nav_link"><a class="break_within" href="#minOn_id"><span class="name">minOn_id</span></a></div><div class="nav_link"><a class="break_within" href="#maxOn_id"><span class="name">maxOn_id</span></a></div><div class="nav_link"><a class="break_within" href="#minOn_eq_or"><span class="name">minOn_eq_or</span></a></div><div class="nav_link"><a class="break_within" href="#minOn_self"><span class="name">minOn_self</span></a></div><div class="nav_link"><a class="break_within" href="#minOn_eq_left"><span class="name">minOn_eq_left</span></a></div><div class="nav_link"><a class="break_within" href="#minOn_eq_right"><span class="name">minOn_eq_right</span></a></div><div class="nav_link"><a class="break_within" href="#minOn_eq_right_of_lt"><span class="name">minOn_eq_right_of_lt</span></a></div><div class="nav_link"><a class="break_within" href="#apply_minOn_le_left"><span class="name">apply_minOn_le_left</span></a></div><div class="nav_link"><a class="break_within" href="#apply_minOn_le_right"><span class="name">apply_minOn_le_right</span></a></div><div class="nav_link"><a class="break_within" href="#le_apply_minOn_iff"><span class="name">le_apply_minOn_iff</span></a></div><div class="nav_link"><a class="break_within" href="#minOn_assoc"><span class="name">minOn_assoc</span></a></div><div class="nav_link"><a class="break_within" href="#instAssociativeMinOnOfIsLinearPreorder"><span class="name">instAssociativeMinOnOfIsLinearPreorder</span></a></div><div class="nav_link"><a class="break_within" href="#min_apply"><span class="name">min_apply</span></a></div><div class="nav_link"><a class="break_within" href="#maxOn_eq_minOn"><span class="name">maxOn_eq_minOn</span></a></div><div class="nav_link"><a class="break_within" href="#maxOn_eq_or"><span class="name">maxOn_eq_or</span></a></div><div class="nav_link"><a class="break_within" href="#maxOn_self"><span class="name">maxOn_self</span></a></div><div class="nav_link"><a class="break_within" href="#maxOn_eq_left"><span class="name">maxOn_eq_left</span></a></div><div class="nav_link"><a class="break_within" href="#maxOn_eq_right"><span class="name">maxOn_eq_right</span></a></div><div class="nav_link"><a class="break_within" href="#maxOn_eq_right_of_lt"><span class="name">maxOn_eq_right_of_lt</span></a></div><div class="nav_link"><a class="break_within" href="#left_le_apply_maxOn"><span class="name">left_le_apply_maxOn</span></a></div><div class="nav_link"><a class="break_within" href="#right_le_apply_maxOn"><span class="name">right_le_apply_maxOn</span></a></div><div class="nav_link"><a class="break_within" href="#apply_maxOn_le_iff"><span class="name">apply_maxOn_le_iff</span></a></div><div class="nav_link"><a class="break_within" href="#maxOn_assoc"><span class="name">maxOn_assoc</span></a></div><div class="nav_link"><a class="break_within" href="#instAssociativeMaxOnOfIsLinearPreorder"><span class="name">instAssociativeMaxOnOfIsLinearPreorder</span></a></div><div class="nav_link"><a class="break_within" href="#max_apply"><span class="name">max_apply</span></a></div><div class="nav_link"><a class="break_within" href="#apply_maxOn"><span class="name">apply_maxOn</span></a></div></nav><main>
+<div class="mod_doc"><h2 id="Definitions" class="markdown-heading">Definitions <a class="hover-link" href="#Definitions">#</a></h2></div><div class="decl" id="minOn"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L17-L23">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#minOn"><span class="name">minOn</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">α</span></div></div><p>Returns either <code>x</code> or <code>y</code>, the one with the smaller value under <code>f</code>.</p><p>If <code>f x ≤ f y</code>, it returns <code>x</code>, and otherwise returns <code>y</code>.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <a href="../../.././Init/Prelude.html#ite">if</a> <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">f</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#ite">then</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#ite">else</a> <span class="fn">y</span></li></ul></details><details id="instances-for-list-minOn" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="maxOn"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L25-L32">source</a></div><div class="decl_header"><span class="decl_kind">def</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#maxOn"><span class="name">maxOn</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">i</span> : <span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn">α</span></div></div><p>Returns either <code>x</code> or <code>y</code>, the one with the greater value under <code>f</code>.</p><p>If <code>f y ≤ f x</code>, it returns <code>x</code>, and otherwise returns <code>y</code>.</p><details><summary>Equations</summary><ul class="equations"><li class="equation"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span></li></ul></details><details id="instances-for-list-maxOn" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="mod_doc"><h2 id="minOn-Lemmas" class="markdown-heading"><code><a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a></code> Lemmas <a class="hover-link" href="#minOn-Lemmas">#</a></h2></div><div class="decl" id="minOn_id"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L36-L38">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#minOn_id"><span class="name">minOn_id</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Min">Min</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLeftLeaningMin">Std.LawfulOrderLeftLeaningMin</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <a href="../../.././Init/Prelude.html#id">id</a> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Min.min">min</a> <span class="fn">x</span> <span class="fn">y</span></span></div></div></div></div><div class="decl" id="maxOn_id"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L40-L44">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#maxOn_id"><span class="name">maxOn_id</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Max">Max</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLeftLeaningMax">Std.LawfulOrderLeftLeaningMax</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <a href="../../.././Init/Prelude.html#id">id</a> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Max.max">max</a> <span class="fn">x</span> <span class="fn">y</span></span></div></div></div></div><div class="decl" id="minOn_eq_or"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L46-L51">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#minOn_eq_or"><span class="name">minOn_eq_or</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Or">∨</a> <span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">y</span></div></div></div></div><div class="decl" id="minOn_self"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L53-L56">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#minOn_self"><span class="name">minOn_self</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></div></div></div></div><div class="decl" id="minOn_eq_left"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L58-L60">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#minOn_eq_left"><span class="name">minOn_eq_left</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">f</span> <span class="fn">y</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></div></div></div></div><div class="decl" id="minOn_eq_right"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L62-L64">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#minOn_eq_right"><span class="name">minOn_eq_right</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <a href="../../.././Init/Prelude.html#Not">¬</a><span class="fn"><span class="fn">f</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">f</span> <span class="fn">y</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">y</span></div></div></div></div><div class="decl" id="minOn_eq_right_of_lt"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L66-L71">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#minOn_eq_right_of_lt"><span class="name">minOn_eq_right_of_lt</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Core.html#Std.Total">Std.Total</a> <span class="fn">fun (<span class="fn">x1</span> <span class="fn">x2</span> : <span class="fn">β</span>) =&gt; <span class="fn">x1</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">x2</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">f</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">y</span></div></div></div></div><div class="decl" id="apply_minOn_le_left"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L73-L78">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#apply_minOn_le_left"><span class="name">apply_minOn_le_left</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsLinearPreorder">Std.IsLinearPreorder</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span>)</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span></div></div></div></div><div class="decl" id="apply_minOn_le_right"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L80-L85">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#apply_minOn_le_right"><span class="name">apply_minOn_le_right</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsLinearPreorder">Std.IsLinearPreorder</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span>)</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">f</span> <span class="fn">y</span></span></div></div></div></div><div class="decl" id="le_apply_minOn_iff"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L87-L94">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#le_apply_minOn_iff"><span class="name">le_apply_minOn_iff</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsLinearPreorder">Std.IsLinearPreorder</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">b</span> : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn">b</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">f</span> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span>)</span></span> <a href="../../.././Init/Core.html#Iff">↔</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#And">∧</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">f</span> <span class="fn">y</span></span></div></div></div></div><div class="decl" id="minOn_assoc"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L96-L116">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#minOn_assoc"><span class="name">minOn_assoc</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsLinearPreorder">Std.IsLinearPreorder</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y </span><span class="fn">z</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span>)</span> <span class="fn">z</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">y</span> <span class="fn">z</span>)</span></span></div></div></div></div><div class="decl" id="instAssociativeMinOnOfIsLinearPreorder"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L118-L120">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#instAssociativeMinOnOfIsLinearPreorder"><span class="name">instAssociativeMinOnOfIsLinearPreorder</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsLinearPreorder">Std.IsLinearPreorder</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Core.html#Std.Associative">Std.Associative</a> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span>)</span></span></div></div></div></div><div class="decl" id="min_apply"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L122-L125">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#min_apply"><span class="name">min_apply</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Min">Min</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLeftLeaningMin">Std.LawfulOrderLeftLeaningMin</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Min.min">min</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">(<span class="fn">f</span> <span class="fn">y</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">f</span> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span>)</span></span></div></div></div></div><div class="mod_doc"><h2 id="maxOn-Lemmas" class="markdown-heading"><code><a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a></code> Lemmas <a class="hover-link" href="#maxOn-Lemmas">#</a></h2></div><div class="decl" id="maxOn_eq_minOn"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L129-L131">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#maxOn_eq_minOn"><span class="name">maxOn_eq_minOn</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">le</span> : <span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#minOn">minOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span></div></div></div></div><div class="decl" id="maxOn_eq_or"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L133-L135">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#maxOn_eq_or"><span class="name">maxOn_eq_or</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span> <a href="../../.././Init/Prelude.html#Or">∨</a> <span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">y</span></div></div></div></div><div class="decl" id="maxOn_self"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L137-L140">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#maxOn_self"><span class="name">maxOn_self</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></div></div></div></div><div class="decl" id="maxOn_eq_left"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L142-L145">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#maxOn_eq_left"><span class="name">maxOn_eq_left</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">le</span> : <span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">f</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">x</span></div></div></div></div><div class="decl" id="maxOn_eq_right"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L147-L150">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#maxOn_eq_right"><span class="name">maxOn_eq_right</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <a href="../../.././Init/Prelude.html#Not">¬</a><span class="fn"><span class="fn">f</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">y</span></div></div></div></div><div class="decl" id="maxOn_eq_right_of_lt"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L152-L158">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#maxOn_eq_right_of_lt"><span class="name">maxOn_eq_right_of_lt</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Core.html#Std.Total">Std.Total</a> <span class="fn">fun (<span class="fn">x1</span> <span class="fn">x2</span> : <span class="fn">β</span>) =&gt; <span class="fn">x1</span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">x2</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLT">Std.LawfulOrderLT</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#LT.lt">&lt;</a> <span class="fn"><span class="fn">f</span> <span class="fn">y</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">y</span></div></div></div></div><div class="decl" id="left_le_apply_maxOn"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L160-L164">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#left_le_apply_maxOn"><span class="name">left_le_apply_maxOn</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">le</span> : <span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsLinearPreorder">Std.IsLinearPreorder</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">f</span> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span>)</span></span></div></div></div></div><div class="decl" id="right_le_apply_maxOn"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L166-L170">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#right_le_apply_maxOn"><span class="name">right_le_apply_maxOn</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsLinearPreorder">Std.IsLinearPreorder</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn"><span class="fn">f</span> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span>)</span></span></div></div></div></div><div class="decl" id="apply_maxOn_le_iff"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L172-L177">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#apply_maxOn_le_iff"><span class="name">apply_maxOn_le_iff</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsLinearPreorder">Std.IsLinearPreorder</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">b</span> : <span class="fn">β</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span>)</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span> <a href="../../.././Init/Core.html#Iff">↔</a> <span class="fn"><span class="fn">f</span> <span class="fn">x</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span> <a href="../../.././Init/Prelude.html#And">∧</a> <span class="fn"><span class="fn">f</span> <span class="fn">y</span></span> <a href="../../.././Init/Prelude.html#LE.le">≤</a> <span class="fn">b</span></div></div></div></div><div class="decl" id="maxOn_assoc"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L179-L182">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#maxOn_assoc"><span class="name">maxOn_assoc</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsLinearPreorder">Std.IsLinearPreorder</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y </span><span class="fn">z</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span>)</span> <span class="fn">z</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">y</span> <span class="fn">z</span>)</span></span></div></div></div></div><div class="decl" id="instAssociativeMaxOnOfIsLinearPreorder"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L184-L187">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#instAssociativeMaxOnOfIsLinearPreorder"><span class="name">instAssociativeMaxOnOfIsLinearPreorder</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.IsLinearPreorder">Std.IsLinearPreorder</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Core.html#Std.Associative">Std.Associative</a> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span>)</span></span></div></div></div></div><div class="decl" id="max_apply"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L189-L193">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#max_apply"><span class="name">max_apply</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Max">Max</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLeftLeaningMax">Std.LawfulOrderLeftLeaningMax</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Prelude.html#Max.max">max</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">(<span class="fn">f</span> <span class="fn">y</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">f</span> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span>)</span></span></div></div></div></div><div class="decl" id="apply_maxOn"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/985f350dcd18fc7814dfa677cac09933f44f3215/src/Init/Data/Order/MinMaxOn.lean#L195-L197">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Init/Data/Order/MinMaxOn.html#apply_maxOn"><span class="name">apply_maxOn</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">β</span> : <a href="../../.././foundational_types.html">Type</a> u_1}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Sort</a> u_2}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Max">Max</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Order/Classes.html#Std.LawfulOrderLeftLeaningMax">Std.LawfulOrderLeftLeaningMax</a> <span class="fn">β</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">f</span> : <span class="fn"><span class="fn">α</span> → <span class="fn">β</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x </span><span class="fn">y</span> : <span class="fn">α</span>}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><span class="fn">f</span> <span class="fn">(<a href="../../.././Init/Data/Order/MinMaxOn.html#maxOn">maxOn</a> <span class="fn">f</span> <span class="fn">x</span> <span class="fn">y</span>)</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Prelude.html#Max.max">max</a> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span>)</span> <span class="fn">(<span class="fn">f</span> <span class="fn">y</span>)</span></span></div></div></div></div></main>
+<nav class="nav"><iframe src="../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

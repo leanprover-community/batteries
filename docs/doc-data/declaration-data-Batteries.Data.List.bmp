@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init","Batteries.Data.List.ArrayMap","Batteries.Data.List.Basic","Batteries.Data.List.Count","Batteries.Data.List.Init.Lemmas","Batteries.Data.List.Lemmas","Batteries.Data.List.Matcher","Batteries.Data.List.Monadic","Batteries.Data.List.Pairwise","Batteries.Data.List.Perm","Batteries.Data.List.Scan"],"instances":[],"name":"Batteries.Data.List"}

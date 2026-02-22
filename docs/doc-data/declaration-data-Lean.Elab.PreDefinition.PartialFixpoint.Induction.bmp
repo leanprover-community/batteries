@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Meta.Injective","Lean.Elab.PreDefinition.PartialFixpoint.Eqns","Init.Internal.Order.Basic","Lean.Meta.PProdN"],"instances":[],"name":"Lean.Elab.PreDefinition.PartialFixpoint.Induction"}

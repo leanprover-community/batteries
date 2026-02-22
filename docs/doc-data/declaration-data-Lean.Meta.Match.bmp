@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Meta.Match.MatchPatternAttr","Lean.Meta.Match.Match","Lean.Meta.Match.CaseValues","Lean.Meta.Match.CaseArraySizes","Lean.Meta.Match.MatchEqs"],"instances":[],"name":"Lean.Meta.Match"}

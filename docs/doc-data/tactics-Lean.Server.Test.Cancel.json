@@ -1,0 +1,24 @@
+[{"userName": "wait_for_unblock_async",
+  "tags": [],
+  "internalName": "Lean.Server.Test.Cancel.tacticWait_for_unblock_async",
+  "docString":
+  {"element":
+   ["p",
+    true,
+    [],
+    [{"element":
+      ["p",
+       true,
+       [],
+       [{"text": "Spawns a "},
+        {"element": ["code", true, [], [{"text": "logSnapshotTask"}]]},
+        {"text": " that waits for "},
+        {"element": ["code", true, [], [{"text": "unblock"}]]},
+        {"text": " to be called, which is expected to happen in a"},
+        {"raw": "\n"},
+        {"text":
+         "subsequent document version that does not invalidate this tactic. Complains if cancellation token"},
+        {"raw": "\n"},
+        {"text":
+         "was set before unblocking, i.e. if the tactic was invalidated after all."}]]}]]},
+  "definingModule": "Lean.Server.Test.Cancel"}]

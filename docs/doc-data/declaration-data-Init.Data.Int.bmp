@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Data.Int.Basic","Init.Data.Int.Bitwise","Init.Data.Int.Compare","Init.Data.Int.DivMod","Init.Data.Int.Gcd","Init.Data.Int.Lemmas","Init.Data.Int.LemmasAux","Init.Data.Int.Order","Init.Data.Int.Pow","Init.Data.Int.Cooper","Init.Data.Int.Linear","Init.Data.Int.OfNat"],"instances":[],"name":"Init.Data.Int"}

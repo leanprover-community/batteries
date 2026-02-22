@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Grind.Tactics","Init.Data.Range.Polymorphic.Basic","Init.Data.Vector.Basic","Init.Data.Slice.Array.Lemmas"],"instances":[],"name":"Init.Data.Range.Polymorphic.GetElemTactic"}

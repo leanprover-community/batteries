@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.Deriving.Basic","Lean.Elab.Deriving.Util","Init.LawfulBEqTactics"],"instances":[],"name":"Lean.Elab.Deriving.LawfulBEq"}
