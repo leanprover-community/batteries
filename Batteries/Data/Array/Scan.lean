@@ -153,7 +153,8 @@ theorem scanl_eq_scanlM {f : β → α → β} {as: Array α} :
 
 theorem scanl_eq_scanl_toList {f: β → α → β} {as : Array α} :
     as.scanl f init = (as.toList.scanl f init).toArray := by
-  simp only [scanl_eq_scanlM, scanlM_eq_scanlM_toList, List.scanl, pure, Id.run_map]
+  simp only [scanl_eq_scanlM, scanlM_eq_scanlM_toList]
+  simp [List.idRun_scanlM]
 
 @[simp, grind =]
 theorem toList_scanl {f : β → α → β} {as: Array α} :
@@ -245,7 +246,7 @@ theorem scanr_eq_scanrM {f : α → β → β} {as : Array α} :
 theorem scanr_eq_scanr_toList {f : α → β → β} {as : Array α} :
     as.scanr f init = (as.toList.scanr f init).toArray := by
   simp only [scanr_eq_scanrM, scanrM_eq_scanrM_toList]
-  simp [List.scanr]
+  simp [List.idRun_scanrM]
 
 @[simp, grind =]
 theorem toList_scanr {f : α → β → β} {as : Array α} :
