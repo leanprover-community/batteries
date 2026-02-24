@@ -68,9 +68,6 @@ def pattern_from_constructor (ctor : Name) (env : Environment) (suffix : String)
   let some (.inductInfo indInfo) := env.find? ctorInfo.induct | panic! "not an inductive"
   let numParams := indInfo.numParams
   let ctor_short := toString (ctor.updatePrefix .anonymous)
-  let some namePrefix := indInfo.name.components.getLast? |
-    panic "Not able to determine name of inductive"
-  let ctor_long := s!"{toString namePrefix}.{ctor_short}"
   let explicitCtorArgs := getExplicitArgs ctorInfo.type #[]
   let allCtorArgs := getAllArgs ctorInfo.type #[]
 
@@ -100,21 +97,23 @@ def pattern_from_constructor (ctor : Name) (env : Environment) (suffix : String)
        type that is fixed over constructors), since these should already be determined by the
        match discriminant. One could elaborate the type of this discriminant and fill the parameters
        from there, but we don't see any value in this. -/
-      -- totalArgs - explicitargs - parameters
     if explicitArgsOnly || Bool.not ctor_hasImplicitNonparArg then
       let mut str := s!".{ctor_short}"
       for arg in explicitCtorArgs do
         str := str ++ if arg.hasNum || arg.isInternal then " _" else s!" {arg}{suffix}"
       return str
     else
-      let mut str := s!"@{ctor_long}"
-      for i in [:allCtorArgs.size] do
+      let mut str := s!".{ctor_short}"
+      /- This loop skips the first `numParams` many arguments, since these are the parameters
+         and are already determined by the match discriminant and thus unlikely to be
+         useful for the match. -/
+      for i in [numParams:allCtorArgs.size] do
         let arg := allCtorArgs[i]!
         str := str ++
-          if i < numParams || arg.hasNum || arg.isInternal then
+          if arg.hasNum || arg.isInternal then
             " _"
           else
-            s!" {arg}{suffix}"
+            s!" ({arg} := {arg}{suffix})"
       return str
 
 
@@ -148,7 +147,8 @@ def myfun3 (o : Option Bool) (m : Nat) : Nat :=
 ```
 If it makes sense to use at least one of the constructors with `@` (i.e. iff it has an
 implicit non-parameter argument) then we also show a codeaction that expands every such constructor
-with `@`. E.g. invoking `Generate a list of equations with implicit arguments for this match.` in
+with implicit arguments filled in with the syntax `implicitArg := implicitArg`.
+E.g. invoking `Generate a list of equations with implicit arguments for this match.` in
 the following
 ```lean
 inductive TermWithImplicit (F : Nat → Type u) (α : Type w)
@@ -163,13 +163,13 @@ produces
 def myfun4 (t : TermWithImplicit F α) : Nat := by
   match t with
   | .var x => _
-  | @TermWithImplicit.func _ _ l f ts => _
+  | .func (l := l) (f := f) (ts := ts) => _
 ```
 where the implicit argument `{l : Nat}` is now usable.
-Note that the arguments `F` and `α` were filled with `_` since they are `parameters`
+Note that the arguments `F` and `α` are not filled since they are `parameters`
 (a parameter is an argument to an inductive type that is fixed over constructors), i.e.
-they are already determined by the match discriminant `t`. We dont explicitly fill them,
-since they are rarely used in a match.
+they are already determined by the match discriminant `t`. This means they don't provide any
+new information for you.
 -/
 @[command_code_action]
 def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
