@@ -113,7 +113,10 @@ def pattern_from_constructor (ctor : Name) (env : Environment) (suffix : String)
           if arg.hasNum || arg.isInternal then
             " _"
           else
-            s!" ({arg} := {arg}{suffix})"
+            if arg ∈ explicitCtorArgs then
+              s!" {arg}{suffix}"
+            else
+              s!" ({arg} := {arg}{suffix})"
       return str
 
 
@@ -163,7 +166,7 @@ produces
 def myfun4 (t : TermWithImplicit F α) : Nat := by
   match t with
   | .var x => _
-  | .func (l := l) (f := f) (ts := ts) => _
+  | .func (l := l) f ts => _
 ```
 where the implicit argument `{l : Nat}` is now usable.
 Note that the arguments `F` and `α` are not filled since they are `parameters`
