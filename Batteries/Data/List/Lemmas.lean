@@ -1364,3 +1364,9 @@ theorem sum_flatten [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 
     [Std.Associative (α := α) (· + ·)] {l : List (List α)} :
     l.flatten.sum = (l.map sum).sum := by
   induction l with simp [*]
+
+theorem take_succ_drop {l : List α} {n stop : Nat}
+    (h : n < l.length - stop) :
+    (l.drop stop |>.take (n + 1)) = (l.drop stop |>.take n) ++ [l[stop + n]'(by omega)] := by
+  rw [← List.take_append_getElem (by simpa [← List.length_drop] using h)]
+  simp [List.getElem_drop]
