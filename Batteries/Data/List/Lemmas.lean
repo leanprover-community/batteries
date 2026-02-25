@@ -1393,5 +1393,4 @@ theorem take_succ_drop {l : List α} {n stop : Nat}
   rw [← List.take_append_getElem (by simpa [← List.length_drop] using h)]
   simp [List.getElem_drop]
 
-@[simp]
-theorem reverse_singleton {a : α} : [a].reverse = [a] := rfl
+attribute [simp] reverse_singleton

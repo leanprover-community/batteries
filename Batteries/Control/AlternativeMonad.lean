@@ -197,9 +197,9 @@ instance [AlternativeMonad m] : AlternativeMonad (StateRefT' ω σ m) where
 
 instance [AlternativeMonad m] [LawfulAlternative m] :
     LawfulAlternative (StateRefT' ω σ m) :=
-  inferInstanceAs (LawfulAlternative (ReaderT _ _))
+  inferInstanceAs (LawfulAlternative (ReaderT (ST.Ref ω σ) m))
 
 instance [AlternativeMonad m] : LawfulAlternativeLift m (StateRefT' ω σ m) :=
-  inferInstanceAs (LawfulAlternativeLift m (ReaderT _ _))
+  inferInstanceAs (LawfulAlternativeLift m (ReaderT (ST.Ref ω σ) m))
 
 end StateRefT'
