@@ -1320,13 +1320,6 @@ private theorem foldr_eq_foldl_aux (f : α → α → α) (init : α) [Std.Assoc
   | cons b l ih =>
     simp [Std.LawfulLeftIdentity.left_id, ih (a := f a b), ih (a := b), Std.Associative.assoc]
 
-theorem foldr_eq_foldl (f : α → α → α) (init : α) [Std.Associative f]
-    [Std.LawfulIdentity f init] {l : List α} :
-    l.foldr f init = l.foldl f init := by
-  induction l with
-  | nil => rfl
-  | cons a l ih => simp [ih, Std.LawfulLeftIdentity.left_id, foldr_eq_foldl_aux (a := a)]
-
 @[simp, grind =]
 theorem prod_nil [Mul α] [One α] : ([] : List α).prod = 1 := rfl
 
@@ -1367,9 +1360,6 @@ theorem prod_eq_foldl [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
 theorem sum_zero_cons [Add α] [Zero α] [Std.LawfulLeftIdentity (α := α) (· + ·) 0] {l : List α} :
     (0 :: l).sum = l.sum := by simp [Std.LawfulLeftIdentity.left_id]
 
-theorem sum_singleton [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (· + ·) 0] {a : α} :
-  [a].sum = a := by simp [Std.LawfulRightIdentity.right_id]
-
 theorem sum_pair [Add α] [Zero α] [Std.LawfulRightIdentity (α := α) (· + ·) 0] {a b : α} :
   [a, b].sum = a + b := by simp [Std.LawfulRightIdentity.right_id]
 
@@ -1382,10 +1372,6 @@ theorem sum_flatten [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 
     [Std.Associative (α := α) (· + ·)] {l : List (List α)} :
     l.flatten.sum = (l.map sum).sum := by
   induction l with simp [*]
-
-theorem sum_eq_foldl [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
-    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} :
-    l.sum = l.foldl (· + ·) 0 := foldr_eq_foldl ..
 
 theorem take_succ_drop {l : List α} {n stop : Nat}
     (h : n < l.length - stop) :
