@@ -62,7 +62,7 @@ def hasImplicitNonparArg (ctor : Name) (env : Environment) : Bool := Id.run do
 /-- From a constructor-name e.g. `Option.some` construct the corresponding match pattern, e.g.
     `.some val`. We implement special cases for `Nat` and `List`, `Option` and `Bool` to e.g.
     produce `n + 1` instead of `Nat.succ n`. -/
-def pattern_from_constructor (ctor : Name) (env : Environment) (suffix : String)
+def patternFromConstructor (ctor : Name) (env : Environment) (suffix : String)
     (explicitArgsOnly : Bool) (ctor_hasImplicitNonparArg : Bool): Option String := do
   let some (.ctorInfo ctorInfo) := env.find? ctor | panic! "bad inductive"
   let some (.inductInfo indInfo) := env.find? ctorInfo.induct | panic! "not an inductive"
@@ -255,7 +255,7 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
           let (ctor, existsExplicitNonparArg) := l[ctor_idx]!
           let suffix := if constructors_rev.length ≥ 2 then s!"_{ctor_idx + 1}" else ""
           let some pat :=
-            pattern_from_constructor ctor snap.env suffix explicitArgsOnly existsExplicitNonparArg |
+            patternFromConstructor ctor snap.env suffix explicitArgsOnly existsExplicitNonparArg |
               panic! "bad inductive"
           str := str ++ pat
           if ctor_idx < l.length - 1 then
