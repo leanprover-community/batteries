@@ -28,7 +28,7 @@ structure ScanM  {β γ : Type w} {n : Type w → Type w''}
 public def IterM.InternalCombinators.scanM [MonadLiftT m n]
     (f : γ → β → PostconditionT n γ) (acc : γ) (yieldAcc : Bool) (it : IterM (α := α) m β) :
     IterM (α := ScanM α m f) n γ :=
-  .mk ⟨it, acc, yieldAcc⟩ n γ
+  .mk ⟨it, acc, yieldAcc⟩
 
 namespace ScanM
 variable {α β γ : Type w} {m : Type w → Type w'} {n : Type w → Type w''}
