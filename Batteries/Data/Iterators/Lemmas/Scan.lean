@@ -46,7 +46,7 @@ theorem IterM.InternalCombinators.step_scanM
   case false =>
     apply bind_congr
     intro step
-    cases hstep : step.inflate using PlausibleIterStep.casesOn <;> simp
+    cases step.inflate using PlausibleIterStep.casesOn <;> simp
 
 private theorem IterM.toList_scanWithPostCondition_afterInit
     [Monad m] [LawfulMonad m] [Iterator α Id β] [Finite α Id]
