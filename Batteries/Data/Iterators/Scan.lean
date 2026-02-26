@@ -124,7 +124,7 @@ private def instFinitenessRelation [Monad n] [Finite α m] : FinitenessRelation 
     cases hplaus <;> cases hstep
     case yieldAcc => simp_all [FinRel.of_yieldAcc, IterM.InternalCombinators.scanM]
     all_goals
-      apply FinRel.of_inner <;> simp_all only [IterM.InternalCombinators.scanM, IterM.mk]
+      apply FinRel.of_inner <;> simp_all only [IterM.InternalCombinators.scanM]
     . exact IterM.isPlausibleSuccessorOf_of_yield ‹_›
     . exact IterM.isPlausibleSuccessorOf_of_skip ‹_›
 
@@ -248,7 +248,6 @@ For each value emitted by the base iterator `it`, this combinator calls `f`.
 @[inline, expose]
 def IterM.scan [Monad m] (f : γ → β → γ) (acc : γ) (it : IterM (α := α) m β) :=
   (it.scanWithPostcondition (pure <| f · ·) acc : IterM m γ)
-
 
 @[inline, expose, inherit_doc IterM.scanWithPostcondition]
 def Iter.scanWithPostcondition [Monad m]

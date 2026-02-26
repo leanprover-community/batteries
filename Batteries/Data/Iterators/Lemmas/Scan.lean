@@ -9,6 +9,7 @@ public import Batteries.Data.Iterators.Scan
 public import Batteries.Data.List.Scan
 public import Batteries.Data.Array.Scan
 public import Std.Data.Iterators.Lemmas.Equivalence.StepCongr
+public import Init.Data.Iterators.Lemmas.Monadic.Basic
 
 public section
 
@@ -39,11 +40,13 @@ theorem IterM.InternalCombinators.step_scanM
           | .done hp =>
             return .deflate <|
               .done (.done (by simp [IterM.InternalCombinators.scanM, h]) hp)) := by
-  cases h: yieldAcc
+  simp only [IterM.InternalCombinators.scanM, IterM.step_eq]
+  cases h : yieldAcc
   case true => rfl
-  apply bind_congr
-  intro step
-  cases step.inflate using PlausibleIterStep.casesOn <;> rfl
+  case false =>
+    apply bind_congr
+    intro step
+    cases hstep : step.inflate using PlausibleIterStep.casesOn <;> simp
 
 private theorem IterM.toList_scanWithPostCondition_afterInit
     [Monad m] [LawfulMonad m] [Iterator α Id β] [Finite α Id]
@@ -52,15 +55,33 @@ private theorem IterM.toList_scanWithPostCondition_afterInit
       return ((← it.toList.run.scanlM (f · · |>.run) init).tail) := by
   induction it using IterM.inductSteps generalizing init with | step it ihy ihs =>
   rw [IterM.toList_eq_match_step, IterM.toList_eq_match_step]
-  simp only [IterM.InternalCombinators.step_scanM, Id.instMonad, ↓reduceDIte, Bool.false_eq_true]
-  simp_all only [monadLift, Id.run, bind_pure_comp, liftM]
-  match hstep : it.step.inflate with
+  simp only [IterM.InternalCombinators.step_scanM, ↓reduceDIte, Bool.false_eq_true]
+  simp only [monadLift, liftM, PostconditionT.run_eq_map] at *
+  match hstep : it.step.run.inflate with
   | ⟨.yield inner' out, hp⟩ =>
-    simp_all only [PostconditionT.run_eq_map, bind_map_left, List.scanlM_cons, pure_bind]
-    simp only [Shrink.inflate_deflate, map_bind]
-    apply bind_congr
-    intro a
-    rw [ihy hp, ← List.scanlM_cons_head_tail]
+    simp only [bind_pure_comp,pure_bind, hstep, bind_map_left, Shrink.inflate_deflate, Id.run_bind,
+      Id.run_map, List.scanlM_cons, map_bind, ihy hp]
+    simp +singlePass only [← List.scanlM_cons_head_tail]
+    simp
+  | ⟨.skip inner, hp⟩ => simp_all
+  | ⟨.done, x⟩ => simp_all
+
+private theorem IterM.toList_scan_afterInit
+    [Monad m] [LawfulMonad m] [Iterator α m β] [Finite α m]
+    {f : γ → β → γ} {init : γ} (it : IterM (α := α) m β) :
+    IterM.toList (IterM.InternalCombinators.scanM (pure <| f · ·) init false it) =
+      (List.scanl f init · |>.tail) <$> it.toList := by
+  induction it using IterM.inductSteps generalizing init with | step it ihy ihs =>
+  rw [IterM.toList_eq_match_step, IterM.toList_eq_match_step]
+  simp only [IterM.InternalCombinators.step_scanM, ↓reduceDIte, Bool.false_eq_true]
+  simp only [monadLift, liftM] at *
+  simp only [bind_assoc, map_eq_pure_bind]
+  apply bind_congr; intro step
+  match step.inflate with
+  | ⟨.yield inner' out, hp⟩ =>
+    simp only [PostconditionT.operation_pure, bind_pure_comp, map_pure,
+      pure_bind, Shrink.inflate_deflate, ihy hp, Functor.map_map, List.scanl_cons, List.tail_cons]
+    simp +singlePass only [← List.scanl_cons_head_tail]
     simp
   | ⟨.skip inner, hp⟩ => simp_all
   | ⟨.done, x⟩ => simp_all
@@ -82,11 +103,16 @@ theorem IterM.toList_scanM [Monad m] [MonadAttach m] [LawfulMonad m] [WeaklyLawf
   simp [IterM.scanM, PostconditionT.run_attachLift]
 
 @[simp]
-theorem IterM.toList_scan [Iterator α Id β] [Finite α Id]
-    {f : γ → β → γ} {init : γ} (it : IterM (α := α) Id β) :
-    (it.scan f init).toList = (List.scanl f init it.toList.run : List γ) := by
-  simp only [scan, toList_scanWithPostCondition, PostconditionT.run_eq_map]
-  rfl
+theorem IterM.toList_scan [Iterator α m β] [Finite α m] [Monad m] [LawfulMonad m]
+    {f : γ → β → γ} {init : γ} (it : IterM (α := α) m β) :
+    (it.scan f init).toList = List.scanl f init <$> it.toList := by
+  rw [scan, scanWithPostcondition]
+  rw [IterM.toList_eq_match_step, IterM.InternalCombinators.step_scanM]
+  simp only [↓reduceDIte, pure_bind, Shrink.inflate_deflate,
+    toList_scan_afterInit, bind_pure_comp, Functor.map_map]
+  congr 1; apply funext
+  simp +singlePass +eta only [← List.scanl_cons_head_tail]
+  simp
 
 @[simp]
 theorem Iter.toList_scanWithPostcondition [Monad m] [LawfulMonad m] [Iterator α Id β] [Finite α Id]
@@ -122,11 +148,10 @@ theorem IterM.toArray_scanM [Monad m] [MonadAttach m] [LawfulMonad m] [WeaklyLaw
   simp [scanM]
 
 @[simp]
-theorem IterM.toArray_scan [Iterator α Id β] [Finite α Id]
-    {f : γ → β → γ} {init : γ} (it : IterM (α := α) Id β) :
-    (it.scan f init).toArray = it.toArray.run.scanl f init := by
-  simp only [scan, toArray_scanWithPostCondition, PostconditionT.run_eq_map]
-  rfl
+theorem IterM.toArray_scan [Iterator α m β] [Finite α m] [Monad m] [LawfulMonad m]
+    {f : γ → β → γ} {init : γ} (it : IterM (α := α) m β) :
+    (it.scan f init).toArray = Array.scanl f init <$> it.toArray := by
+  simp [← toArray_toList, toList_scan, List.toArray_scanl]
 
 theorem Iter.toArray_scanWithPostCondition [Monad m] [LawfulMonad m] [Iterator α Id β] [Finite α Id]
     {f : γ → β → PostconditionT m γ} {init : γ} (it : Iter (α := α) β) :

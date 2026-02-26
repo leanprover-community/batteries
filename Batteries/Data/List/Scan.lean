@@ -26,6 +26,11 @@ theorem scanlM_cons_head_tail [Monad m] [LawfulMonad m]
    (return (init :: (← as.scanlM f init).tail)) = as.scanlM f init := by
  induction as generalizing init with simp_all
 
+theorem scanl_cons_head_tail
+   {f : γ → β → γ} {init : γ} {as : List β} :
+   init :: (as.scanl f init).tail = as.scanl f init := by
+ induction as generalizing init with simp_all
+
 
 /-! ### partialSums/partialProd -/
 
