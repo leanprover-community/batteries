@@ -86,10 +86,10 @@ theorem Subperm.count_le [BEq α] {l₁ l₂ : List α} (s : l₁ <+~ l₂) (a) 
     count a l₁ ≤ count a l₂ := s.countP_le _
 
 theorem subperm_cons (a : α) {l₁ l₂ : List α} : a :: l₁ <+~ a :: l₂ ↔ l₁ <+~ l₂ := by
-  refine ⟨fun ⟨l, p, s⟩ => ?_, fun ⟨l, p, s⟩ => ⟨a :: l, p.cons a, s.cons₂ _⟩⟩
+  refine ⟨fun ⟨l, p, s⟩ => ?_, fun ⟨l, p, s⟩ => ⟨a :: l, p.cons a, s.cons_cons _⟩⟩
   match s with
   | .cons _ s' => exact (p.subperm_left.2 <| (sublist_cons_self _ _).subperm).trans s'.subperm
-  | .cons₂ _ s' => exact ⟨_, p.cons_inv, s'⟩
+  | .cons_cons _ s' => exact ⟨_, p.cons_inv, s'⟩
 
 /-- Weaker version of `Subperm.cons_left` -/
 theorem cons_subperm_of_not_mem_of_mem {a : α} {l₁ l₂ : List α} (h₁ : a ∉ l₁) (h₂ : a ∈ l₂)
@@ -100,9 +100,9 @@ theorem cons_subperm_of_not_mem_of_mem {a : α} {l₁ l₂ : List α} (h₁ : a 
   | @cons r₁ _ b s' ih =>
     simp at h₂
     match h₂ with
-    | .inl e => subst_vars; exact ⟨_ :: r₁, p.cons _, s'.cons₂ _⟩
+    | .inl e => subst_vars; exact ⟨_ :: r₁, p.cons _, s'.cons_cons _⟩
     | .inr m => let ⟨t, p', s'⟩ := ih h₁ m p; exact ⟨t, p', s'.cons _⟩
-  | @cons₂ _ r₂ b _ ih =>
+  | @cons_cons _ r₂ b _ ih =>
     have bm : b ∈ l₁ := p.subset mem_cons_self
     have am : a ∈ r₂ := by
       simp only [mem_cons] at h₂
@@ -110,7 +110,7 @@ theorem cons_subperm_of_not_mem_of_mem {a : α} {l₁ l₂ : List α} (h₁ : a 
     obtain ⟨t₁, t₂, rfl⟩ := append_of_mem bm
     have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp
     obtain ⟨t, p', s'⟩ := ih (mt (st.subset ·) h₁) am (.cons_inv <| p.trans perm_middle)
-    exact ⟨b :: t, (p'.cons b).trans <| (swap ..).trans (perm_middle.symm.cons a), s'.cons₂ _⟩
+    exact ⟨b :: t, (p'.cons b).trans <| (swap ..).trans (perm_middle.symm.cons a), s'.cons_cons _⟩
 
 theorem subperm_append_left {l₁ l₂ : List α} : ∀ l, l ++ l₁ <+~ l ++ l₂ ↔ l₁ <+~ l₂
   | [] => .rfl
@@ -131,7 +131,7 @@ theorem Subperm.exists_of_length_lt {l₁ l₂ : List α} (s : l₁ <+~ l₂) (h
     match Nat.lt_or_eq_of_le (Nat.le_of_lt_succ h) with
     | .inl h => exact (IH h).imp fun a s => s.trans (sublist_cons_self _ _).subperm
     | .inr h => exact ⟨a, s.eq_of_length h ▸ .refl _⟩
-  | cons₂ b _ IH =>
+  | cons_cons b _ IH =>
     exact (IH <| Nat.lt_of_succ_lt_succ h).imp fun a s =>
       (swap ..).subperm_right.1 <| (subperm_cons _).2 s
 
@@ -155,15 +155,15 @@ theorem Nodup.perm_iff_eq_of_sublist {l₁ l₂ l : List α} (d : Nodup l)
   | cons a s₂ IH =>
     match s₁ with
     | .cons _ s₁ => exact IH d.2 s₁ h
-    | .cons₂ _ s₁ =>
+    | .cons_cons _ s₁ =>
       have := Subperm.subset ⟨_, h.symm, s₂⟩ (.head _)
       exact (d.1 this).elim
-  | cons₂ a _ IH =>
+  | cons_cons a _ IH =>
     match s₁ with
     | .cons _ s₁ =>
       have := Subperm.subset ⟨_, h, s₁⟩ (.head _)
       exact (d.1 this).elim
-    | .cons₂ _ s₁ => rw [IH d.2 s₁ h.cons_inv]
+    | .cons_cons _ s₁ => rw [IH d.2 s₁ h.cons_inv]
 
 theorem subperm_cons_erase [BEq α] [LawfulBEq α] (a : α) (l : List α) : l <+~ a :: l.erase a :=
   if h : a ∈ l then
