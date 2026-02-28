@@ -92,7 +92,7 @@ open List
 theorem utf8Len_le_of_sublist : ∀ {cs₁ cs₂}, cs₁ <+ cs₂ → utf8Len cs₁ ≤ utf8Len cs₂
   | _, _, .slnil => Nat.le_refl _
   | _, _, .cons _ h => Nat.le_trans (utf8Len_le_of_sublist h) (Nat.le_add_right ..)
-  | _, _, .cons₂ _ h => Nat.add_le_add_right (utf8Len_le_of_sublist h) _
+  | _, _, .cons_cons _ h => Nat.add_le_add_right (utf8Len_le_of_sublist h) _
 
 theorem utf8Len_le_of_infix (h : cs₁ <:+: cs₂) : utf8Len cs₁ ≤ utf8Len cs₂ :=
   utf8Len_le_of_sublist h.sublist
