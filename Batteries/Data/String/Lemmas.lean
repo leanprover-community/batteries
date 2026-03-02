@@ -534,7 +534,8 @@ theorem splitAux_of_valid (p l m r acc) :
     split <;> rename_i h
     · simpa [Nat.add_assoc, List.splitOnPPrepend_cons_eq_if, h] using
         splitAux_of_valid p (l++m++[c]) [] r ((ofList m)::acc)
-    · simpa [List.splitOnPPrepend_cons_eq_if, h, Nat.add_assoc] using splitAux_of_valid p l (m++[c]) r acc
+    · simpa [List.splitOnPPrepend_cons_eq_if, h, Nat.add_assoc] using
+        splitAux_of_valid p l (m++[c]) r acc
 
 theorem splitToList_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList).map ofList := by
   simpa [splitToList] using splitAux_of_valid p [] [] s.toList []
