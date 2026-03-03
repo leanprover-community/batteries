@@ -69,7 +69,7 @@ jobs:
           exit 1
         fi
         echo "RELEASE_TAG=$RELEASE_TAG"
-        echo "RELEASE_TAG=$RELEASE_TAG" >> "${GITHUB_ENV}"
+        echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
         echo "new=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
 
     - name: Update lean-toolchain file
@@ -300,19 +300,19 @@ jobs:
 
         # Report successful merges
         if [ -n "$SUCCESSFUL_MERGES" ]; then
-          MESSAGE+=$'### Successfully merged branches into Batteries'\'' \'nightly-testing\':\n\n'
+          MESSAGE+=$'### Successfully merged branches into Batteries\' \'nightly-testing\':\n\n'
           for MERGE_INFO in $SUCCESSFUL_MERGES; do
             IFS='|' read -r PR_NUMBER GITHUB_DIFF _ <<< "$MERGE_INFO"
             MESSAGE+=$(printf -- '- [lean-pr-testing-%s](%s) (adaptations for lean#%s)' "$PR_NUMBER" "$GITHUB_DIFF" "$PR_NUMBER")$'\n\n'
           done
           MESSAGE+=$'\n'
         else
-          MESSAGE+=$'No branches were successfully merged into Batteries'\'' \'nightly-testing\'. \n\n'
+          MESSAGE+=$'No branches were successfully merged into Batteries\' \'nightly-testing\'. \n\n'
         fi
 
         # Report failed merges
         if [ -n "$FAILED_MERGES" ]; then
-          MESSAGE+=$'### Failed merges:\n\nThe following branches need to be merged manually into Batteries'\'' \'nightly-testing\':\n\n'
+          MESSAGE+=$'### Failed merges:\n\nThe following branches need to be merged manually into Batteries\' \'nightly-testing\':\n\n'
           for MERGE_INFO in $FAILED_MERGES; do
             IFS='|' read -r PR_NUMBER GITHUB_DIFF _ <<< "$MERGE_INFO"
             MESSAGE+=$(printf '- [lean-pr-testing-%s](%s) (adaptations for lean#%s)' "$PR_NUMBER" "$GITHUB_DIFF" "$PR_NUMBER")$'\n\n'
