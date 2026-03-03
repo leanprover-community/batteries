@@ -27,9 +27,6 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
 
 /-! ### push -/
 
-@[simp] theorem size_push (a : ByteArray) (b : UInt8) : (a.push b).size = a.size + 1 :=
-  Array.size_push ..
-
 @[simp] theorem get_push_eq (a : ByteArray) (x : UInt8) : (a.push x)[a.size] = x :=
   Array.getElem_push_eq ..
 
@@ -81,7 +78,7 @@ theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start s
 
 @[simp] theorem get_extract {a : ByteArray} {start stop} (h : i < (a.extract start stop).size) :
     (a.extract start stop)[i] = a[start+i]'(get_extract_aux h) := by
-  simp [getElem_eq_data_getElem]
+  simp [getElem_eq_data_getElem]; rfl
 
 /-! ### ofFn -/
 
