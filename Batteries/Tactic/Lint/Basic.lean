@@ -87,7 +87,7 @@ initialize batteriesLinterExt :
   registerSimplePersistentEnvExtension {
     addImportedFn := fun nss =>
       nss.foldl (init := {}) fun m ns => ns.foldl (init := m) addEntryFn
-    addEntryFn := fun m (n, b) => m.insert (n.updatePrefix .anonymous) (n, b)
+    addEntryFn
   }
 
 /--

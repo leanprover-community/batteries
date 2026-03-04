@@ -78,7 +78,7 @@ theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start s
 
 @[simp] theorem get_extract {a : ByteArray} {start stop} (h : i < (a.extract start stop).size) :
     (a.extract start stop)[i] = a[start+i]'(get_extract_aux h) := by
-  simp [getElem_eq_data_getElem]
+  simp [getElem_eq_data_getElem]; rfl
 
 /-! ### ofFn -/
 
