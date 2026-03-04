@@ -105,43 +105,6 @@ def splitAtD (n : Nat) (l : List α) (dflt : α) : List α × List α := go n l 
   | 0, xs, acc => (acc.reverse, xs)
   | n, [], acc => (acc.reverseAux (replicate n dflt), [])
 
-/--
-Split a list at every element satisfying a predicate. The separators are not in the result.
-```
-[1, 1, 2, 3, 2, 4, 4].splitOnP (· == 2) = [[1, 1], [3], [4, 4]]
-```
--/
-def splitOnP (P : α → Bool) (l : List α) : List (List α) := go l [] where
-  /-- Auxiliary for `splitOnP`: `splitOnP.go xs acc = res'`
-  where `res'` is obtained from `splitOnP P xs` by prepending `acc.reverse` to the first element. -/
-  go : List α → List α → List (List α)
-  | [], acc => [acc.reverse]
-  | a :: t, acc => if P a then acc.reverse :: go t [] else go t (a::acc)
-
-/-- Tail recursive version of `splitOnP`. -/
-@[inline] def splitOnPTR (P : α → Bool) (l : List α) : List (List α) := go l #[] #[] where
-  /-- Auxiliary for `splitOnP`: `splitOnP.go xs acc r = r.toList ++ res'`
-  where `res'` is obtained from `splitOnP P xs` by prepending `acc.toList` to the first element. -/
-  @[specialize] go : List α → Array α → Array (List α) → List (List α)
-  | [], acc, r => r.toListAppend [acc.toList]
-  | a :: t, acc, r => bif P a then go t #[] (r.push acc.toList) else go t (acc.push a) r
-
-@[csimp] theorem splitOnP_eq_splitOnPTR : @splitOnP = @splitOnPTR := by
-  funext α P l; simp [splitOnPTR]
-  suffices ∀ xs acc r,
-    splitOnPTR.go P xs acc r = r.toList ++ splitOnP.go P xs acc.toList.reverse from
-      (this l #[] #[]).symm
-  intro xs acc r; induction xs generalizing acc r with simp [splitOnP.go, splitOnPTR.go]
-  | cons x xs IH => cases P x <;> simp [*]
-
-/--
-Split a list at every occurrence of a separator element. The separators are not in the result.
-```
-[1, 1, 2, 3, 2, 4, 4].splitOn 2 = [[1, 1], [3], [4, 4]]
-```
--/
-@[inline] def splitOn [BEq α] (a : α) (as : List α) : List (List α) := as.splitOnP (· == a)
-
 /-- Apply `f` to the last element of `l`, if it exists. -/
 @[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
   /-- Auxiliary for `modifyLast`: `modifyLast.go f l acc = acc.toList ++ modifyLast f l`. -/
