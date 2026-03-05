@@ -215,8 +215,8 @@ theorem heapifyDown_set_of_le_preserves_children [Ord α] [Std.TransOrd α] {v :
   have h_parent_child : i.val = 2 * parent.val + 1 ∨ i.val = 2 * parent.val + 2 := by grind only
   have hparent : WF.Children v parent := htd parent
   apply heapifyDown_children_of_ge_subtree h_parent_child
-  . grind only [Fin.getElem_fin, Vector.getElem_set_ne, htd.parent_ge_subtree_of_set]
-  . apply hparent.set_of_ge_child h_parent_child
+  · grind only [Fin.getElem_fin, Vector.getElem_set_ne, htd.parent_ge_subtree_of_set]
+  · apply hparent.set_of_ge_child h_parent_child
     grind only [WF.Children, Std.TransOrd.isGE_trans, Fin.getElem_fin]
 
 theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] {a : Vector α sz} {i j : Fin sz}
@@ -224,10 +224,10 @@ theorem heapifyDown_children_swap [Ord α] [Std.TransOrd α] {a : Vector α sz} 
     WF.Children (heapifyDown (a.swap i j i.isLt j.isLt) j) i := by
   have hchild := maxChild_isChild hmaxChild
   apply heapifyDown_children_of_ge_subtree hchild
-  . intro m hsub
+  · intro m hsub
     simpa [Vector.getElem_swap_left] using
       WF.swap_preserves_ge_subtree (maxChild_gt hmaxChild) h_ge hbelow hsub
-  . simpa using WF.Children.of_swap_maxChild hmaxChild h_ge
+  · simpa using WF.Children.of_swap_maxChild hmaxChild h_ge
 
 /-- `heapifyDown` restores the heap property at node `i` and below, given that all nodes
 below `i` already satisfy `WF.Children`. -/
@@ -379,11 +379,13 @@ theorem size_singleton [Ord α] {x : α} : (singleton x).size = 1 := by
 
 @[simp, grind .]
 theorem empty_wf [Ord α] : WF (empty : BinaryHeap α) := by
-  simp [empty, WF, vector]
+  simp only [empty, WF, vector]
+  exact .empty
 
 @[simp, grind .]
 theorem singleton_wf [Ord α] {x : α} : WF (singleton x) := by
-  simp [WF, singleton, vector]
+  simp only [WF, singleton, vector]
+  exact .singleton
 
 @[simp, grind =]
 theorem max_empty [Ord α] : (empty : BinaryHeap α).max = none := by
@@ -455,7 +457,9 @@ theorem mem_insert [Ord α] {heap : BinaryHeap α} :
 
 theorem mem_iff_get [Ord α] {heap : BinaryHeap α} :
     a ∈ heap ↔ ∃ i : Fin heap.size, heap.get i = a := by
-  simp_all [mem_def, get, Array.mem_iff_getElem, size, Fin.exists_iff]
+
+  simp only [mem_def, Array.mem_iff_getElem, get, Fin.getElem_fin, Fin.exists_iff]
+  rfl
 
 @[simp, grind .]
 theorem max_ge_all [Ord α] [Std.TransOrd α]
@@ -470,10 +474,10 @@ theorem popMax_wf [Ord α] [Std.TransOrd α] {heap : BinaryHeap α} (h_wf : WF h
     WF (heap.popMax) := by
   unfold popMax
   split
-  . exact h_wf
-  . split <;> apply WF.of_topDown
-    . exact .of_root_and_below <| heapifyDown_wf <| h_wf.below_of_swap_pop (by omega)
-    . grind only [WF.Children, WF.TopDown]
+  · exact h_wf
+  · split <;> apply WF.of_topDown
+    · exact .of_root_and_below <| heapifyDown_wf <| h_wf.below_of_swap_pop (by omega)
+    · grind only [WF.Children, WF.TopDown]
 
 /-- Replacing the maximum element in a well-formed heap preserves well-formedness. -/
 @[simp, grind .]

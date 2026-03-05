@@ -182,11 +182,11 @@ theorem TopDown.parent_ge_subtree_of_set [Ord α] [Std.TransOrd α] {v : Vector 
     grind only [htd parent, = Fin.getElem_fin, WF.Children]
   have ⟨h_child, h_below⟩ := htd.children_and_below i
   apply ge_subtree_of_modify h_parent_ge_i h_child h_below
-  . simp only [Fin.getElem_fin, Vector.getElem_set_self]
+  · simp only [Fin.getElem_fin, Vector.getElem_set_self]
     exact Std.TransOrd.isGE_trans h_parent_ge_i h_le
-  . intros
+  · intros
     exact Vector.getElem_set_ne _ _ ‹_›
-  . exact hsub
+  · exact hsub
 
 /-- a[j] dominates everything in (a.swap i j)'s subtree at j when i < j and a[i] < a[j] -/
 theorem swap_preserves_ge_subtree [Ord α] [Std.TransOrd α]
