@@ -34,6 +34,7 @@ public import Batteries.Data.Fin
 public import Batteries.Data.FloatArray
 public import Batteries.Data.HashMap
 public import Batteries.Data.Int
+public import Batteries.Data.Iterators
 public import Batteries.Data.List
 public import Batteries.Data.MLList
 public import Batteries.Data.NameSet
