@@ -82,9 +82,12 @@ partial def _root_.Lean.Meta.DiscrTree.elements (d : DiscrTree α) : Array α :=
   d.root.foldl (init := #[]) fun arr _ => trieElements arr
 where
   /-- Returns the list of elements in the trie. -/
-  trieElements (arr)
-  | Trie.node vs children =>
-    children.foldl (init := arr ++ vs) fun arr (_, child) => trieElements arr child
+  trieElements (arr) : Trie α → Array α
+    | .empty => arr
+    | .values vs child => trieElements (arr ++ vs) child
+    | .path _ child => trieElements arr child
+    | .branch children =>
+      children.foldl (init := arr) fun arr (_, child) => trieElements arr child
 
 /-- Add message `msg` to any errors thrown inside `k`. -/
 def decorateError (msg : MessageData) (k : MetaM α) : MetaM α := do
