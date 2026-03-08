@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Std.Internal.Async.Basic","Std.Internal.Async.ContextAsync","Std.Internal.Async.DNS","Std.Internal.Async.IO","Std.Internal.Async.Process","Std.Internal.Async.Select","Std.Internal.Async.Signal","Std.Internal.Async.System","Std.Internal.Async.TCP","Std.Internal.Async.Timer","Std.Internal.Async.UDP"],"instances":[],"name":"Std.Internal.Async"}

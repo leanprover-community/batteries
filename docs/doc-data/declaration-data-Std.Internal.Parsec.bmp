@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Std.Internal.Parsec.Basic","Std.Internal.Parsec.ByteArray","Std.Internal.Parsec.String"],"instances":[],"name":"Std.Internal.Parsec"}
