@@ -57,7 +57,7 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
         return true
     -- Coinductive/inductive lattice-theoretic predicates:
     if let ConstantInfo.inductInfo _ := env.find? (Name.str n "_functor") then
-      if s == "functor_unfold" || s == casesOnSuffix then return true
+      if s == "functor_unfold" || s == casesOnSuffix || s == "mutual" then return true
       if env.isConstructor (Name.str (Name.str n "_functor") s) then return true
   pure false
 
