@@ -87,7 +87,8 @@ theorem scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {as : 
   rw (occs := [2]) [scanlM]
   apply map_toList_inj.mp
   rw [scanlM.loop_toList, scanlM_eq_scanlM_toList, bind_pure_comp]
-  simp_all only [toList_extract, Functor.map_map, id_map', List.nil_append_fun, id_map]
+  simp_all only [toList_extract, Functor.map_map, id_map', List.nil_append_fun, id_map,
+    List.extract_eq_take_drop]
   grind [List.take_eq_take_iff, List.drop_eq_drop_iff]
 
 theorem scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Array α} :
@@ -95,7 +96,8 @@ theorem scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {as : 
   rw (occs := [2]) [scanrM]
   apply map_toList_inj.mp
   rw [scanrM.loop_toList, scanrM_eq_scanrM_toList, bind_pure_comp]
-  simp_all only [toList_extract,  Functor.map_map, id_map', List.reverse_nil, List.append_nil]
+  simp_all only [toList_extract,  Functor.map_map, id_map', List.reverse_nil, List.append_nil,
+    List.extract_eq_take_drop]
   grind [List.take_eq_take_iff, List.drop_eq_drop_iff]
 
 @[simp, grind =]
