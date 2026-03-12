@@ -159,6 +159,7 @@ theorem beqCaseInsensitiveAsciiOnly.eqv : Equivalence (beqCaseInsensitiveAsciiOn
 /--
 Setoid structure on `Char` using `beqCaseInsensitiveAsciiOnly`
 -/
+@[implicit_reducible]
 def beqCaseInsensitiveAsciiOnly.isSetoid : Setoid Char:=
   ⟨(beqCaseInsensitiveAsciiOnly · ·), beqCaseInsensitiveAsciiOnly.eqv⟩
 

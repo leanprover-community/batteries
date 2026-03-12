@@ -92,7 +92,7 @@ open List
 theorem utf8Len_le_of_sublist : ∀ {cs₁ cs₂}, cs₁ <+ cs₂ → utf8Len cs₁ ≤ utf8Len cs₂
   | _, _, .slnil => Nat.le_refl _
   | _, _, .cons _ h => Nat.le_trans (utf8Len_le_of_sublist h) (Nat.le_add_right ..)
-  | _, _, .cons₂ _ h => Nat.add_le_add_right (utf8Len_le_of_sublist h) _
+  | _, _, .cons_cons _ h => Nat.add_le_add_right (utf8Len_le_of_sublist h) _
 
 theorem utf8Len_le_of_infix (h : cs₁ <:+: cs₂) : utf8Len cs₁ ≤ utf8Len cs₂ :=
   utf8Len_le_of_sublist h.sublist
@@ -517,24 +517,25 @@ theorem extract_of_valid (l m r : List Char) :
 
 theorem splitAux_of_valid (p l m r acc) :
     splitAux (ofList (l ++ m ++ r)) p ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ acc =
-      acc.reverse ++ (List.splitOnP.go p r m.reverse).map ofList := by
+      acc.reverse ++ (List.splitOnPPrepend p r m.reverse).map ofList := by
   unfold splitAux
   simp only [List.append_assoc, atEnd_iff, rawEndPos_ofList, utf8Len_append, Pos.Raw.mk_le_mk,
     Nat.add_le_add_iff_left, (by omega : utf8Len m + utf8Len r ≤ utf8Len m ↔ utf8Len r = 0),
     utf8Len_eq_zero, List.reverse_cons, dite_eq_ite]
   split
-  · subst r; simpa [List.splitOnP.go] using extract_of_valid l m []
+  · subst r
+    simpa using extract_of_valid l m []
   · obtain ⟨c, r, rfl⟩ := r.exists_cons_of_ne_nil ‹_›
     simp only [by
       simpa [-ofList_append] using
         (⟨get_of_valid (l ++ m) (c :: r), next_of_valid (l ++ m) c r,
             extract_of_valid l m (c :: r)⟩ :
-          _ ∧ _ ∧ _),
-      List.splitOnP.go, List.reverse_reverse]
+          _ ∧ _ ∧ _)]
     split <;> rename_i h
-    · simpa [Nat.add_assoc]
-        using splitAux_of_valid p (l++m++[c]) [] r ((ofList m)::acc)
-    · simpa [Nat.add_assoc] using splitAux_of_valid p l (m++[c]) r acc
+    · simpa [Nat.add_assoc, List.splitOnPPrepend_cons_eq_if, h] using
+        splitAux_of_valid p (l++m++[c]) [] r ((ofList m)::acc)
+    · simpa [List.splitOnPPrepend_cons_eq_if, h, Nat.add_assoc] using
+        splitAux_of_valid p l (m++[c]) r acc
 
 theorem splitToList_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList).map ofList := by
   simpa [splitToList] using splitAux_of_valid p [] [] s.toList []
