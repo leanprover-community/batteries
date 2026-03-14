@@ -97,7 +97,7 @@ Lints for instances with arguments that cannot be filled in, like
 ```
 instance {α β : Type} [Group α] : Mul α where ...
 ```
-This is a standard linter, i.e. it runs on your declarations as you write them.
+This is a syntax linter, i.e. it runs on your declarations as you write them.
 -/
 def impossibleInstance' : Linter where run cmdSyntax := do
   unless Linter.getLinterValue linter.impossibleInstance' (← Linter.getLinterOptions) do
