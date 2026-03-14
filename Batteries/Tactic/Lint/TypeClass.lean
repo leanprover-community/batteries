@@ -63,7 +63,10 @@ end environmentLinters
 section StandardLinters
 
 /-- This function searches laterally to find the top level names of declarations (along with their
-    syntax). Thanks Thomas Murrills! -/
+    syntax). Thanks Thomas Murrills!
+    Note: This function picks up some internal names from e.g. `examples` (like `bla._example`)
+    that it probably shouldn't. You should probably filter these using `(← getEnv).contains name`.
+-/
 partial def Lean.Elab.InfoTree.getTopLevelDeclsByBody : InfoTree → List (Name × Syntax) :=
   go none []
 where
@@ -131,6 +134,9 @@ def impossibleInstance' : Linter where run cmdSyntax := do
     names := t.getTopLevelDeclsByBody ++ names
   /- Each name shall only be checked once, so we remove duplicates. -/
   names := names.pwFilter (fun (a, _) (b, _) => a != b)
+  /- the `getTopLevelDeclsByBody` function picks up some internal names from `examples` that it
+     probably shouldn't. We filter these here. -/
+  names := (← names.filterM (fun (name, _) => return (← getEnv).contains name))
   -- names := names.eraseDups -- todo only first elements duplicate remove
   for (name, stx) in names do
     /- check if the return type is class-valued,
@@ -172,6 +178,9 @@ def nonClassInstance' : Linter where run cmdSyntax := do
     names := t.getTopLevelDeclsByBody ++ names
   /- Each name shall only be checked once, so we remove duplicates. -/
   names := names.pwFilter (fun (a, _) (b, _) => a != b)
+  /- the `getTopLevelDeclsByBody` function picks up some internal names from `examples` that it
+     probably shouldn't. We filter these here. -/
+  names := (← names.filterM (fun (name, _) => return (← getEnv).contains name))
   for (name, stx) in names do
     let some lintmessage ← liftTermElabM (test name) | continue
     Linter.logLint linter.nonClassInstance' stx lintmessage
