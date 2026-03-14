@@ -18,6 +18,7 @@ run_meta guard (← impossibleInstance.test ``impossible).isSome
 end A
 
 namespace B
+set_option linter.nonClassInstance' false
 instance bad : Nat := 1
 
 run_meta guard (← nonClassInstance.test ``bad).isSome
