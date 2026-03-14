@@ -174,7 +174,7 @@ def nonClassInstance' : Linter where run cmdSyntax := do
   names := names.pwFilter (fun (a, _) (b, _) => a != b)
   for (name, stx) in names do
     let some lintmessage ← liftTermElabM (test name) | continue
-    Linter.logLint linter.impossibleInstance' stx lintmessage
+    Linter.logLint linter.nonClassInstance' stx lintmessage
   return
 
 initialize addLinter nonClassInstance'
