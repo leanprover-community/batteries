@@ -171,7 +171,7 @@ def nonClassInstance' : Linter where run cmdSyntax := do
     if !(← isInstance declName) then return none
     let info ← getConstInfo declName
     if !(← isClass? info.type).isSome then
-      return "This declaration should not be an instance as it is not class-valued. "
+      return "This declaration should not be an instance as it is not class-valued."
     return none
   /- We do the check for each (different) top level instance name we can get from the infotrees.
      Mostly this will only be one name, but for `mutual` blocks this will be more. -/
