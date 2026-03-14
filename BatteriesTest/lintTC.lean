@@ -24,7 +24,13 @@ run_meta guard (← impossibleInstance.test ``impossible).isSome
 end A
 
 namespace B
-set_option linter.nonClassInstance' false
+
+/--
+warning: This declaration should not be an instance as it is not class-valued.
+
+Note: This linter can be disabled with `set_option linter.nonClassInstance' false`
+-/
+#guard_msgs in
 instance bad : Nat := 1
 
 run_meta guard (← nonClassInstance.test ``bad).isSome
