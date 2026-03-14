@@ -9,6 +9,12 @@ namespace A
 warning: unused variable `β`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
+---
+warning: This instance has at least one argument that is impossible to infer for typeclass inference. Specifically
+    argument 2: `{β : Type}`
+These are arguments that are not instance-implicit and appear neither in another instance-implicit argument nor the return type, so they can't be filled in by typeclass inference.
+
+Note: This linter can be disabled with `set_option linter.impossibleInstance' false`
 -/
 #guard_msgs in
 local instance impossible {α β : Type} [Inhabited α] : Nonempty α := ⟨default⟩

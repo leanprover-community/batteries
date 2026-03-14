@@ -106,10 +106,10 @@ def impossibleInstance' : Linter where run cmdSyntax := do
      been resolved, to allow disabling this linter with
      `set_option linter.impossibleInstance false in`. -/
   let errorsFound1 := m!"This instance has at least one argument that is impossible \
-    to infer for typeclass inference. Specifically \n"
+    to infer for typeclass inference. Specifically\n"
   let errorsFound2 := m!"\nThese are arguments that are not instance-implicit and \
     appear neither in another instance-implicit argument nor the return type, so they can't \
-    be filled in by typeclass inference. "
+    be filled in by typeclass inference."
   let test (declName : Name) : MetaM (Option MessageData) := do
     unless ← isInstance declName do return none
     forallTelescopeReducing (← inferType (← mkConstWithLevelParams declName)) fun args ty => do
@@ -124,7 +124,8 @@ def impossibleInstance' : Linter where run cmdSyntax := do
         | .strictImplicit  => ("⦃", "⦄")
         | .instImplicit    => ("[", "]")
         | .default         => ("(", ")")
-      return some m!"    argument {i+1}: `{brackets.1}{←fv.getUserName} : {← inferType arg}{brackets.2}`"
+      return some (m!"    argument {i+1}: "
+        ++ s!"`{brackets.1}{←fv.getUserName} : {← inferType arg}{brackets.2}`")
     if impossibleArgs.isEmpty then return none
     return errorsFound1 ++ (Lean.MessageData.joinSep impossibleArgs.toList ", ") ++ errorsFound2
   /- We do the check for each (different) top level instance name we can get from the infotrees.
