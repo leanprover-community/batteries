@@ -104,7 +104,7 @@ def impossibleInstance' : Linter where run cmdSyntax := do
     return
   /- todo use `withSetOptionIn` after `https://github.com/leanprover/lean4/pull/11313` has
      been resolved, to allow disabling this linter with
-     `set_option linter.impossibleInstance false in`. -/
+     `set_option linter.impossibleInstance' false in`. -/
   let errorsFound1 := m!"This instance has at least one argument that is impossible \
     to infer for typeclass inference. Specifically\n"
   let errorsFound2 := m!"\nThese are arguments that are not instance-implicit and \
@@ -165,7 +165,7 @@ def nonClassInstance' : Linter where run cmdSyntax := do
     return
   /- todo use `withSetOptionIn` after `https://github.com/leanprover/lean4/pull/11313` has
      been resolved, to allow disabling this linter with
-     `set_option linter.impossibleInstance false in`.
+     `set_option linter.nonClassInstance' false in`.
      Also add an `in` to the test in `BatteriesTest.lintTC.lean`. -/
   let test (declName : Name) : TermElabM (Option MessageData) := do
     if !(← isInstance declName) then return none
