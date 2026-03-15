@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.Tactic.BVDecide.External","Lean.Elab.Tactic.BVDecide.Frontend","Lean.Elab.Tactic.BVDecide.LRAT"],"instances":[],"name":"Lean.Elab.Tactic.BVDecide"}

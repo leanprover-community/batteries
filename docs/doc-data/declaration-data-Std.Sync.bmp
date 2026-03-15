@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Std.Sync.Barrier","Std.Sync.Basic","Std.Sync.Broadcast","Std.Sync.CancellationContext","Std.Sync.CancellationToken","Std.Sync.Channel","Std.Sync.Mutex","Std.Sync.Notify","Std.Sync.RecursiveMutex","Std.Sync.SharedMutex","Std.Sync.StreamMap"],"instances":[],"name":"Std.Sync"}
