@@ -51,11 +51,14 @@ def withSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM α) : MetaM 
         let some (_, lhs, rhs) := eq.eq? | throwError "not an equality {eq}"
         k { hyps, lhs, rhs }
 
-/-- When true, the `simpNF` linter respects transparency when comparing implicit arguments.
-This is stricter and will flag more simp lemmas as not in simp-normal form, in particular
-those that rely on defeq abuse through type synonyms. Defaults to `false` to preserve the
-historical linter behavior (which sets `backward.isDefEq.respectTransparency false` to avoid
-false positives from `simp`/`dsimp` unfolding carrier types in implicit arguments).
+/-- When true, the `simpNF` linter sets `backward.isDefEq.respectTransparency true` when
+comparing expressions in `isSimpEq`. This is stricter and will flag more simp lemmas as
+not in simp-normal form, in particular those where the left-hand side is not in normal form
+up to reducible defeq (e.g. lemmas involving type synonyms or bundled carrier types).
+
+Defaults to `false` to preserve the historical linter behavior, which uses
+`backward.isDefEq.respectTransparency false` to avoid false positives when `simp`/`dsimp`
+changes implicit arguments by unfolding carrier types in bundled structures.
 
 To find simp lemmas that fail with the stricter check, use:
 ```
@@ -65,7 +68,8 @@ set_option linter.simpNF.respectTransparency true in
 -/
 register_option linter.simpNF.respectTransparency : Bool := {
   defValue := false
-  descr := "if true, the simpNF linter respects transparency when comparing implicit arguments"
+  descr := "if true, the simpNF linter uses backward.isDefEq.respectTransparency when \
+    comparing expressions (catches more defeq abuse, but may produce false positives)"
 }
 
 /-- Checks whether two expressions are equal for the simplifier. That is,
