@@ -192,6 +192,7 @@ theorem Perm.diff_left [BEq α] [LawfulBEq α] (l : List α) (h : t₁ ~ t₂) :
   induction h generalizing l with try simp [List.diff]
   | cons x _ ih => apply ite_congr rfl <;> (intro; apply ih)
   | swap x y =>
+    have : DecidableEq α := instDecidableEqOfLawfulBEq
     if h : x = y then
       simp [h]
     else
