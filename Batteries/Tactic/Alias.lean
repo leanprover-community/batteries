@@ -49,19 +49,15 @@ def AliasInfo.toString : AliasInfo → String
 
 
 /-- Environment extension for registering aliases -/
-initialize aliasExt : SimpleScopedEnvExtension (Name × AliasInfo) (NameMap AliasInfo) ←
-  registerSimpleScopedEnvExtension {
-    addEntry := fun st (n, i) => st.insert n i
-    initial := {}
-  }
+initialize aliasExt : MapDeclarationExtension AliasInfo ← mkMapDeclarationExtension
 
 /-- Get the alias information for a name -/
 def getAliasInfo [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
-  return aliasExt.getState (← getEnv) |>.find? name
+  return aliasExt.find? (← getEnv) name
 
 /-- Set the alias info for a new declaration -/
 def setAliasInfo [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit :=
-  modifyEnv (aliasExt.addEntry · (declName, info))
+  modifyEnv (aliasExt.insert · declName info)
 
 /-- Updates the `deprecated` declaration to point to `target` if no target is provided. -/
 def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribute × Bool :=
