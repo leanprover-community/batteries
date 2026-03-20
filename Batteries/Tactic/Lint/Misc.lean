@@ -106,11 +106,10 @@ has been used. -/
   test declName := do
     if ← isAutoDecl declName then return none
     let info ← getConstInfo declName
-    match info, ← isProp info.type with
-    -- note: first case should be unreachable
-    | .thmInfo .., false => pure "is a lemma/theorem, should be a def"
-    | .defnInfo .., true => pure "is a def, should be lemma/theorem"
-    | _, _ => return none
+    if ← pure info.isDefinition <&&> isProp info.type then
+      return "is a def, should be a lemma/theorem"
+    else
+      return none
 
 /-- A linter for checking whether statements of declarations are well-typed. -/
 @[env_linter] def checkType : Linter where
