@@ -11,8 +11,8 @@ instance bar' : Nonempty String := ⟨""⟩
 /--
 error: /- The `defLemma` linter reports:
 INCORRECT DEF/LEMMA: -/
-#check foo /- is a def, should be lemma/theorem -/
-#check bar /- is a def, should be lemma/theorem -/
+#check foo /- is a def, should be a lemma/theorem -/
+#check bar /- is a def, should be a lemma/theorem -/
 -/
 #guard_msgs in
 #lint- only defLemma
