@@ -225,9 +225,9 @@ def matchExpand : CommandCodeAction := fun CodeActionParams snap ctx node => do
      since we are prepending in the loop. -/
   let mut constructors_rev : List (List (Name × Bool)) := []
   for discrTerm in discrTerms do
-    let some (info : TermInfo) := findTermInfo? node discrTerm | return #[]
-    let ty ← info.runMetaM ctx (Lean.Meta.inferType info.expr)
-    let .const name _ := (← info.runMetaM ctx (whnf ty)).getAppFn | return #[]
+    let some (info, updatedCtx) := findTermInfoWithCtx? node discrTerm ctx | return #[]
+    let ty ← info.runMetaM updatedCtx (Lean.Meta.inferType info.expr)
+    let .const name _ := (← info.runMetaM updatedCtx (whnf ty)).getAppFn | return #[]
     -- Find the inductive constructors of e:
     let some (.inductInfo indInfo) := snap.env.find? name | return #[]
     let ctors := indInfo.ctors
