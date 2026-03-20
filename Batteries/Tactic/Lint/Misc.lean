@@ -73,43 +73,30 @@ We skip all declarations that contain `sorry` in their value. -/
       return none -- FIXME: scoped/local instances should also not be linted
     if let .str p _ := declName then
       if ← isInstance p then
-        -- auxillary functions for instances should not be linted
+        -- auxiliary functions for instances should not be linted
         return none
     if let .str _ s := declName then
       if s == "parenthesizer" || s == "formatter" || s == "delaborator" || s == "quot" then
-      return none
+        return none
     let kind ← match ← getConstInfo declName with
-      | .axiomInfo .. => pure "axiom"
-      | .opaqueInfo .. => pure "constant"
-      | .defnInfo info =>
-          -- leanprover/lean4#2575: Prop projections are generated as `def`s
-          if ← isProjectionFn declName <&&> isProp info.type then
-            return none
-          pure "definition"
+      | .axiomInfo ..  => pure "axiom"
+      | .opaqueInfo .. => pure "opaque constant"
+      | .defnInfo ..   => pure "definition"
       | .inductInfo .. => pure "inductive"
       | _ => return none
-    let (none) ← findDocString? (← getEnv) declName | return none
-    return m!"{kind} missing documentation string"
+    if (← findDocString? (← getEnv) declName).isSome then return none else
+      return m!"{kind} missing documentation string"
 
 /-- A linter for checking theorem doc strings. -/
 @[env_linter disabled] def docBlameThm : Linter where
   noErrorsFound := "No theorems are missing documentation."
   errorsFound := "THEOREMS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
-    if ← isAutoDecl declName then
+    if ← isAutoDecl declName then return none
+    unless (← getConstInfo declName) matches .thmInfo .. do
       return none
-    let kind ← match ← getConstInfo declName with
-      | .thmInfo .. => pure "theorem"
-      | .defnInfo info =>
-          -- leanprover/lean4#2575:
-          -- projections are generated as `def`s even when they should be `theorem`s
-          if ← isProjectionFn declName <&&> isProp info.type then
-            pure "Prop projection"
-          else
-            return none
-      | _ => return none
-    let (none) ← findDocString? (← getEnv) declName | return none
-    return m!"{kind} missing documentation string"
+    if (← findDocString? (← getEnv) declName).isSome then return none else
+      return m!"theorem missing documentation string"
 
 /-- A linter for checking whether the correct declaration constructor (definition or theorem)
 has been used. -/
@@ -117,19 +104,12 @@ has been used. -/
   noErrorsFound := "All declarations correctly marked as def/lemma."
   errorsFound := "INCORRECT DEF/LEMMA:"
   test declName := do
-    if (← isAutoDecl declName) || (← isImplicitReducible declName) then
-      return none
-    -- leanprover/lean4#2575:
-    -- projections are generated as `def`s even when they should be `theorem`s
-    if ← isProjectionFn declName then return none
+    if ← isAutoDecl declName then return none
     let info ← getConstInfo declName
-    let isThm ← match info with
-      | .defnInfo .. => pure false
-      | .thmInfo .. => pure true
-      | _ => return none
-    match isThm, ← isProp info.type with
-    | true, false => pure "is a lemma/theorem, should be a def"
-    | false, true => pure "is a def, should be lemma/theorem"
+    match info, ← isProp info.type with
+    -- note: first case should be unreachable
+    | .thmInfo .., false => pure "is a lemma/theorem, should be a def"
+    | .defnInfo .., true => pure "is a def, should be lemma/theorem"
     | _, _ => return none
 
 /-- A linter for checking whether statements of declarations are well-typed. -/
