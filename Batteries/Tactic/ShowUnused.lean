@@ -3,8 +3,12 @@ Copyright (c) 2024 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Util.FoldConsts
-import Lean.Linter.UnusedVariables
+module
+
+public meta import Lean.Util.FoldConsts
+public meta import Lean.Linter.UnusedVariables
+
+public meta section
 
 /-!
 # The `#show_unused` command

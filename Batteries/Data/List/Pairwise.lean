@@ -3,7 +3,11 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, James Gallicchio
 -/
-import Batteries.Data.List.Count
+module
+
+public import Batteries.Data.List.Basic
+
+@[expose] public section
 
 /-!
 # Pairwise relations on a list
@@ -65,7 +69,7 @@ theorem pwFilter_sublist [DecidableRel (α := α) R] : ∀ l : List α, pwFilter
   | [] => nil_sublist _
   | x :: l =>
     if h : ∀ y ∈ pwFilter R l, R x y then
-      pwFilter_cons_of_pos h ▸ (pwFilter_sublist l).cons₂ _
+      pwFilter_cons_of_pos h ▸ (pwFilter_sublist l).cons_cons _
     else
       pwFilter_cons_of_neg h ▸ Sublist.cons _ (pwFilter_sublist l)
 

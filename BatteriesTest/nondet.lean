@@ -1,4 +1,5 @@
 import Batteries.Control.Nondet.Basic
+import Batteries.Lean.Meta.Basic
 
 set_option linter.missingDocs false
 
@@ -6,8 +7,7 @@ open Lean Meta
 
 def M := StateT (List Nat) MetaM
 
-deriving instance Monad for M
-deriving instance Alternative for M
+deriving instance AlternativeMonad for M
 
 instance : MonadBacktrack (List Nat) M where
   saveState := StateT.get
@@ -16,7 +16,7 @@ instance : MonadBacktrack (List Nat) M where
 def record (n : Nat) : M Unit := do
   discard <| restoreState (n :: (← saveState))
 
-def iotaM [Monad m] [Alternative m] [MonadBacktrack σ m] (n : Nat) : Nondet m Nat :=
+def iotaM [AlternativeMonad m] [MonadBacktrack σ m] (n : Nat) : Nondet m Nat :=
   Nondet.ofList (List.range' 1 n).reverse
 
 /-- info: (52, []) -/

@@ -3,14 +3,17 @@ Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
+module
 
-import Lean.Data.PersistentHashSet
+public import Lean.Data.PersistentHashSet
+
+@[expose] public section
 
 namespace Lean.PersistentHashSet
 
 variable [BEq α] [Hashable α]
 
-instance : ForIn m (PersistentHashSet α) α where
+instance [Monad m] : ForIn m (PersistentHashSet α) α where
   forIn s init step := do
     let mut state := init
     for (k, _) in s.set do

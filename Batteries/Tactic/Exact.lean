@@ -3,8 +3,11 @@ Copyright (c) 2023 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Meta.Tactic.Util
-import Batteries.Tactic.Alias
+module
+
+public meta import Batteries.Tactic.Alias
+
+public meta section
 
 /-! # `exact` tactic (`MetaM` version) -/
 
