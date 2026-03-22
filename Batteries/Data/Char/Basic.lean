@@ -19,8 +19,6 @@ instance : Std.LawfulOrd Char :=
   .compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
     (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt Char.le_antisymm
 
-@[simp] theorem toNat_val (c : Char) : c.val.toNat = c.toNat := rfl
-
 @[simp] theorem toNat_ofNatAux {n : Nat} (h : n.isValidChar) : toNat (ofNatAux n h) = n := by
   simp [ofNatAux, toNat]
 
