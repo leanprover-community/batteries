@@ -56,7 +56,8 @@ private theorem EIO.adapt_EST_bind (f : ε₁ → ε₂) (ma : EIO ε₁ α) (g 
 private theorem Core.run_liftIOCore (x : IO α) (r : Core.Context) :
     ReaderT.run (Core.liftIOCore x) r =
       (StateRefT'.lift
-        (EIO.adapt (fun err => Exception.error r.ref (MessageData.ofFormat (format (toString err)))) x) :
+        (EIO.adapt
+          (fun err => Exception.error r.ref (MessageData.ofFormat (format (toString err)))) x) :
         StateRefT' IO.RealWorld Core.State (EIO Exception) α) := by rfl
 
 instance : LawfulMonadLift IO CoreM where
