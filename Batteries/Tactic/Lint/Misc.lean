@@ -31,7 +31,7 @@ This file defines several small linters.
   errorsFound := "DUPLICATED NAMESPACES IN NAME:"
   test declName := do
     if ← isAutoDecl declName then return none
-    if ← isInstanceReducible declName then return none
+    if ← isImplicitReducible declName then return none
     let nm := declName.components
     let some (dup, _) := nm.zip nm.tail! |>.find? fun (x, y) => x == y
       | return none
@@ -117,7 +117,7 @@ has been used. -/
   noErrorsFound := "All declarations correctly marked as def/lemma."
   errorsFound := "INCORRECT DEF/LEMMA:"
   test declName := do
-    if (← isAutoDecl declName) || (← isInstanceReducible declName) then
+    if (← isAutoDecl declName) || (← isImplicitReducible declName) then
       return none
     -- leanprover/lean4#2575:
     -- projections are generated as `def`s even when they should be `theorem`s
