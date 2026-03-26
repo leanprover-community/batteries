@@ -44,7 +44,7 @@ set to `true`, this returns the full declaration range (which excludes modifiers
 docstring). -/
 def findDeclarationSyntaxRange? {m : Type → Type} [Monad m] [MonadEnv m] [MonadLiftT BaseIO m]
     [MonadFileMap m] (decl : Name) (fullRange := false) : m (Option Syntax.Range) := do
-  unless (← getEnv).getModuleIdxFor? decl |>.isNone do return none
+  if (← getEnv).isImportedConst decl then return none
   let some ranges ← findDeclarationRanges? decl | return none
   return (if fullRange then ranges.range else ranges.selectionRange).toSyntaxRange (← getFileMap)
 
