@@ -54,179 +54,6 @@ theorem rankD_set {arr : Array UFNode} {x v i h} :
   · split <;> simp_all
   · split <;> [(subst i; cases ‹¬_› h); rfl]
 
-/-- Link two union-find nodes -/
-def linkAux (self : Array UFNode) (x y : Fin self.size) : Array UFNode :=
-  if x.1 = y then
-    self
-  else
-    let nx := self[x.1]
-    let ny := self[y.1]
-    if ny.rank < nx.rank then
-      self.set y {ny with parent := x}
-    else
-      let arr₁ := self.set x {nx with parent := y}
-      if nx.rank = ny.rank then
-        arr₁.set y {ny with rank := ny.rank + 1} (by simp [arr₁])
-      else
-        arr₁
-
-/-- Node `j` is an ancestor of node `i` in the parent array:
-either `i = j`, or `i` has a non-trivial parent and `j` is an ancestor of that parent. -/
-inductive IsAncestor (arr : Array UFNode) : Nat → Nat → Prop where
-  /-- Every node is an ancestor of itself. -/
-  | self : IsAncestor arr i i
-  /-- If `i` is not a root and `j` is an ancestor of `parentD arr i`, then `j` is an ancestor of `i`. -/
-  | parent : parentD arr i ≠ i → IsAncestor arr (parentD arr i) j → IsAncestor arr i j
-
-/-- Well-formedness predicate for union-find arrays.
-Witnesses that the array was constructed through valid union-find operations. -/
-inductive WF : Array UFNode → Prop where
-  /-- The empty array is well-formed. -/
-  | empty : WF #[]
-  /-- Pushing a fresh node preserves well-formedness. -/
-  | push : WF arr → WF (arr.push ⟨arr.size, 0⟩)
-  /-- Linking two root nodes preserves well-formedness. -/
-  | link : WF arr → (x : Fin arr.size) → (y : Fin arr.size) →
-    parentD arr x = x → parentD arr y = y → WF (linkAux arr x y)
-  /-- A single path compression step: reparent node `x` to the root `r` of its set. -/
-  | compress : WF arr → (x : Fin arr.size) → (r : Fin arr.size) →
-    parentD arr r = r → IsAncestor arr x r →
-    arr' = arr.modify x (fun n => { n with parent := r }) →
-    WF arr'
-
-@[simp] theorem linkAux_size : (linkAux self x y).size = self.size := by
-  simp only [linkAux]
-  split <;> [rfl; split] <;> [skip; split] <;> simp
-
-theorem setParentBump_rankD_lt {arr : Array UFNode} {x y : Fin arr.size}
-    (hroot : arr[x.1].rank < arr[y.1].rank ∨ arr[y.1].parent = y)
-    (H : arr[x.1].rank ≤ arr[y.1].rank) {i : Nat}
-    (rankD_lt : parentD arr i ≠ i → rankD arr i < rankD arr (parentD arr i))
-    (hP : parentD arr' i = if x.1 = i then y.1 else parentD arr i)
-    (hR : ∀ {i}, rankD arr' i =
-      if y.1 = i ∧ arr[x.1].rank = arr[y.1].rank then
-        arr[y.1].rank + 1
-      else rankD arr i) :
-    ¬parentD arr' i = i → rankD arr' i < rankD arr' (parentD arr' i) := by
-  simp only [ne_eq, hP, hR, implies_true] at *; split <;> rename_i h₁ <;> [simp [← h₁]; skip] <;>
-    split <;> rename_i h₂ <;> intro h
-  · simp [h₂] at h
-  · simp only [rankD_eq, x.2, y.2]
-    split <;> rename_i h₃
-    · rw [← h₃]; apply Nat.lt_succ_self
-    · exact Nat.lt_of_le_of_ne H h₃
-  · cases h₂.1
-    simp only [h₂.2, false_or, Nat.lt_irrefl] at hroot
-    simp only [hroot, parentD_eq y.2, not_true_eq_false] at h
-  · have := rankD_lt h
-    split <;> rename_i h₃
-    · rw [← rankD_eq, h₃.1]; exact Nat.lt_succ_of_lt this
-    · exact this
-
-theorem setParent_rankD_lt {arr : Array UFNode} {x y : Fin arr.size}
-    (h : arr[x.1].rank < arr[y.1].rank) {i : Nat}
-    (rankD_lt : parentD arr i ≠ i → rankD arr i < rankD arr (parentD arr i)) :
-    let arr' := arr.set x ⟨y, arr[x].rank⟩
-    parentD arr' i ≠ i → rankD arr' i < rankD arr' (parentD arr' i) :=
-  setParentBump_rankD_lt (.inl h) (Nat.le_of_lt h) rankD_lt parentD_set
-    (by simp [rankD_set, Nat.ne_of_lt h, rankD_eq])
-
-theorem WF.parentD_lt {arr : Array UFNode} (h : WF arr) :
-    ∀ {i}, i < arr.size → parentD arr i < arr.size := by
-  induction h with
-  | empty => intro i hi; exact absurd hi (Nat.not_lt_zero _)
-  | push _ ih =>
-    intro i hi
-    simp only [Array.size_push, push_parentD]
-    exact Nat.lt_succ_of_lt (ih (Nat.lt_of_lt_succ hi))
-  | link _ x y hx hy ih =>
-    intro i hi
-    simp only [linkAux_size] at hi
-    simp only [linkAux]
-    split <;> [exact ih hi; split <;> [skip; split]]
-    · rw [parentD_set]; split <;> [exact x.2; exact ih hi]
-    · rw [parentD_set]; split
-      · exact ih (by rwa [Array.size_set])
-      · rw [parentD_set]; split <;> [exact y.2; exact ih hi]
-    · rw [parentD_set]; split <;> [exact y.2; exact ih hi]
-  | compress _ x r hr _ harr ih =>
-    subst harr
-    intro i hi
-    simp only [Array.size_modify] at hi ⊢
-    simp only [parentD, Array.size_modify, Array.getElem_modify]
-    split
-    · split
-      · exact r.2
-      · exact ih ‹_›
-    · exact absurd hi (by omega)
-
-theorem rankD_lt_of_isAncestor {arr : Array UFNode} {s t : Nat}
-    (ih_rank : ∀ {i : Nat}, parentD arr i ≠ i → rankD arr i < rankD arr (parentD arr i))
-    (hanc : IsAncestor arr s t) (hne : s ≠ t) :
-    rankD arr s < rankD arr t := by
-  induction hanc with
-  | self => exact absurd rfl hne
-  | parent hpar _ ih =>
-    by_cases heq : parentD arr s = t
-    · rw [← heq]; exact ih_rank hpar
-    · exact Nat.lt_trans (ih_rank hpar) (ih heq)
-
-theorem WF.rankD_lt {arr : Array UFNode} (h : WF arr) :
-    ∀ {i}, parentD arr i ≠ i → rankD arr i < rankD arr (parentD arr i) := by
-  induction h with
-  | empty =>
-    intro i hi
-    exact absurd (parentD_of_not_lt (Nat.not_lt_zero _)) hi
-  | push _ ih =>
-    simp only [push_parentD, push_rankD]; exact ih
-  | link _ x y hx hy ih =>
-    rw [parentD_eq (Fin.is_lt _)] at hy
-    simp only [linkAux, ne_eq]
-    split <;> [exact ih; split <;> [skip; split]]
-    · exact setParent_rankD_lt ‹_› ih
-    · refine setParentBump_rankD_lt (.inr hy) (Nat.le_of_eq ‹_›) ih (by
-        simp only [parentD_set, ite_eq_right_iff]
-        rintro rfl
-        simp [*, parentD_eq]) fun {i} => ?_
-      simp only [rankD_set]
-      split
-      · simp_all
-      · simp_all only [Nat.lt_irrefl, not_false_eq_true,
-          and_true, ite_false, ite_eq_right_iff]
-        rintro rfl
-        simp [rankD_eq, *]
-    · exact setParent_rankD_lt (Nat.lt_of_le_of_ne (Nat.not_lt.1 ‹_›) ‹_›) ih
-  | compress _ x r hr hanc harr ih =>
-    subst harr
-    intro i hne
-    simp only [parentD, Array.size_modify, Array.getElem_modify] at hne ⊢
-    split <;> rename_i hi
-    · split at hne ⊢
-      · rename_i heq; subst heq
-        -- i = x, parent set to r
-        simp only [ne_eq] at hne
-        -- need: rankD arr x < rankD arr r
-        -- rankD unchanged by modify (only changes parent)
-        show rankD arr i < rankD arr r
-        subst_vars
-        exact rankD_lt_of_isAncestor ih ‹IsAncestor arr x r› (by
-          intro heq
-          subst heq
-          simp [parentD_eq r.2, hr] at hne)
-      · -- i ≠ x, parentD unchanged
-        have hpar : parentD arr i ≠ i := by
-          simp only [parentD, hi, ↓reduceDIte] at hne ⊢; exact hne
-        have := ih hpar
-        simp only [parentD, hi, ↓reduceDIte] at hne this ⊢
-        split
-        · rename_i heq; subst heq
-          simp only [parentD, hi, ↓reduceDIte] at this; exact this
-        · simp only [parentD, hi, ↓reduceDIte] at this
-          split
-          · exact this
-          · exact this
-    · simp only [parentD, hi, ↓reduceDIte, not_true_eq_false] at hne
-
 end UnionFind
 
 open UnionFind
@@ -270,24 +97,21 @@ The noncomputable relation `UnionFind.Equiv` is provided to use the equivalence 
 structure UnionFind where
   /-- Array of union-find nodes -/
   arr : Array UFNode
-  /-- Well-formedness witness: the array was constructed through valid operations. -/
-  valid : WF arr
+  /-- Validity for parent nodes -/
+  parentD_lt : ∀ {i}, i < arr.size → parentD arr i < arr.size
+  /-- Validity for rank -/
+  rankD_lt : ∀ {i}, parentD arr i ≠ i → rankD arr i < rankD arr (parentD arr i)
 
 namespace UnionFind
 
 /-- Size of union-find structure. -/
 @[inline] abbrev size (self : UnionFind) := self.arr.size
 
-/-- Validity for parent nodes -/
-abbrev parentD_lt (self : UnionFind) : ∀ {i}, i < self.arr.size → parentD self.arr i < self.arr.size := self.valid.parentD_lt
-
-/-- Validity for rank -/
-abbrev rankD_lt (self : UnionFind) : ∀ {i}, parentD self.arr i ≠ i → rankD self.arr i < rankD self.arr (parentD self.arr i) := self.valid.rankD_lt
-
 /-- Create an empty union-find structure with specific capacity -/
 def mkEmpty (c : Nat) : UnionFind where
   arr := Array.mkEmpty c
-  valid := .empty
+  parentD_lt := nofun
+  rankD_lt := nofun
 
 /-- Empty union-find structure -/
 def empty := mkEmpty 0
@@ -342,7 +166,10 @@ theorem push_parentD (arr : Array UFNode) : parentD (arr.push ⟨arr.size, 0⟩)
 /-- Add a new node to a union-find structure, unlinked with any other nodes -/
 def push (self : UnionFind) : UnionFind where
   arr := self.arr.push ⟨self.arr.size, 0⟩
-  valid := .push self.valid
+  parentD_lt {i} := by
+    simp only [Array.size_push, push_parentD]; simp only [parentD]
+    split <;> [exact fun _ => Nat.lt_succ_of_lt (self.parent'_lt ..); exact id]
+  rankD_lt := by simp only [push_parentD, ne_eq, push_rankD]; exact self.rank_lt
 
 /-- Root of a union-find node. -/
 def root (self : UnionFind) (x : Fin self.size) : Fin self.size :=
@@ -428,80 +255,23 @@ theorem lt_rank_root {self : UnionFind} {x : Nat} :
   exact Nat.lt_of_lt_of_le (self.rank_lt h) le_rank_root
 
 /-- Auxiliary data structure for find operation -/
-structure FindAux (arr₀ : Array UFNode) (start : Nat) (n : Nat) where
+structure FindAux (n : Nat) where
   /-- Array of nodes -/
   s : Array UFNode
   /-- Index of root node -/
   root : Fin n
   /-- Size requirement -/
   size_eq : s.size = n
-  /-- Well-formedness of the resulting array -/
-  wf : WF s
-  /-- The root is a root in the resulting array -/
-  root_parent : parentD s root = root
-  /-- Each node's parent is either unchanged or set to root -/
-  parent_or : ∀ i, parentD s i = parentD arr₀ i ∨ parentD s i = root
-  /-- The starting node is a descendant of root in the result -/
-  start_ancestor : IsAncestor s start root
 
 /-- Auxiliary function for find operation -/
-def findAux (self : UnionFind) (x : Fin self.size) : FindAux self.arr x self.size :=
+def findAux (self : UnionFind) (x : Fin self.size) : FindAux self.size :=
   let y := self.arr[x.1].parent
   if h : y = x then
-    ⟨self.arr, x, rfl, self.valid, by rwa [parentD_eq x.2], fun i => .inl rfl, .self⟩
+    ⟨self.arr, x, rfl⟩
   else
     have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ _ h)
-    let ⟨arr₁, root, H, wf₁, root_par, par_or, y_anc⟩ :=
-      self.findAux ⟨y, self.parent'_lt _ x.2⟩
-    have hxs : x.1 < arr₁.size := H.symm ▸ x.2
-    have hrs : root.1 < arr₁.size := H.symm ▸ root.2
-    -- x's parent in arr₁ is unchanged (compression only touched y's subtree upward)
-    -- so parentD arr₁ x = parentD self.arr x = y, and y_anc gives IsAncestor arr₁ y root
-    have x_anc : IsAncestor arr₁ x root := by
-      have hpx := par_or x
-      cases hpx with
-      | inl h_orig =>
-        have hpar : parentD arr₁ ↑x = y := by rw [h_orig, parentD_eq x.2]
-        have hne : parentD arr₁ ↑x ≠ ↑x := by rw [hpar]; exact h
-        exact .parent hne (hpar ▸ y_anc)
-      | inr h_root =>
-        by_cases heq : (x : Nat) = root
-        · exact heq ▸ .self
-        · exact .parent (by rw [h_root]; exact Ne.symm heq) (h_root ▸ .self)
-    let arr₁' := arr₁.modify x fun s => { s with parent := root }
-    have hmod_parentD_root : parentD arr₁' root = root := by
-      simp only [arr₁', parentD, Array.size_modify, Array.getElem_modify]
-      split
-      · split
-        · next h' => simp_all
-        · simp [← parentD_eq hrs, root_par]
-      · omega
-    ⟨arr₁', root, by simp [arr₁', H],
-      .compress wf₁ ⟨x, hxs⟩ ⟨root, hrs⟩ root_par x_anc (by rfl),
-      hmod_parentD_root,
-      fun i => by
-        change parentD arr₁' i = parentD self.arr i ∨ parentD arr₁' i = ↑root
-        show parentD (arr₁.modify x _) i = parentD self.arr i ∨
-             parentD (arr₁.modify x _) i = ↑root
-        simp only [parentD, Array.size_modify, Array.getElem_modify]
-        split
-        · split
-          · subst i; exact .inr rfl
-          · have := par_or i
-            simp only [parentD, (show i < arr₁.size from by omega), ↓reduceDIte] at this
-            exact this
-        · have := par_or i
-          simp only [parentD, (show ¬i < arr₁.size from by omega), ↓reduceDIte] at this ⊢
-          exact this,
-      by
-        by_cases heq : (x : Nat) = (root : Nat)
-        · exact heq ▸ .self
-        · have hpx : parentD arr₁' x = root := by
-            show parentD (arr₁.modify x _) ↑x = ↑root
-            simp only [parentD, Array.size_modify, Array.getElem_modify, hxs, ↓reduceDIte, ↓reduceIte]
-          apply IsAncestor.parent
-          · rw [hpx]; exact Ne.symm heq
-          · rw [hpx]; exact .self⟩
+    let ⟨arr₁, root, H⟩ := self.findAux ⟨y, self.parent'_lt _ x.2⟩
+    ⟨arr₁.modify x fun s => { s with parent := root }, root, by simp [H]⟩
 termination_by self.rankMax - self.rank x
 
 @[nolint unusedHavesSuffices]
@@ -607,7 +377,10 @@ def find (self : UnionFind) (x : Fin self.size) :
   let r := self.findAux x
   { 1.arr := r.s
     2.1.val := r.root
-    1.valid := r.wf
+    1.parentD_lt := fun h => by
+      simp only [FindAux.size_eq] at *
+      exact parentD_findAux_lt h
+    1.rankD_lt := fun h => by rw [rankD_findAux, rankD_findAux]; exact lt_rankD_findAux h
     2.1.isLt := show _ < r.s.size by rw [r.size_eq]; exact r.root.2
     2.2 := by simp [size, r.size_eq] }
 
@@ -642,11 +415,6 @@ def findD (self : UnionFind) (x : Nat) : UnionFind × Nat :=
   simp only [parent, find]
   rw [parentD_findAux, if_pos rfl]
 
-theorem find_root_is_root (self : UnionFind) (x : Fin self.size) :
-    (self.find x).1.parent (self.find x).2.1 = (self.find x).2.1 := by
-  simp only [parent, find]
-  exact (self.findAux x).root_parent
-
 theorem find_parent_or (self : UnionFind) (x : Fin self.size) (i) :
     (self.find x).1.parent i = self.rootD i ∧ self.rootD i = self.rootD x ∨
     (self.find x).1.parent i = self.parent i := parentD_findAux_or ..
@@ -667,44 +435,112 @@ theorem find_parent_or (self : UnionFind) (x : Fin self.size) (i) :
 termination_by  (self.find x).1.rankMax - (self.find x).1.rank i
 decreasing_by exact this -- why is this needed? It is way slower without it
 
+/-- Link two union-find nodes -/
+def linkAux (self : Array UFNode) (x y : Fin self.size) : Array UFNode :=
+  if x.1 = y then
+    self
+  else
+    let nx := self[x.1]
+    let ny := self[y.1]
+    if ny.rank < nx.rank then
+      self.set y {ny with parent := x}
+    else
+      let arr₁ := self.set x {nx with parent := y}
+      if nx.rank = ny.rank then
+        arr₁.set y {ny with rank := ny.rank + 1} (by simp [arr₁])
+      else
+        arr₁
+
+theorem setParentBump_rankD_lt {arr : Array UFNode} {x y : Fin arr.size}
+    (hroot : arr[x.1].rank < arr[y.1].rank ∨ arr[y.1].parent = y)
+    (H : arr[x.1].rank ≤ arr[y.1].rank) {i : Nat}
+    (rankD_lt : parentD arr i ≠ i → rankD arr i < rankD arr (parentD arr i))
+    (hP : parentD arr' i = if x.1 = i then y.1 else parentD arr i)
+    (hR : ∀ {i}, rankD arr' i =
+      if y.1 = i ∧ arr[x.1].rank = arr[y.1].rank then
+        arr[y.1].rank + 1
+      else rankD arr i) :
+    ¬parentD arr' i = i → rankD arr' i < rankD arr' (parentD arr' i) := by
+  simp only [ne_eq, hP, hR, implies_true] at *; split <;> rename_i h₁ <;> [simp [← h₁]; skip] <;>
+    split <;> rename_i h₂ <;> intro h
+  · simp [h₂] at h
+  · simp only [rankD_eq, x.2, y.2]
+    split <;> rename_i h₃
+    · rw [← h₃]; apply Nat.lt_succ_self
+    · exact Nat.lt_of_le_of_ne H h₃
+  · cases h₂.1
+    simp only [h₂.2, false_or, Nat.lt_irrefl] at hroot
+    simp only [hroot, parentD_eq y.2, not_true_eq_false] at h
+  · have := rankD_lt h
+    split <;> rename_i h₃
+    · rw [← rankD_eq, h₃.1]; exact Nat.lt_succ_of_lt this
+    · exact this
+
+theorem setParent_rankD_lt {arr : Array UFNode} {x y : Fin arr.size}
+    (h : arr[x.1].rank < arr[y.1].rank) {i : Nat}
+    (rankD_lt : parentD arr i ≠ i → rankD arr i < rankD arr (parentD arr i)) :
+    let arr' := arr.set x ⟨y, arr[x].rank⟩
+    parentD arr' i ≠ i → rankD arr' i < rankD arr' (parentD arr' i) :=
+  setParentBump_rankD_lt (.inl h) (Nat.le_of_lt h) rankD_lt parentD_set
+    (by simp [rankD_set, Nat.ne_of_lt h, rankD_eq])
+
+@[simp] theorem linkAux_size : (linkAux self x y).size = self.size := by
+  simp only [linkAux]
+  split <;> [rfl; split] <;> [skip; split] <;> simp
+
 /-- Link a union-find node to a root node. -/
-def link (self : UnionFind) (x y : Fin self.size)
-    (xroot : self.parent x = x) (yroot : self.parent y = y) : UnionFind where
+def link (self : UnionFind) (x y : Fin self.size) (yroot : self.parent y = y) : UnionFind where
   arr := linkAux self.arr x y
-  valid := .link self.valid x y xroot yroot
+  parentD_lt h := by
+    simp only [linkAux_size] at *
+    simp only [linkAux]
+    split <;> [skip; split <;> [skip; split]]
+    · exact self.parentD_lt h
+    · rw [parentD_set]; split <;> [exact x.2; exact self.parentD_lt h]
+    · rw [parentD_set]; split
+      · exact self.parent'_lt ..
+      · rw [parentD_set]; split <;> [exact y.2; exact self.parentD_lt h]
+    · rw [parentD_set]; split <;> [exact y.2; exact self.parentD_lt h]
+  rankD_lt := by
+    rw [parent, parentD_eq (Fin.is_lt _)] at yroot
+    simp only [linkAux, ne_eq]
+    split <;> [skip; split <;> [skip; split]]
+    · exact self.rankD_lt
+    · exact setParent_rankD_lt ‹_› self.rankD_lt
+    · refine setParentBump_rankD_lt (.inr yroot) (Nat.le_of_eq ‹_›) self.rankD_lt (by
+        simp only [parentD_set, ite_eq_right_iff]
+        rintro rfl
+        simp [*, parentD_eq]) fun {i} => ?_
+      simp only [rankD_set]
+      split
+      · simp_all
+      · simp_all only [Nat.lt_irrefl, not_false_eq_true,
+          and_true, ite_false, ite_eq_right_iff]
+        rintro rfl
+        simp [rankD_eq, *]
+    · exact setParent_rankD_lt (Nat.lt_of_le_of_ne (Nat.not_lt.1 ‹_›) ‹_›) self.rankD_lt
 
 @[inherit_doc link]
-def linkN (self : UnionFind) (x y : Fin n)
-    (xroot : self.parent x = x) (yroot : self.parent y = y) (h : n = self.size) :
-    UnionFind := match n, h with | _, rfl => self.link x y xroot yroot
+def linkN (self : UnionFind) (x y : Fin n) (yroot : self.parent y = y) (h : n = self.size) :
+    UnionFind := match n, h with | _, rfl => self.link x y yroot
 
-/-- Link two root union-find nodes. Panics if either index is out of bounds. -/
-def link! (self : UnionFind) (x y : Nat)
-    (xroot : self.parent x = x) (yroot : self.parent y = y) : UnionFind :=
+/-- Link a union-find node to a root node. Panics if either index is out of bounds. -/
+def link! (self : UnionFind) (x y : Nat) (yroot : self.parent y = y) : UnionFind :=
   if h : x < self.size ∧ y < self.size then
-    self.link ⟨x, h.1⟩ ⟨y, h.2⟩ xroot yroot
+    self.link ⟨x, h.1⟩ ⟨y, h.2⟩ yroot
   else
     panicWith self "index out of bounds"
 
 /-- Link two union-find nodes, uniting their respective classes. -/
 def union (self : UnionFind) (x y : Fin self.size) : UnionFind :=
-  match hfx : self.find x with
-  | ⟨self₁, ⟨rx, hrx_lt⟩, ex⟩ =>
-  have hrx_root : self₁.parent rx = rx := by
-    have := find_root_is_root self x; rw [hfx] at this; exact this
-  have hy : y.1 < self₁.size := by rw [ex]; exact y.2
+  let ⟨self₁, rx, ex⟩ := self.find x
+  have hy := by rw [ex]; exact y.2
   match eq : self₁.find ⟨y, hy⟩ with
   | ⟨self₂, ry, ey⟩ =>
-    self₂.link ⟨rx, by rw [ey]; exact hrx_lt⟩ ry
-      (by -- xroot: rx is a root in self₂
-        rw [← rootD_eq_self]
-        have := find_root_1 self₁ ⟨y, hy⟩ rx
-        simp only [eq] at this; rw [this]
-        exact rootD_eq_self.mpr hrx_root)
-      (by -- yroot: ry is a root in self₂
-        have := find_root_1 self₁ ⟨y, hy⟩ (⟨y, hy⟩ : Fin _)
-        rw [← find_root_2, eq] at this; simp at this
-        rw [← this, parent_rootD])
+    self₂.link ⟨rx, by rw [ey]; exact rx.2⟩ ry <| by
+      have := find_root_1 self₁ ⟨y, hy⟩ (⟨y, hy⟩ : Fin _)
+      rw [← find_root_2, eq] at this; simp at this
+      rw [← this, parent_rootD]
 
 @[inherit_doc union]
 def unionN (self : UnionFind) (x y : Fin n) (h : n = self.size) : UnionFind :=
