@@ -383,7 +383,7 @@ theorem Perm.getElem_idxBij_symm_eq_getElem [BEq α] [LawfulBEq α] {xs ys : Lis
   getElem_idxOfNth_eq
 
 theorem Perm.idxBij_leftInverse_idxBij_symm [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys) :
-    h.idxBij.LeftInverse h.symm.idxBij := by grind
+    h.idxBij.LeftInverse h.symm.idxBij := by grind [idxOfNth_lt_length_iff]
 
 theorem Perm.idxBij_rightInverse_idxBij_symm [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys) :
     h.idxBij.RightInverse h.symm.idxBij := by grind [idxOfNth_lt_length_iff]
