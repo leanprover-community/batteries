@@ -671,12 +671,12 @@ grind_pattern pos_findIdxNth_getElem => xs[xs.findIdxNth p n]
 theorem findIdxNth_zero : (xs : List α).findIdxNth p 0 = xs.findIdx p := by
   induction xs <;> grind
 
-@[grind _=_]
+@[local grind =_]
 theorem findIdxNth_lt_length_iff {xs : List α} :
     xs.findIdxNth p n < xs.length ↔ n < xs.countP p := by
   induction xs generalizing n <;> grind
 
-@[grind _=_]
+@[local grind =_]
 theorem findIdxNth_eq_length_iff {xs : List α} :
     xs.findIdxNth p n = xs.length ↔ xs.countP p ≤ n := by
   induction xs generalizing n <;> grind
@@ -909,11 +909,11 @@ theorem getElem_idxOfNth_eq {xs : List α} [BEq α] [LawfulBEq α] {h : xs.idxOf
 theorem idxOfNth_zero [BEq α] : (xs : List α).idxOfNth x 0 = xs.idxOf x := by
   induction xs <;> grind
 
-@[grind _=_]
+@[local grind =_]
 theorem idxOfNth_lt_length_iff [BEq α] {xs : List α} :
     xs.idxOfNth x n < xs.length ↔ n < xs.count x := findIdxNth_lt_length_iff
 
-@[grind _=_]
+@[local grind =_]
 theorem idxOfNth_eq_length_iff [BEq α] {xs : List α} :
     xs.idxOfNth x n = xs.length ↔ xs.count x ≤ n := findIdxNth_eq_length_iff
 
