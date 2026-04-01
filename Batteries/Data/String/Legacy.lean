@@ -14,8 +14,6 @@ This file includes old definitions of `String` functions that were downstreamed 
 
 public section
 
-set_option linter.deprecated false
-
 namespace String
 
 private noncomputable def utf8ByteSize' : String → Nat
@@ -71,8 +69,7 @@ private theorem mapAux_lemma (s : String) (i : Pos.Raw) (c : Char) (h : ¬i.atEn
   omega
 
 /-- Implementation of `String.Legacy.map`. -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), specialize]
-def Legacy.mapAux (f : Char → Char) (i : Pos.Raw) (s : String) : String :=
+@[specialize] def Legacy.mapAux (f : Char → Char) (i : Pos.Raw) (s : String) : String :=
   if h : i.atEnd s then s
   else
     let c := f (i.get s)
@@ -92,8 +89,7 @@ Examples:
  * `"abc123".map Char.toUpper = "ABC123"`
  * `"".map Char.toUpper = ""`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.map (f : Char → Char) (s : String) : String :=
+@[inline] def Legacy.map (f : Char → Char) (s : String) : String :=
   mapAux f 0 s
 
 /--
@@ -109,8 +105,7 @@ Examples:
  * `"red green blue".drop 10 = "blue"`
  * `"red green blue".drop 50 = ""`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.drop (s : String) (n : Nat) : String :=
+@[inline] def Legacy.drop (s : String) (n : Nat) : String :=
   (s.toRawSubstring.drop n).toString
 
 /--
@@ -127,8 +122,7 @@ Examples:
 * `"red green blue".take 0 = ""`
 * `"red green blue".take 100 = "red green blue"`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.take (s : String) (n : Nat) : String :=
+@[inline] def Legacy.take (s : String) (n : Nat) : String :=
   (s.toRawSubstring.take n).toString
 
 /--
@@ -144,8 +138,7 @@ Examples:
 * `"red green blue".takeWhile (· != 'n') = "red gree"`
 * `"red green blue".takeWhile (fun _ => true) = "red green blue"`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.takeWhile (s : String) (p : Char → Bool) : String :=
+@[inline] def Legacy.takeWhile (s : String) (p : Char → Bool) : String :=
   (s.toRawSubstring.takeWhile p).toString
 
 /--
@@ -161,8 +154,7 @@ Examples:
 * `"red green blue".dropWhile (· != 'n') = "n blue"`
 * `"red green blue".dropWhile (fun _ => true) = ""`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.dropWhile (s : String) (p : Char → Bool) : String :=
+@[inline] def Legacy.dropWhile (s : String) (p : Char → Bool) : String :=
   (s.toRawSubstring.dropWhile p).toString
 
 /--
@@ -171,8 +163,7 @@ Auxiliary definition for `String.Legacy.foldl`.
 This is an old implementation, preserved here for users of the lemmas in
 `Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `String.foldlAux`.
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), specialize]
-def Legacy.foldlAux {α : Type u} (f : α → Char → α) (s : String) (stopPos : Pos.Raw)
+@[specialize] def Legacy.foldlAux {α : Type u} (f : α → Char → α) (s : String) (stopPos : Pos.Raw)
     (i : Pos.Raw) (a : α) : α :=
   if h : i < stopPos then
     have := Nat.sub_lt_sub_left h (Pos.Raw.lt_next s i)
@@ -192,8 +183,7 @@ Examples:
  * `"coffee tea and water".foldl (fun n c => if c.isWhitespace then n + 1 else n) 0 = 3`
  * `"coffee tea water".foldl (·.push ·) "" = "coffee tea water"`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.foldl {α : Type u} (f : α → Char → α) (init : α) (s : String) : α :=
+@[inline] def Legacy.foldl {α : Type u} (f : α → Char → α) (init : α) (s : String) : α :=
   foldlAux f s s.rawEndPos 0 init
 
 /--
@@ -206,8 +196,7 @@ Examples:
 * `"abc".front = 'a'`
 * `"".front = (default : Char)`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline, expose]
-def Legacy.front (s : String) : Char :=
+@[inline, expose] def Legacy.front (s : String) : Char :=
   Pos.Raw.get s 0
 
 /--
@@ -220,8 +209,7 @@ Examples:
 * `"abc".back = 'c'`
 * `"".back = (default : Char)`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline, expose]
-def Legacy.back (s : String) : Char :=
+@[inline, expose] def Legacy.back (s : String) : Char :=
   (s.rawEndPos.prev s).get s
 
 /--
@@ -230,7 +218,6 @@ Auxuliary definition for `String.Legacy.posOf`.
 This is an old implementation, preserved here for users of the lemmas in
 `Batteries.Data.String.Lemmas`.
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26")]
 def Legacy.posOfAux (s : String) (c : Char) (stopPos : Pos.Raw) (pos : Pos.Raw) : Pos.Raw :=
   if h : pos < stopPos then
     if pos.get s == c then pos
@@ -252,8 +239,7 @@ Examples:
 * `"abcba".posOf 'z' = ⟨5⟩`
 * `"L∃∀N".posOf '∀' = ⟨4⟩`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.posOf (s : String) (c : Char) : Pos.Raw :=
+@[inline] def Legacy.posOf (s : String) (c : Char) : Pos.Raw :=
   posOfAux s c s.rawEndPos 0
 
 /--
@@ -262,7 +248,6 @@ Auxuliary definition for `String.Legacy.revPosOf`.
 This is an old implementation, preserved here for users of the lemmas in
 `Batteries.Data.String.Lemmas`.
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26")]
 def Legacy.revPosOfAux (s : String) (c : Char) (pos : Pos.Raw) : Option Pos.Raw :=
   if h : pos = 0 then none
   else
@@ -284,8 +269,7 @@ Examples:
 * `"abcabc".revPosOf 'z' = none`
 * `"L∃∀N".revPosOf '∀' = some ⟨4⟩`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.revPosOf (s : String) (c : Char) : Option Pos.Raw :=
+@[inline] def Legacy.revPosOf (s : String) (c : Char) : Option Pos.Raw :=
   revPosOfAux s c s.rawEndPos
 
 /--
@@ -294,7 +278,6 @@ Auxuliary definition for `String.Legacy.find`.
 This is an old implementation, preserved here for users of the lemmas in
 `Batteries.Data.String.Lemmas`.
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26")]
 def Legacy.findAux (s : String) (p : Char → Bool) (stopPos : Pos.Raw) (pos : Pos.Raw) : Pos.Raw :=
   if h : pos < stopPos then
     if p (pos.get s) then pos
@@ -317,8 +300,7 @@ Examples:
  * `"tea".find (· == 'X') = ⟨3⟩`
  * `"".find (· == 'X') = ⟨0⟩`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.find (s : String) (p : Char → Bool) : Pos.Raw :=
+@[inline] def Legacy.find (s : String) (p : Char → Bool) : Pos.Raw :=
   findAux s p s.rawEndPos 0
 
 /--
@@ -327,7 +309,6 @@ Auxuliary definition for `String.Legacy.revFind`.
 This is an old implementation, preserved here for users of the lemmas in
 `Batteries.Data.String.Lemmas`.
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26")]
 def Legacy.revFindAux (s : String) (p : Char → Bool) (pos : Pos.Raw) : Option Pos.Raw :=
   if h : pos = 0 then none
   else
@@ -349,8 +330,7 @@ Examples:
  * `"tea".revFind (· == 'X') = none`
  * `"".revFind (· == 'X') = none`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.revFind (s : String) (p : Char → Bool) : Option Pos.Raw :=
+@[inline] def Legacy.revFind (s : String) (p : Char → Bool) : Option Pos.Raw :=
   revFindAux s p s.rawEndPos
 
 /--
@@ -359,8 +339,7 @@ Auxuliary definition for `String.Legacy.foldr`.
 This is an old implementation, preserved here for users of the lemmas in
 `Batteries.Data.String.Lemmas`.
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), specialize]
-def Legacy.foldrAux {α : Type u} (f : Char → α → α) (a : α) (s : String)
+@[specialize] def Legacy.foldrAux {α : Type u} (f : Char → α → α) (a : α) (s : String)
     (i begPos : Pos.Raw) : α :=
   if h : begPos < i then
     have := Pos.Raw.prev_lt_of_pos s i <| mt (congrArg String.Pos.Raw.byteIdx) <|
@@ -383,8 +362,7 @@ Examples:
  * `"coffee tea and water".foldr (fun c n => if c.isWhitespace then n + 1 else n) 0 = 3`
  * `"coffee tea water".foldr (fun c s => c.push s) "" = "retaw dna aet eeffoc"`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.foldr {α : Type u} (f : Char → α → α) (init : α) (s : String) : α :=
+@[inline] def Legacy.foldr {α : Type u} (f : Char → α → α) (init : α) (s : String) : α :=
   foldrAux f init s s.rawEndPos 0
 
 /--
@@ -393,8 +371,7 @@ Auxuliary definition for `String.Legacy.any`.
 This is an old implementation, preserved here for users of the lemmas in
 `Batteries.Data.String.Lemmas`.
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), specialize]
-def Legacy.anyAux (s : String) (stopPos : Pos.Raw) (p : Char → Bool) (i : Pos.Raw) :
+@[specialize] def Legacy.anyAux (s : String) (stopPos : Pos.Raw) (p : Char → Bool) (i : Pos.Raw) :
     Bool :=
   if h : i < stopPos then
     if p (i.get s) then true
@@ -418,8 +395,7 @@ Examples:
  * `"brown and orange".any (·.isLetter) = true`
  * `"".any (fun _ => false) = false`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.any (s : String) (p : Char → Bool) : Bool :=
+@[inline] def Legacy.any (s : String) (p : Char → Bool) : Bool :=
   anyAux s s.rawEndPos p 0
 
 /--
@@ -435,8 +411,7 @@ Examples:
  * `"brown and orange".all (·.isLetter) = false`
  * `"".all (fun _ => false) = true`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.all (s : String) (p : Char → Bool) : Bool :=
+@[inline] def Legacy.all (s : String) (p : Char → Bool) : Bool :=
   !Legacy.any s (fun c => !p c)
 
 /--
@@ -450,8 +425,7 @@ Examples:
 * `"green".contains 'x' = false`
 * `"".contains 'x' = false`
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.contains (s : String) (c : Char) : Bool :=
+@[inline] def Legacy.contains (s : String) (c : Char) : Bool :=
   Legacy.any s (fun a => a == c)
 
 end String
@@ -465,8 +439,7 @@ accumulated value is combined with each character in order, using `f`.
 This is an old implementation, preserved here for users of the lemmas in
 `Batteries.Data.String.Lemmas`. Its runtime behavior is equivalent to that of `Substring.Raw.foldl`.
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.foldl {α : Type u} (f : α → Char → α) (init : α) (s : Substring.Raw) : α :=
+@[inline] def Legacy.foldl {α : Type u} (f : α → Char → α) (init : α) (s : Substring.Raw) : α :=
   match s with
   | ⟨s, b, e⟩ => String.Legacy.foldlAux f s e b init
 
@@ -477,8 +450,7 @@ accumulated value is combined with each character in reverse order, using `f`.
 This is an old implementation, preserved here for users of the lemmas in
 `Batteries.Data.String.Lemmas`.
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.foldr {α : Type u} (f : Char → α → α) (init : α) (s : Substring.Raw) : α :=
+@[inline] def Legacy.foldr {α : Type u} (f : Char → α → α) (init : α) (s : Substring.Raw) : α :=
   match s with
   | ⟨s, b, e⟩ => String.Legacy.foldrAux f init s e b
 
@@ -490,8 +462,7 @@ Short-circuits at the first character for which `p` returns `true`.
 This is an old implementation, preserved here for users of the lemmas in
 `Batteries.Data.String.Lemmas`.
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.any (s : Substring.Raw) (p : Char → Bool) : Bool :=
+@[inline] def Legacy.any (s : Substring.Raw) (p : Char → Bool) : Bool :=
   match s with
   | ⟨s, b, e⟩ => String.Legacy.anyAux s e p b
 
@@ -503,8 +474,7 @@ Short-circuits at the first character for which `p` returns `false`.
 This is an old implementation, preserved here for users of the lemmas in
 `Batteries.Data.String.Lemmas`.
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.all (s : Substring.Raw) (p : Char → Bool) : Bool :=
+@[inline] def Legacy.all (s : Substring.Raw) (p : Char → Bool) : Bool :=
   !Legacy.any s (fun c => !p c)
 
 /--
@@ -513,8 +483,7 @@ Checks whether a substring contains the specified character.
 This is an old implementation, preserved here for users of the lemmas in
 `Batteries.Data.String.Lemmas`.
 -/
-@[deprecated "Use the new `String` API." (since := "2026-03-26"), inline]
-def Legacy.contains (s : Substring.Raw) (c : Char) : Bool :=
+@[inline] def Legacy.contains (s : Substring.Raw) (c : Char) : Bool :=
   Legacy.any s (fun a => a == c)
 
 end Substring.Raw
