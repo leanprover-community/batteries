@@ -3,13 +3,17 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 -/
-import Lean.Util.CollectLevelParams
-import Lean.Util.ForEachExpr
-import Lean.Meta.GlobalInstances
-import Lean.Meta.Check
-import Lean.Util.Recognizers
-import Lean.DocString
-import Batteries.Tactic.Lint.Basic
+module
+
+public meta import Lean.Util.CollectLevelParams
+public meta import Lean.Util.ForEachExpr
+public meta import Lean.Meta.Check
+public meta import Lean.Meta.Instances
+public meta import Lean.Util.Recognizers
+public meta import Lean.DocString
+public meta import Batteries.Tactic.Lint.Basic
+
+public meta section
 
 open Lean Meta Std
 
@@ -27,7 +31,7 @@ This file defines several small linters.
   errorsFound := "DUPLICATED NAMESPACES IN NAME:"
   test declName := do
     if ← isAutoDecl declName then return none
-    if isGlobalInstance (← getEnv) declName then return none
+    if ← isImplicitReducible declName then return none
     let nm := declName.components
     let some (dup, _) := nm.zip nm.tail! |>.find? fun (x, y) => x == y
       | return none
@@ -64,8 +68,13 @@ We skip all declarations that contain `sorry` in their value. -/
   noErrorsFound := "No definitions are missing documentation."
   errorsFound := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
-    if (← isAutoDecl declName) || isGlobalInstance (← getEnv) declName then
+    -- leanprover/lean4#12263: isGlobalInstance was removed, use isInstance instead
+    if (← isAutoDecl declName) || (← isInstance declName) then
       return none -- FIXME: scoped/local instances should also not be linted
+    if let .str p _ := declName then
+      if ← isInstance p then
+        -- auxillary functions for instances should not be linted
+        return none
     if let .str _ s := declName then
       if s == "parenthesizer" || s == "formatter" || s == "delaborator" || s == "quot" then
       return none
@@ -73,8 +82,7 @@ We skip all declarations that contain `sorry` in their value. -/
       | .axiomInfo .. => pure "axiom"
       | .opaqueInfo .. => pure "constant"
       | .defnInfo info =>
-          -- leanprover/lean4#2575:
-          -- projections are generated as `def`s even when they should be `theorem`s
+          -- leanprover/lean4#2575: Prop projections are generated as `def`s
           if ← isProjectionFn declName <&&> isProp info.type then
             return none
           pure "definition"
@@ -109,7 +117,7 @@ has been used. -/
   noErrorsFound := "All declarations correctly marked as def/lemma."
   errorsFound := "INCORRECT DEF/LEMMA:"
   test declName := do
-    if (← isAutoDecl declName) || isGlobalInstance (← getEnv) declName then
+    if (← isAutoDecl declName) || (← isImplicitReducible declName) then
       return none
     -- leanprover/lean4#2575:
     -- projections are generated as `def`s even when they should be `theorem`s

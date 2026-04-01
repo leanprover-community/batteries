@@ -1,1 +1,3 @@
-import Batteries.Data.Range.Lemmas
+module
+
+public import Batteries.Data.Range.Lemmas

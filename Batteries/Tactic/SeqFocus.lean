@@ -3,7 +3,11 @@ Copyright (c) 2022 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-import Lean.Elab.Tactic.Basic
+module
+
+public meta import Lean.Elab.Tactic.Basic
+
+public meta section
 
 open Lean Elab Meta Tactic
 

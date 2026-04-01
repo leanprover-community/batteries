@@ -3,9 +3,13 @@ Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Batteries.Tactic.Lint.Misc
-import Batteries.Tactic.SeqFocus
-import Batteries.Util.Panic
+module
+
+public import Batteries.Tactic.Lint.Misc
+public import Batteries.Tactic.SeqFocus
+public import Batteries.Util.Panic
+
+@[expose] public section
 
 namespace Batteries
 
@@ -141,7 +145,7 @@ theorem rank'_lt_rankMax (self : UnionFind) (i : Nat) (h) : (self.arr[i]).rank <
     | a::l, _, List.Mem.head _ => by dsimp; apply Nat.le_max_left
     | a::l, _, .tail _ h => by dsimp; exact Nat.le_trans (go h) (Nat.le_max_right ..)
   simp only [rankMax, ← Array.foldr_toList]
-  exact Nat.lt_succ.2 <| go (self.arr.toList.getElem_mem _)
+  exact Nat.lt_succ_iff.2 <| go (self.arr.toList.getElem_mem _)
 
 theorem rankD_lt_rankMax (self : UnionFind) (i : Nat) :
     rankD self.arr i < self.rankMax := by
@@ -189,6 +193,7 @@ def root! (self : UnionFind) (x : Nat) : Nat :=
 def rootD (self : UnionFind) (x : Nat) : Nat :=
   if h : x < self.size then self.root ⟨x, h⟩ else x
 
+set_option backward.proofsInPublic true in  -- for `rw [root]`
 @[nolint unusedHavesSuffices]
 theorem parent_root (self : UnionFind) (x : Fin self.size) :
     (self.arr[(self.root x).1]).parent = self.root x := by
@@ -286,7 +291,7 @@ theorem findAux_s {self : UnionFind} {x : Fin self.size} :
         { s with parent := self.rootD x } := by
   rw [show self.rootD _ = (self.findAux ⟨_, self.parent'_lt x x.2⟩).root from _]
   · rw [findAux]; split <;> rfl
-  · rw [← rootD_parent, parent, parentD_eq]
+  · rw [← rootD_parent, parent, parentD_eq (Fin.is_lt _)]
     simp only [rootD, findAux_root]
     apply dif_pos
 
@@ -497,7 +502,7 @@ def link (self : UnionFind) (x y : Fin self.size) (yroot : self.parent y = y) : 
       · rw [parentD_set]; split <;> [exact y.2; exact self.parentD_lt h]
     · rw [parentD_set]; split <;> [exact y.2; exact self.parentD_lt h]
   rankD_lt := by
-    rw [parent, parentD_eq] at yroot
+    rw [parent, parentD_eq (Fin.is_lt _)] at yroot
     simp only [linkAux, ne_eq]
     split <;> [skip; split <;> [skip; split]]
     · exact self.rankD_lt

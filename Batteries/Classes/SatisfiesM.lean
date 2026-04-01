@@ -3,8 +3,12 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kim Morrison
 -/
-import Batteries.Lean.EStateM
-import Batteries.Lean.Except
+module
+
+public import Batteries.Lean.EStateM
+public import Batteries.Lean.Except
+
+@[expose] public section
 
 /-!
 ## SatisfiesM
@@ -189,8 +193,8 @@ theorem SatisfiesM_ReaderT_eq [Monad m] :
   (exists_congr fun a => by exact ⟨fun eq _ => eq ▸ rfl, funext⟩).trans Classical.skolem.symm
 
 theorem SatisfiesM_StateRefT_eq [Monad m] :
-    SatisfiesM (m := StateRefT' ω σ m) p x ↔ ∀ s, SatisfiesM p (x s) := by
-  simp [SatisfiesM_ReaderT_eq, ReaderT.run]
+    SatisfiesM (m := StateRefT' ω σ m) p x ↔ ∀ s, SatisfiesM p (x s) :=
+  SatisfiesM_ReaderT_eq
 
 theorem SatisfiesM_StateT_eq [Monad m] [LawfulMonad m] :
     SatisfiesM (m := StateT ρ m) (α := α) p x ↔ ∀ s, SatisfiesM (m := m) (p ·.1) (x.run s) := by
@@ -258,7 +262,7 @@ instance [Monad m] [LawfulMonad m][MonadSatisfying m] : MonadSatisfying (ReaderT
     rfl
 
 instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (StateRefT' ω σ m) :=
-  inferInstanceAs <| MonadSatisfying (ReaderT _ _)
+  inferInstanceAs <| MonadSatisfying (ReaderT (ST.Ref ω σ) m)
 
 instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (StateT ρ m) where
   satisfying {α p x} h :=

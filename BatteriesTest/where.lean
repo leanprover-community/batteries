@@ -6,6 +6,9 @@ import Batteries.Data.UnionFind.Basic
 -- Return to pristine state
 set_option linter.missingDocs false
 set_option internal.cmdlineSnapshots false
+set_option backward.privateInPublic.warn true
+set_option experimental.module false
+set_option Elab.inServer false
 
 /-- info: -- In root namespace with initial scope -/
 #guard_msgs in #where

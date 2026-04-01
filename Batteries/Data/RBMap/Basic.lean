@@ -3,9 +3,13 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import Batteries.Classes.Order
-import Batteries.Control.ForInStep.Basic
-import Batteries.Tactic.Lint.Misc
+module
+
+public import Batteries.Classes.Order
+public import Batteries.Control.ForInStep.Basic
+public import Batteries.Tactic.Lint.Misc
+
+@[expose] public section
 
 /-!
 # Red-black trees
@@ -111,7 +115,7 @@ where
     | nil,          b => return ForInStep.yield b
     | node _ l v r, b => ForInStep.bindM (visit l b) fun b => ForInStep.bindM (f v b) (visit r ·)
 
-instance : ForIn m (RBNode α) α where
+instance [Monad m] : ForIn m (RBNode α) α where
   forIn := RBNode.forIn
 
 /--
@@ -152,8 +156,8 @@ def toList (t : RBNode.Stream α) : List α := t.foldr (·::·) []
 
 end Stream
 
-instance : ToStream (RBNode α) (RBNode.Stream α) := ⟨(·.toStream)⟩
-instance : Stream (RBNode.Stream α) α := ⟨Stream.next?⟩
+instance : Std.ToStream (RBNode α) (RBNode.Stream α) := ⟨(·.toStream)⟩
+instance : Std.Stream (RBNode.Stream α) α := ⟨Stream.next?⟩
 
 /-- Returns `true` iff every element of the tree satisfies `p`. -/
 @[specialize] def all (p : α → Bool) : RBNode α → Bool
@@ -654,10 +658,10 @@ instance (α : Type u) (cmp : α → α → Ordering) : Inhabited (RBSet α cmp)
 /-- `O(n)`. Run monadic function `f` on each element of the tree (in increasing order). -/
 @[inline] def forM [Monad m] (f : α → m PUnit) (t : RBSet α cmp) : m PUnit := t.1.forM f
 
-instance : ForIn m (RBSet α cmp) α where
+instance [Monad m] : ForIn m (RBSet α cmp) α where
   forIn t := t.1.forIn
 
-instance : ToStream (RBSet α cmp) (RBNode.Stream α) := ⟨fun x => x.1.toStream .nil⟩
+instance : Std.ToStream (RBSet α cmp) (RBNode.Stream α) := ⟨fun x => x.1.toStream .nil⟩
 
 /-- `O(1)`. Is the tree empty? -/
 @[inline] def isEmpty : RBSet α cmp → Bool
@@ -940,10 +944,10 @@ variable {α : Type u} {β : Type v} {σ : Type w} {cmp : α → α → Ordering
 @[inline] def forM [Monad m] (f : α → β → m PUnit) (t : RBMap α β cmp) : m PUnit :=
   t.1.forM (fun (a, b) => f a b)
 
-instance : ForIn m (RBMap α β cmp) (α × β) := inferInstanceAs (ForIn _ (RBSet ..) _)
+instance [Monad m] : ForIn m (RBMap α β cmp) (α × β) := inferInstanceAs (ForIn _ (RBSet ..) _)
 
-instance : ToStream (RBMap α β cmp) (RBNode.Stream (α × β)) :=
-  inferInstanceAs (ToStream (RBSet ..) _)
+instance : Std.ToStream (RBMap α β cmp) (RBNode.Stream (α × β)) :=
+  inferInstanceAs (Std.ToStream (RBSet ..) _)
 
 /-- `O(n)`. Constructs the array of keys of the map. -/
 @[inline] def keysArray (t : RBMap α β cmp) : Array α :=
@@ -973,10 +977,10 @@ instance : CoeHead (Keys α β cmp) (Array α) := ⟨keysArray⟩
 
 instance : CoeHead (Keys α β cmp) (List α) := ⟨keysList⟩
 
-instance : ForIn m (Keys α β cmp) α where
+instance [Monad m] : ForIn m (Keys α β cmp) α where
   forIn t init f := t.val.forIn init (f ·.1)
 
-instance : ForM m (Keys α β cmp) α where
+instance [Monad m] : ForM m (Keys α β cmp) α where
   forM t f := t.val.forM (f ·.1)
 
 /-- The result of `toStream` on a `Keys`. -/
@@ -991,8 +995,8 @@ def Keys.Stream.next? (t : Stream α β) : Option (α × Stream α β) :=
   | none => none
   | some ((a, _), t) => some (a, t)
 
-instance : ToStream (Keys α β cmp) (Keys.Stream α β) := ⟨Keys.toStream⟩
-instance : Stream (Keys.Stream α β) α := ⟨Keys.Stream.next?⟩
+instance : Std.ToStream (Keys α β cmp) (Keys.Stream α β) := ⟨Keys.toStream⟩
+instance : Std.Stream (Keys.Stream α β) α := ⟨Keys.Stream.next?⟩
 
 /-- `O(n)`. Constructs the array of values of the map. -/
 @[inline] def valuesArray (t : RBMap α β cmp) : Array β :=
@@ -1022,10 +1026,10 @@ instance : CoeHead (Values α β cmp) (Array β) := ⟨valuesArray⟩
 
 instance : CoeHead (Values α β cmp) (List β) := ⟨valuesList⟩
 
-instance : ForIn m (Values α β cmp) β where
+instance [Monad m] : ForIn m (Values α β cmp) β where
   forIn t init f := t.val.forIn init (f ·.2)
 
-instance : ForM m (Values α β cmp) β where
+instance [Monad m] : ForM m (Values α β cmp) β where
   forM t f := t.val.forM (f ·.2)
 
 /-- The result of `toStream` on a `Values`. -/
@@ -1040,8 +1044,8 @@ def Values.Stream.next? (t : Stream α β) : Option (β × Stream α β) :=
   | none => none
   | some ((_, b), t) => some (b, t)
 
-instance : ToStream (Values α β cmp) (Values.Stream α β) := ⟨Values.toStream⟩
-instance : Stream (Values.Stream α β) β := ⟨Values.Stream.next?⟩
+instance : Std.ToStream (Values α β cmp) (Values.Stream α β) := ⟨Values.toStream⟩
+instance : Std.Stream (Values.Stream α β) β := ⟨Values.Stream.next?⟩
 
 /-- `O(1)`. Is the tree empty? -/
 @[inline] def isEmpty : RBMap α β cmp → Bool := RBSet.isEmpty

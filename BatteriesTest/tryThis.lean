@@ -60,17 +60,20 @@ private def s : Suggestion := Unhygienic.run `(tactic| rfl)
 
 /-! # Demos -/
 
-/-- info: Try this: rfl -/
+/--
+info: Try this:
+  [apply] rfl
+-/
 #guard_msgs in
 -- `Try this: rfl` with `rfl` in text-link color.
 #demo1 s
 
 /--
 info: Try these:
-• rfl
-• rfl
-• rfl
-• rfl
+  [apply] rfl
+  [apply] rfl
+  [apply] rfl
+  [apply] rfl
 -/
 #guard_msgs in
 /-
@@ -86,14 +89,18 @@ with `rfl` in text-link color.
 #demo #[s,s,s,s]
 
 /--
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.value` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.value` has been deprecated: `SuggestionStyle` is not used anymore.
+---
 info: Try these:
-• rfl
-• rfl
-• rfl
-• rfl
-• rfl
-• rfl
-• rfl
+  [apply] rfl
+  [apply] rfl
+  [apply] rfl
+  [apply] rfl
+  [apply] rfl
+  [apply] rfl
+  [apply] rfl
 -/
 #guard_msgs in
 /-
@@ -110,62 +117,105 @@ Try these:
 -/
 #demo #[0.0, 1/6, 2/6, 3/6, 4/6, 5/6, 1.0].map fun t => {s with style? := some <| .value t}
 
-/-- info: Try this: rfl -/
-#guard_msgs in
--- `Try this: rfl` -- error color with error squiggle
-#demo1 {s with style? := some .error}
-
-/-- info: Try this: rfl -/
+/--
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.error` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.error` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+info: Try this:
+  [apply] rfl
+-/
 #guard_msgs in
 -- `Try this: rfl` -- error color, no squiggle
 #demo1 {s with style? := some <| .error (decorated := false)}
 
-/-- info: Try this: rfl -/
+/--
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+info: Try this:
+  [apply] rfl
+-/
 #guard_msgs in
 -- `Try this: rfl` -- gold color with warning squiggle
 #demo1 {s with style? := some .warning}
 
-/-- info: Try this: rfl -/
+/--
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+info: Try this:
+  [apply] rfl
+-/
 #guard_msgs in
 -- `Try this: rfl` -- gold color with no squiggle
 #demo1 {s with style? := some <| .warning (decorated := false)}
 
-/-- info: Try this: rfl -/
+/--
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.success` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.success` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+info: Try this:
+  [apply] rfl
+-/
 #guard_msgs in
 -- `Try this: rfl` -- Lean green
 #demo1 {s with style? := some .success}
 
-/-- info: Try this: rfl -/
+/--
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.asHypothesis` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.asHypothesis` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+info: Try this:
+  [apply] rfl
+-/
 #guard_msgs in
 -- `Try this: rfl` -- styled like a goal hypothesis
 #demo1 {s with style? := some .asHypothesis}
 
-/-- info: Try this: rfl -/
+/--
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.asInaccessible` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.asInaccessible` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+info: Try this:
+  [apply] rfl
+-/
 #guard_msgs in
 -- `Try this: rfl` -- styled like an inaccessible goal hypothesis
 #demo1 {s with style? := some .asInaccessible}
 
-/-- info: Try this: rfl -/
+/--
+info: Try this:
+  [apply] Starfleet
+-/
 #guard_msgs in
 -- `Try this: Starfleet`
 #demo1 {s with preInfo? := "Sta", postInfo? := "eet"}
 
-/-- info: Try this: a secret message -/
+/--
+info: Try this:
+  [apply] a secret message
+-/
 #guard_msgs in
--- `Try this: rfl`
+-- `Try this: a secret message`
 #demo1 {s with messageData? := m!"a secret message"}
 
 /--
 info: Try these:
-• a secret message
-• another secret message
+  [apply] a secret message
+  [apply] another secret message
 -/
 #guard_msgs in
 /-
 ```
 Try these:
-• rfl
-• rfl
+• a secret message
+• another secret message
 ```
 -/
 #demo #[
@@ -173,27 +223,46 @@ Try these:
   {s with messageData? := m!"another secret message"}
 ]
 
-/-- info: Our only hope is rfl -/
+/--
+info: Our only hope is ⏎
+  [apply] rfl
+-/
 #guard_msgs in
 #demo1 s with_header "Our only hope is "
 
 /--
 info: We've got everything here! Such as:
-• rfl
-• rfl
-• rfl
-• rfl
+  [apply] rfl
+  [apply] rfl
+  [apply] rfl
+  [apply] rfl
 -/
 #guard_msgs in
 #demo #[s,s,s,s] with_header "We've got everything here! Such as:"
 
 /--
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.error` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.error` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.success` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.success` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.value` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.value` has been deprecated: `SuggestionStyle` is not used anymore.
+---
 info: Grab bag:
-• not a tactic
-• This
-• rfl
-• link-styled
-• this
+  [apply] This is not a tactic.
+  [apply] This could be a tactic--but watch out!
+  [apply] rfl. Finally, a tactic that just works.
+  [apply] I'm just link-styled.
+  [apply] On a scale of 0 to 1, I'd put this at 0.166667.
 -/
 #guard_msgs in
 #demo #[
@@ -226,7 +295,10 @@ info: Grab bag:
 
 /- The messages and suggestion should still read `Try this: rfl`, but the text in the lightbulb
 menu should read "Consider rfl, please" -/
-/-- info: Try this: rfl -/
+/--
+info: Try this:
+  [apply] rfl
+-/
 #guard_msgs in
 #demo1 { s with toCodeActionTitle? := fun text => "Consider " ++ text ++ ", please" }
 
@@ -243,9 +315,9 @@ macro "#demo" s:term "with_code_action_prefix" h:str : command => `(example : Tr
 menu should read "Maybe use: rfl"; "Maybe use: rfl"; "Also consider rfl, please!" -/
 /--
 info: Try these:
-• rfl
-• rfl
-• rfl
+  [apply] rfl
+  [apply] rfl
+  [apply] rfl
 -/
 #guard_msgs in
 #demo #[

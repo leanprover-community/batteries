@@ -3,8 +3,11 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2. license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
+module
 
-namespace Stream
+@[expose] public section
+
+namespace Std.Stream
 
 /-- Drop up to `n` values from the stream `s`. -/
 def drop [Stream σ α] (s : σ) : Nat → σ

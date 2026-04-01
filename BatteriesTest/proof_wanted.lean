@@ -9,7 +9,7 @@ No unused variable warnings.
 When not a proposition, rely on `theorem` command failing.
 -/
 /--
-error: type of theorem 'foo' is not a proposition
+error: type of theorem `foo` is not a proposition
   Nat → Nat
 -/
 #guard_msgs in proof_wanted foo (x : Nat) : Nat

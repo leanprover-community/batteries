@@ -1,4 +1,3 @@
-
 import Batteries.Tactic.OpenPrivate
 
 import BatteriesTest.OpenPrivateDefs
@@ -35,3 +34,11 @@ open
 #guard_msgs in
 open /- Being sneaky! -/ private secretNumber from BatteriesTest.OpenPrivateDefs in
 #eval secretNumber
+
+/--
+info: @[defeq] private theorem secretNumber.eq_def : secretNumber✝ = 2 :=
+Eq.refl secretNumber✝
+-/
+#guard_msgs in
+open private secretNumber.eq_def from BatteriesTest.OpenPrivateDefs in
+#print secretNumber.eq_def
