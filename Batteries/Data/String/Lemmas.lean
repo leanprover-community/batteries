@@ -20,7 +20,7 @@ import all Init.Data.String.Modify  -- for unfolding `String.mapAux`
 import all Batteries.Data.String.Legacy -- for unfolding `String.Legacy.map`
 import all Init.Data.String.Legacy -- for unfolding `String.splitOnAux`
 
-set_option linter.deprecated false in
+set_option linter.deprecated false
 @[expose] public section
 
 namespace String
