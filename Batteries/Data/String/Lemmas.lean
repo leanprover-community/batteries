@@ -561,7 +561,7 @@ namespace Legacy.Iterator
 
 theorem hasNext_cons_addChar (c : Char) (cs : List Char) (i : Pos.Raw) :
     hasNext ⟨String.ofList (c :: cs), i + c⟩ = hasNext ⟨String.ofList cs, i⟩ := by
-  simp [hasNext, utf8ByteSize_ofList]; lia
+  simp [hasNext, utf8ByteSize_ofList]; omega
 
 /-- Validity for a string iterator. -/
 def Valid (it : Iterator) : Prop := it.pos.Valid it.s
