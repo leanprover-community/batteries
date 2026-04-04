@@ -88,9 +88,11 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     let declMods ← elabModifiers mods
     Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
     let (attrs, machineApplicable) := setDeprecatedTarget name declMods.attrs
+    let env ← getEnv
     let declMods := { declMods with
       computeKind :=
-        if isNoncomputable (← getEnv) name then .noncomputable
+        if isNoncomputable env name then .noncomputable
+        else if isMarkedMeta env name then .meta
         else declMods.computeKind
       isUnsafe := declMods.isUnsafe || cinfo.isUnsafe
       attrs
@@ -109,10 +111,11 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
         safety := if declMods.isUnsafe then .unsafe else .safe
       }
     checkNotAlreadyDeclared declName
-    if declMods.isNoncomputable then
-      addDecl decl
-    else
-      addAndCompile decl
+    addDecl decl
+    if !declMods.isNoncomputable then
+      if declMods.isMeta then
+        modifyEnv (markMeta · declName)
+      compileDecl decl
     addDeclarationRangesFromSyntax declName (← getRef) alias
     Term.addTermInfo' alias (← mkConstWithLevelParams declName) (isBinder := true)
     if let some (doc, isVerso) := declMods.docString? then
