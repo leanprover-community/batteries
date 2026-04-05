@@ -59,7 +59,7 @@ jobs:
           ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "${GITHUB_PATH}"
 
-      - name: Check if tag exists
+      - name: Check if branch exists
         if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
         id: check_mathlib_tag
         env:
@@ -75,7 +75,7 @@ jobs:
           BASE=master
           echo "Using base tag: $BASE"
 
-          EXISTS="$(git ls-remote --heads origin batteries-pr-testing-$PR_NUMBER | wc -l)"
+          EXISTS="$(git ls-remote --heads nightly-testing batteries-pr-testing-$PR_NUMBER | wc -l)"
           echo "Branch exists: $EXISTS"
           if [ "$EXISTS" = "0" ]; then
             echo "Branch does not exist, creating it."

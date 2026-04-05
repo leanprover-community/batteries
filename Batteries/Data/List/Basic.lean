@@ -105,43 +105,6 @@ def splitAtD (n : Nat) (l : List α) (dflt : α) : List α × List α := go n l 
   | 0, xs, acc => (acc.reverse, xs)
   | n, [], acc => (acc.reverseAux (replicate n dflt), [])
 
-/--
-Split a list at every element satisfying a predicate. The separators are not in the result.
-```
-[1, 1, 2, 3, 2, 4, 4].splitOnP (· == 2) = [[1, 1], [3], [4, 4]]
-```
--/
-def splitOnP (P : α → Bool) (l : List α) : List (List α) := go l [] where
-  /-- Auxiliary for `splitOnP`: `splitOnP.go xs acc = res'`
-  where `res'` is obtained from `splitOnP P xs` by prepending `acc.reverse` to the first element. -/
-  go : List α → List α → List (List α)
-  | [], acc => [acc.reverse]
-  | a :: t, acc => if P a then acc.reverse :: go t [] else go t (a::acc)
-
-/-- Tail recursive version of `splitOnP`. -/
-@[inline] def splitOnPTR (P : α → Bool) (l : List α) : List (List α) := go l #[] #[] where
-  /-- Auxiliary for `splitOnP`: `splitOnP.go xs acc r = r.toList ++ res'`
-  where `res'` is obtained from `splitOnP P xs` by prepending `acc.toList` to the first element. -/
-  @[specialize] go : List α → Array α → Array (List α) → List (List α)
-  | [], acc, r => r.toListAppend [acc.toList]
-  | a :: t, acc, r => bif P a then go t #[] (r.push acc.toList) else go t (acc.push a) r
-
-@[csimp] theorem splitOnP_eq_splitOnPTR : @splitOnP = @splitOnPTR := by
-  funext α P l; simp [splitOnPTR]
-  suffices ∀ xs acc r,
-    splitOnPTR.go P xs acc r = r.toList ++ splitOnP.go P xs acc.toList.reverse from
-      (this l #[] #[]).symm
-  intro xs acc r; induction xs generalizing acc r with simp [splitOnP.go, splitOnPTR.go]
-  | cons x xs IH => cases P x <;> simp [*]
-
-/--
-Split a list at every occurrence of a separator element. The separators are not in the result.
-```
-[1, 1, 2, 3, 2, 4, 4].splitOn 2 = [[1, 1], [3], [4, 4]]
-```
--/
-@[inline] def splitOn [BEq α] (a : α) (as : List α) : List (List α) := as.splitOnP (· == a)
-
 /-- Apply `f` to the last element of `l`, if it exists. -/
 @[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
   /-- Auxiliary for `modifyLast`: `modifyLast.go f l acc = acc.toList ++ modifyLast f l`. -/
@@ -193,42 +156,6 @@ where
   @[specialize] go : List α → β → List β → m (List β)
     | [], last, acc => pure <| last :: acc
     | x :: xs, last, acc => do go xs (← f last x) (last :: acc)
-
-/--
-Folds a monadic function over a list from the left, accumulating partial results starting with
-`init`. The accumulated values are combined with the each element of the list in order, using `f`.
--/
-@[inline]
-def scanlM [Monad m] (f : β → α → m β) (init : β) (l : List α) : m (List β) :=
-  List.reverse <$> scanAuxM f init l
-
-/--
-Folds a monadic function over a list from the right, accumulating partial results starting with
-`init`. The accumulated values are combined with the each element of the list in order, using `f`.
--/
-@[inline]
-def scanrM [Monad m] (f : α → β → m β) (init : β) (xs : List α) : m (List β) :=
-  scanAuxM (flip f) init xs.reverse
-
-/--
-Fold a function `f` over the list from the left, returning the list of partial results.
-```
-scanl (+) 0 [1, 2, 3] = [0, 1, 3, 6]
-```
--/
-@[inline]
-def scanl (f : β → α → β) (init : β) (as : List α) : List β :=
-  Id.run <| as.scanlM (pure <| f · ·) init
-
-/--
-Fold a function `f` over the list from the right, returning the list of partial results.
-```
-scanr (+) 0 [1, 2, 3] = [6, 5, 3, 0]
-```
--/
-@[inline]
-def scanr (f : α → β → β) (init : β) (as : List α) : List β :=
-  Id.run <| as.scanrM (pure <| f · ·) init
 
 /--
 Fold a list from left to right as with `foldl`, but the combining function

@@ -268,6 +268,12 @@ syntax "#eval!"... [Lean.Parser.Command.evalBang]
 #guard_msgs in
 #help command "#e"
 
+-- Notably, we don't show a generic `"/--"` in the following test:
+
+/-- info: syntax "abbrev"... [Lean.Parser.Command.declaration] -/
+#guard_msgs in
+#help command def
+
 /--
 info: syntax "#eval"... [Lean.Parser.Command.eval]
   `#eval e` evaluates the expression `e` by compiling and evaluating it.
