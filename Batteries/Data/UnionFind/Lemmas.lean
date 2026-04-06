@@ -40,7 +40,7 @@ namespace Batteries.UnionFind
 @[simp] theorem root_push {self : UnionFind} : self.push.rootD x = self.rootD x :=
   rootD_ext fun _ => parent_push
 
-@[simp] theorem arr_link : (link self x y yroot).arr = linkAux self.arr x y := rfl
+@[simp] theorem arr_link : (link self x y xroot yroot).arr = linkAux self.arr x y := rfl
 
 theorem parentD_linkAux {self} {x y : Fin self.size} :
     parentD (linkAux self x y) i =
@@ -54,8 +54,8 @@ theorem parentD_linkAux {self} {x y : Fin self.size} :
   dsimp only [linkAux]; split <;> [rfl; split] <;> [rw [parentD_set]; split] <;> rw [parentD_set]
   split <;> [(subst i; rwa [if_neg, parentD_eq]); rw [parentD_set]]
 
-theorem parent_link {self} {x y : Fin self.size} (yroot) {i} :
-    (link self x y yroot).parent i =
+theorem parent_link {self} {x y : Fin self.size} (xroot yroot) {i} :
+    (link self x y xroot yroot).parent i =
     if x.1 = y then
       self.parent i
     else
@@ -68,7 +68,7 @@ theorem parent_link {self} {x y : Fin self.size} (yroot) {i} :
 theorem root_link {self : UnionFind} {x y : Fin self.size}
     (xroot : self.parent x = x) (yroot : self.parent y = y) :
     ∃ r, (r = x ∨ r = y) ∧ ∀ i,
-      (link self x y yroot).rootD i =
+      (link self x y xroot yroot).rootD i =
       if self.rootD i = x ∨ self.rootD i = y then r.1 else self.rootD i := by
   if h : x.1 = y then
     refine ⟨x, .inl rfl, fun i => ?_⟩
@@ -118,7 +118,7 @@ theorem equiv_find : Equiv (self.find x).1 a b ↔ Equiv self a b := by simp [Eq
 
 theorem equiv_link {self : UnionFind} {x y : Fin self.size}
     (xroot : self.parent x = x) (yroot : self.parent y = y) :
-    Equiv (link self x y yroot) a b ↔
+    Equiv (link self x y xroot yroot) a b ↔
     Equiv self a b ∨ Equiv self a x ∧ Equiv self y b ∨ Equiv self a y ∧ Equiv self x b := by
   have {m : UnionFind} {x y : Fin self.size}
       (xroot : self.rootD x = x) (yroot : self.rootD y = y)
