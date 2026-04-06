@@ -262,7 +262,7 @@ instance [Monad m] [LawfulMonad m][MonadSatisfying m] : MonadSatisfying (ReaderT
     rfl
 
 instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (StateRefT' ω σ m) :=
-  inferInstanceAs <| MonadSatisfying (ReaderT _ _)
+  inferInstanceAs <| MonadSatisfying (ReaderT (ST.Ref ω σ) m)
 
 instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (StateT ρ m) where
   satisfying {α p x} h :=

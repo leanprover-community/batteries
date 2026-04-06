@@ -86,10 +86,10 @@ theorem Subperm.count_le [BEq α] {l₁ l₂ : List α} (s : l₁ <+~ l₂) (a) 
     count a l₁ ≤ count a l₂ := s.countP_le _
 
 theorem subperm_cons (a : α) {l₁ l₂ : List α} : a :: l₁ <+~ a :: l₂ ↔ l₁ <+~ l₂ := by
-  refine ⟨fun ⟨l, p, s⟩ => ?_, fun ⟨l, p, s⟩ => ⟨a :: l, p.cons a, s.cons₂ _⟩⟩
+  refine ⟨fun ⟨l, p, s⟩ => ?_, fun ⟨l, p, s⟩ => ⟨a :: l, p.cons a, s.cons_cons _⟩⟩
   match s with
   | .cons _ s' => exact (p.subperm_left.2 <| (sublist_cons_self _ _).subperm).trans s'.subperm
-  | .cons₂ _ s' => exact ⟨_, p.cons_inv, s'⟩
+  | .cons_cons _ s' => exact ⟨_, p.cons_inv, s'⟩
 
 /-- Weaker version of `Subperm.cons_left` -/
 theorem cons_subperm_of_not_mem_of_mem {a : α} {l₁ l₂ : List α} (h₁ : a ∉ l₁) (h₂ : a ∈ l₂)
@@ -100,9 +100,9 @@ theorem cons_subperm_of_not_mem_of_mem {a : α} {l₁ l₂ : List α} (h₁ : a 
   | @cons r₁ _ b s' ih =>
     simp at h₂
     match h₂ with
-    | .inl e => subst_vars; exact ⟨_ :: r₁, p.cons _, s'.cons₂ _⟩
+    | .inl e => subst_vars; exact ⟨_ :: r₁, p.cons _, s'.cons_cons _⟩
     | .inr m => let ⟨t, p', s'⟩ := ih h₁ m p; exact ⟨t, p', s'.cons _⟩
-  | @cons₂ _ r₂ b _ ih =>
+  | @cons_cons _ r₂ b _ ih =>
     have bm : b ∈ l₁ := p.subset mem_cons_self
     have am : a ∈ r₂ := by
       simp only [mem_cons] at h₂
@@ -110,7 +110,7 @@ theorem cons_subperm_of_not_mem_of_mem {a : α} {l₁ l₂ : List α} (h₁ : a 
     obtain ⟨t₁, t₂, rfl⟩ := append_of_mem bm
     have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp
     obtain ⟨t, p', s'⟩ := ih (mt (st.subset ·) h₁) am (.cons_inv <| p.trans perm_middle)
-    exact ⟨b :: t, (p'.cons b).trans <| (swap ..).trans (perm_middle.symm.cons a), s'.cons₂ _⟩
+    exact ⟨b :: t, (p'.cons b).trans <| (swap ..).trans (perm_middle.symm.cons a), s'.cons_cons _⟩
 
 theorem subperm_append_left {l₁ l₂ : List α} : ∀ l, l ++ l₁ <+~ l ++ l₂ ↔ l₁ <+~ l₂
   | [] => .rfl
@@ -131,7 +131,7 @@ theorem Subperm.exists_of_length_lt {l₁ l₂ : List α} (s : l₁ <+~ l₂) (h
     match Nat.lt_or_eq_of_le (Nat.le_of_lt_succ h) with
     | .inl h => exact (IH h).imp fun a s => s.trans (sublist_cons_self _ _).subperm
     | .inr h => exact ⟨a, s.eq_of_length h ▸ .refl _⟩
-  | cons₂ b _ IH =>
+  | cons_cons b _ IH =>
     exact (IH <| Nat.lt_of_succ_lt_succ h).imp fun a s =>
       (swap ..).subperm_right.1 <| (subperm_cons _).2 s
 
@@ -155,15 +155,15 @@ theorem Nodup.perm_iff_eq_of_sublist {l₁ l₂ l : List α} (d : Nodup l)
   | cons a s₂ IH =>
     match s₁ with
     | .cons _ s₁ => exact IH d.2 s₁ h
-    | .cons₂ _ s₁ =>
+    | .cons_cons _ s₁ =>
       have := Subperm.subset ⟨_, h.symm, s₂⟩ (.head _)
       exact (d.1 this).elim
-  | cons₂ a _ IH =>
+  | cons_cons a _ IH =>
     match s₁ with
     | .cons _ s₁ =>
       have := Subperm.subset ⟨_, h, s₁⟩ (.head _)
       exact (d.1 this).elim
-    | .cons₂ _ s₁ => rw [IH d.2 s₁ h.cons_inv]
+    | .cons_cons _ s₁ => rw [IH d.2 s₁ h.cons_inv]
 
 theorem subperm_cons_erase [BEq α] [LawfulBEq α] (a : α) (l : List α) : l <+~ a :: l.erase a :=
   if h : a ∈ l then
@@ -321,25 +321,7 @@ theorem perm_insertP (p : α → Bool) (a l) : insertP p a l ~ a :: l := by
 theorem Perm.insertP (p : α → Bool) (a) (h : l₁ ~ l₂) : insertP p a l₁ ~ insertP p a l₂ :=
   Perm.trans (perm_insertP ..) <| Perm.trans (Perm.cons _ h) <| Perm.symm (perm_insertP ..)
 
-/-! ### idxBij -/
-
-@[simp]
-theorem Subperm.countBefore_idxOfNth [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+~ ys)
-    {hi : i < xs.length} : ys.countBefore xs[i] (ys.idxOfNth xs[i] (xs.countBefore xs[i] i)) =
-    countBefore xs[i] xs i := countBefore_idxOfNth_of_lt_count <|
-  Nat.lt_of_lt_of_le (by grind) (h.count_le _)
-
-@[simp]
-theorem Sublist.countBefore_idxOfNth [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+ ys)
-    {hi : i < xs.length} : ys.countBefore xs[i] (ys.idxOfNth xs[i] (xs.countBefore xs[i] i)) =
-    countBefore xs[i] xs i := countBefore_idxOfNth_of_lt_count <|
-  Nat.lt_of_lt_of_le (by grind) (h.count_le _)
-
-@[simp]
-theorem Perm.countBefore_idxOfNth [BEq α] [ReflBEq α] {xs ys : List α} (h : xs ~ ys)
-    {hi : i < xs.length} : ys.countBefore xs[i] (ys.idxOfNth xs[i] (xs.countBefore xs[i] i)) =
-    countBefore xs[i] xs i := countBefore_idxOfNth_of_lt_count <|
-  Nat.lt_of_lt_of_eq (by grind) (h.count_eq _)
+/-! ### idxInj  -/
 
 /-- `Subperm.idxInj` is an injective map from `Fin xs.length` to `Fin ys.length`
 which exists when we have `xs <+~ ys`: conceptually it represents an embedding of
@@ -349,8 +331,9 @@ one list into the other. For example:
 ```
 -/
 def Subperm.idxInj [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+~ ys) (i : Fin xs.length) :
-    Fin ys.length := let ⟨x, t⟩ := xs.idxToSigmaCount i;
-  ys.sigmaCountToIdx ⟨x, t, Nat.lt_of_lt_of_le t.isLt <| h.count_le _⟩
+    Fin ys.length :=
+  ⟨ys.idxOfNth xs[i.1] (xs.countBefore xs[i] i), idxOfNth_lt_length_of_lt_count <|
+    Nat.lt_of_lt_of_le countBefore_lt_count_getElem <| h.count_le _⟩
 
 @[simp, grind =]
 theorem coe_idxInj [BEq α] [ReflBEq α] {xs ys : List α} {h : xs <+~ ys}
@@ -362,50 +345,16 @@ theorem Subperm.getElem_idxInj_eq_getElem [BEq α] [LawfulBEq α] {xs ys : List 
   ys[(h.idxInj i : Nat)] = xs[(i : Nat)] := getElem_idxOfNth_eq
 
 theorem Subperm.idxInj_injective [BEq α] [LawfulBEq α] {xs ys : List α}
-    (h : xs <+~ ys) : h.idxInj.Injective := fun _ _ hij => Fin.ext <| by
-  simpa [h] using congrArg (fun i : Fin _ => xs.idxOfNth ys[i] (ys.countBefore ys[i] i)) hij
+    (h : xs <+~ ys) : h.idxInj.Injective := fun _ _ hij => by
+  have H := congrArg (fun i : Fin ys.length => xs.idxOfNth ys[i] (ys.countBefore ys[i] i)) hij
+  grind
 
 @[simp]
 theorem Subperm.idxInj_inj [BEq α] [LawfulBEq α] {xs ys : List α}
     {h : xs <+~ ys} (i j : Fin xs.length) :
   h.idxInj i = h.idxInj j ↔ i = j := h.idxInj_injective.eq_iff
 
-/-- `Sublist.idxOrderInj` is an order-preserving injective map from `Fin xs.length` to
-`Fin ys.length` which exists when we have `xs <+ ys`: conceptually it represents an
-order-preserving embedding of one list into the other. For example:
-```
-(by decide : [0, 1, 1] <+ [5, 0, 1, 3, 1]).idxInj 1 = 2
-```
--/
-def Sublist.idxOrderInj [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+ ys) :
-    Fin xs.length → Fin ys.length := h.subperm.idxInj
-
-@[simp, grind =]
-theorem Sublist.subperm_idxOrderInj [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+ ys) :
-    h.subperm.idxInj = h.idxOrderInj := rfl
-
-@[simp, grind =]
-theorem Sublist.coe_idxOrderInj [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+ ys)
-    {i : Fin xs.length} :
-    (h.idxOrderInj i : Nat) = ys.idxOfNth xs[i] (xs.countBefore xs[i] i) := rfl
-
-theorem Sublist.getElem_idxOrderInj_eq_getElem [BEq α] [LawfulBEq α] {xs ys : List α}
-    (h : xs <+ ys) {i : Fin xs.length} :
-    ys[(h.idxOrderInj i : Nat)] = xs[(i : Nat)] := getElem_idxOfNth_eq
-
-theorem Sublist.idxOrderInj_injective [BEq α] [LawfulBEq α] {xs ys : List α}
-    (h : xs <+ ys) : h.idxOrderInj.Injective := Subperm.idxInj_injective _
-
-@[simp]
-theorem Sublist.idxOrderInj_inj [BEq α] [LawfulBEq α] {xs ys : List α}
-    {h : xs <+ ys} (i j : Fin xs.length) :
-    h.idxOrderInj i = h.idxOrderInj j ↔ i = j := h.idxOrderInj_injective.eq_iff
-
-proof_wanted Sublist.idxOrderInj_lt_iff_lt [BEq α] [LawfulBEq α] {xs ys : List α}
-    {h : xs <+ ys} (i j : Fin xs.length) : h.idxOrderInj i < h.idxOrderInj j ↔ i < j
-
-proof_wanted Sublist.idxOrderInj_le_iff_le [BEq α] [LawfulBEq α] {xs ys : List α}
-    {h : xs <+ ys} (i j : Fin xs.length) : h.idxOrderInj i ≤ h.idxOrderInj j ↔ i ≤ j
+/-! ### idxBij -/
 
 /-- `Perm.idxBij` is a bijective map from `Fin xs.length` to `Fin ys.length`
 which exists when we have `xs.Perm ys`: conceptually it represents a permuting of
@@ -434,10 +383,10 @@ theorem Perm.getElem_idxBij_symm_eq_getElem [BEq α] [LawfulBEq α] {xs ys : Lis
   getElem_idxOfNth_eq
 
 theorem Perm.idxBij_leftInverse_idxBij_symm [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys) :
-    h.idxBij.LeftInverse h.symm.idxBij := fun _ => Fin.ext <| by simp [h.symm]
+    h.idxBij.LeftInverse h.symm.idxBij := by grind
 
 theorem Perm.idxBij_rightInverse_idxBij_symm [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys) :
-    h.idxBij.RightInverse h.symm.idxBij := fun _ => Fin.ext <| by simp [h]
+    h.idxBij.RightInverse h.symm.idxBij := by grind
 
 theorem Perm.idxBij_symm_rightInverse_idxBij [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys) :
     h.symm.idxBij.RightInverse h.idxBij := h.idxBij_leftInverse_idxBij_symm
