@@ -22,6 +22,8 @@ import all Init.Data.String.Legacy -- for unfolding `String.splitOnAux`
 
 @[expose] public section
 
+set_option linter.deprecated false
+
 namespace String
 
 -- TODO(kmill): add `@[ext]` attribute to `String.ext` in core.
@@ -92,7 +94,7 @@ open List
 theorem utf8Len_le_of_sublist : ∀ {cs₁ cs₂}, cs₁ <+ cs₂ → utf8Len cs₁ ≤ utf8Len cs₂
   | _, _, .slnil => Nat.le_refl _
   | _, _, .cons _ h => Nat.le_trans (utf8Len_le_of_sublist h) (Nat.le_add_right ..)
-  | _, _, .cons₂ _ h => Nat.add_le_add_right (utf8Len_le_of_sublist h) _
+  | _, _, .cons_cons _ h => Nat.add_le_add_right (utf8Len_le_of_sublist h) _
 
 theorem utf8Len_le_of_infix (h : cs₁ <:+: cs₂) : utf8Len cs₁ ≤ utf8Len cs₂ :=
   utf8Len_le_of_sublist h.sublist
@@ -322,25 +324,13 @@ theorem prev_of_valid' (cs cs' : List Char) :
   | _, .inl rfl => apply Pos.Raw.prev_zero
   | _, .inr ⟨cs, c, rfl⟩ => simp [prev_of_valid, -ofList_append]
 
-theorem front_eq (s : String) : Legacy.front s = s.toList.headD default := by
-  unfold Legacy.front; simpa using get_of_valid [] s.toList
-
 theorem back_eq_get_prev_rawEndPos {s : String} : Legacy.back s = (s.rawEndPos.prev s).get s := rfl
-
-theorem back_eq (s : String) : Legacy.back s = s.toList.getLastD default := by
-  conv => lhs; rw [← s.ofList_toList]
-  match s.toList.eq_nil_or_concat with
-  | .inl h => simp [h]; rfl
-  | .inr ⟨cs, c, h⟩ =>
-    simp only [h, back_eq_get_prev_rawEndPos]
-    have : (ofList (cs ++ [c])).rawEndPos = ⟨utf8Len cs + c.utf8Size⟩ := by
-      simp [rawEndPos, utf8ByteSize_ofList]
-    simp [-ofList_append, this, prev_of_valid, get_of_valid]
 
 theorem atEnd_of_valid (cs : List Char) (cs' : List Char) :
     String.Pos.Raw.atEnd (ofList (cs ++ cs')) ⟨utf8Len cs⟩ ↔ cs' = [] := by
   rw [atEnd_iff]
-  cases cs' <;> simp [add_utf8Size_pos, rawEndPos, utf8ByteSize_ofList]
+  cases cs' <;> simp [rawEndPos, utf8ByteSize_ofList]
+  exact Nat.add_pos_left (Char.utf8Size_pos _) _
 
 unseal Legacy.posOfAux Legacy.findAux in
 theorem posOfAux_eq (s c) : Legacy.posOfAux s c = Legacy.findAux s (· == c) := (rfl)
@@ -517,24 +507,25 @@ theorem extract_of_valid (l m r : List Char) :
 
 theorem splitAux_of_valid (p l m r acc) :
     splitAux (ofList (l ++ m ++ r)) p ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ acc =
-      acc.reverse ++ (List.splitOnP.go p r m.reverse).map ofList := by
+      acc.reverse ++ (List.splitOnPPrepend p r m.reverse).map ofList := by
   unfold splitAux
   simp only [List.append_assoc, atEnd_iff, rawEndPos_ofList, utf8Len_append, Pos.Raw.mk_le_mk,
     Nat.add_le_add_iff_left, (by omega : utf8Len m + utf8Len r ≤ utf8Len m ↔ utf8Len r = 0),
     utf8Len_eq_zero, List.reverse_cons, dite_eq_ite]
   split
-  · subst r; simpa [List.splitOnP.go] using extract_of_valid l m []
+  · subst r
+    simpa using extract_of_valid l m []
   · obtain ⟨c, r, rfl⟩ := r.exists_cons_of_ne_nil ‹_›
     simp only [by
       simpa [-ofList_append] using
         (⟨get_of_valid (l ++ m) (c :: r), next_of_valid (l ++ m) c r,
             extract_of_valid l m (c :: r)⟩ :
-          _ ∧ _ ∧ _),
-      List.splitOnP.go, List.reverse_reverse]
+          _ ∧ _ ∧ _)]
     split <;> rename_i h
-    · simpa [Nat.add_assoc]
-        using splitAux_of_valid p (l++m++[c]) [] r ((ofList m)::acc)
-    · simpa [Nat.add_assoc] using splitAux_of_valid p l (m++[c]) r acc
+    · simpa [Nat.add_assoc, List.splitOnPPrepend_cons_eq_if, h] using
+        splitAux_of_valid p (l++m++[c]) [] r ((ofList m)::acc)
+    · simpa [List.splitOnPPrepend_cons_eq_if, h, Nat.add_assoc] using
+        splitAux_of_valid p l (m++[c]) r acc
 
 theorem splitToList_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList).map ofList := by
   simpa [splitToList] using splitAux_of_valid p [] [] s.toList []
@@ -559,12 +550,9 @@ theorem join_eq (ss : List String) : join ss = ofList (ss.map toList).flatten :=
   | nil => simp
   | cons s ss ih => simp [ih]
 
-@[simp] theorem toList_join (ss : List String) : (join ss).toList = (ss.map toList).flatten := by
-  simp [join_eq]
-
 @[deprecated toList_join (since := "2025-10-31")]
 theorem data_join (ss : List String) : (join ss).toList = (ss.map toList).flatten :=
-  toList_join ss
+  toList_join
 
 namespace Legacy.Iterator
 
@@ -573,7 +561,7 @@ namespace Legacy.Iterator
 
 theorem hasNext_cons_addChar (c : Char) (cs : List Char) (i : Pos.Raw) :
     hasNext ⟨String.ofList (c :: cs), i + c⟩ = hasNext ⟨String.ofList cs, i⟩ := by
-  simp [hasNext, Nat.add_lt_add_iff_right]
+  simp [hasNext, utf8ByteSize_ofList]; lia
 
 /-- Validity for a string iterator. -/
 def Valid (it : Iterator) : Prop := it.pos.Valid it.s
