@@ -1,7 +1,7 @@
 module
 
 public meta import Batteries.CodeAction.Misc
-public meta import Batteries.Data.List
+public meta import Batteries.Data.List.Basic
 
 @[expose] public meta section
 
