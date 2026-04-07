@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 module
+/-
+Broken against lean4#13283.
 
 public import Batteries.Data.RBMap.Basic
 public import Batteries.Tactic.SeqFocus
@@ -594,3 +596,4 @@ end Imp
 def mapVal (f : α → β → γ) (t : RBMap α β cmp) : RBMap α γ cmp := t.mapMonotone (Imp.mapSnd f)
 
 end RBMap
+-/
