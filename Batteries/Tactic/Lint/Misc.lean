@@ -68,9 +68,8 @@ We skip all declarations that contain `sorry` in their value. -/
   noErrorsFound := "No definitions are missing documentation."
   errorsFound := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
-    -- leanprover/lean4#12263: isGlobalInstance was removed, use isInstance instead
-    if (← isAutoDecl declName) || (← isInstance declName) then
-      return none -- FIXME: scoped/local instances should also not be linted
+    if ← isAutoDecl declName <||> isInstance declName then
+      return none
     if let .str p _ := declName then
       if ← isInstance p then
         -- auxiliary functions for instances should not be linted
