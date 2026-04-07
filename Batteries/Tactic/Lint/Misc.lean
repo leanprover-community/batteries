@@ -106,10 +106,12 @@ has been used. -/
   test declName := do
     if ← isAutoDecl declName then return none
     let info ← getConstInfo declName
-    if ← pure info.isDefinition <&&> isProp info.type then
-      return "is a def, should be a lemma/theorem"
-    else
-      return none
+    if info.isDefinition then
+      -- Delta-derived instances are not theorems even when they should be. (leanprover/lean4#13295)
+      -- The only indication we have is that they are instances marked `@[implicit_reducible]`.
+      if ← isInstance declName <&&> isImplicitReducible declName then return none
+      if ← isProp info.type then return some "is a def, should be a lemma/theorem"
+    return none
 
 /-- A linter for checking whether statements of declarations are well-typed. -/
 @[env_linter] def checkType : Linter where
