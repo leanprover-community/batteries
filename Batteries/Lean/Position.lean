@@ -27,7 +27,7 @@ def findIndentAndIsStart (s : String) (pos : String.Pos.Raw) : Nat × Bool :=
 
 /-- A quicker version of `Position.lt`, without sacrificing semantics. We need the performance
 optimization since we're doing this for many positions on every declaration within linters. -/
-@[inline] protected def Position.quickLt : Position → Position → Bool
+@[inline] private protected def Position.quickLt : Position → Position → Bool
   | ⟨l₁, c₁⟩, ⟨l₂, c₂⟩ => l₁ < l₂ || l₁ = l₂ && c₁ < c₂
 
 /--
@@ -52,8 +52,8 @@ If `pos` is a `String.Pos.Raw`, then `pos.getDeclsAfter` returns the array of na
 whose selection range begins in position at least `pos`. By using the `selectionRange`, which is
 usually smaller than the `range`, we err on the side of including declarations when possible.
 
-This is intended for use in linters, where only the current environment branch needs to be checked.
-See the docstring for `Position.getDeclsAfter` for details.
+By default, this is intended for use in linters, where only the current environment branch needs to
+be checked. See the docstring for `Lean.Position.getDeclsAfter` for details.
 -/
 @[inline] protected def _root_.String.Pos.Raw.getDeclsAfter (env : Environment) (map : FileMap)
     (pos : String.Pos.Raw) (asyncMode := EnvExtension.AsyncMode.local) : Array Name :=
