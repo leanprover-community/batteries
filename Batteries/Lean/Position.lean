@@ -40,7 +40,7 @@ protected def Position.getDeclsAfter (env : Environment) (pos : Position)
     (asyncMode := EnvExtension.AsyncMode.local) : Array Name :=
   declRangeExt.getState env asyncMode |>.foldl (init := #[])
     fun acc name { selectionRange .. } =>
-      if selectionRange.pos.quickLt pos then acc else acc.push name
+      if selectionRange.pos.lt pos then acc else acc.push name
 
 /--
 If `pos` is a `String.Pos.Raw`, then `pos.getDeclsAfter` returns the array of names of declarations
