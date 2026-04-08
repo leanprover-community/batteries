@@ -25,11 +25,6 @@ def findIndentAndIsStart (s : String) (pos : String.Pos.Raw) : Nat × Bool :=
   let body := (s.pos! start).find (· ≠ ' ') |>.offset
   (start.byteDistance body, body == pos)
 
-/-- A quicker version of `Position.lt`, without sacrificing semantics. We need the performance
-optimization since we're doing this for many positions on every declaration within linters. -/
-@[inline] protected def Position.quickLt : Position → Position → Bool
-  | ⟨l₁, c₁⟩, ⟨l₂, c₂⟩ => l₁ < l₂ || l₁ = l₂ && c₁ < c₂
-
 /--
 If `pos` is a `Lean.Position`, then `pos.getDeclsAfter` returns the array of names of declarations
 whose selection range begins in position at least `pos`. By using the `selectionRange`, which is
@@ -45,7 +40,7 @@ protected def Position.getDeclsAfter (env : Environment) (pos : Position)
     (asyncMode := EnvExtension.AsyncMode.local) : Array Name :=
   declRangeExt.getState env asyncMode |>.foldl (init := #[])
     fun acc name { selectionRange .. } =>
-      if selectionRange.pos.quickLt pos then acc else acc.push name
+      if selectionRange.pos.lt pos then acc else acc.push name
 
 /--
 If `pos` is a `String.Pos.Raw`, then `pos.getDeclsAfter` returns the array of names of declarations
