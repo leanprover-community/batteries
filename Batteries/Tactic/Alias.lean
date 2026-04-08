@@ -47,12 +47,14 @@ def AliasInfo.toString : AliasInfo → String
   | forward n => s!"**Alias** of the forward direction of `{n}`."
   | reverse n => s!"**Alias** of the reverse direction of `{n}`."
 
-/-- Add a docstring to the alias `declName`. -/
+/-- Add a docstring to the alias `declName`. This is also used in `to_additive`/`to_dual`. -/
 def addAliasDocstring (declName : Name) (info : AliasInfo) : CoreM Unit := do
-  let mut doc := info.toString
-  if let some origDoc ← findDocString? (← getEnv) info.name then
-    doc := s!"{doc}\n\n---\n\n{origDoc}"
-  addDocStringCore declName doc
+  -- We can't just check `declMods` because a docstring may have been added by an attribute.
+  if (← findDocString? (← getEnv) declName).isNone then
+    let mut doc := info.toString
+    if let some origDoc ← findDocString? (← getEnv) info.name then
+      doc := s!"{doc}\n\n---\n\n{origDoc}"
+    addDocStringCore declName doc
 
 /-- Environment extension for registering aliases -/
 initialize aliasExt : MapDeclarationExtension AliasInfo ← mkMapDeclarationExtension
@@ -132,10 +134,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     Term.applyAttributes declName declMods.attrs
     if machineApplicable then
       modifyEnv (machineApplicableDeprecated.tag · declName)
-    /- alias doesn't trigger the missing docs linter so we add a default. We can't just check
-      `declMods` because a docstring may have been added by an attribute. -/
-    if (← findDocString? (← getEnv) declName).isNone then
-      addAliasDocstring declName info
+    addAliasDocstring declName info
 
 /--
 Given a possibly forall-quantified iff expression `prf`, produce a value for one
@@ -164,10 +163,7 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
   let info := if mp then AliasInfo.forward thm.name else AliasInfo.reverse thm.name
   setAliasInfo info declName
   Term.applyAttributes declName declMods.attrs
-  /- alias doesn't trigger the missing docs linter so we add a default. We can't just check
-    `declMods` because a docstring may have been added by an attribute. -/
-  if (← findDocString? (← getEnv) declName).isNone then
-    addAliasDocstring declName info
+  addAliasDocstring declName info
 
 @[inherit_doc «alias»]
 elab (name := aliasLR) mods:declModifiers "alias "
