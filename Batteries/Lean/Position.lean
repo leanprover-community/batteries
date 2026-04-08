@@ -27,7 +27,7 @@ def findIndentAndIsStart (s : String) (pos : String.Pos.Raw) : Nat × Bool :=
 
 /-- A quicker version of `Position.lt`, without sacrificing semantics. We need the performance
 optimization since we're doing this for many positions on every declaration within linters. -/
-@[inline] private protected def Position.quickLt : Position → Position → Bool
+@[inline] protected def Position.quickLt : Position → Position → Bool
   | ⟨l₁, c₁⟩, ⟨l₂, c₂⟩ => l₁ < l₂ || l₁ = l₂ && c₁ < c₂
 
 /--
