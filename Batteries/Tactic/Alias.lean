@@ -121,9 +121,9 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     if let some (doc, isVerso) := declMods.docString? then
       addDocStringOf isVerso declName (mkNullNode #[]) doc
     enableRealizationsForConst declName
-    Term.applyAttributes declName declMods.attrs
     let info := (← getAliasInfo name).getD <| AliasInfo.plain name
     setAliasInfo info declName
+    Term.applyAttributes declName declMods.attrs
     if machineApplicable then
       modifyEnv (machineApplicableDeprecated.tag · declName)
     /- alias doesn't trigger the missing docs linter so we add a default. We can't just check
@@ -158,11 +158,11 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
   }
   if let some (doc, isVerso) := declMods.docString? then
     addDocStringOf isVerso declName (mkNullNode #[]) doc
-  Term.applyAttributes declName declMods.attrs
   let info := match ← getAliasInfo thm.name with
     | some (.plain name) => if mp then AliasInfo.forward name else AliasInfo.reverse name
     | _ => if mp then AliasInfo.forward thm.name else AliasInfo.reverse thm.name
   setAliasInfo info declName
+  Term.applyAttributes declName declMods.attrs
   /- alias doesn't trigger the missing docs linter so we add a default. We can't just check
     `declMods` because a docstring may have been added by an attribute. -/
   if (← findDocString? (← getEnv) declName).isNone then
