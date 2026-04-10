@@ -25,6 +25,35 @@ def findIndentAndIsStart (s : String) (pos : String.Pos.Raw) : Nat × Bool :=
   let body := (s.pos! start).find (· ≠ ' ') |>.offset
   (start.byteDistance body, body == pos)
 
+/--
+If `pos` is a `Lean.Position`, then `pos.getDeclsAfter` returns the array of names of declarations
+whose selection range begins in position at least `pos`. By using the `selectionRange`, which is
+usually smaller than the `range`, we err on the side of including declarations when possible.
+
+By default, this only inspects the local branch of the environment. This is compatible with being
+used to find declarations from the current command in a linter, where we have already waited for
+async tasks/parallel branches to complete. Further, since the environment exposed to linters does
+not include constants added after the elaboration of the current command, it is safe to use this on
+the command's start position without picking up later declarations.
+-/
+protected def Position.getDeclsAfter (env : Environment) (pos : Position)
+    (asyncMode := EnvExtension.AsyncMode.local) : Array Name :=
+  declRangeExt.getState env asyncMode |>.foldl (init := #[])
+    fun acc name { selectionRange .. } =>
+      if selectionRange.pos.lt pos then acc else acc.push name
+
+/--
+If `pos` is a `String.Pos.Raw`, then `pos.getDeclsAfter` returns the array of names of declarations
+whose selection range begins in position at least `pos`. By using the `selectionRange`, which is
+usually smaller than the `range`, we err on the side of including declarations when possible.
+
+By default, this is intended for use in linters, where only the current environment branch needs to
+be checked. See the docstring for `Lean.Position.getDeclsAfter` for details.
+-/
+@[inline] protected def _root_.String.Pos.Raw.getDeclsAfter (env : Environment) (map : FileMap)
+    (pos : String.Pos.Raw) (asyncMode := EnvExtension.AsyncMode.local) : Array Name :=
+  map.toPosition pos |>.getDeclsAfter env asyncMode
+
 /-- Converts a `DeclarationRange` to a `Syntax.Range`. This assumes that the
 `DeclarationRange` is sourced in the given `FileMap`. -/
 def DeclarationRange.toSyntaxRange (map : FileMap) (range : DeclarationRange) : Syntax.Range :=
