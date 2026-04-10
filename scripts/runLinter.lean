@@ -57,27 +57,22 @@ Parse args list for `runLinter` and return the config and specified module argum
 config settings are determined by the default values for fields of `LinterConfig`.
 
 Throws an exception if unable to parse the arguments.
-Returns `none` for the specified module if no module is specified.-/
+Returns `none` for the specified module if no modules are specified.-/
 def parseLinterArgs (args : List String) :
-    Except (List String) (LinterConfig × Option Name) :=
-  go {} args
+    Except (List String) (LinterConfig × List Name) :=
+  go {} [] args
 where
-  /-- Traverses the list, handling the last element as a module and erroring if parsing fails. -/
-  go (parsed : LinterConfig) : List String → Except (List String) (LinterConfig × Option Name)
-    | arg :: args@(_ :: _) =>
+  /-- Traverses the list, handling the non-flag elements as modules and erroring if parsing fails. -/
+  go (parsed : LinterConfig) (mods: List Name) : List String → Except (List String) (LinterConfig × List Name)
+    | arg :: rest =>
       if let some parsed := parseArg parsed arg then
-        go parsed args
+        go parsed mods rest
       else
-        go parsed args |>.consError s!"could not parse argument '{arg}'"
-    | [last] =>
-      -- Try to parse it as a config argument, then as a module specification
-      if let some parsed := parseArg parsed last then
-        Except.ok (parsed, none)
-      else
-        match last.toName with
-        | .anonymous => Except.error [s!"could not convert module '{last}' to `Name`"]
-        | mod => Except.ok (parsed, some mod)
-    | [] => Except.ok (parsed, none) -- only reachable with no arguments
+        match arg.toName with 
+        | .anonymous => Except.error [s!"could not parse argument '{arg}'"]
+        | mod => go parsed (mod :: mods) rest
+    | [] => Except.ok (parsed, mods.reverse)
+
   /-- Parses a single config argument. -/
   parseArg (parsed : LinterConfig) : String → Option LinterConfig
     | "--update"   => some { parsed with updateNoLints := true }
@@ -89,18 +84,18 @@ where
 /--
 Return an array of the modules to lint.
 
-If `specifiedModule` is not `none` return an array containing only `specifiedModule`.
+If `specifiedModules` is not empty, return an array containing only `specifiedModule`.
 Otherwise, resolve the default root modules from the Lake workspace. -/
-def determineModulesToLint (specifiedModule : Option Name) : IO (Array Name) := do
-  match specifiedModule with
-  | some module =>
-    println!"Running linter on specified module: {module}"
-    return #[module]
-  | none =>
+def determineModulesToLint (specifiedModules : List Name) : IO (Array Name) := do
+  match specifiedModules with
+  | [] =>
     println!"Automatically detecting modules to lint"
     let defaultModules ← resolveDefaultRootModules
     println!"Default modules: {defaultModules}"
     return defaultModules
+  | modules =>
+    println!"Running linter on specified modules: {modules}"
+    return modules.toArray
 
 /-- Run the Batteries linter on a given module and update the linter if `update` is `true`. -/
 unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := do
@@ -185,9 +180,9 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
       IO.println s!"-- Linting passed for {module}."
 
 /--
-Usage: `runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]`
+Usage: `runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]...`
 
-Runs the linters on all declarations in the given module
+Runs the linters on all declarations in the given modules
 (or all root modules of Lake `lean_lib` and `lean_exe` default targets if no module is specified).
 
 If `--update` is set, the `nolints` file is updated to remove any declarations that no longer need
@@ -200,14 +195,18 @@ which drive the linting itself are not present.
 -/
 unsafe def main (args : List String) : IO Unit := do
   let linterArgs := parseLinterArgs args
-  let (cfg, mod?) ← match linterArgs with
+  let (cfg, mods) ← match linterArgs with
     | Except.ok args => pure args
     | Except.error msgs => do
       IO.eprintln s!"Error parsing args:\n  {"\n  ".intercalate msgs}"
       IO.eprintln "Usage: \
-        runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]"
+        runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]..."
       IO.Process.exit 1
 
-  let modulesToLint ← determineModulesToLint mod?
+  let modulesToLint ← determineModulesToLint mods
 
   modulesToLint.forM <| runLinterOnModule cfg
+  -- TODO: Remove manual Process.exit
+  -- We are doing this to shortcut around a race in Lean's IO finalizers that we have observed in Mathlib CI
+  -- (https://leanprover.zulipchat.com/#narrow/channel/287929-mathlib4/topic/slow.20linting.20step.20CI.3F/with/568830914)
+  IO.Process.exit 0

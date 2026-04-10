@@ -209,3 +209,16 @@ theorem UInt32.toUSize_toNat (x : UInt32) : x.toUSize.toNat = x.toNat := by simp
 instance : Std.LawfulOrd USize :=
   Std.LawfulCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
     (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt USize.le_antisymm
+
+theorem USize.toNat_ofNat_of_le_of_lt (h : n < USize.size) (hn : i ≤ n) :
+    (USize.ofNat i).toNat = i :=
+  USize.toNat_ofNat_of_lt' (Nat.lt_of_le_of_lt ‹_› ‹_›)
+
+theorem USize.pred_toNat {i : USize} (h_gt : 0 < i) :
+    (i - 1).toNat = i.toNat - 1 := by
+  have h_gt_nat := USize.lt_iff_toNat_lt.mp h_gt
+  have h_bound := i.toNat_lt_size
+  cases System.Platform.numBits_eq
+  all_goals
+    simp_all only [USize.size, USize.toNat_sub, USize.reduceToNat]
+    omega

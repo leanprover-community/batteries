@@ -126,10 +126,18 @@ where
           fields.push (field, isAutofillable env fieldInfo stack)
       else fields
 
-/-- Returns the explicit arguments given a type. -/
+/-- Returns the explicit arguments given a type. The second argument of this
+    function is an accumulator. -/
 def getExplicitArgs : Expr → Array Name → Array Name
   | .forallE n _ body bi, args =>
     getExplicitArgs body <| if bi.isExplicit then args.push n else args
+  | _, args => args
+
+/-- Returns all of the arguments given a type. The second argument of this
+    function is an accumulator. -/
+def getAllArgs : Expr → Array Name → Array Name
+  | .forallE n _ body _, args =>
+    getAllArgs body <| args.push n
   | _, args => args
 
 /--

@@ -49,19 +49,15 @@ def AliasInfo.toString : AliasInfo → String
 
 
 /-- Environment extension for registering aliases -/
-initialize aliasExt : SimpleScopedEnvExtension (Name × AliasInfo) (NameMap AliasInfo) ←
-  registerSimpleScopedEnvExtension {
-    addEntry := fun st (n, i) => st.insert n i
-    initial := {}
-  }
+initialize aliasExt : MapDeclarationExtension AliasInfo ← mkMapDeclarationExtension
 
 /-- Get the alias information for a name -/
 def getAliasInfo [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
-  return aliasExt.getState (← getEnv) |>.find? name
+  return aliasExt.find? (← getEnv) name
 
 /-- Set the alias info for a new declaration -/
 def setAliasInfo [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit :=
-  modifyEnv (aliasExt.addEntry · (declName, info))
+  modifyEnv (aliasExt.insert · declName info)
 
 /-- Updates the `deprecated` declaration to point to `target` if no target is provided. -/
 def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribute × Bool :=
@@ -92,9 +88,11 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
     let declMods ← elabModifiers mods
     Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
     let (attrs, machineApplicable) := setDeprecatedTarget name declMods.attrs
+    let env ← getEnv
     let declMods := { declMods with
       computeKind :=
-        if isNoncomputable (← getEnv) name then .noncomputable
+        if isNoncomputable env name then .noncomputable
+        else if isMarkedMeta env name then .meta
         else declMods.computeKind
       isUnsafe := declMods.isUnsafe || cinfo.isUnsafe
       attrs
@@ -113,10 +111,11 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
         safety := if declMods.isUnsafe then .unsafe else .safe
       }
     checkNotAlreadyDeclared declName
-    if declMods.isNoncomputable then
-      addDecl decl
-    else
-      addAndCompile decl
+    addDecl decl
+    if !declMods.isNoncomputable then
+      if declMods.isMeta then
+        modifyEnv (markMeta · declName)
+      compileDecl decl
     addDeclarationRangesFromSyntax declName (← getRef) alias
     Term.addTermInfo' alias (← mkConstWithLevelParams declName) (isBinder := true)
     if let some (doc, isVerso) := declMods.docString? then
