@@ -118,6 +118,6 @@ Note: The updated constant is in a different namespace. Dot notation may need to
 /-- info: **Alias** of `A.foo`. -/
 #guard_msgs in
 #eval show MetaM _ from do
-  match ← Batteries.Tactic.Alias.getHeadAliasInfo `A.foo1 with
+  match ← Batteries.Tactic.Alias.getHeadAliasInfo? `A.foo1 with
   | some i => IO.println i.toString
   | none => IO.println "alias not found"

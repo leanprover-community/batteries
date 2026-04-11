@@ -63,21 +63,21 @@ def addAliasDocstring (declName : Name) (info : AliasInfo) : CoreM Unit := do
 initialize aliasExt : MapDeclarationExtension AliasInfo ← mkMapDeclarationExtension
 
 /-- Get the alias information for a name -/
-def getHeadAliasInfo  [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
+def getHeadAliasInfo?  [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
   return aliasExt.find? (← getEnv) name
 
 /-- Get the transitive alias information for a name -/
-partial def getRootAliasInfo  [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
-  let info? ← getHeadAliasInfo name
+partial def getRootAliasInfo?  [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
+  let info? ← getHeadAliasInfo? name
   if let some (.plain n) := info? then
-    if let some info ← getRootAliasInfo n then
+    if let some info ← getRootAliasInfo? n then
       return info
   return info?
 
 /-- Get the alias information for a name -/
-@[deprecated getRootAliasInfo (since := "2026-04-11")]
+@[deprecated getRootAliasInfo? (since := "2026-04-11")]
 def getAliasInfo [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) :=
-  getRootAliasInfo name
+  getRootAliasInfo? name
 
 /-- Set the alias info for a new declaration -/
 def setAliasInfo [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit :=
