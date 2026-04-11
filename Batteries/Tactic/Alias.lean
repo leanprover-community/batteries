@@ -47,9 +47,12 @@ def AliasInfo.toString : AliasInfo → String
   | forward n => s!"**Alias** of the forward direction of `{n}`."
   | reverse n => s!"**Alias** of the reverse direction of `{n}`."
 
-/-- Add a docstring to the alias `declName`. This is also used in `to_additive`/`to_dual`. -/
+/--
+Add a docstring to the alias `declName` if it doesn't already have one.
+This needs to run after elaboration of attributes, because e.g. `inherit_doc` could a add docstring.
+This is also used in `to_additive`/`to_dual`.
+-/
 def addAliasDocstring (declName : Name) (info : AliasInfo) : CoreM Unit := do
-  -- We can't just check `declMods` because a docstring may have been added by an attribute.
   if (← findDocString? (← getEnv) declName).isNone then
     let mut doc := info.toString
     if let some origDoc ← findDocString? (← getEnv) info.name then
@@ -60,8 +63,21 @@ def addAliasDocstring (declName : Name) (info : AliasInfo) : CoreM Unit := do
 initialize aliasExt : MapDeclarationExtension AliasInfo ← mkMapDeclarationExtension
 
 /-- Get the alias information for a name -/
-def getAliasInfo [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
+def getHeadAliasInfo  [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
   return aliasExt.find? (← getEnv) name
+
+/-- Get the transitive alias information for a name -/
+partial def getRootAliasInfo  [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
+  let info? ← getHeadAliasInfo name
+  if let some (.plain n) := info? then
+    if let some info ← getRootAliasInfo n then
+      return info
+  return info?
+
+/-- Get the alias information for a name -/
+@[deprecated getRootAliasInfo (since := "2026-04-11")]
+def getAliasInfo [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) :=
+  getRootAliasInfo name
 
 /-- Set the alias info for a new declaration -/
 def setAliasInfo [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit :=
