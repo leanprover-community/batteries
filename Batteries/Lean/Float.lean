@@ -75,6 +75,39 @@ def toStringFull (f : Float) : String :=
     if v < 0 then s!"-{s}" else s
   else f.toString -- inf, -inf, nan
 
+/-! ### Trusted bit-roundtrip fact -/
+
+/--
+`Float.ofBits` and `Float.toBits` are exact inverses: encoding a float to its
+IEEE 754 bit pattern and decoding it back yields the original float.
+
+This is stated as an axiom because Lean exposes `Float.ofBits` and
+`Float.toBits` as opaque `@[extern]` primitives compiled to C FFI calls
+(`lean_float_of_bits` / `lean_float_to_bits`).  The kernel has no reduction
+rules for these functions, so the inverse relationship cannot be derived from
+definitional equality or any existing lemma.
+
+The underlying C implementation performs a lossless `memcpy` between `double`
+and `uint64_t`, so the roundtrip holds for every IEEE 754 binary64 value
+including signed zeros, subnormals, infinities, and all NaN payloads.
+
+**Retirement condition:**  This axiom should be removed when either
+(1) upstream Lean adds a kernel-level theorem of this form, or
+(2) the Lean kernel gains reduction rules for `Float.ofBits`/`Float.toBits`.
+
+See also: IEEE 754-2019 §3.4 (binary interchange format encoding).
+-/
+axiom Float.ofBits_toBits (f : Float) : Float.ofBits f.toBits = f
+
+/--
+`Float.toBits` and `Float.ofBits` are exact inverses in the other direction:
+decoding a bit pattern and re-encoding it yields the original `UInt64`.
+
+Same justification as `Float.ofBits_toBits` — the C implementation is a
+lossless `memcpy` between `uint64_t` and `double`.
+-/
+axiom Float.toBits_ofBits (bits : UInt64) : (Float.ofBits bits).toBits = bits
+
 end Float
 
 /--
