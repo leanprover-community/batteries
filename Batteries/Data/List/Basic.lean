@@ -1084,7 +1084,7 @@ Examples:
 [a, b, c].prod = a * (b * (c * 1))
 [2, 3, 5].prod = 30
 -/
-@[expose] def prod [Mul α] [One α] (xs : List α) : α :=
+def prod [Mul α] [One α] (xs : List α) : α :=
   xs.foldr (· * ·) 1
 
 /--
