@@ -64,7 +64,7 @@ the current file, yields `none`.
 
 By default, this provides the "selection range", which is the part that receives hovers, such as the
 declaration's identifier or the `instance` token for an unnamed instance. If `fullRange` is instead
-set to `true`, this returns the full declaration range (which excludes modifiers, such as the
+set to `true`, this returns the full declaration range (which includes modifiers, such as the
 docstring). -/
 def findDeclarationSyntaxRange? {m : Type → Type} [Monad m] [MonadEnv m] [MonadLiftT BaseIO m]
     [MonadFileMap m] (decl : Name) (fullRange := false) : m (Option Syntax.Range) := do
