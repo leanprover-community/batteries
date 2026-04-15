@@ -77,10 +77,10 @@ in the current file, or else runs `x` without modifying the ref.
 
 By default, this uses the "selection range" of the declaration, which is the part that receives
 hovers, such as the declaration's identifier or the `instance` token for an unnamed instance. If
-`fullRange` is instead set to `true`, this uses the full declaration range (which excludes
-modifiers, such as the docstring).
+`fullRange` is instead set to `true`, this uses the full declaration range, which begins at the
+modifiers (e.g. at the top of the docstring, if there is one).
 
-`canonical` applies to the synthetic syntax; see `Syntax.ofRange`. -/
+`canonical` applies to the synthetic syntax generated for the ref; see `Syntax.ofRange`. -/
 @[always_inline, inline]
 def withDeclRef? {α} {m : Type → Type} [Monad m] [MonadEnv m] [MonadLiftT BaseIO m]
     [MonadFileMap m] [MonadRef m] (decl : Name) (x : m α)
