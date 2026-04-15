@@ -97,7 +97,7 @@ including signed zeros, subnormals, infinities, and all NaN payloads.
 
 See also: IEEE 754-2019 §3.4 (binary interchange format encoding).
 -/
-axiom Float.ofBits_toBits (f : Float) : Float.ofBits f.toBits = f
+axiom ofBits_toBits (f : Float) : Float.ofBits f.toBits = f
 
 /--
 `Float.toBits` and `Float.ofBits` are exact inverses in the other direction:
