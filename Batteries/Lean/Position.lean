@@ -79,9 +79,8 @@ By default, this uses the "selection range" of the declaration, which is usually
 identifier or e.g. the `instance` token for an unnamed instance. (This is also the place that
 receives hovers for the declaration.)
 
-If `fullRange` is instead set to `true`, this uses the full declaration range, which begins at the
-modifiers (e.g. at the top of the docstring, if there is one) and includes the body of the
-declaration.
+If `fullRange` is instead set to `true`, this uses the full declaration range, which includes the
+modifiers (such as the docstring, if there is one) and the body of the declaration.
 
 `canonical` applies to the synthetic syntax generated for the ref; see `Syntax.ofRange`. -/
 @[always_inline, inline]
