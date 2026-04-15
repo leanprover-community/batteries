@@ -106,7 +106,7 @@ decoding a bit pattern and re-encoding it yields the original `UInt64`.
 Same justification as `Float.ofBits_toBits` — the C implementation is a
 lossless `memcpy` between `uint64_t` and `double`.
 -/
-axiom Float.toBits_ofBits (bits : UInt64) : (Float.ofBits bits).toBits = bits
+axiom toBits_ofBits (bits : UInt64) : (Float.ofBits bits).toBits = bits
 
 end Float
 
