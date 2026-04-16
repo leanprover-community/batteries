@@ -1,15 +1,17 @@
 /-
 Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jannis Limperg
+Authors: Jannis Limperg, Thomas R. Murrills
 -/
 module
 
 public import Lean.Expr
 
-@[expose] public section
+public section
 
-namespace Lean.Literal
+namespace Lean
+
+namespace Literal
 
 instance : Ord Literal where
   compare
@@ -17,3 +19,29 @@ instance : Ord Literal where
     | strVal s₁, strVal s₂ => compare s₁ s₂
     | natVal _, strVal _ => .lt
     | strVal _, natVal _ => .gt
+
+end Literal
+
+namespace Expr
+
+/--
+Tests if any of the binders of `(x₀ : A₀) → (x₁ : A₁) → ⋯ → X` which satisfy `p Aᵢ bi` (with `bi`
+the `binderInfo`) are unused in the renainder of the type (i.e. in `(xᵢ₊₁ : Aᵢ₊₁) → ⋯ → X`).
+
+Note that the argument to `p` may have loose bvars. This is a performance optimization.
+
+This function runs `cleanupAnnotations` on each type suffix `(xᵢ₊₁ : Aᵢ₊₁) → ⋯ → X` before
+examining it.
+
+We see through `let`s, and do not report if any of them are unused.
+-/
+@[specialize p]
+partial def hasUnusedForallBindersWhere (p : BinderInfo → Expr → Bool) (e : Expr) : Bool :=
+  match e.cleanupAnnotations with
+  | .forallE _ type body bi =>
+    p bi type && !(body.hasLooseBVar 0) || body.hasUnusedForallBindersWhere p
+  /- See through `letE` -/
+  | .letE _ _ _ body _ => body.hasUnusedForallBindersWhere p
+  | _ => false
+
+end Lean.Expr
