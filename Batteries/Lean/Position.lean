@@ -62,10 +62,9 @@ def DeclarationRange.toSyntaxRange (map : FileMap) (range : DeclarationRange) : 
 /-- Yields the `Syntax.Range` for the declaration `decl` in the current file. If `decl` is not in
 the current file, yields `none`.
 
-By default, this provides the "selection range", which is the part that receives hovers, such as the
-declaration's identifier or the `instance` token for an unnamed instance. If `fullRange` is instead
-set to `true`, this returns the full declaration range (which excludes modifiers, such as the
-docstring). -/
+By default, this provides the "selection range", which is usually the declaration's identifier or
+e.g. the `instance` token for an unnamed instance. If `fullRange` is instead set to `true`, this
+returns the full declaration range (which includes modifiers, such as the docstring). -/
 def findDeclarationSyntaxRange? {m : Type → Type} [Monad m] [MonadEnv m] [MonadLiftT BaseIO m]
     [MonadFileMap m] (decl : Name) (fullRange := false) : m (Option Syntax.Range) := do
   if (← getEnv).isImportedConst decl then return none
@@ -73,14 +72,17 @@ def findDeclarationSyntaxRange? {m : Type → Type} [Monad m] [MonadEnv m] [Mona
   return (if fullRange then ranges.range else ranges.selectionRange).toSyntaxRange (← getFileMap)
 
 /-- Runs `x` with a synthetic ref that has position info locating the given `decl` if it is defined
-in the current file, or else runs `x` without modifying the ref.
+in the current file, or else runs `x` without modifying the ref. This is useful for logging on a
+declaration's name from within linters.
 
-By default, this uses the "selection range" of the declaration, which is the part that receives
-hovers, such as the declaration's identifier or the `instance` token for an unnamed instance. If
-`fullRange` is instead set to `true`, this uses the full declaration range (which excludes
-modifiers, such as the docstring).
+By default, this uses the "selection range" of the declaration, which is usually the declaration's
+identifier or e.g. the `instance` token for an unnamed instance. (This is also the place that
+receives hovers for the declaration.)
 
-`canonical` applies to the synthetic syntax; see `Syntax.ofRange`. -/
+If `fullRange` is instead set to `true`, this uses the full declaration range, which includes the
+modifiers (such as the docstring, if there is one) and the body of the declaration.
+
+`canonical` applies to the synthetic syntax generated for the ref; see `Syntax.ofRange`. -/
 @[always_inline, inline]
 def withDeclRef? {α} {m : Type → Type} [Monad m] [MonadEnv m] [MonadLiftT BaseIO m]
     [MonadFileMap m] [MonadRef m] (decl : Name) (x : m α)
