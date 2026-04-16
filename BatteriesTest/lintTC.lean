@@ -4,24 +4,21 @@ import Lean.Elab.Command
 open Batteries.Tactic.Lint
 
 namespace A
+-- Impossible instances are now checked in core lean, rather than via a linter
 
 /--
-warning: unused variable `β`
-
-Note: This linter can be disabled with `set_option linter.unusedVariables false`
+error: Instance @impossible has arguments β : Type that are impossible to infer. Those arguments are not instance-implicit and do not appear in another instance-implicit argument or the return type.
 -/
 #guard_msgs in
 local instance impossible {α β : Type} [Inhabited α] : Nonempty α := ⟨default⟩
 
-run_meta guard (← impossibleInstance.test ``impossible).isSome
-
 end A
 
 namespace B
+/-- error: instance `B.bad` target `Nat` is not a type class. -/
+#guard_msgs in
 instance bad : Nat := 1
 
-run_meta guard (← nonClassInstance.test ``bad).isSome
 instance good : Inhabited Nat := ⟨1⟩
 
-run_meta guard (← nonClassInstance.test ``good).isNone
 end B
