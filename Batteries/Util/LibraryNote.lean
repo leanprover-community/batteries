@@ -77,7 +77,7 @@ elab "library_note " name:ident ppSpace dc:docComment : command => do
   let safeName := encodeNameForExport origName
   let stx ← `(
     $dc:docComment
-    def $(mkIdent (`_root_.LibraryNote ++ safeName)) : LibraryNote :=
+    meta def $(mkIdent (`_root_.LibraryNote ++ safeName)) : LibraryNote :=
       default)
   elabCommandTopLevel stx
 
