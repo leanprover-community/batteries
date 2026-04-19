@@ -279,6 +279,30 @@ def findTermInfo? (node : InfoTree) (stx : Term) : Option TermInfo :=
   | some (.ofTermInfo info) => pure info
   | _ => none
 
+/-- `findTermInfoWithCtx?` finds the `TermInfo` for an elaborated term `stx`
+    and also updates the inputted `ContextInfo` using all the
+    `PartialContextInfo` on the path to the returned `TermInfo`. -/
+partial def findTermInfoWithCtx? (t : InfoTree) (stx : Term) (ctx : ContextInfo)
+    : Option (TermInfo × ContextInfo) :=
+  match t with
+  | .context partialCtx t' =>
+    -- Merge partial context with outer, fall back to outer if merge fails
+    let ctx' := partialCtx.mergeIntoOuter? ctx |>.getD ctx
+    findTermInfoWithCtx? t' stx ctx'
+  | .node info children =>
+    let optResult : Option (TermInfo × ContextInfo) :=
+      match info with
+      | .ofTermInfo i =>
+        if i.stx.getKind == stx.raw.getKind && i.stx.getRange? == stx.raw.getRange? then
+          some (i, ctx)
+        else none
+      | _ => none
+    if let some res := optResult then
+      return res
+    else
+      children.findSome? (findTermInfoWithCtx? · stx ctx)
+  | .hole _ => none
+
 /--
 Invoking tactic code action "Generate an explicit pattern match for 'induction'" in the
 following:
