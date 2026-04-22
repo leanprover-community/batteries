@@ -1312,6 +1312,9 @@ theorem map_coe_finRange_eq_range : (finRange n).map (↑·) = List.range n := b
   apply List.ext_getElem <;> simp
 /-! ### sum/prod -/
 
+theorem prod_one_cons [Mul α] [One α] [Std.LawfulLeftIdentity (α := α) (· * ·) 1] {l : List α} :
+    (1 :: l).prod = l.prod := by simp [Std.LawfulLeftIdentity.left_id]
+
 theorem prod_pair [Mul α] [One α] [Std.LawfulRightIdentity (α := α) (· * ·) 1] {a b : α} :
   [a, b].prod = a * b := by simp [Std.LawfulRightIdentity.right_id]
 
