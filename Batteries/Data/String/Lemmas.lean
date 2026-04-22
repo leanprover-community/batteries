@@ -22,6 +22,8 @@ import all Init.Data.String.Legacy -- for unfolding `String.splitOnAux`
 
 @[expose] public section
 
+set_option linter.deprecated false
+
 namespace String
 
 -- TODO(kmill): add `@[ext]` attribute to `String.ext` in core.

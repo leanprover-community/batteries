@@ -44,7 +44,11 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
   if isReservedName env decl then return true
   if let Name.str n s := decl then
     if (← isAutoDecl n) then return true
-    if s.startsWith "proof_" || s.startsWith "match_" || s.startsWith "unsafe_" then return true
+    if s.startsWith "proof_"
+        || s.startsWith "match_"
+        || s.startsWith "unsafe_"
+        || s.startsWith "grind_"
+    then return true
     if env.isConstructor n && s ∈ ["injEq", "inj", "sizeOf_spec", "elim", "noConfusion"] then
       return true
     if let ConstantInfo.inductInfo _ := (← getEnv).find? n then
