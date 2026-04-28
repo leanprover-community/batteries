@@ -9,14 +9,15 @@ set_option linter.unreachableTactic false in
 set_option linter.unreachableTactic true in
 /--
 warning: this tactic is never executed
-note: this linter can be disabled with `set_option linter.unreachableTactic false`
+
+Note: This linter can be disabled with `set_option linter.unreachableTactic false`
 -/
 #guard_msgs in
 example : 1 = 1 := by
   rfl <;> simp
 
 /--
-warning: declaration uses 'sorry'
+warning: declaration uses `sorry`
 -/
 #guard_msgs in
 example : 1 = 1 := by

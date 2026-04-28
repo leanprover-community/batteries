@@ -3,10 +3,15 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Elab.Command
-import Lean.Linter.Util
-import Lean.Parser.Syntax
-import Batteries.Tactic.Unreachable
+module
+
+public meta import Lean.Elab.Command
+public meta import Lean.Parser.Syntax
+public meta import Init.Try
+public meta import Batteries.Tactic.Unreachable
+public meta import Lean.Linter.Basic
+
+public meta section
 
 namespace Batteries.Linter
 open Lean Elab Command Linter Std
@@ -31,7 +36,7 @@ def getLinterUnreachableTactic (o : LinterOptions) : Bool :=
   getLinterValue linter.unreachableTactic o
 
 /-- The monad for collecting used tactic syntaxes. -/
-abbrev M := StateRefT (Std.HashMap String.Range Syntax) IO
+abbrev M := StateRefT (Std.HashMap Lean.Syntax.Range Syntax) IO
 
 /--
 A list of blacklisted syntax kinds, which are expected to have subterms that contain
@@ -45,6 +50,7 @@ initialize ignoreTacticKindsRef : IO.Ref NameHashSet ←
     |>.insert ``Lean.Parser.Tactic.tacticStop_
     |>.insert ``Lean.Parser.Command.notation
     |>.insert ``Lean.Parser.Command.mixfix
+    |>.insert ``Lean.Parser.Command.registerTryTactic
     |>.insert ``Lean.Parser.Tactic.discharger
 
 /-- Is this a syntax kind that contains intentionally unevaluated tactic subterms? -/
@@ -106,8 +112,8 @@ def unreachableTacticLinter : Linter where run := withSetOptionIn fun stx => do
     eraseUsedTacticsList trees
   let (_, map) ← go.run {}
   let unreachable := map.toArray
-  let key (r : String.Range) := (r.start.byteIdx, (-r.stop.byteIdx : Int))
-  let mut last : String.Range := ⟨0, 0⟩
+  let key (r : Lean.Syntax.Range) := (r.start.byteIdx, (-r.stop.byteIdx : Int))
+  let mut last : Lean.Syntax.Range := ⟨0, 0⟩
   for (r, stx) in let _ := @lexOrd; let _ := @ltOfOrd.{0}; unreachable.qsort (key ·.1 < key ·.1) do
     if stx.getKind ∈ [``Batteries.Tactic.unreachable, ``Batteries.Tactic.unreachableConv] then
       continue

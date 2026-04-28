@@ -10,7 +10,7 @@ import Batteries.Tactic.Basic
 -- and keeping the doc up-to-date
 -- (only `guard_target` added)
 
-/-- warning: declaration uses 'sorry' -/
+/-- warning: declaration uses `sorry` -/
 #guard_msgs in
 example (P : (Nat → Nat) → Prop) : P (fun n => n - n) := by
   conv in (_ - _) => equals 0 =>
@@ -32,7 +32,7 @@ P : (Nat → Nat) → Prop
 n : Nat
 ⊢ n - n = 0
 ---
-error: no goals to be solved
+error: No goals to be solved
 -/
 #guard_msgs in
 example (P : (Nat → Nat) → Prop) : P (fun n => n - n) := by
@@ -40,4 +40,34 @@ example (P : (Nat → Nat) → Prop) : P (fun n => n - n) := by
     equals 0 => skip -- this should complain
     -- and at this point, there should be no goal left
     tactic => sorry
+  sorry
+
+/-- warning: declaration uses `sorry` -/
+#guard_msgs in
+example (P : Nat → Prop) : P 12 := by
+  conv =>
+    enter [1]
+    equals (12 : Fin 37) =>
+      guard_target =ₛ (12 : Nat) = (12 : Fin 37)
+      rfl
+  guard_target =ₛ P (12 : Fin 37)
+  sorry
+
+/--
+error: Type mismatch
+  12
+has type
+  Nat
+but is expected to have type
+  Fin 37
+---
+error: unsolved goals
+P : Fin 37 → Prop
+⊢ 12 = sorry
+-/
+#guard_msgs in
+example (P : Fin 37 → Prop) : P 12 := by
+  conv =>
+    enter [1]
+    equals (12 : Nat) => skip
   sorry

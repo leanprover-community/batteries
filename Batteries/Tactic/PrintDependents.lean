@@ -3,8 +3,12 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Elab.Command
-import Lean.Util.FoldConsts
+module
+
+public meta import Lean.Elab.Command
+public meta import Lean.Util.FoldConsts
+
+public meta section
 
 /-!
 # `#print dependents` command
@@ -110,7 +114,7 @@ elab tk:"#print" &"dependents" ids:(ppSpace colGt ident)* : command => do
       | some (ConstantInfo.recInfo v)    => v.type.getUsedConstants
       | some (ConstantInfo.inductInfo v) => v.type.getUsedConstants ++ v.ctors
       | _                                => #[]
-      for c in RBTree.fromArray consts Name.cmp do
+      for c in Std.TreeSet.ofArray consts Name.cmp do
         if state.result.find? c = some true then
           msg := msg ++ m!"{MessageData.ofConst (← mkConstWithLevelParams c)} "
     return msg

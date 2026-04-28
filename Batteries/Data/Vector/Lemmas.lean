@@ -3,12 +3,9 @@ Copyright (c) 2024 Shreyas Srinivas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shreyas Srinivas, François G. Dorais, Eric Wieser
 -/
+module
 
-import Batteries.Data.Vector.Basic
-import Batteries.Data.List.Basic
-import Batteries.Data.List.Lemmas
-import Batteries.Data.Array.Lemmas
-import Batteries.Tactic.Lint.Simp
+@[expose] public section
 
 namespace Vector
 
@@ -64,6 +61,8 @@ theorem getElem_tail {v : Vector α n} {i : Nat} (hi : i < n - 1) :
 
 /-! ### get lemmas -/
 
+theorem get_eq_getElem (v : Vector α n) (i : Fin n) : v.get i = v[(i : Nat)] := rfl
+
 @[simp] theorem get_push_last (v : Vector α n) (a : α) :
     (v.push a).get (Fin.last n) = a :=
   getElem_push_last
@@ -96,3 +95,33 @@ theorem getElem_tail {v : Vector α n} {i : Nat} (hi : i < n - 1) :
 -- This is not a `@[simp]` lemma because the LHS simplifies to `Vector.extract`.
 theorem get_tail (v : Vector α (n + 1)) (i : Fin n) :
     v.tail.get i = v.get i.succ := getElem_tail _
+
+/-! ### finIdxOf? lemmas -/
+
+@[simp]
+theorem finIdxOf?_empty [BEq α] (v : Vector α 0) : v.finIdxOf? a = none := by
+  simp [v.eq_empty]
+
+@[simp]
+theorem finIdxOf?_eq_none_iff [BEq α] [LawfulBEq α] {v : Vector α n} {a : α} :
+    v.finIdxOf? a = none ↔ a ∉ v := by
+  obtain ⟨xs, rfl⟩ := v
+  simp
+
+@[simp]
+theorem finIdxOf?_eq_some_iff [BEq α] [LawfulBEq α] {v : Vector α n} {a : α} {i : Fin n} :
+    v.finIdxOf? a = some i ↔ v.get i = a ∧ ∀ j < i, ¬v.get j = a := by
+  obtain ⟨xs, rfl⟩ := v
+  simp
+
+@[simp]
+theorem isSome_finIdxOf? [BEq α] [PartialEquivBEq α] {v : Vector α n} {a : α} :
+    (v.finIdxOf? a).isSome = v.contains a := by
+  obtain ⟨v, rfl⟩ := v
+  simp
+
+@[simp]
+theorem isNone_finIdxOf? [BEq α] [PartialEquivBEq α] {v : Vector α n} {a : α} :
+    (v.finIdxOf? a).isNone = !v.contains a := by
+  obtain ⟨v, rfl⟩ := v
+  simp

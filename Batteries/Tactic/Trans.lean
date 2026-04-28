@@ -3,8 +3,11 @@ Copyright (c) 2022 Siddhartha Gadgil. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Siddhartha Gadgil, Mario Carneiro
 -/
-import Lean.Elab.Tactic.ElabTerm
-import Batteries.Tactic.Alias
+module
+
+public meta import Lean.Elab.Tactic.ElabTerm
+
+public meta section
 
 /-!
 # `trans` tactic
@@ -14,7 +17,7 @@ variable argument.
 -/
 
 /-- Compose using transitivity, homogeneous case. -/
-def Trans.simple {r : α → α → Sort _} [Trans r r r] : r a b → r b c → r a c := trans
+@[expose] def Trans.simple {r : α → α → Sort _} [Trans r r r] : r a b → r b c → r a c := trans
 
 namespace Batteries.Tactic
 open Lean Meta Elab
@@ -25,7 +28,7 @@ initialize registerTraceClass `Tactic.trans
 initialize transExt :
     SimpleScopedEnvExtension (Name × Array DiscrTree.Key) (DiscrTree Name) ←
   registerSimpleScopedEnvExtension {
-    addEntry := fun dt (n, ks) => dt.insertCore ks n
+    addEntry := fun dt (n, ks) => dt.insertKeyValue ks n
     initial := {}
   }
 

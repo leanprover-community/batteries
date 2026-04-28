@@ -3,8 +3,12 @@ Copyright (c) 2022 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
-import Lean.Meta.Instances
-import Batteries.Tactic.Lint.Basic
+module
+
+public meta import Lean.Meta.Instances
+public meta import Batteries.Tactic.Lint.Basic
+
+public meta section
 
 namespace Batteries.Tactic.Lint
 open Lean Meta
