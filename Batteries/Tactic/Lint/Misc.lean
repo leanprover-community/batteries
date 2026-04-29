@@ -135,9 +135,9 @@ has been used. -/
 /-- A linter for checking whether statements of declarations are well-typed.
 
 This linter is disabled by default: declarations are already type-checked when added to the
-environment, so re-checking every statement here is redundant in normal use, and accounts for
-a substantial fraction of `#lint` running time. As a defence-in-depth measure for catching
-kernel/elaborator bugs, prefer running an external checker such as `lean4checker` or `trepplein`.
+environment, so re-checking every statement is redundant in normal use. As an alternative 
+defence-in-depth measure for catching kernel/elaborator bugs, prefer running an external 
+checker such as `lean4checker` or `trepplein`.
 -/
 @[env_linter disabled] def checkType : Linter where
   noErrorsFound :=
