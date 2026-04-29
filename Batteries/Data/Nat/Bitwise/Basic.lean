@@ -118,7 +118,7 @@ def leastBitsList (n : Nat) : Option (List Bool) :=
 /-- `ofLeastBitsList oxs` constructs a natural number from the bits below its most significant
   bit (and is `0` just when the `Option` is empty). -/
 def ofLeastBitsList (oxs : Option (List Bool)) : Nat :=
-  oxs.elim 0 (Nat.add.uncurry <| ·.foldr (Prod.map (Nat.bit false) <| Nat.bit ·) (1, 0))
+  oxs.elim 0 (ofBitsList ∘ (· ++ [true]))
 
 /-- Apply an unary boolean operator bitwise on a natural number. -/
 @[specialize] def bitUnary (f : Bool → Bool) (n : Nat) : Nat := n.bitElimFromZero 0 (bit ∘ f)
