@@ -183,9 +183,23 @@ theorem testBit_add_one_eq_testBit_divTwo {n i : Nat} :
 theorem testBit_divTwo {n i : Nat} : n.divTwo.testBit i = n.testBit (i + 1) :=
   testBit_add_one_eq_testBit_divTwo.symm
 
-@[simp, grind .]
-theorem divTwo_eq_zero_iff {n : Nat} : n.divTwo = 0 ↔ n = 0 ∨ n = 1 := by
-  fun_cases Nat.divTwo <;> grind
+@[grind =] theorem lt_divTwo_iff {n m : Nat} : m < n.divTwo ↔ 2 * m < n - 1 := by
+  fun_induction divTwo generalizing m <;> cases m <;> grind
+
+@[grind =] theorem le_divTwo_iff {n m : Nat} : m ≤ n.divTwo ↔ 2 * m ≤ n := by
+  fun_induction divTwo generalizing m <;> cases m <;> grind
+
+@[grind =] theorem divTwo_lt_iff {n m : Nat} : n.divTwo < m ↔ n < 2 * m := by
+  fun_induction divTwo generalizing m <;> cases m <;> grind
+
+@[grind =] theorem divTwo_le_iff {n m : Nat} : n.divTwo ≤ m ↔ n ≤ 2 * m + 1 := by
+  fun_induction divTwo generalizing m <;> cases m <;> grind
+
+theorem divTwo_eq_iff {n m : Nat} : n.divTwo = m ↔ 2 * m ≤ n ∧ n ≤ 2 * m + 1 :=
+  Nat.le_antisymm_iff.trans (by grind)
+
+@[simp, grind .] theorem divTwo_eq_zero_iff {n : Nat} : n.divTwo = 0 ↔ n = 0 ∨ n = 1 := by
+  rw [divTwo_eq_iff]; grind
 
 /-! ### testBit -/
 
@@ -335,16 +349,15 @@ theorem rightInverse_isOddDivTwo_uncurry_bit  : isOddDivTwo.RightInverse bit.unc
 
 section
 
-variable {motive : Nat → Sort u} (zero : motive 0) (one : motive 1)
-  (add_two : ∀ n, motive (n.divTwo + 1) → motive (n + 2))
+variable {motive : Nat → Sort u} {zero : motive 0} {one : motive 1}
+  {add_two : ∀ n, motive (n.divTwo + 1) → motive (n + 2)}
 
 @[simp, grind =] theorem divTwoRec_zero : Nat.divTwoRec zero one add_two 0 = zero := by
-  simp [Nat.divTwoRec]
+  rw [Nat.divTwoRec]
 @[simp, grind =] theorem divTwoRec_one : Nat.divTwoRec zero one add_two 1 = one := by
-  simp [Nat.divTwoRec]
+  rw [Nat.divTwoRec]
 @[simp, grind =] theorem divTwoRec_add_two {n} : Nat.divTwoRec zero one add_two (n + 2) =
-    add_two n (Nat.divTwoRec zero one add_two (n.divTwo + 1)) := by
-  simp [Nat.divTwoRec]
+    add_two n (Nat.divTwoRec zero one add_two (n.divTwo + 1)) := by rw [Nat.divTwoRec]
 
 theorem divTwoRec_bit_zero {b} :
     Nat.divTwoRec (motive := motive) zero one add_two (Nat.bit b 0) =
@@ -362,13 +375,13 @@ section
 
 variable {α} {zero : α} {one : α} {bit : Bool → α → α}
 
-@[simp, grind =] theorem bitElim_zero : Nat.bitElim zero one bit 0 = zero := by grind [Nat.bitElim]
-@[simp, grind =] theorem bitElim_one : Nat.bitElim zero one bit 1 = one := by grind [Nat.bitElim]
+@[simp, grind =] theorem bitElim_zero : Nat.bitElim zero one bit 0 = zero := divTwoRec_zero
+@[simp, grind =] theorem bitElim_one : Nat.bitElim zero one bit 1 = one := divTwoRec_one
 @[simp, grind =] theorem bitElim_add_two {n} : Nat.bitElim zero one bit (n + 2) =
-    bit n.isOdd (Nat.bitElim zero one bit (n.divTwo + 1)) := by grind [Nat.bitElim]
+    bit n.isOdd (Nat.bitElim zero one bit (n.divTwo + 1)) := divTwoRec_add_two
 
-theorem bitElim_eq_divTwoRec : Nat.bitElim zero one bit = Nat.divTwoRec zero one (bit ∘ isOdd) :=
-  funext fun n => by induction n using Nat.divTwoRec <;> grind
+theorem bitElim_eq_divTwoRec : Nat.bitElim zero one bit =
+    Nat.divTwoRec zero one (bit ∘ isOdd) := rfl
 
 theorem bitElim_bit {b n} :
     Nat.bitElim zero one bit (n.bit b) = if n = 0 then bif b then one else zero else
@@ -433,6 +446,26 @@ theorem size_ne_zero_of_ne_zero {n} (hn : n ≠ 0) : size n ≠ 0 :=
 instance {n} [NeZero n] : NeZero (size n) := ⟨size_ne_zero_of_ne_zero <| NeZero.ne _⟩
 
 theorem size_succ_ne_zero {n} : size (n + 1) ≠ 0 := NeZero.ne _
+
+@[grind =] theorem size_le_iff {m n : Nat} : size n ≤ m ↔ n < 2 ^ m := by
+  induction n using Nat.divTwoRec generalizing m <;>
+  cases m <;> grind [Nat.add_lt_iff_lt_sub_right]
+
+@[grind =] theorem lt_size_iff {m n : Nat} : m < size n ↔ 2 ^ m ≤ n := by
+  simp [← Nat.not_le, size_le_iff]
+
+theorem lt_size_self {n : Nat} : n < 2 ^ size n := size_le_iff.mp n.size.le_refl
+
+theorem size_eq_add_one_iff {m n : Nat} : size n = m + 1 ↔
+    2 ^ m ≤ n ∧ n < 2 ^ (m + 1) := by rw [Nat.le_antisymm_iff]; grind
+
+theorem size_eq_iff {m n : Nat} : size n = m ↔ n < 2 ^ m ∧ (m = 0 ∨ 2 ^ (m - 1) ≤ n) := by
+  cases m
+  · grind [size_eq_zero_iff]
+  · grind [size_eq_add_one_iff]
+
+@[grind =] theorem size_two_pow {n : Nat} : size (2 ^ n) = n + 1 :=
+  size_eq_add_one_iff.mpr ⟨(2 ^ n).le_refl, Nat.pow_lt_pow_succ Nat.one_lt_two⟩
 
 @[grind =]
 theorem size_bit {b n} : size (n.bit b) = if n = 0 then b.toNat else size n + 1 :=

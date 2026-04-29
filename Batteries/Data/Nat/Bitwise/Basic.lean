@@ -13,7 +13,7 @@ namespace Nat
 /-! ## Basic functions -/
 
 /-- `bit b n` appends the digit `b` to the little end of the binary representation of `n`. -/
-def bit (b : Bool) : Nat → Nat | 0 => b.toNat | n + 1 => bit b n + 1 + 1
+def bit (b : Bool) : Nat → Nat | 0 => b.toNat | n + 1 => bit b n + 2
 
 /-- Efficient implementation of bit. -/
 @[inline] def bitImpl (b : Bool) (n : Nat) : Nat := n <<< 1 + b.toNat
@@ -39,7 +39,7 @@ def isEven (n : Nat) : Bool := !n.isOdd
 @[csimp] theorem isEven_eq_isEvenImpl : isEven = isEvenImpl := funext <| fun _ => by
   unfold isEven; fun_induction isOdd <;> grind [isEvenImpl]
 
-/-- `divTwo n` is the greatest integer smaller than `n/2` -/
+/-- `divTwo n` is `n / 2` (rounded down). -/
 def divTwo : Nat → Nat | 0 | 1 => 0 | n + 2 => n.divTwo + 1
 
 /-- Efficient implementation of divTwo. -/
@@ -49,31 +49,31 @@ def divTwo : Nat → Nat | 0 | 1 => 0 | n + 2 => n.divTwo + 1
   fun_induction divTwo <;> grind [divTwoImpl, Nat.shiftRight_succ]
 
 /-- `isOdd` and `divTwo` as a single map to a tuple. -/
-def isOddDivTwo : Nat → Bool × Nat := fun n => (n.isOdd, n.divTwo)
+def isOddDivTwo (n : Nat) : Bool × Nat := (n.isOdd, n.divTwo)
 
 /-! ## Recursion principles -/
 
 /-- A recursion principle over the even natural numbers. -/
 @[elab_as_elim, specialize]
 protected def evenRec {motive : (n : Nat) → n.isEven → Sort u} (zero : motive 0 rfl)
-    (succ_succ : ∀ n h, motive n h → motive (n + 2) h) :
+    (add_two : ∀ n h, motive n h → motive (n + 2) h) :
     (n : Nat) → (hn : n.isEven) → motive n hn
-  | 0, _ => zero | n + 2, h => succ_succ n h (n.evenRec zero succ_succ h)
+  | 0, _ => zero | n + 2, h => add_two n h (n.evenRec zero add_two h)
 
 /-- A recursion principle over the odd natural numbers. -/
 @[elab_as_elim, specialize]
 protected def oddRec {motive : (n : Nat) → n.isOdd → Sort u} (one : motive 1 rfl)
-    (succ_succ : ∀ n h, motive n h → motive (n + 2) h) :
+    (add_two : ∀ n h, motive n h → motive (n + 2) h) :
     (n : Nat) → (hn : n.isOdd) → motive n hn
-  | 1, _ => one | n + 2, h => succ_succ n h (n.oddRec one succ_succ h)
+  | 1, _ => one | n + 2, h => add_two n h (n.oddRec one add_two h)
 
 /-- By starting with `0` and `1` base cases and given we can induct over even and odd
   numbers, we can achieve a motive for any `n`. -/
 @[elab_as_elim, specialize]
 protected def parityRec {motive : Nat → Sort u} (zero : motive 0) (one : motive 1)
-    (odd : ∀ n, n.isOdd → motive n → motive (n + 2))
-    (even : ∀ n, n.isEven → motive n → motive (n + 2)) (n : Nat) : motive n :=
-  if hn : n.isOdd then n.oddRec one odd hn else n.evenRec zero even (Bool.not_eq.mpr hn)
+    (add_two : ∀ n, motive n → motive (n + 2)) (n : Nat) : motive n :=
+  if hn : n.isOdd then n.oddRec one (fun n _ => add_two n) hn
+  else n.evenRec zero (fun n _ => add_two n) (Bool.not_eq.mpr hn)
 
 /-- A base-2 recursion principle for natural numbers. We have base cases for `0` and `1`: for all
   other natural numbers `n + 2`, the case for `n.divTwo + 1` suffices. -/
@@ -85,30 +85,12 @@ protected def divTwoRec {motive : Nat → Sort u} (zero : motive 0) (one : motiv
 
 /-- Iterates over the binary digits of a natural number, from least significant to most significant.
     Base cases are provided for `0`, `1`. All other numbers are folded via their binary digits. -/
-@[inline] protected def bitElim {α} (zero one : α) (bit : Bool → α → α) : Nat → α
-  | 0 => zero | 1 => one | n + 2 => (bit n.isOdd) ((n.divTwo + 1).bitElim zero one bit)
-  decreasing_by fun_induction divTwo <;> grind
-
-/-- Iterates over the binary digits of a natural number, from least significant to most significant.
-    Base cases are provided for `0`, `1`. All other numbers are folded via their binary digits. -/
-@[inline] protected def bitElimTR {α} (zero one : α) (bit : Bool → α → α) (n : Nat) : α :=
-    go id n where
-  /-- Auxiliary tail-recursive implementation for `bitElimTR`. -/
-  @[specialize] go (k : α → α) : Nat → α
-  | 0 => k zero | 1 => k one | n + 2 => go (k ∘ bit n.isOdd) (n.divTwoImpl + 1)
-  decreasing_by grind [divTwoImpl, Nat.shiftRight_succ]
-
-@[csimp] theorem bitElim_eq_bitElimTR : @Nat.bitElim = @Nat.bitElimTR := funext fun α => by
-  have go_eq {zero one} {bit : Bool → α → α} {k : α → α} {n} :
-    bitElimTR.go zero one bit k n = k (Nat.bitElimTR zero one bit n) := by
-    induction n using Nat.divTwoRec generalizing k <;>
-    grind [Nat.bitElimTR, bitElimTR.go, divTwo_eq_divTwoImpl]
-  ext zero one bit n; induction n using Nat.divTwoRec <;>
-  grind [Nat.bitElimTR, Nat.bitElimTR.go, Nat.bitElim, divTwo_eq_divTwoImpl]
+@[inline] protected def bitElim {α} (zero one : α) (bit : Bool → α → α) : Nat → α :=
+  Nat.divTwoRec zero one (bit ∘ isOdd)
 
 /-- Iterates over the binary digits of a natural number, from least significant to most significant.
     A base case is provided for `0`. Thereafter we iterate over the number's bits. -/
-@[specialize] protected abbrev bitElimFromZero {α : Sort u} (zero : α) (bit : Bool → α → α) :
+protected abbrev bitElimFromZero {α : Sort u} (zero : α) (bit : Bool → α → α) :
   Nat → α := Nat.bitElim zero (bit true zero) bit
 
 /-! ## Recursive functions -/
