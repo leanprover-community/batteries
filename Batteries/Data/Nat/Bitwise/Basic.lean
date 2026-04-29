@@ -100,7 +100,7 @@ bits i.e. the length of its binary representation -/
 def size (n : Nat) : Nat := n.bitElimFromZero 0 (Function.const Bool succ)
 
 /-- `popcount n` : Returns the number of set bits in a natural number. -/
-def popcount (n : Nat) : Nat := n.bitElimFromZero 0 (flip (· + ·.toNat))
+def popcount (n : Nat) : Nat := n.bitElimFromZero 0 (cond · succ id)
 
 /-- `bitsList n` returns a list of Bools which correspond to the binary representation of n, where
 the head of the list represents the least significant bit. -/
