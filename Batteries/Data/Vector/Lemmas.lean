@@ -45,7 +45,7 @@ theorem toList_tail {v : Vector α n} :
     apply List.ext_getElem
     · simp
     · intro i h₁ h₂
-      simp only [Nat.add_one_sub_one, tail_eq_cast_extract, getElem_toList, getElem_cast,
+      simp only [tail_eq_cast_extract, getElem_toList, getElem_cast,
         getElem_extract, List.getElem_tail]
       congr 1
       omega
