@@ -142,8 +142,9 @@ noncomputable def rankMax (self : UnionFind) := self.arr.foldr (max ·.rank) 0 +
 
 theorem rank'_lt_rankMax (self : UnionFind) (i : Nat) (h) : (self.arr[i]).rank < self.rankMax := by
   let rec go : ∀ {l} {x : UFNode}, x ∈ l → x.rank ≤ List.foldr (max ·.rank) 0 l
-    | a::l, _, List.Mem.head _ => by dsimp; apply Nat.le_max_left
-    | a::l, _, .tail _ h => by dsimp; exact Nat.le_trans (go h) (Nat.le_max_right ..)
+    | a::l, _, List.Mem.head _ => by simp only [List.foldr_cons]; apply Nat.le_max_left
+    | a::l, _, .tail _ h => by
+        simp only [List.foldr_cons]; exact Nat.le_trans (go h) (Nat.le_max_right ..)
   simp only [rankMax, ← Array.foldr_toList]
   exact Nat.lt_succ_iff.2 <| go (self.arr.toList.getElem_mem _)
 
