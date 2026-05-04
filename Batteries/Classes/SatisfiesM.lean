@@ -10,6 +10,8 @@ public import Batteries.Lean.Except
 
 @[expose] public section
 
+set_option backward.defeqAttrib.useBackward true
+
 /-!
 ## SatisfiesM
 

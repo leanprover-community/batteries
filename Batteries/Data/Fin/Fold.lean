@@ -10,6 +10,8 @@ public import Batteries.Data.Fin.Basic
 
 @[expose] public section
 
+set_option backward.defeqAttrib.useBackward true
+
 namespace Fin
 
 /-! ### dfoldrM -/
