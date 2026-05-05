@@ -150,13 +150,23 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
         let ctx ← Simp.mkContext (config := { contextual := higherOrder })
           (simpTheorems := #[simpTheorems]) (congrTheorems := ← getSimpCongrTheorems)
         let isRfl ← isRflTheorem declName
+        -- Treat `[backward_defeq]` simp lemmas like `[defeq]` ones for the purposes
+        -- of simp-NF: run `dsimp` (not `simp`) on them, with
+        -- `backward.defeqAttrib.useBackward := true` so that `[backward_defeq]`
+        -- rewrites (including the lemma itself) actually fire.
+        let isBackwardRfl ← isBackwardRflTheorem declName
+        let useDsimp := isRfl || isBackwardRfl
         let simplify (e : Expr) (ctx : Simp.Context) (stats : Simp.Stats := {}) :
             MetaM (Simp.Result × Simp.Stats) := do
-          if !isRfl then
+          if !useDsimp then
             simp e ctx (stats := stats)
           else
-            let (e, s) ← dsimp e ctx (stats := stats)
-            return (Simp.Result.mk e .none .true, s)
+            withOptions (fun opts =>
+                if isBackwardRfl && !isRfl then
+                  opts.setBool `backward.defeqAttrib.useBackward true
+                else opts) do
+              let (e, s) ← dsimp e ctx (stats := stats)
+              return (Simp.Result.mk e .none .true, s)
         let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
           decorateError "simplify fails on left-hand side:" <| simplify lhs ctx
         if prf1Stats.usedTheorems.map.contains (.decl declName) then return none
@@ -164,7 +174,7 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
           decorateError "simplify fails on right-hand side:" <| simplify rhs ctx prf1Stats
         let lhs'EqRhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
         let lhsInNF ← isSimpEq lhs' lhs
-        let simpName := if !isRfl then "simp" else "dsimp"
+        let simpName := if !useDsimp then "simp" else "dsimp"
         if lhs'EqRhs' then
           if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
           return m!"\
