@@ -200,7 +200,7 @@ if git diff --name-only "bump/$BUMPVERSION" "bump/nightly-$NIGHTLYDATE" | grep -
   zulip_title="batteries#$pr_number adaptations for nightly-$NIGHTLYDATE"
   zulip_body=$(printf "> %s\n\nPlease review this PR. At the end of the month this diff will land in 'main'." "$pr_title batteries#$pr_number")
 
-  echo "Posting the link to the PR in a new thread on the #nightly-testing channel on Zulip"
+  echo "Posting the link to the PR in a new thread on the #nightly-testing-batteries channel on Zulip"
   echo "Here is the message:"
   echo "Title: $zulip_title"
   echo " Body: $zulip_body"
