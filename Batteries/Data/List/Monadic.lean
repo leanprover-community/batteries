@@ -9,13 +9,18 @@ public import Batteries.Classes.SatisfiesM
 
 @[expose] public section
 
+set_option linter.deprecated false
+
 /-!
 # Results about monadic operations on `List`, in terms of `SatisfiesM`.
 
+**Deprecated (since 2026-05-05):** the entire `SatisfiesM` API is unused downstream;
+use `Std.Do.Triple` (e.g. `Std.Do.Spec.foldlM_list`) and `mvcgen` instead.
 -/
 
 namespace List
 
+@[deprecated "`SatisfiesM` is unused downstream; use `Std.Do.Spec.foldlM_list` instead." (since := "2026-05-05")]
 theorem satisfiesM_foldlM [Monad m] [LawfulMonad m] {f : β → α → m β} (h₀ : motive b)
     (h₁ : ∀ (b) (_ : motive b) (a : α) (_ : a ∈ l), SatisfiesM motive (f b a)) :
     SatisfiesM motive (List.foldlM f b l) := by
@@ -28,6 +33,7 @@ theorem satisfiesM_foldlM [Monad m] [LawfulMonad m] {f : β → α → m β} (h�
     exact ⟨(fun ⟨b, bh⟩ => ⟨b, ih bh (fun b bh a am => h₁ b bh a (mem_cons_of_mem hd am))⟩) <$> q,
       by simpa using qh⟩
 
+@[deprecated "`SatisfiesM` is unused downstream; use `Std.Do.Triple` instead." (since := "2026-05-05")]
 theorem satisfiesM_foldrM [Monad m] [LawfulMonad m] {f : α → β → m β} (h₀ : motive b)
     (h₁ : ∀ (a : α) (_ : a ∈ l) (b) (_ : motive b), SatisfiesM motive (f a b)) :
     SatisfiesM motive (List.foldrM f b l) := by

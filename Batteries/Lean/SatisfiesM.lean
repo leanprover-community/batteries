@@ -14,6 +14,12 @@ import all Init.System.ST
 
 /-!
 # Construct `MonadSatisfying` instances for the Lean monad stack.
+
+**Deprecated (since 2026-05-05):** `MonadSatisfying` and the entire `SatisfiesM` API are
+unused downstream and have been deprecated in favor of `Std.Do.Triple` (see
+`Batteries.Classes.SatisfiesM`). All instances in this file were already commented out
+following https://github.com/leanprover/lean4/pull/10625; this file is kept as a stub
+during the deprecation period and will be removed.
 -/
 
 open Lean Elab Term Tactic Command
