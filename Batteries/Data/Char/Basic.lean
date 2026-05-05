@@ -85,7 +85,7 @@ private theorem of_all_eq_true_aux (h : Char.all p) (n : Nat) (hn : n.isValidCha
     grind
   | .inr ⟨hn, hn'⟩ =>
     -- https://github.com/leanprover/lean4/issues/11059
-    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; omega ⟩
+    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; lia ⟩
     grind
 
 theorem eq_true_of_all_eq_true (h : Char.all p) (c : Char) : p c := by
@@ -131,7 +131,7 @@ private theorem of_any_eq_false_aux (h : Char.any p = false) (n : Nat) (hn : n.i
     grind
   | .inr ⟨hn, hn'⟩ =>
     -- https://github.com/leanprover/lean4/issues/11059
-    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; omega⟩
+    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; lia⟩
       (List.mem_finRange _)
     grind
 
