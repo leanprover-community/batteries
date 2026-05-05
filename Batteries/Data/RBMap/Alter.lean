@@ -9,6 +9,8 @@ public import Batteries.Data.RBMap.WF
 
 @[expose] public section
 
+set_option linter.deprecated false
+
 /-!
 # Path operations; `modify` and `alter`
 
@@ -26,6 +28,7 @@ attribute [simp] Path.fill
 /-! ## path balance -/
 
 /-- Asserts that property `p` holds on the root of the tree, if any. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 def OnRoot (p : α → Prop) : RBNode α → Prop
   | nil => True
   | node _ _ x _ => p x
@@ -33,14 +36,17 @@ def OnRoot (p : α → Prop) : RBNode α → Prop
 namespace Path
 
 /-- Same as `fill` but taking its arguments in a pair for easier composition with `zoom`. -/
-@[inline] def fill' : RBNode α × Path α → RBNode α := fun (t, path) => path.fill t
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), inline]
+def fill' : RBNode α × Path α → RBNode α := fun (t, path) => path.fill t
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem zoom_fill' (cut : α → Ordering) (t : RBNode α) (path : Path α) :
     fill' (zoom cut t path) = path.fill t := by
   induction t generalizing path with
   | nil => rfl
   | node _ _ _ _ iha ihb => unfold zoom; split <;> [apply iha; apply ihb; rfl]
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem zoom_fill (H : zoom cut t path = (t', path')) : path.fill t = path'.fill t' :=
   (H ▸ zoom_fill' cut t path).symm
 
@@ -51,6 +57,7 @@ with balance invariant `c₀, n₀`, but it has a "hole" where a tree with balan
 has been removed. The defining property is `Balanced.fill`: if `path.Balanced c₀ n₀ c n` and you
 fill the hole with a tree satisfying `t.Balanced c n`, then `(path.fill t).Balanced c₀ n₀` .
 -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected inductive Balanced : Path α → RBColor → Nat → Prop where
   /-- The root of the tree is `c₀, n₀`-balanced by assumption. -/
   | protected root : Path.root.Balanced c₀ n₀
@@ -71,12 +78,14 @@ protected inductive Balanced : Path α → RBColor → Nat → Prop where
 The defining property of a balanced path: If `path` is a `c₀,n₀` tree with a `c,n` hole,
 then filling the hole with a `c,n` tree yields a `c₀,n₀` tree.
 -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.fill {path : Path α} {t} :
     path.Balanced c₀ n₀ c n → t.Balanced c n → (path.fill t).Balanced c₀ n₀
   | .root, h => h
   | .redL hb H, ha | .redR ha H, hb => H.fill (.red ha hb)
   | .blackL hb H, ha | .blackR ha H, hb => H.fill (.black ha hb)
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem _root_.Batteries.RBNode.Balanced.zoom : t.Balanced c n → path.Balanced c₀ n₀ c n →
     zoom cut t path = (t', path') → ∃ c n, t'.Balanced c n ∧ path'.Balanced c₀ n₀ c n
   | .nil, hp => fun e => by cases e; exact ⟨_, _, .nil, hp⟩
@@ -91,6 +100,7 @@ protected theorem _root_.Batteries.RBNode.Balanced.zoom : t.Balanced c n → pat
     · exact hb.zoom (.blackR ha hp)
     · intro e; cases e; exact ⟨_, _, .black ha hb, hp⟩
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.ins {path : Path α}
     (hp : path.Balanced c₀ n₀ c n) (ht : t.RedRed (c = red) n) :
     ∃ n, (path.ins t).Balanced black n := by
@@ -107,9 +117,11 @@ protected theorem Balanced.ins {path : Path α}
   | blackL hr _hp ih => exact have ⟨c, h⟩ := ht.balance1 hr; ih (.balanced h)
   | blackR hl _hp ih => exact have ⟨c, h⟩ := ht.balance2 hl; ih (.balanced h)
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.insertNew {path : Path α} (H : path.Balanced c n black 0) :
     ∃ n, (path.insertNew v).Balanced black n := H.ins (.balanced (.red .nil .nil))
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.del {path : Path α}
     (hp : path.Balanced c₀ n₀ c n) (ht : t.DelProp c' n) (hc : c = black → c' ≠ red) :
     ∃ n, (path.del t c').Balanced black n := by
@@ -133,11 +145,13 @@ protected theorem Balanced.del {path : Path α}
 The property of a path returned by `t.zoom cut`. Each of the parents visited along the path have
 the appropriate ordering relation to the cut.
 -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 def Zoomed (cut : α → Ordering) : Path α → Prop
   | .root => True
   | .left _ parent x _ => cut x = .lt ∧ parent.Zoomed cut
   | .right _ _ x parent => cut x = .gt ∧ parent.Zoomed cut
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem zoom_zoomed₂ (e : zoom cut t path = (t', path'))
     (hp : path.Zoomed cut) : path'.Zoomed cut :=
   match t, e with
@@ -152,11 +166,13 @@ theorem zoom_zoomed₂ (e : zoom cut t path = (t', path'))
 `path.RootOrdered cmp v` is true if `v` would be able to fit into the hole
 without violating the ordering invariant.
 -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 def RootOrdered (cmp : α → α → Ordering) : Path α → α → Prop
   | .root, _ => True
   | .left _ parent x _, v => cmpLT cmp v x ∧ parent.RootOrdered cmp v
   | .right _ _ x parent, v => cmpLT cmp x v ∧ parent.RootOrdered cmp v
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem _root_.Batteries.RBNode.cmpEq.RootOrdered_congr
     {cmp : α → α → Ordering} (h : cmpEq cmp a b) :
     ∀ {t : Path α}, t.RootOrdered cmp a ↔ t.RootOrdered cmp b
@@ -164,6 +180,7 @@ theorem _root_.Batteries.RBNode.cmpEq.RootOrdered_congr
   | .left .. => and_congr h.lt_congr_left h.RootOrdered_congr
   | .right .. => and_congr h.lt_congr_right h.RootOrdered_congr
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem Zoomed.toRootOrdered {cmp} :
     ∀ {path : Path α}, path.Zoomed (cmp v) → path.RootOrdered cmp v
   | .root, h => h
@@ -171,6 +188,7 @@ theorem Zoomed.toRootOrdered {cmp} :
   | .right .., ⟨h, hp⟩ => ⟨⟨Std.OrientedCmp.gt_iff_lt.1 h⟩, hp.toRootOrdered⟩
 
 /-- The ordering invariant for a `Path`. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 def Ordered (cmp : α → α → Ordering) : Path α → Prop
   | .root => True
   | .left _ parent x b => parent.Ordered cmp ∧
@@ -180,6 +198,7 @@ def Ordered (cmp : α → α → Ordering) : Path α → Prop
     a.All (cmpLT cmp · x) ∧ parent.RootOrdered cmp x ∧
     a.All (parent.RootOrdered cmp) ∧ a.Ordered cmp
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.fill : ∀ {path : Path α} {t},
     (path.fill t).Ordered cmp ↔ path.Ordered cmp ∧ t.Ordered cmp ∧ t.All (path.RootOrdered cmp)
   | .root, _ => ⟨fun H => ⟨⟨⟩, H, .trivial ⟨⟩⟩, (·.2.1)⟩
@@ -194,6 +213,7 @@ protected theorem Ordered.fill : ∀ {path : Path α} {t},
       fun ⟨hp, ⟨ax, xb, ha, hb⟩, ⟨xp, ap, bp⟩⟩ => ⟨⟨hp, ax, xp, ap, ha⟩, hb, ⟨xb, bp⟩⟩,
       fun ⟨⟨hp, ax, xp, ap, ha⟩, hb, ⟨xb, bp⟩⟩ => ⟨hp, ⟨ax, xb, ha, hb⟩, ⟨xp, ap, bp⟩⟩⟩
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem _root_.Batteries.RBNode.Ordered.zoom' {t : RBNode α} {path : Path α}
     (ht : t.Ordered cmp) (hp : path.Ordered cmp) (tp : t.All (path.RootOrdered cmp))
     (pz : path.Zoomed cut) (eq : t.zoom cut path = (t', path')) :
@@ -201,11 +221,13 @@ theorem _root_.Batteries.RBNode.Ordered.zoom' {t : RBNode α} {path : Path α}
   have ⟨hp', ht', tp'⟩ := Ordered.fill.1 <| zoom_fill eq ▸ Ordered.fill.2 ⟨hp, ht, tp⟩
   ⟨ht', hp', tp', zoom_zoomed₂ eq pz⟩
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem _root_.Batteries.RBNode.Ordered.zoom {t : RBNode α}
     (ht : t.Ordered cmp) (eq : t.zoom cut = (t', path')) :
     t'.Ordered cmp ∧ path'.Ordered cmp ∧ t'.All (path'.RootOrdered cmp) ∧ path'.Zoomed cut :=
   ht.zoom' (path := .root) ⟨⟩ (.trivial ⟨⟩) ⟨⟩ eq
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem Ordered.ins : ∀ {path : Path α} {t : RBNode α},
     t.Ordered cmp → path.Ordered cmp → t.All (path.RootOrdered cmp) → (path.ins t).Ordered cmp
   | .root, _, ht, _, _ => Ordered.setBlack.2 ht
@@ -226,10 +248,12 @@ theorem Ordered.ins : ∀ {path : Path α} {t : RBNode α},
     have ⟨xb, bp⟩ := All_and.1 H
     exact hp.ins (ha.balance2 ax xb hb) (balance2_All.2 ⟨xp, ap, bp⟩)
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem Ordered.insertNew {path : Path α} (hp : path.Ordered cmp) (vp : path.RootOrdered cmp v) :
     (path.insertNew v).Ordered cmp :=
   hp.ins ⟨⟨⟩, ⟨⟩, ⟨⟩, ⟨⟩⟩ ⟨vp, ⟨⟩, ⟨⟩⟩
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem Ordered.del : ∀ {path : Path α} {t : RBNode α} {c},
     t.Ordered cmp → path.Ordered cmp → t.All (path.RootOrdered cmp) → (path.del t c).Ordered cmp
   | .root, _, _, ht, _, _ => Ordered.setBlack.2 ht
@@ -255,6 +279,7 @@ end Path
 /-! ## alter -/
 
 /-- The `alter` function preserves the ordering invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.alter {t : RBNode α}
     (H : ∀ {x t' p}, t.zoom cut = (t', p) → f t'.root? = some x →
       p.RootOrdered cmp x ∧ t'.OnRoot (cmpEq cmp x))
@@ -273,6 +298,7 @@ protected theorem Ordered.alter {t : RBNode α}
       exact ⟨hp, ⟨ax.imp xy.lt_congr_right.2, xb.imp xy.lt_congr_left.2, ha, hb⟩, yp, ap, bp⟩
 
 /-- The `alter` function preserves the balance invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.alter {t : RBNode α}
     (h : t.Balanced c n) : ∃ c n, (t.alter cut f).Balanced c n := by
   simp [alter]; split
@@ -291,10 +317,12 @@ protected theorem Balanced.alter {t : RBNode α}
       | .red ha hb => exact ⟨_, _, hp.fill (.red ha hb)⟩
       | .black ha hb => exact ⟨_, _, hp.fill (.black ha hb)⟩
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem modify_eq_alter (t : RBNode α) : t.modify cut f = t.alter cut (.map f) := by
   simp [modify, alter]
 
 /-- The `modify` function preserves the ordering invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.modify {t : RBNode α}
     (H : (t.zoom cut).1.OnRoot fun x => cmpEq cmp (f x) x)
     (h : t.Ordered cmp) : (modify cut f t).Ordered cmp :=
@@ -303,20 +331,24 @@ protected theorem Ordered.modify {t : RBNode α}
       rw [eq] at H; exact ⟨H.RootOrdered_congr.2 (h.zoom eq).2.2.1.1, H⟩
 
 /-- The `modify` function preserves the balance invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.modify {t : RBNode α}
     (h : t.Balanced c n) : ∃ c n, (t.modify cut f).Balanced c n := modify_eq_alter _ ▸ h.alter
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem WF.alter {t : RBNode α}
     (H : ∀ {x t' p}, t.zoom cut = (t', p) → f t'.root? = some x →
       p.RootOrdered cmp x ∧ t'.OnRoot (cmpEq cmp x))
     (h : WF cmp t) : WF cmp (alter cut f t) :=
   let ⟨h₁, _, _, h₂⟩ := h.out; WF_iff.2 ⟨h₁.alter H, h₂.alter⟩
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem WF.modify {t : RBNode α}
     (H : (t.zoom cut).1.OnRoot fun x => cmpEq cmp (f x) x)
     (h : WF cmp t) : WF cmp (t.modify cut f) :=
   let ⟨h₁, _, _, h₂⟩ := h.out; WF_iff.2 ⟨h₁.modify H, h₂.modify⟩
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem find?_eq_zoom : ∀ {t : RBNode α} (p := .root), t.find? cut = (t.zoom cut p).1.root?
   | .nil, _ => rfl
   | .node .., _ => by unfold find? zoom; split <;> [apply find?_eq_zoom; apply find?_eq_zoom; rfl]
@@ -329,6 +361,7 @@ open RBNode
 /--
 A sufficient condition for `ModifyWF` is that the new element compares equal to the original.
 -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem ModifyWF.of_eq {t : RBSet α cmp}
     (H : ∀ {x}, RBNode.find? cut t.val = some x → cmpEq cmp (f x) x) : ModifyWF t cut f := by
   refine ⟨.modify ?_ t.2⟩
@@ -344,11 +377,13 @@ namespace RBMap
 This takes the element out of the tree while `f` runs,
 so it uses the element linearly if `t` is unshared.
 -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 def modify (t : RBMap α β cmp) (k : α) (f : β → β) : RBMap α β cmp :=
   @RBSet.modifyP _ _ t (cmp k ·.1) (fun (a, b) => (a, f b))
     (.of_eq fun _ => ⟨Std.ReflCmp.compare_self (cmp := Ordering.byKey Prod.fst cmp)⟩)
 
 /-- Auxiliary definition for `alter`. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 def alter.adapt (k : α) (f : Option β → Option β) : Option (α × β) → Option (α × β)
   | none =>
     match f none with
@@ -370,7 +405,8 @@ The element is used linearly if `t` is unshared.
 The `AlterWF` assumption is required because `f` may change
 the ordering properties of the element, which would break the invariants.
 -/
-@[specialize] def alter
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), specialize]
+def alter
     (t : RBMap α β cmp) (k : α) (f : Option β → Option β) : RBMap α β cmp := by
   refine @RBSet.alterP _ _ t (cmp k ·.1) (alter.adapt k f) ⟨.alter (@fun _ t' p eq => ?_) t.2⟩
   cases t' <;> simp [alter.adapt, RBNode.root?] <;> split <;> intro h <;> cases h

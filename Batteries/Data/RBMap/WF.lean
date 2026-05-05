@@ -10,6 +10,8 @@ public import Batteries.Tactic.SeqFocus
 
 @[expose] public section
 
+set_option linter.deprecated false
+
 /-!
 # Lemmas for Red-black trees
 
@@ -24,62 +26,78 @@ open RBColor
 
 attribute [simp] All
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem All.trivial (H : ∀ {x : α}, p x) : ∀ {t : RBNode α}, t.All p
   | nil => _root_.trivial
   | node .. => ⟨H, All.trivial H, All.trivial H⟩
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem All_and {t : RBNode α} : t.All (fun a => p a ∧ q a) ↔ t.All p ∧ t.All q := by
   induction t <;> simp [*, and_assoc, and_left_comm]
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem cmpLT.flip (h₁ : cmpLT cmp x y) : cmpLT (flip cmp) y x :=
   ⟨have : Std.TransCmp cmp := inferInstanceAs (Std.TransCmp (flip (flip cmp))); h₁.1⟩
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem cmpLT.trans (h₁ : cmpLT cmp x y) (h₂ : cmpLT cmp y z) : cmpLT cmp x z :=
   ⟨Std.TransCmp.lt_trans h₁.1 h₂.1⟩
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem cmpLT.trans_l {cmp x y} (H : cmpLT cmp x y) {t : RBNode α}
     (h : t.All (cmpLT cmp y ·)) : t.All (cmpLT cmp x ·) := h.imp fun h => H.trans h
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem cmpLT.trans_r {cmp x y} (H : cmpLT cmp x y) {a : RBNode α}
     (h : a.All (cmpLT cmp · x)) : a.All (cmpLT cmp · y) := h.imp fun h => h.trans H
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem cmpEq.lt_congr_left (H : cmpEq cmp x y) : cmpLT cmp x z ↔ cmpLT cmp y z :=
   ⟨fun ⟨h⟩ => ⟨Std.TransCmp.congr_left H.1 ▸ h⟩, fun ⟨h⟩ => ⟨Std.TransCmp.congr_left H.1 ▸ h⟩⟩
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem cmpEq.lt_congr_right (H : cmpEq cmp y z) : cmpLT cmp x y ↔ cmpLT cmp x z :=
   ⟨fun ⟨h⟩ => ⟨Std.TransCmp.congr_right H.1 ▸ h⟩, fun ⟨h⟩ => ⟨Std.TransCmp.congr_right H.1 ▸ h⟩⟩
 
-@[simp] theorem reverse_reverse (t : RBNode α) : t.reverse.reverse = t := by
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), simp]
+theorem reverse_reverse (t : RBNode α) : t.reverse.reverse = t := by
   induction t <;> simp [*]
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem reverse_eq_iff {t t' : RBNode α} : t.reverse = t' ↔ t = t'.reverse := by
   constructor <;> rintro rfl <;> simp
 
-@[simp] theorem reverse_balance1 (l : RBNode α) (v : α) (r : RBNode α) :
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), simp]
+theorem reverse_balance1 (l : RBNode α) (v : α) (r : RBNode α) :
     (balance1 l v r).reverse = balance2 r.reverse v l.reverse := by
   unfold balance1 balance2; split <;> simp
   · rw [balance2.match_1.eq_2]; simp [reverse_eq_iff]; intros; solve_by_elim
   · rw [balance2.match_1.eq_3] <;> (simp [reverse_eq_iff]; intros; solve_by_elim)
 
-@[simp] theorem reverse_balance2 (l : RBNode α) (v : α) (r : RBNode α) :
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), simp]
+theorem reverse_balance2 (l : RBNode α) (v : α) (r : RBNode α) :
     (balance2 l v r).reverse = balance1 r.reverse v l.reverse := by
   refine Eq.trans ?_ (reverse_reverse _); rw [reverse_balance1]; simp
 
-@[simp] theorem All.reverse {t : RBNode α} : t.reverse.All p ↔ t.All p := by
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), simp]
+theorem All.reverse {t : RBNode α} : t.reverse.All p ↔ t.All p := by
   induction t <;> simp [*, and_comm]
 
 /-- The `reverse` function reverses the ordering invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.reverse : ∀ {t : RBNode α}, t.Ordered cmp → t.reverse.Ordered (flip cmp)
   | .nil, _ => ⟨⟩
   | .node .., ⟨lv, vr, hl, hr⟩ =>
     ⟨(All.reverse.2 vr).imp cmpLT.flip, (All.reverse.2 lv).imp cmpLT.flip, hr.reverse, hl.reverse⟩
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.reverse {t : RBNode α} : t.Balanced c n → t.reverse.Balanced c n
   | .nil => .nil
   | .black hl hr => .black hr.reverse hl.reverse
   | .red hl hr => .red hr.reverse hl.reverse
 
 /-- The `balance1` function preserves the ordering invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.balance1 {l : RBNode α} {v : α} {r : RBNode α}
     (lv : l.All (cmpLT cmp · v)) (vr : r.All (cmpLT cmp v ·))
     (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balance1 l v r).Ordered cmp := by
@@ -92,11 +110,13 @@ protected theorem Ordered.balance1 {l : RBNode α} {v : α} {r : RBNode α}
     exact ⟨⟨xy, xy.trans_r ax, by_⟩, ⟨yv, yc, yv.trans_l vr⟩, ⟨ax, xb, ha, hb⟩, cv, vr, hc, hr⟩
   · exact ⟨lv, vr, hl, hr⟩
 
-@[simp] theorem balance1_All {l : RBNode α} {v : α} {r : RBNode α} :
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), simp]
+theorem balance1_All {l : RBNode α} {v : α} {r : RBNode α} :
     (balance1 l v r).All p ↔ p v ∧ l.All p ∧ r.All p := by
   unfold balance1; split <;> simp [and_assoc, and_left_comm]
 
 /-- The `balance2` function preserves the ordering invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.balance2 {l : RBNode α} {v : α} {r : RBNode α}
     (lv : l.All (cmpLT cmp · v)) (vr : r.All (cmpLT cmp v ·))
     (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balance2 l v r).Ordered cmp := by
@@ -104,23 +124,29 @@ protected theorem Ordered.balance2 {l : RBNode α} {v : α} {r : RBNode α}
   exact .reverse <| hr.reverse.balance1
     ((All.reverse.2 vr).imp cmpLT.flip) ((All.reverse.2 lv).imp cmpLT.flip) hl.reverse
 
-@[simp] theorem balance2_All {l : RBNode α} {v : α} {r : RBNode α} :
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), simp]
+theorem balance2_All {l : RBNode α} {v : α} {r : RBNode α} :
     (balance2 l v r).All p ↔ p v ∧ l.All p ∧ r.All p := by
   unfold balance2; split <;> simp [and_assoc, and_left_comm]
 
-@[simp] theorem reverse_setBlack {t : RBNode α} : (setBlack t).reverse = setBlack t.reverse := by
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), simp]
+theorem reverse_setBlack {t : RBNode α} : (setBlack t).reverse = setBlack t.reverse := by
   unfold setBlack; split <;> simp
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.setBlack {t : RBNode α} : (setBlack t).Ordered cmp ↔ t.Ordered cmp := by
   unfold setBlack; split <;> simp [Ordered]
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.setBlack : t.Balanced c n → ∃ n', (setBlack t).Balanced black n'
   | .nil => ⟨_, .nil⟩
   | .black hl hr | .red hl hr => ⟨_, hl.black hr⟩
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem setBlack_idem {t : RBNode α} : t.setBlack.setBlack = t.setBlack := by cases t <;> rfl
 
-@[simp] theorem reverse_ins [inst : Std.OrientedCmp (α := α) cmp] {t : RBNode α} :
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), simp]
+theorem reverse_ins [inst : Std.OrientedCmp (α := α) cmp] {t : RBNode α} :
     (ins cmp x t).reverse = ins (flip cmp) x t.reverse := by
   induction t with
   | nil => simp [ins]
@@ -129,12 +155,14 @@ theorem setBlack_idem {t : RBNode α} : t.setBlack.setBlack = t.setBlack := by c
       (simp only [ins, Std.OrientedCmp.eq_swap (cmp := cmp) (a := x) (b := y)]; split) <;>
         simp_all [ins, reverse, flip]
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem All.ins {x : α} {t : RBNode α}
   (h₁ : p x) (h₂ : t.All p) : (ins cmp x t).All p := by
   induction t <;> unfold ins <;> try simp [*]
   split <;> cases ‹_=_› <;> split <;> simp at h₂ <;> simp [*]
 
 /-- The `ins` function preserves the ordering invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.ins : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp x t).Ordered cmp
   | nil, _ => ⟨⟨⟩, ⟨⟩, ⟨⟩, ⟨⟩⟩
   | node red a y b, ⟨ay, yb, ha, hb⟩ => by
@@ -152,18 +180,22 @@ protected theorem Ordered.ins : ∀ {t : RBNode α}, t.Ordered cmp → (ins cmp 
         ay.imp fun ⟨h'⟩ => ⟨(Std.TransCmp.congr_right h).trans h'⟩,
         yb.imp fun ⟨h'⟩ => ⟨(Std.TransCmp.congr_left h).trans h'⟩, ha, hb⟩)
 
-@[simp] theorem isRed_reverse {t : RBNode α} : t.reverse.isRed = t.isRed := by
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), simp]
+theorem isRed_reverse {t : RBNode α} : t.reverse.isRed = t.isRed := by
   cases t <;> simp [isRed]
 
-@[simp] theorem reverse_insert [inst : Std.OrientedCmp (α := α) cmp] {t : RBNode α} :
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), simp]
+theorem reverse_insert [inst : Std.OrientedCmp (α := α) cmp] {t : RBNode α} :
     (insert cmp t x).reverse = insert (flip cmp) t.reverse x := by
   simp [insert]; split <;> simp
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem insert_setBlack {t : RBNode α} :
     (t.insert cmp v).setBlack = (t.ins cmp v).setBlack := by
   unfold insert; split <;> simp [setBlack_idem]
 
 /-- The `insert` function preserves the ordering invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.insert (h : t.Ordered cmp) : (insert cmp t v).Ordered cmp := by
   unfold RBNode.insert; split <;> simp [Ordered.setBlack, h.ins (x := v)]
 
@@ -175,6 +207,7 @@ It occurs as a temporary condition in the `insert` and `erase` functions.
 The `p` parameter allows the `.redred` case to be dependent on an additional condition.
 If it is false, then this is equivalent to the usual red-black invariant.
 -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 inductive RedRed (p : Prop) : RBNode α → Nat → Prop where
   /-- A balanced tree has the red-red invariant. -/
   | balanced : Balanced t c n → RedRed p t n
@@ -182,30 +215,36 @@ inductive RedRed (p : Prop) : RBNode α → Nat → Prop where
   | redred : p → Balanced a c₁ n → Balanced b c₂ n → RedRed p (node red a x b) n
 
 /-- When `p` is false, the red-red case is impossible so the tree is balanced. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem RedRed.of_false (h : ¬p) : RedRed p t n → ∃ c, Balanced t c n
   | .balanced h => ⟨_, h⟩
   | .redred hp .. => nomatch h hp
 
 /-- A `red` node with the red-red invariant has balanced children. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem RedRed.of_red : RedRed p (node red a x b) n →
     ∃ c₁ c₂, Balanced a c₁ n ∧ Balanced b c₂ n
   | .balanced (.red ha hb) | .redred _ ha hb => ⟨_, _, ha, hb⟩
 
 /-- The red-red invariant is monotonic in `p`. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem RedRed.imp (h : p → q) : RedRed p t n → RedRed q t n
   | .balanced h => .balanced h
   | .redred hp ha hb => .redred (h hp) ha hb
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem RedRed.reverse : RedRed p t n → RedRed p t.reverse n
   | .balanced h => .balanced h.reverse
   | .redred hp ha hb => .redred hp hb.reverse ha.reverse
 
 /-- If `t` has the red-red invariant, then setting the root to black yields a balanced tree. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem RedRed.setBlack : t.RedRed p n → ∃ n', (setBlack t).Balanced black n'
   | .balanced h => h.setBlack
   | .redred _ hl hr => ⟨_, hl.black hr⟩
 
 /-- The `balance1` function repairs the balance invariant when the first argument is red-red. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem RedRed.balance1 {l : RBNode α} {v : α} {r : RBNode α}
     (hl : l.RedRed p n) (hr : r.Balanced c n) : ∃ c, (balance1 l v r).Balanced c (n + 1) := by
   unfold balance1; split
@@ -218,16 +257,19 @@ protected theorem RedRed.balance1 {l : RBNode α} {v : α} {r : RBNode α}
     | .redred _ (c₂ := red) _ (.red ..) => cases H2 _ _ _ _ _ rfl
 
 /-- The `balance2` function repairs the balance invariant when the second argument is red-red. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem RedRed.balance2 {l : RBNode α} {v : α} {r : RBNode α}
     (hl : l.Balanced c n) (hr : r.RedRed p n) : ∃ c, (balance2 l v r).Balanced c (n + 1) :=
   (hr.reverse.balance1 hl.reverse (v := v)).imp fun _ h => by simpa using h.reverse
 
 /-- The `balance1` function does nothing if the first argument is already balanced. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem balance1_eq {l : RBNode α} {v : α} {r : RBNode α}
     (hl : l.Balanced c n) : balance1 l v r = node black l v r := by
   unfold balance1; split <;> first | rfl | nomatch hl
 
 /-- The `balance2` function does nothing if the second argument is already balanced. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem balance2_eq {l : RBNode α} {v : α} {r : RBNode α}
     (hr : r.Balanced c n) : balance2 l v r = node black l v r :=
   (reverse_reverse _).symm.trans <| by simp [balance1_eq hr.reverse]
@@ -239,6 +281,7 @@ The balance invariant of the `ins` function.
 The result of inserting into the tree either yields a balanced tree,
 or a tree which is almost balanced except that it has a red-red violation at the root.
 -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.ins (cmp v) {t : RBNode α}
     (h : t.Balanced c n) : (ins cmp v t).RedRed (t.isRed = red) n := by
   induction h with
@@ -267,6 +310,7 @@ The `insert` function is balanced if the input is balanced.
 (We lose track of both the color and the black-height of the result,
 so this is only suitable for use on the root of the tree.)
 -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem Balanced.insert {t : RBNode α} (h : t.Balanced c n) :
     ∃ c' n', (insert cmp t v).Balanced c' n' := by
   unfold RBNode.insert
@@ -274,17 +318,21 @@ theorem Balanced.insert {t : RBNode α} (h : t.Balanced c n) :
   | _, .balanced h => split <;> [exact ⟨_, h.setBlack⟩; exact ⟨_, _, h⟩]
   | _, .redred _ ha hb => have .node red .. := t; exact ⟨_, _, .black ha hb⟩
 
-@[simp] theorem reverse_setRed {t : RBNode α} : (setRed t).reverse = setRed t.reverse := by
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), simp]
+theorem reverse_setRed {t : RBNode α} : (setRed t).reverse = setRed t.reverse := by
   unfold setRed; split <;> simp
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem All.setRed {t : RBNode α} (h : t.All p) : (setRed t).All p := by
   unfold setRed; split <;> simp_all
 
 /-- The `setRed` function preserves the ordering invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.setRed {t : RBNode α} : (setRed t).Ordered cmp ↔ t.Ordered cmp := by
   unfold setRed; split <;> simp [Ordered]
 
-@[simp] theorem reverse_balLeft (l : RBNode α) (v : α) (r : RBNode α) :
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), simp]
+theorem reverse_balLeft (l : RBNode α) (v : α) (r : RBNode α) :
     (balLeft l v r).reverse = balRight r.reverse v l.reverse := by
   suffices ∀ r' l', r' = r.reverse → l' = l.reverse →
      (balLeft l v r).reverse = balRight r' v l' from this _ _ rfl rfl
@@ -292,15 +340,18 @@ protected theorem Ordered.setRed {t : RBNode α} : (setRed t).Ordered cmp ↔ t.
   fun_cases balLeft l v r <;> fun_cases balRight r' v l' <;>
     grind [reverse, reverse_reverse, reverse_balance2, reverse_setRed]
 
-@[simp] theorem reverse_balRight (l : RBNode α) (v : α) (r : RBNode α) :
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), simp]
+theorem reverse_balRight (l : RBNode α) (v : α) (r : RBNode α) :
     (balRight l v r).reverse = balLeft r.reverse v l.reverse := by
   rw [← reverse_reverse (balLeft ..)]; simp
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem All.balLeft
     (hl : l.All p) (hv : p v) (hr : r.All p) : (balLeft l v r).All p := by
   unfold balLeft; split <;> (try simp_all); split <;> simp_all [All.setRed]
 
 /-- The `balLeft` function preserves the ordering invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.balLeft {l : RBNode α} {v : α} {r : RBNode α}
     (lv : l.All (cmpLT cmp · v)) (vr : r.All (cmpLT cmp v ·))
     (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balLeft l v r).Ordered cmp := by
@@ -314,6 +365,7 @@ protected theorem Ordered.balLeft {l : RBNode α} {v : α} {r : RBNode α}
   · exact ⟨lv, vr, hl, hr⟩
 
 /-- The balancing properties of the `balLeft` function. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.balLeft (hl : l.RedRed True n) (hr : r.Balanced cr (n + 1)) :
     (balLeft l v r).RedRed (cr = red) (n + 1) := by
   unfold balLeft; split
@@ -330,11 +382,13 @@ protected theorem Balanced.balLeft (hl : l.RedRed True n) (hr : r.Balanced cr (n
       | .red (.black ha hb) (.black hc hd) =>
         let ⟨c, h⟩ := RedRed.balance2 hb (.redred trivial hc hd); .redred rfl (.black hl ha) h
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem All.balRight
     (hl : l.All p) (hv : p v) (hr : r.All p) : (balRight l v r).All p :=
   All.reverse.1 <| reverse_balRight .. ▸ (All.reverse.2 hr).balLeft hv (All.reverse.2 hl)
 
 /-- The `balRight` function preserves the ordering invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.balRight {l : RBNode α} {v : α} {r : RBNode α}
     (lv : l.All (cmpLT cmp · v)) (vr : r.All (cmpLT cmp v ·))
     (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (balRight l v r).Ordered cmp := by
@@ -343,6 +397,7 @@ protected theorem Ordered.balRight {l : RBNode α} {v : α} {r : RBNode α}
     ((All.reverse.2 vr).imp cmpLT.flip) ((All.reverse.2 lv).imp cmpLT.flip) hl.reverse
 
 /-- The balancing properties of the `balRight` function. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.balRight (hl : l.Balanced cl (n + 1)) (hr : r.RedRed True n) :
     (balRight l v r).RedRed (cl = red) (n + 1) := by
   rw [← reverse_reverse (balRight ..), reverse_balRight]
@@ -350,6 +405,7 @@ protected theorem Balanced.balRight (hl : l.Balanced cl (n + 1)) (hr : r.RedRed 
 
 -- note: reverse_append is false!
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem All.append (hl : l.All p) (hr : r.All p) : (append l r).All p := by
   unfold append; split <;> try simp [*]
   · have ⟨hx, ha, hb⟩ := hl; have ⟨hy, hc, hd⟩ := hr
@@ -361,6 +417,7 @@ protected theorem All.append (hl : l.All p) (hr : r.All p) : (append l r).All p 
 termination_by l.size + r.size
 
 /-- The `append` function preserves the ordering invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.append {l : RBNode α} {v : α} {r : RBNode α}
     (lv : l.All (cmpLT cmp · v)) (vr : r.All (cmpLT cmp v ·))
     (hl : l.Ordered cmp) (hr : r.Ordered cmp) : (append l r).Ordered cmp := by
@@ -394,6 +451,7 @@ protected theorem Ordered.append {l : RBNode α} {v : α} {r : RBNode α}
 termination_by l.size + r.size
 
 /-- The balance properties of the `append` function. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.append {l r : RBNode α}
     (hl : l.Balanced c₁ n) (hr : r.Balanced c₂ n) :
     (l.append r).RedRed (c₁ = black → c₂ ≠ black) n := by
@@ -441,18 +499,21 @@ The invariant of the `del` function.
 * If the input tree is red or nil, then the result of deletion is a balanced tree with
   some color and the same black-height.
 -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 def DelProp (p : RBColor) (t : RBNode α) (n : Nat) : Prop :=
   match p with
   | black => ∃ n', n = n' + 1 ∧ RedRed True t n'
   | red => ∃ c, Balanced t c n
 
 /-- The `DelProp` property is a strengthened version of the red-red invariant. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem DelProp.redred (h : DelProp c t n) : ∃ n', RedRed (c = black) t n' := by
   unfold DelProp at h
   exact match c, h with
   | red, ⟨_, h⟩ => ⟨_, .balanced h⟩
   | black, ⟨_, _, h⟩ => ⟨_, h.imp fun _ => rfl⟩
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem All.del : ∀ {t : RBNode α}, t.All p → (del cut t).All p
   | .nil, h => h
   | .node .., ⟨hy, ha, hb⟩ => by
@@ -466,6 +527,7 @@ protected theorem All.del : ∀ {t : RBNode α}, t.All p → (del cut t).All p
     · exact ha.append hb
 
 /-- The `del` function preserves the ordering invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.del : ∀ {t : RBNode α}, t.Ordered cmp → (del cut t).Ordered cmp
   | .nil, _ => ⟨⟩
   | .node _ a y b, ⟨ay, yb, ha, hb⟩ => by
@@ -479,6 +541,7 @@ protected theorem Ordered.del : ∀ {t : RBNode α}, t.Ordered cmp → (del cut 
     · exact ha.append ay yb hb
 
 /-- The `del` function has the `DelProp` property. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.del {t : RBNode α} (h : t.Balanced c n) :
     (t.del cut).DelProp t.isBlack n := by
   induction h with
@@ -504,15 +567,18 @@ protected theorem Balanced.del {t : RBNode α} (h : t.Balanced c n) :
     · exact (ha.append hb).of_false (· rfl rfl)
 
 /-- The `erase` function preserves the ordering invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.erase {t : RBNode α} (h : t.Ordered cmp) : (erase cut t).Ordered cmp :=
   Ordered.setBlack.2 h.del
 
 /-- The `erase` function preserves the balance invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.erase {t : RBNode α}
     (h : t.Balanced c n) : ∃ n, (t.erase cut).Balanced black n :=
   have ⟨_, h⟩ := h.del.redred; h.setBlack
 
 /-- The well-formedness invariant implies the ordering and balance properties. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 theorem WF.out {t : RBNode α} (h : t.WF cmp) : t.Ordered cmp ∧ ∃ c n, t.Balanced c n := by
   induction h with
   | mk o h => exact ⟨o, _, _, h⟩
@@ -523,27 +589,32 @@ theorem WF.out {t : RBNode α} (h : t.WF cmp) : t.Ordered cmp ∧ ∃ c n, t.Bal
 The well-formedness invariant for a red-black tree is exactly the `mk` constructor,
 because the other constructors of `WF` are redundant.
 -/
-@[simp] theorem WF_iff {t : RBNode α} : t.WF cmp ↔ t.Ordered cmp ∧ ∃ c n, t.Balanced c n :=
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), simp]
+theorem WF_iff {t : RBNode α} : t.WF cmp ↔ t.Ordered cmp ∧ ∃ c n, t.Balanced c n :=
   ⟨fun h => h.out, fun ⟨o, _, _, h⟩ => .mk o h⟩
 
 /-- The `map` function preserves the balance invariants. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Balanced.map {t : RBNode α} : t.Balanced c n → (t.map f).Balanced c n
   | .nil => .nil
   | .red hl hr => .red hl.map hr.map
   | .black hl hr => .black hl.map hr.map
 
 /-- The property of a map function `f` which ensures the `map` operation is valid. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 class IsMonotone (cmpα cmpβ) (f : α → β) : Prop where
   /-- If `x < y` then `f x < f y`. -/
   lt_mono : cmpLT cmpα x y → cmpLT cmpβ (f x) (f y)
 
 /-- Sufficient condition for `map` to preserve an `All` quantifier. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem All.map {f : α → β} (H : ∀ {x}, p x → q (f x)) :
     ∀ {t : RBNode α}, t.All p → (t.map f).All q
   | nil, _ => ⟨⟩
   | node .., ⟨hx, ha, hb⟩ => ⟨H hx, ha.map H, hb.map H⟩
 
 /-- The `map` function preserves the order invariants if `f` is monotone. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 protected theorem Ordered.map (f : α → β) [IsMonotone cmpα cmpβ f] :
     ∀ {t : RBNode α}, t.Ordered cmpα → (t.map f).Ordered cmpβ
   | nil, _ => ⟨⟩
@@ -560,7 +631,8 @@ export RBNode (IsMonotone)
 This requires `IsMonotone` on the function in order to preserve the order invariant.
 If the function is not monotone, use `RBSet.map` instead.
 -/
-@[inline] def mapMonotone (f : α → β) [IsMonotone cmpα cmpβ f] (t : RBSet α cmpα) : RBSet β cmpβ :=
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), inline]
+def mapMonotone (f : α → β) [IsMonotone cmpα cmpβ f] (t : RBSet α cmpα) : RBSet β cmpβ :=
   ⟨t.1.map f, have ⟨h₁, _, _, h₂⟩ := t.2.out; .mk (h₁.map _) h₂.map⟩
 
 end RBSet
@@ -574,10 +646,12 @@ namespace Imp
 Applies `f` to the second component.
 We extract this as a function so that `IsMonotone (mapSnd f)` can be an instance.
 -/
-@[inline] def mapSnd (f : α → β → γ) := fun (a, b) => (a, f a b)
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05"), inline]
+def mapSnd (f : α → β → γ) := fun (a, b) => (a, f a b)
 
 open Ordering (byKey)
 
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 instance (cmp : α → α → Ordering) (f : α → β → γ) :
     IsMonotone (byKey Prod.fst cmp) (byKey Prod.fst cmp) (mapSnd f) where
   lt_mono | ⟨h⟩ => ⟨@fun _ => @h {
@@ -591,6 +665,7 @@ instance (cmp : α → α → Ordering) (f : α → β → γ) :
 end Imp
 
 /-- `O(n)`. Map a function on the values in the map. -/
+@[deprecated "Use `Std.TreeMap` instead." (since := "2026-05-05")]
 def mapVal (f : α → β → γ) (t : RBMap α β cmp) : RBMap α γ cmp := t.mapMonotone (Imp.mapSnd f)
 
 end RBMap
