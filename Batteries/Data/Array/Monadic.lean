@@ -26,7 +26,7 @@ use `Std.Do.Triple` and the `mvcgen` tactic instead.
 
 namespace Array
 
-@[deprecated "`SatisfiesM` is unused downstream; use `Std.Do.Triple` instead." (since := "2026-05-05")]
+@[deprecated "unused downstream; use Std.Do.Triple" (since := "2026-05-05")]
 theorem SatisfiesM_foldlM [Monad m] [LawfulMonad m] {as : Array α} {init : β}
     {motive : Nat → β → Prop} {f : β → α → m β} (h0 : motive 0 init)
     (hf : ∀ i : Fin as.size, ∀ b, motive i.1 b → SatisfiesM (motive (i.1 + 1)) (f b as[i])) :
@@ -41,7 +41,7 @@ theorem SatisfiesM_foldlM [Monad m] [LawfulMonad m] {as : Array α} {init : β}
     · next hj => exact Nat.le_antisymm h₁ (Nat.ge_of_not_lt hj) ▸ .pure H
   simp [foldlM]; exact go (Nat.zero_le _) (Nat.le_refl _) h0
 
-@[deprecated "`SatisfiesM` is unused downstream; use `Std.Do.Triple` instead." (since := "2026-05-05")]
+@[deprecated "unused downstream; use Std.Do.Triple" (since := "2026-05-05")]
 theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] {as : Array α} {f : α → m β}
     {motive : Nat → Prop} {p : Fin as.size → β → Prop} (h0 : motive 0)
     (hs : ∀ i, motive i.1 → SatisfiesM (p i · ∧ motive (i + 1)) (f as[i])) :
@@ -59,7 +59,7 @@ theorem SatisfiesM_mapM [Monad m] [LawfulMonad m] {as : Array α} {f : α → m 
     simp [getElem_push] at hj ⊢; split; {apply ih₂}
     cases j; cases (Nat.le_or_eq_of_le_succ hj).resolve_left ‹_›; cases eq; exact h₁
 
-@[deprecated "`SatisfiesM` is unused downstream; use `Std.Do.Triple` instead." (since := "2026-05-05")]
+@[deprecated "unused downstream; use Std.Do.Triple" (since := "2026-05-05")]
 theorem SatisfiesM_mapM' [Monad m] [LawfulMonad m] {as : Array α} {f : α → m β}
     {p : Fin as.size → β → Prop}
     (hs : ∀ i, SatisfiesM (p i) (f as[i])) :
@@ -68,12 +68,12 @@ theorem SatisfiesM_mapM' [Monad m] [LawfulMonad m] {as : Array α} {f : α → m
       (Array.mapM f as) :=
   (SatisfiesM_mapM (motive := fun _ => True) trivial (fun _ h => (hs _).imp (⟨·, h⟩))).imp (·.2)
 
-@[deprecated "`SatisfiesM` is unused downstream; use `Std.Do.Triple` instead." (since := "2026-05-05")]
+@[deprecated "unused downstream; use Std.Do.Triple" (since := "2026-05-05")]
 theorem size_mapM [Monad m] [LawfulMonad m] (f : α → m β) (as : Array α) :
     SatisfiesM (fun arr => arr.size = as.size) (Array.mapM f as) :=
   (SatisfiesM_mapM' (fun _ => .trivial)).imp (·.1)
 
-@[deprecated "`SatisfiesM` is unused downstream; use `Std.Do.Triple` instead." (since := "2026-05-05")]
+@[deprecated "unused downstream; use Std.Do.Triple" (since := "2026-05-05")]
 theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] {p : α → m Bool} {as : Array α}
     (hstart : start ≤ min stop as.size) (tru : Prop) (fal : Nat → Prop) (h0 : fal start)
     (hp : ∀ i : Fin as.size, i.1 < stop → fal i.1 →
@@ -97,7 +97,7 @@ theorem SatisfiesM_anyM [Monad m] [LawfulMonad m] {p : α → m Bool} {as : Arra
   simp only [Array.anyM_eq_anyM_loop]
   exact go hstart _ h0 fun i hi => hp i <| Nat.lt_of_lt_of_le hi <| Nat.min_le_left ..
 
-@[deprecated "`SatisfiesM` is unused downstream; use `Std.Do.Triple` instead." (since := "2026-05-05")]
+@[deprecated "unused downstream; use Std.Do.Triple" (since := "2026-05-05")]
 theorem SatisfiesM_anyM_iff_exists [Monad m] [LawfulMonad m]
     {p : α → m Bool} {as : Array α} {q : Fin as.size → Prop}
     (hp : ∀ i : Fin as.size, start ≤ i.1 → i.1 < stop → SatisfiesM (· = true ↔ q i) (p as[i])) :
@@ -125,7 +125,7 @@ theorem SatisfiesM_anyM_iff_exists [Monad m] [LawfulMonad m]
     refine .pure ?_; simp; intro j h₁ h₂
     cases Nat.not_lt.2 (Nat.le_trans hstart h₁) (Nat.lt_min.2 ⟨h₂, j.2⟩)
 
-@[deprecated "`SatisfiesM` is unused downstream; use `Std.Do.Triple` instead." (since := "2026-05-05")]
+@[deprecated "unused downstream; use Std.Do.Triple" (since := "2026-05-05")]
 theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
     {as : Array α} {init : β} {motive : Nat → β → Prop} {f : α → β → m β}
     (h0 : motive as.size init)
@@ -142,7 +142,7 @@ theorem SatisfiesM_foldrM [Monad m] [LawfulMonad m]
   simp [foldrM]; split; {exact go _ h0}
   · next h => exact .pure (Nat.eq_zero_of_not_pos h ▸ h0)
 
-@[deprecated "`SatisfiesM` is unused downstream; use `Std.Do.Triple` instead." (since := "2026-05-05")]
+@[deprecated "unused downstream; use Std.Do.Triple" (since := "2026-05-05")]
 theorem SatisfiesM_mapFinIdxM [Monad m] [LawfulMonad m]
     {as : Array α} {f : (i : Nat) → α → i < as.size → m β} {motive : Nat → Prop}
     {p : (i : Nat) → β → i < as.size → Prop}
@@ -165,7 +165,7 @@ theorem SatisfiesM_mapFinIdxM [Monad m] [LawfulMonad m]
       · next h => cases h₁.symm ▸ (Nat.le_or_eq_of_le_succ hi').resolve_left h; exact hb.1
   simp [mapFinIdxM]; exact go rfl nofun h0
 
-@[deprecated "`SatisfiesM` is unused downstream; use `Std.Do.Triple` instead." (since := "2026-05-05")]
+@[deprecated "unused downstream; use Std.Do.Triple" (since := "2026-05-05")]
 theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] {as : Array α} {f : Nat → α → m β}
     {p : (i : Nat) → β → i < as.size → Prop} {motive : Nat → Prop}
     (h0 : motive 0) (hs : ∀ i h, motive i → SatisfiesM (p i · h ∧ motive (i + 1)) (f i as[i])) :
@@ -174,19 +174,19 @@ theorem SatisfiesM_mapIdxM [Monad m] [LawfulMonad m] {as : Array α} {f : Nat �
       (as.mapIdxM f) :=
   SatisfiesM_mapFinIdxM h0 hs
 
-@[deprecated "`SatisfiesM` is unused downstream; use `Std.Do.Triple` instead." (since := "2026-05-05")]
+@[deprecated "unused downstream; use Std.Do.Triple" (since := "2026-05-05")]
 theorem size_mapFinIdxM [Monad m] [LawfulMonad m]
     (as : Array α) (f : (i : Nat) → α → i < as.size → m β) :
     SatisfiesM (fun arr => arr.size = as.size) (Array.mapFinIdxM as f) :=
   (SatisfiesM_mapFinIdxM (motive := fun _ => True) trivial
     (fun _ _ _ => .of_true fun _ => ⟨trivial, trivial⟩)).imp (·.2.1)
 
-@[deprecated "`SatisfiesM` is unused downstream; use `Std.Do.Triple` instead." (since := "2026-05-05")]
+@[deprecated "unused downstream; use Std.Do.Triple" (since := "2026-05-05")]
 theorem size_mapIdxM [Monad m] [LawfulMonad m] (as : Array α) (f : Nat → α → m β) :
     SatisfiesM (fun arr => arr.size = as.size) (Array.mapIdxM f as) :=
   size_mapFinIdxM _ _
 
-@[deprecated "`SatisfiesM` is unused downstream; use `Std.Do.Triple` instead." (since := "2026-05-05")]
+@[deprecated "unused downstream; use Std.Do.Triple" (since := "2026-05-05")]
 theorem size_modifyM [Monad m] [LawfulMonad m] (as : Array α) (i : Nat) (f : α → m α) :
     SatisfiesM (·.size = as.size) (as.modifyM i f) := by
   unfold modifyM; split
