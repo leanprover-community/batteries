@@ -55,15 +55,24 @@ structure NameMapAttributeImpl (α : Type) where
   add (src : Name) (stx : Syntax) : AttrM α
   deriving Inhabited
 
+/-- Build an `AttributeImpl` that adds entries to an existing `NameMapExtension`.
+
+Useful when the env extension is registered separately via `registerNameMapExtension` (which must
+run inside an `initialize` block) and the attribute itself is to be registered via the
+`@[attribute]` mechanism, allowing the attribute and the env extension to live in different
+modules. See `registerNameMapAttribute` for the all-in-one variant. -/
+def NameMapExtension.mkAttrImpl (ext : NameMapExtension α) (impl : NameMapAttributeImpl α) :
+    AttributeImpl where
+  ref := impl.ref
+  name := impl.name
+  descr := impl.descr
+  add := fun src stx _kind => do
+    let a : α ← impl.add src stx
+    ext.add src a
+
 /-- Similar to `registerParametricAttribute` except that attributes do not
 have to be assigned in the same file as the declaration. -/
 def registerNameMapAttribute (impl : NameMapAttributeImpl α) : IO (NameMapExtension α) := do
   let ext ← registerNameMapExtension α impl.ref
-  registerBuiltinAttribute {
-    name := impl.name
-    descr := impl.descr
-    add := fun src stx _kind => do
-      let a : α ← impl.add src stx
-      ext.add src a
-  }
+  registerBuiltinAttribute (ext.mkAttrImpl impl)
   return ext
