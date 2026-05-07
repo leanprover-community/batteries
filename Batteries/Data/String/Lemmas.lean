@@ -364,6 +364,7 @@ theorem findAux_of_valid (p) : ∀ l m r,
       rw [foo, Nat.add_right_comm, Nat.add_assoc]
     · simp
 
+set_option backward.simpa.using.reducibleClose false in
 theorem find_of_valid (p s) : Legacy.find s p = ⟨utf8Len (s.toList.takeWhile (!p ·))⟩ := by
   simpa using findAux_of_valid p [] s.toList []
 
@@ -383,6 +384,7 @@ theorem revFindAux_of_valid (p) : ∀ l r,
       List.tail?_cons, Option.map_some]
     exact revFindAux_of_valid p l (c::r)
 
+set_option backward.simpa.using.reducibleClose false in
 theorem revFind_of_valid (p s) :
     Legacy.revFind s p = (s.toList.reverse.dropWhile (!p ·)).tail?.map (⟨utf8Len ·⟩) := by
   simpa using revFindAux_of_valid p s.toList.reverse []
@@ -420,6 +422,7 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
     obtain ⟨b, bs, e₂⟩ := List.exists_cons_of_ne_nil (this h₂)
     exact h _ _ _ _ e₁ e₂
 
+set_option backward.simpa.using.reducibleClose false in
 theorem firstDiffPos_eq (a b : String) :
     firstDiffPos a b = ⟨utf8Len (List.takeWhile₂ (· = ·) a.toList b.toList).1⟩ := by
   simpa [firstDiffPos] using
@@ -576,6 +579,7 @@ attribute [simp] toString pos
 
 namespace ValidFor
 
+set_option backward.simpa.using.reducibleClose false in
 theorem valid : ∀ {it}, ValidFor l r it → Valid it
   | _, ⟨⟩ => by simpa [List.reverseAux_eq] using Pos.Raw.Valid.mk l.reverse r rfl
 
@@ -710,6 +714,7 @@ end ValidFor
 
 namespace Valid
 
+set_option backward.simpa.using.reducibleClose false in
 theorem validFor : ∀ {it}, Valid it → ∃ l r, ValidFor l r it
   | ⟨_, ⟨_⟩⟩, .mk l r rfl =>
     ⟨l.reverse, r, by simpa [List.reverseAux_eq] using @ValidFor.mk l.reverse r⟩
@@ -766,6 +771,7 @@ theorem offsetOfPosAux_of_valid : ∀ l m r n,
     simpa [← Nat.add_assoc, Nat.add_right_comm] using
       offsetOfPosAux_of_valid (l++[c]) m r (n + 1)
 
+set_option backward.simpa.using.reducibleClose false in
 theorem offsetOfPos_of_valid (l r) :
     String.Pos.Raw.offsetOfPos (ofList (l ++ r)) ⟨utf8Len l⟩ = l.length := by
   simpa using offsetOfPosAux_of_valid [] l r 0
@@ -781,6 +787,7 @@ theorem foldlAux_of_valid (f : α → Char → α) : ∀ l m r a,
       get_of_valid l (c :: (m ++ r)), Char.reduceDefault, List.headD_cons, List.foldl_cons]
     simpa [← Nat.add_assoc, Nat.add_right_comm] using foldlAux_of_valid f (l++[c]) m r (f a c)
 
+set_option backward.simpa.using.reducibleClose false in
 theorem foldl_eq (f : α → Char → α) (s a) : Legacy.foldl f a s = s.toList.foldl f a := by
   simpa using foldlAux_of_valid f [] s.toList [] a
 
@@ -796,6 +803,7 @@ theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
     simp only [by simpa using get_of_valid (l ++ m.reverse) (c :: r)]
     simpa using IH (c::r) (f c a)
 
+set_option backward.simpa.using.reducibleClose false in
 theorem foldr_eq (f : Char → α → α) (s a) : Legacy.foldr f a s = s.toList.foldr f a := by
   simpa using foldrAux_of_valid f [] s.toList [] a
 
@@ -812,6 +820,7 @@ theorem anyAux_of_valid (p : Char → Bool) : ∀ l m r,
     cases p c <;> simp
     simpa [← Nat.add_assoc, Nat.add_right_comm] using anyAux_of_valid p (l++[c]) m r
 
+set_option backward.simpa.using.reducibleClose false in
 theorem any_eq (s : String) (p : Char → Bool) : Legacy.any s p = s.toList.any p := by
   simpa using anyAux_of_valid p [] s.toList []
 
@@ -839,6 +848,7 @@ theorem mapAux_of_valid (f : Char → Char) :
       List.map_cons]
     simpa using mapAux_of_valid f (l++[f c]) r
 
+set_option backward.simpa.using.reducibleClose false in
 theorem map_eq (f : Char → Char) (s) : Legacy.map f s = ofList (s.toList.map f) := by
   simpa using mapAux_of_valid f [] s.toList
 
@@ -943,6 +953,7 @@ theorem toIterator : ∀ {s}, ValidFor l m r s → s.toLegacyIterator.ValidFor l
     simp only [Substring.Raw.toLegacyIterator]
     exact .of_eq _ (by simp [h.str, List.reverseAux_eq]) (by simp [h.startPos])
 
+set_option backward.simpa.using.reducibleClose false in
 theorem get : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s → s.get ⟨utf8Len m₁⟩ = c
   | _, ⟨⟩ => by simpa using get_of_valid (l ++ m₁) (c :: m₂ ++ r)
 
@@ -1096,6 +1107,7 @@ end ValidFor
 
 namespace Valid
 
+set_option backward.simpa.using.reducibleClose false in
 theorem validFor : ∀ {s}, Valid s → ∃ l m r, ValidFor l m r s
   | ⟨_, ⟨_⟩, ⟨_⟩⟩, ⟨.mk l mr rfl, t, h⟩ => by
     obtain ⟨lm, r, h₁, h₂⟩ := t.exists

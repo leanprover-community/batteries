@@ -517,6 +517,7 @@ theorem Ordered.upperBound?_least_ub [Std.TransCmp (α := α) cmp] [IsCut cmp cu
     · cases h₁; cases hx.symm.trans hv
     · cases h₁; cases hx.symm.trans hv
 
+set_option backward.simpa.using.reducibleClose false in
 theorem Ordered.lowerBound?_greatest_lb [Std.TransCmp (α := α) cmp] [IsCut cmp cut]
     (h : Ordered cmp t) (hlb : ∀ {x}, lb = some x → t.All (cmpLT cmp x ·)) :
     t.lowerBound? cut lb = some x → y ∈ t → cut x = .gt → cmp x y = .lt → cut y = .lt := by
@@ -582,6 +583,7 @@ theorem Ordered.lowerBound?_lt [Std.TransCmp (α := α) cmp] [IsStrictCut cmp cu
     · exact ht.lowerBound?_greatest H hy h e
   · by_contra h'; exact lowerBound?_le H <| IsCut.le_lt_trans (cmp := cmp) (cut := cut) h' h
 
+set_option backward.simpa.using.reducibleClose false in
 /-- A stronger version of `upperBound?_least` that holds when the cut is strict. -/
 theorem Ordered.lt_upperBound? [Std.TransCmp (α := α) cmp] [IsStrictCut cmp cut]
     (ht : Ordered cmp t) (H : t.upperBound? cut = some x) (hy : y ∈ t) :
@@ -945,6 +947,7 @@ theorem mem_insert_of_mem [Std.TransCmp (α := α) cmp] (v) {t : RBSet α cmp}
   let ⟨_, h₁, h₂⟩ := mem_iff_mem_toList.1 h
   (mem_congr h₂).2 (mem_insert_of_mem_toList v h₁)
 
+set_option backward.simpa.using.reducibleClose false in
 theorem mem_toList_insert [Std.TransCmp (α := α) cmp] {t : RBSet α cmp} :
     v' ∈ toList (t.insert v) ↔ (v' ∈ toList t ∧ t.find? v ≠ some v') ∨ v' = v := by
   let ⟨ht₁, _, _, ht₂⟩ := t.2.out
