@@ -217,7 +217,7 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
         else
           return none
 
-library_note "simp-normal form" /--
+library_note «simp-normal form» /--
 This note gives you some tips to debug any errors that the simp-normal form linter raises.
 
 The reason that a lemma was considered faulty is because its left-hand side is not in simp-normal
