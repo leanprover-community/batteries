@@ -18,7 +18,7 @@ jobs:
         api-key: ${{ secrets.ZULIP_API_KEY }}
         email: 'github-mathlib4-bot@leanprover.zulipchat.com'
         organization-url: 'https://leanprover.zulipchat.com'
-        to: 'nightly-testing'
+        to: 'nightly-testing-batteries'
         type: 'stream'
         topic: 'Batteries status updates'
         content: |
@@ -90,7 +90,7 @@ jobs:
           'num_before': 1,
           'num_after': 0,
           'narrow': [
-            {'operator': 'stream', 'operand': 'nightly-testing'},
+            {'operator': 'stream', 'operand': 'nightly-testing-batteries'},
             {'operator': 'topic', 'operand': 'Batteries status updates'},
             {'operator': 'sender', 'operand': bot_email}
           ],
@@ -102,7 +102,7 @@ jobs:
             # Post the success message
             request = {
                 'type': 'stream',
-                'to': 'nightly-testing',
+                'to': 'nightly-testing-batteries',
                 'topic': 'Batteries status updates',
                 'content': f"✅ The latest CI for Batteries' [nightly-testing branch](https://github.com/${{ github.repository }}/tree/nightly-testing) has succeeded! ([{os.getenv('SHA')}](https://github.com/${{ github.repository }}/commit/{os.getenv('SHA')}))"
             }
@@ -194,7 +194,7 @@ jobs:
         api-key: ${{ secrets.ZULIP_API_KEY }}
         email: 'github-mathlib4-bot@leanprover.zulipchat.com'
         organization-url: 'https://leanprover.zulipchat.com'
-        to: 'nightly-testing'
+        to: 'nightly-testing-batteries'
         type: 'stream'
         topic: 'Batteries status updates'
         content: |
@@ -299,7 +299,7 @@ jobs:
               'num_before': 1,
               'num_after': 0,
               'narrow': [
-                {'operator': 'stream', 'operand': 'nightly-testing'},
+                {'operator': 'stream', 'operand': 'nightly-testing-batteries'},
                 {'operator': 'topic', 'operand': 'Batteries bump branch reminders'},
                 {'operator': 'sender', 'operand': bot_email}
               ],
@@ -337,7 +337,7 @@ jobs:
                 # Post the reminder message
                 request = {
                     'type': 'stream',
-                    'to': 'nightly-testing',
+                    'to': 'nightly-testing-batteries',
                     'topic': 'Batteries bump branch reminders',
                     'content': payload
                 }
