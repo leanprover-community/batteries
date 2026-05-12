@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kim Morrison
 -/
 module
-/-
-Broken against lean4#13283.
 
 public import Batteries.Lean.EStateM
 public import Batteries.Lean.Except
 
 @[expose] public section
+
+set_option backward.isDefEq.respectTransparency.types false
 
 /-!
 ## SatisfiesM
@@ -297,4 +297,3 @@ instance : MonadSatisfying (EStateM ε σ) where
     split <;> simp_all
 
 end MonadSatisfying
--/

@@ -68,7 +68,7 @@ theorem modify_eq_set_getElem? (f : α → α) :
   | 0, l => by cases l <;> simp
   | _+1, [] => rfl
   | n+1, b :: l =>
-    (congrArg (cons _) (modify_eq_set_getElem? ..)).trans <| by cases h : l[n]? <;> simp [h]
+    (congrArg (cons _) (modify_eq_set_getElem? ..)).trans <| by cases h : l[n]? <;> simp
 
 @[deprecated (since := "2025-02-15")] alias modify_eq_set_get? := modify_eq_set_getElem?
 
