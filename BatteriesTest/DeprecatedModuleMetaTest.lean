@@ -4,10 +4,10 @@ meta import BatteriesTest.DeprecatedModuleNew
 
 /--
 warning: Testing public import deprecation
-'MathlibTest.DeprecatedModuleNew' has been deprecated: please replace this import by
+'BatteriesTest.DeprecatedModuleNew' has been deprecated: please replace this import by
 
-import Mathlib.Tactic.Linter.DocPrime
-import Mathlib.Tactic.Linter.DocString
+import Batteries.Tactic.Alias
+import Batteries.Tactic.Basic
 
 
 Note: This linter can be disabled with `set_option linter.deprecated.module false`
