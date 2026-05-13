@@ -176,7 +176,3 @@ def deprecated.moduleLinter : Linter where run := withSetOptionIn fun stx ↦ do
           {String.join (preferred.foldl (·.push s!"import {·}\n") #[]).toList}"
 
 initialize addLinter deprecated.moduleLinter
-
-end DeprecatedModule
-
-end Batteries.Linter
