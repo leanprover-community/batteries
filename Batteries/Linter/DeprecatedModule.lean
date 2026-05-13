@@ -36,10 +36,9 @@ open Lean Elab Command Linter
 namespace Batteries.Linter
 
 /--
-The `deprecated.module` linter emits a warning when a file that has been renamed or split
-is imported.
-The default value is `true`, since this linter is designed to warn projects downstream of `Mathlib`
-of refactors and deprecations in `Mathlib` itself.
+The `deprecated.module` linter emits a warning when a file that has been
+deprecated is imported. The default value is `true`, since this linter is
+designed to warn downstream projects.
 -/
 public register_option linter.deprecated.module : Bool := {
   defValue := true
@@ -51,8 +50,7 @@ Defines the `deprecatedModuleExt` extension for adding a `HashSet` of triples of
 * a module `Name` that has been deprecated and
 * an array of `Name`s of modules that should be imported instead
 * an optional `String` containing further messages to be displayed with the deprecation
-
-to the environment.
+  to the environment.
 -/
 public initialize deprecatedModuleExt :
     SimplePersistentEnvExtension
@@ -63,13 +61,13 @@ public initialize deprecatedModuleExt :
   }
 
 /--
-`addModuleDeprecation` adds to the `deprecatedModuleExt` extension the pair consisting of the
-current module name and the array of its direct imports.
+`addModuleDeprecation` adds to the `deprecatedModuleExt` extension the pair
+consisting of the current module name and the array of its direct imports.
 
-It ignores the `Init` import, since this is a special module that is expected to be imported
-by all files.
+It ignores the `Init` module, since this is a special module that is expected
+to be imported by all files.
 
-It also ignores the `Mathlib/Tactic/Linter/DeprecatedModule.lean` import (namely, the current file),
+It also ignores the `DeprecatedModule` import (namely, the current file),
 since there is no need to import this module.
 -/
 def addModuleDeprecation {m : Type → Type} [Monad m] [MonadEnv m]
@@ -81,14 +79,14 @@ def addModuleDeprecation {m : Type → Type} [Monad m] [MonadEnv m]
          i.module == `Batteries.Linter.DeprecatedModule then none else i.module, msg?))
 
 /--
-`deprecated_module "Optional string" (since := "yyyy-mm-dd")` deprecates the current module `A`
-in favour of its direct imports.
-This means that any file that directly imports `A` will get a notification on the `import A` line
+`deprecated_module "Optional string" (since := "yyyy-mm-dd")` deprecates the
+current module `A` in favor of its direct imports. This means that any file
+that directly imports `A` will get a notification on the `import A` line
 suggesting to instead import the *direct imports* of `A`.
 -/
-elab (name := deprecated_modules)
-    "deprecated_module " msg?:(str ppSpace)? "(" &"since " ":= " date:str ")" : command => do
-  if let .error _parsedDate := Std.Time.PlainDate.fromLeanDateString date.getString then
+elab (name := deprecatedModule)
+    "deprecated_module " msg?:(str ppSpace)? "(" &"since " ":= " when:str ")" : command => do
+  if let .error _parsedDate := Std.Time.PlainDate.fromLeanDateString when.getString then
     throwError "Invalid date: the expected format is \"{← Std.Time.PlainDate.now}\""
   addModuleDeprecation <| msg?.map (·.getString)
   -- Disable the linter, so that it does not complain in the file with the deprecation.
@@ -99,11 +97,9 @@ A utility command to show the current entries of the `deprecatedModuleExt` in th
 ```
 Deprecated modules
 
-'MathlibTest.DeprecatedModule' deprecates to
-#[Mathlib.Tactic.Linter.DocPrime, Mathlib.Tactic.Linter.DocString]
+'BatteriesTest.DeprecatedModule' deprecates to
+#[Batteries.Tactic.Alias, Batteries.Tactic.Basic]
 with message 'We can also give more details about the deprecation'
-
-...
 ```
 -/
 elab "#show_deprecated_modules" : command => do
@@ -112,8 +108,6 @@ elab "#show_deprecated_modules" : command => do
     directImports.fold (init := ["Deprecated modules\n"]) fun nms (i, deps, msg?) =>
       let msg := match msg? with | some str => s!"message '{str}'" | none => "no message"
       nms ++ [s!"'{i}' deprecates to\n{deps}\nwith {msg}\n"]
-
-namespace DeprecatedModule
 
 /--
 `IsLaterCommand` is an `IO.Ref` that starts out being `false`.
@@ -143,14 +137,10 @@ partial def getImportIds (s : Syntax) : Array Syntax :=
     rest
 
 @[inherit_doc Batteries.Linter.linter.deprecated.module]
-def deprecated.moduleLinter : Linter where run := withSetOptionIn fun stx => do
+def deprecatedModuleLinter : Linter where run := withSetOptionIn fun stx => do
   unless getLinterValue linter.deprecated.module (← getLinterOptions) do
     return
   if (← get).messages.hasErrors then
-    return
-  -- Exempt Mathlib.lean since it's auto-generated and imports all modules
-  -- for backwards compatibility
-  if (← getFileName).endsWith "Mathlib.lean" then
     return
   let laterCommand ← IsLaterCommand.get
   -- If `laterCommand` is `true`, then the linter already did what it was supposed to do.
@@ -162,7 +152,7 @@ def deprecated.moduleLinter : Linter where run := withSetOptionIn fun stx => do
   let deprecations := deprecatedModuleExt.getState (← getEnv)
   if deprecations.isEmpty then
     return
-  if stx.isOfKind ``Linter.deprecated_modules then return
+  if stx.isOfKind ``deprecatedModule then return
   let fm ← getFileMap
   let (importStx, _) ←
     Parser.parseHeader { inputString := fm.source, fileName := ← getFileName, fileMap := fm }
@@ -174,4 +164,4 @@ def deprecated.moduleLinter : Linter where run := withSetOptionIn fun stx => do
           '{nmStx}' has been deprecated: please replace this import by\n\n\
           {String.join (preferred.foldl (·.push s!"import {·}\n") #[]).toList}"
 
-initialize addLinter deprecated.moduleLinter
+initialize addLinter deprecatedModuleLinter
