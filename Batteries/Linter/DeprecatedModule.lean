@@ -8,7 +8,6 @@ module
 public meta import Lean.Elab.Command
 public meta import Lean.Linter
 public meta import Std.Time.Format
---public import Mathlib.Init
 public import Std.Time.Date
 
 /-!
@@ -34,7 +33,7 @@ meta section
 
 open Lean Elab Command Linter
 
-namespace Mathlib.Linter
+namespace Batteries.Linter
 
 /--
 The `deprecated.module` linter emits a warning when a file that has been renamed or split
@@ -144,7 +143,7 @@ partial def getImportIds (s : Syntax) : Array Syntax :=
   else
     rest
 
-@[inherit_doc Mathlib.Linter.linter.deprecated.module]
+@[inherit_doc Batteries.Linter.linter.deprecated.module]
 def deprecated.moduleLinter : Linter where run := withSetOptionIn fun stx ↦ do
   unless getLinterValue linter.deprecated.module (← getLinterOptions) do
     return
@@ -180,4 +179,4 @@ initialize addLinter deprecated.moduleLinter
 
 end DeprecatedModule
 
-end Mathlib.Linter
+end Batteries.Linter
