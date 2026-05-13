@@ -136,6 +136,11 @@ https://leanprover-community.github.io/extras/simp.html#simp-normal-form
 and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/."
   test := fun declName => do
     unless ← isSimpTheorem declName do return none
+    -- Prime `eqnsExt`: it's a non-persistent extension, so after an import
+    -- it stays empty until something calls `getEqnsFor?` for the parent of
+    -- an equational theorem. This ensures `recordSimpTheorem` and
+    -- `isEqnThm?` behave consistently in both in-file and imported contexts.
+    discard <| getEqnsFor? declName.getPrefix
     withConfig Elab.Term.setElabConfig do
       checkAllSimpTheoremInfos (← getConstInfo declName).type fun { lhs, rhs, hyps, .. } => do
         -- we use `simp [*]` so that simp lemmas with hypotheses apply to themselves
@@ -159,7 +164,11 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
             return (Simp.Result.mk e .none .true, s)
         let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
           decorateError "simplify fails on left-hand side:" <| simplify lhs ctx
-        if prf1Stats.usedTheorems.map.contains (.decl declName) then return none
+        -- For an equational theorem `decl.eq_1`, treat `decl` as self-use, too:
+        -- `recordSimpTheorem` collapses `foo.eq_N` to `foo`.
+        let used := prf1Stats.usedTheorems.map
+        if used.contains (.decl declName) ||
+           (← isEqnThm? declName).any (used.contains <| .decl ·) then return none
         let ({ expr := rhs', .. }, stats) ←
           decorateError "simplify fails on right-hand side:" <| simplify rhs ctx prf1Stats
         let lhs'EqRhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
