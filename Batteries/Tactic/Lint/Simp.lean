@@ -51,13 +51,41 @@ def withSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM α) : MetaM 
         let some (_, lhs, rhs) := eq.eq? | throwError "not an equality {eq}"
         k { hyps, lhs, rhs }
 
+/-- When true, the `simpNF` linter sets `backward.isDefEq.respectTransparency true` when
+comparing expressions in `isSimpEq`. This is stricter and will flag more simp lemmas as
+not in simp-normal form, in particular those where the left-hand side is not in normal form
+up to reducible defeq (e.g. lemmas involving type synonyms or bundled carrier types).
+
+Defaults to `false` to preserve the historical linter behavior, which uses
+`backward.isDefEq.respectTransparency false` to avoid false positives when `simp`/`dsimp`
+changes implicit arguments by unfolding carrier types in bundled structures.
+
+To find simp lemmas that fail with the stricter check, use:
+```
+set_option linter.simpNF.respectTransparency true in
+#lint only simpNF
+```
+-/
+register_option linter.simpNF.respectTransparency : Bool := {
+  defValue := false
+  descr := "if true, the simpNF linter uses backward.isDefEq.respectTransparency when \
+    comparing expressions (catches more defeq abuse, but may produce false positives)"
+}
+
 /-- Checks whether two expressions are equal for the simplifier. That is,
 they are reducibly-definitional equal, and they have the same head symbol. -/
 def isSimpEq (a b : Expr) (whnfFirst := true) : MetaM Bool := withReducible do
   let a ← if whnfFirst then whnf a else pure a
   let b ← if whnfFirst then whnf b else pure b
   if a.getAppFn.constName? != b.getAppFn.constName? then return false
-  isDefEq a b
+  -- By default we use the old `isDefEq` behavior that does not respect transparency when
+  -- checking implicit arguments. Without this, `simp`/`dsimp` changes to implicit arguments
+  -- (e.g. unfolding carrier types) would cause false positives.
+  -- Set `linter.simpNF.respectTransparency` to `true` to use the stricter behavior,
+  -- which catches simp lemmas that rely on defeq abuse through type synonyms.
+  let rt := linter.simpNF.respectTransparency.get (← getOptions)
+  withOptions (fun opts => opts.setBool `backward.isDefEq.respectTransparency rt) do
+    isDefEq a b
 
 /-- Constructs a message from all the simp theorems encoded in the given type. -/
 def checkAllSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM (Option MessageData)) :
@@ -189,7 +217,7 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
         else
           return none
 
-library_note "simp-normal form" /--
+library_note «simp-normal form» /--
 This note gives you some tips to debug any errors that the simp-normal form linter raises.
 
 The reason that a lemma was considered faulty is because its left-hand side is not in simp-normal

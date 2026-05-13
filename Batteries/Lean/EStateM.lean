@@ -43,11 +43,6 @@ end Result
 @[simp] theorem run'_pure (x : α) (s : σ) :
     (pure x : EStateM ε σ α).run' s = some x := rfl
 
-@[simp] theorem run_bind (x : EStateM ε σ α) (f : α → EStateM ε σ β) (s : σ) :
-    (x >>= f).run s = match x.run s with
-    | .ok a s => (f a).run s
-    | .error e s => .error e s := rfl
-
 @[simp] theorem run'_bind (x : EStateM ε σ α) (f : α → EStateM ε σ β) (s : σ) :
     (x >>= f).run' s = match x.run s with
     | .ok a s => (f a).run' s
@@ -82,6 +77,7 @@ theorem run'_seq (f : EStateM ε σ (α → β)) (x : EStateM ε σ α) (s : σ)
     | .ok v s => Result.map (fun _ => v) (y.run s)
     | .error e s => .error e s := by
   simp [seqLeft_eq_bind]
+  rfl
 
 @[simp] theorem run'_seqLeft (x : EStateM ε σ α) (y : EStateM ε σ β) (s : σ) :
     (x <* y).run' s = match x.run s with
@@ -155,15 +151,6 @@ theorem run'_seq (f : EStateM ε σ (α → β)) (x : EStateM ε σ α) (s : σ)
     | .error e s' => (handler e).run' (restore s' (save s)) := by
   rw [run', run_tryCatch]
   cases body.run s <;> rfl
-
-@[simp] theorem run_adaptExcept (f : ε → ε) (x : EStateM ε σ α) (s : σ) :
-    (adaptExcept f x).run s = match x.run s with
-    | .ok x s => .ok x s
-    | .error e s => .error (f e) s := by
-  show (EStateM.adaptExcept _ _).run _ = _
-  unfold EStateM.adaptExcept
-  simp only [EStateM.run]
-  cases x s <;> rfl
 
 @[simp] theorem run'_adaptExcept (f : ε → ε) (x : EStateM ε σ α) (s : σ) :
     (adaptExcept f x).run' s = x.run' s := by
