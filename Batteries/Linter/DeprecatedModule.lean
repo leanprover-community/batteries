@@ -78,7 +78,7 @@ def addModuleDeprecation {m : Type → Type} [Monad m] [MonadEnv m]
   modifyEnv (deprecatedModuleExt.addEntry ·
     (modName, (← getEnv).imports.filterMap fun i ↦
       if i.module == `Init ||
-         i.module == `Mathlib.Tactic.Linter.DeprecatedModule then none else i.module, msg?))
+         i.module == `Batteries.Linter.DeprecatedModule then none else i.module, msg?))
 
 /--
 `deprecated_module "Optional string" (since := "yyyy-mm-dd")` deprecates the current module `A`
@@ -92,8 +92,7 @@ elab (name := deprecated_modules)
     throwError "Invalid date: the expected format is \"{← Std.Time.PlainDate.now}\""
   addModuleDeprecation <| msg?.map (·.getString)
   -- Disable the linter, so that it does not complain in the file with the deprecation.
-  elabCommand <| mkNullNode #[← `(set_option linter.style.header false),
-                              ← `(set_option linter.deprecated.module false)]
+  elabCommand <| mkNullNode #[← `(set_option linter.deprecated.module false)]
 
 /--
 A utility command to show the current entries of the `deprecatedModuleExt` in the format:
