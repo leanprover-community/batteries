@@ -76,7 +76,7 @@ def addModuleDeprecation {m : Type → Type} [Monad m] [MonadEnv m]
     (msg? : Option String) : m Unit := do
   let modName ← getMainModule
   modifyEnv (deprecatedModuleExt.addEntry ·
-    (modName, (← getEnv).imports.filterMap fun i ↦
+    (modName, (← getEnv).imports.filterMap fun i =>
       if i.module == `Init ||
          i.module == `Batteries.Linter.DeprecatedModule then none else i.module, msg?))
 
@@ -109,7 +109,7 @@ with message 'We can also give more details about the deprecation'
 elab "#show_deprecated_modules" : command => do
   let directImports := deprecatedModuleExt.getState (← getEnv)
   logInfo <| "\n".intercalate <|
-    directImports.fold (init := ["Deprecated modules\n"]) fun nms (i, deps, msg?) ↦
+    directImports.fold (init := ["Deprecated modules\n"]) fun nms (i, deps, msg?) =>
       let msg := match msg? with | some str => s!"message '{str}'" | none => "no message"
       nms ++ [s!"'{i}' deprecates to\n{deps}\nwith {msg}\n"]
 
@@ -143,7 +143,7 @@ partial def getImportIds (s : Syntax) : Array Syntax :=
     rest
 
 @[inherit_doc Batteries.Linter.linter.deprecated.module]
-def deprecated.moduleLinter : Linter where run := withSetOptionIn fun stx ↦ do
+def deprecated.moduleLinter : Linter where run := withSetOptionIn fun stx => do
   unless getLinterValue linter.deprecated.module (← getLinterOptions) do
     return
   if (← get).messages.hasErrors then
@@ -166,7 +166,7 @@ def deprecated.moduleLinter : Linter where run := withSetOptionIn fun stx ↦ do
   let fm ← getFileMap
   let (importStx, _) ←
     Parser.parseHeader { inputString := fm.source, fileName := ← getFileName, fileMap := fm }
-  let modulesWithNames := (getImportIds importStx).map fun i ↦ (i, i.getId)
+  let modulesWithNames := (getImportIds importStx).map fun i => (i, i.getId)
   for (i, preferred, msg?) in deprecations do
     for (nmStx, _) in modulesWithNames.filter (·.2 == i) do
       Linter.logLint linter.deprecated.module nmStx
