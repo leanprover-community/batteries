@@ -79,6 +79,7 @@ public import Batteries.Lean.System.IO
 public import Batteries.Lean.TagAttribute
 public import Batteries.Lean.Util.EnvSearch
 public import Batteries.Linter
+public import Batteries.Linter.DeprecatedModule
 public import Batteries.Linter.UnnecessarySeqFocus
 public import Batteries.Linter.UnreachableTactic
 public import Batteries.Logic
