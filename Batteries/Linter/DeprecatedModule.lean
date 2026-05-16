@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Damiano Testa
+Authors: Damiano Testa, François G. Dorais
 -/
 module
 
@@ -46,6 +46,19 @@ public register_option linter.deprecated.module : Bool := {
 }
 
 /--
+The option `deprecated.module.exclude_root` controls whether the `deprecated.module` linter will
+run on root modules. The default value is `false`; this option has no effect if the
+`deprecated.module` linter is disabled.
+
+Some root modules (e.g. `Mathlib`) are designed to import every module regardless of deprecation
+status. This option allows to exclude deprecated import checking in such cases.
+-/
+public register_option linter.deprecated.module.exclude_root : Bool := {
+  defValue := false
+  descr := "disable the `deprecated.module` linter on project root"
+}
+
+/--
 Defines the `deprecatedModuleExt` extension for adding a `HashSet` of triples of
 * a module `Name` that has been deprecated and
 * an array of `Name`s of modules that should be imported instead
@@ -54,11 +67,16 @@ Defines the `deprecatedModuleExt` extension for adding a `HashSet` of triples of
 -/
 public initialize deprecatedModuleExt :
     SimplePersistentEnvExtension
-      (Name × Array Name × Option String) (Std.HashSet (Name × Array Name × Option String)) ←
+      (Name × Array Name × Option String) (Std.HashMap Name (Array Name × Option String)) ←
   registerSimplePersistentEnvExtension {
-    addImportedFn := (·.foldl Std.HashSet.insertMany {})
-    addEntryFn := .insert
+    addImportedFn := (·.foldl Std.HashMap.insertMany {})
+    addEntryFn := (Function.uncurry ·.insert)
   }
+
+/-- Check whether a module is deprecated. -/
+@[inline]
+def isDeprecatedModule (env : Environment) (modName : Name) : Bool :=
+  deprecatedModuleExt.getState env |>.contains modName
 
 /--
 `addModuleDeprecation` adds to the `deprecatedModuleExt` extension the pair
@@ -103,9 +121,9 @@ with message 'We can also give more details about the deprecation'
 ```
 -/
 elab "#show_deprecated_modules" : command => do
-  let directImports := deprecatedModuleExt.getState (← getEnv)
+  let deprecated := deprecatedModuleExt.getState (← getEnv)
   logInfo <| "\n".intercalate <|
-    directImports.fold (init := ["Deprecated modules\n"]) fun nms (i, deps, msg?) =>
+    deprecated.fold (init := ["Deprecated modules\n"]) fun nms i (deps, msg?) =>
       let msg := match msg? with | some str => s!"message '{str}'" | none => "no message"
       nms ++ [s!"'{i}' deprecates to\n{deps}\nwith {msg}\n"]
 
@@ -141,6 +159,10 @@ def deprecatedModuleLinter : Linter where run := withSetOptionIn fun stx => do
   unless getLinterValue linter.deprecated.module (← getLinterOptions) do
     return
   if (← get).messages.hasErrors then
+    return
+  -- Exclude root module?
+  if getLinterValue linter.deprecated.module.exclude_root (← getLinterOptions)
+      && (← getMainModule).getNumParts == 1 then
     return
   let laterCommand ← IsLaterCommand.get
   -- If `laterCommand` is `true`, then the linter already did what it was supposed to do.
