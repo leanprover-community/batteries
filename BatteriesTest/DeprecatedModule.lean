@@ -23,10 +23,6 @@ info: Deprecated modules
 'BatteriesTest.DeprecatedModule' deprecates to
 #[Batteries.Tactic.Alias, Batteries.Tactic.Basic]
 with message 'We can also give more details about the deprecation'
-
-'BatteriesTest.DeprecatedModule' deprecates to
-#[Batteries.Tactic.Alias, Batteries.Tactic.Basic]
-with no message
 -/
 #guard_msgs in
 #show_deprecated_modules
@@ -45,10 +41,6 @@ info: Deprecated modules
 'BatteriesTest.DeprecatedModule' deprecates to
 #[Batteries.Tactic.Alias, Batteries.Tactic.Basic]
 with message 'We can also give more details about the deprecation'
-
-'BatteriesTest.DeprecatedModule' deprecates to
-#[Batteries.Tactic.Alias, Batteries.Tactic.Basic]
-with no message
 -/
 #guard_msgs in
 #show_deprecated_modules

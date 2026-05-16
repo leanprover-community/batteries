@@ -13,20 +13,32 @@ public import Std.Time.Date
 /-!
 # The `deprecated.module` linter
 
-The `deprecated.module` linter emits a warning when a file that has been renamed or split
-is imported.
+This linter emits a warning when a deprecated imported. Reasons for module
+deprecation include renaming, splitting, obsolescence.
 
-The usage is as follows. Write
+The usage is as follows:
 ```lean
+import A
 import B
+import C
 ...
-import Z
 
-deprecated_module "Optional string here with further details" (since := "yyyy-mm-dd")
+deprecated_module "Optional string with further details" (since := "yyyy-mm-dd")
 ```
-in module `A` with the expectation that `A` contains nothing else.
-This triggers the `deprecated.module` linter to notify every file with `import A`
-to instead import the *direct imports* of `A`, that is `B, ..., Z`.
+in module `X` with the expectation that `X` contains nothing else.
+
+This triggers the `deprecated.module` linter to notify every file with
+`import X` to instead import the *direct imports* of `X`, that is modules
+`A`, `B`, `C`,...
+
+The deprecated module linter is enabled by default. To disable it set option
+`linter.deprecated.module` to `false`.
+
+Some projects (like Mathlib) are designed so that the root module imports
+everything, regardless of deprecation status. In such cases, there is an
+additional linter option `linter.deprecated.module.exclude_root` that
+prevents the deprecated module linter on the root module when set to `true`.
+This option has no effect if the deprecated module linter is disabled.
 -/
 
 meta section
@@ -36,9 +48,9 @@ open Lean Elab Command Linter
 namespace Batteries.Linter
 
 /--
-The `deprecated.module` linter emits a warning when a file that has been
-deprecated is imported. The default value is `true`, since this linter is
-designed to warn downstream projects.
+The deprecated module linter emits a warning when a module that has been
+deprecated is imported. This linter is enabled by default, since this linter
+is designed to warn downstream projects of changes in their dependencies.
 -/
 public register_option linter.deprecated.module : Bool := {
   defValue := true
@@ -59,11 +71,11 @@ public register_option linter.deprecated.module.exclude_root : Bool := {
 }
 
 /--
-Defines the `deprecatedModuleExt` extension for adding a `HashSet` of triples of
-* a module `Name` that has been deprecated and
-* an array of `Name`s of modules that should be imported instead
-* an optional `String` containing further messages to be displayed with the deprecation
-  to the environment.
+The deprecated module extension is a `HashMap` where keys are module names and
+values are pairs consisting of:
+* an array of `Name`s of modules that should be imported instead,
+* an optional `String` containing further messages to be displayed with the
+  deprecation to the environment.
 -/
 public initialize deprecatedModuleExt :
     SimplePersistentEnvExtension
@@ -79,22 +91,21 @@ def isDeprecatedModule (env : Environment) (modName : Name) : Bool :=
   deprecatedModuleExt.getState env |>.contains modName
 
 /--
-`addModuleDeprecation` adds to the `deprecatedModuleExt` extension the pair
-consisting of the current module name and the array of its direct imports.
-
-It ignores the `Init` module, since this is a special module that is expected
-to be imported by all files.
-
-It also ignores the `DeprecatedModule` import (namely, the current file),
-since there is no need to import this module.
+`addModuleDeprecation` adds the current module to the deprecated module
+extension. The value consists of the module's direct imports excluding two:
+* The `Init` module since it is always imported.
+* The `Batteries.Linter.DeprecatedModule` which is imported to access the
+  deprecated module command.
 -/
-def addModuleDeprecation {m : Type → Type} [Monad m] [MonadEnv m]
-    (msg? : Option String) : m Unit := do
+def addModuleDeprecation {m : Type → Type} [Monad m] [MonadEnv m] (msg? : Option String) :
+    m Unit := do
   let modName ← getMainModule
-  modifyEnv (deprecatedModuleExt.addEntry ·
-    (modName, (← getEnv).imports.filterMap fun i =>
-      if i.module == `Init ||
-         i.module == `Batteries.Linter.DeprecatedModule then none else i.module, msg?))
+  let replNames := (← getEnv).imports |>.filterMap fun i =>
+    if i.module == `Init || i.module == `Batteries.Linter.DeprecatedModule then
+      none
+    else
+      some i.module
+  modifyEnv (deprecatedModuleExt.addEntry · (modName, replNames, msg?))
 
 /--
 `deprecated_module "Optional string" (since := "yyyy-mm-dd")` deprecates the
@@ -102,10 +113,10 @@ current module `A` in favor of its direct imports. This means that any file
 that directly imports `A` will get a notification on the `import A` line
 suggesting to instead import the *direct imports* of `A`.
 -/
-elab (name := deprecatedModule)
-    "deprecated_module " msg?:(str ppSpace)? "(" &"since " ":= " when:str ")" : command => do
+elab (name := deprecatedModule) "deprecated_module " msg?:(str ppSpace)?
+    "(" &"since " ":= " when:str ")" : command => do
   if let .error _parsedDate := Std.Time.PlainDate.fromLeanDateString when.getString then
-    throwError "Invalid date: the expected format is \"{← Std.Time.PlainDate.now}\""
+    throwError "Invalid date: the expected format is \"yyyy-mm-dd\""
   addModuleDeprecation <| msg?.map (·.getString)
   -- Disable the linter, so that it does not complain in the file with the deprecation.
   elabCommand <| mkNullNode #[← `(set_option linter.deprecated.module false)]
