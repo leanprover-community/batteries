@@ -121,7 +121,7 @@ abbrev findAllSubstr (s : String) (pattern : Substring.Raw) : Array Substring.Ra
 abbrev findSubstr? (s : String) (pattern : Substring.Raw) : Option Substring.Raw :=
   s.toRawSubstring.findSubstr? pattern
 
-@[inherit_doc Substring.Raw.containsSubstr]
+@[deprecated String.contains (since := "2026-02-25"), inherit_doc Substring.Raw.containsSubstr]
 abbrev containsSubstr (s : String) (pattern : Substring.Raw) : Bool :=
   s.toRawSubstring.containsSubstr pattern
 
