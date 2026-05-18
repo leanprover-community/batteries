@@ -49,19 +49,15 @@ def AliasInfo.toString : AliasInfo → String
 
 
 /-- Environment extension for registering aliases -/
-initialize aliasExt : SimpleScopedEnvExtension (Name × AliasInfo) (NameMap AliasInfo) ←
-  registerSimpleScopedEnvExtension {
-    addEntry := fun st (n, i) => st.insert n i
-    initial := {}
-  }
+initialize aliasExt : MapDeclarationExtension AliasInfo ← mkMapDeclarationExtension
 
 /-- Get the alias information for a name -/
 def getAliasInfo [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
-  return aliasExt.getState (← getEnv) |>.find? name
+  return aliasExt.find? (← getEnv) name
 
 /-- Set the alias info for a new declaration -/
 def setAliasInfo [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit :=
-  modifyEnv (aliasExt.addEntry · (declName, info))
+  modifyEnv (aliasExt.insert · declName info)
 
 /-- Updates the `deprecated` declaration to point to `target` if no target is provided. -/
 def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribute × Bool :=
@@ -84,17 +80,24 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
 
   These commands accept all modifiers and attributes that `def` and `theorem` do.
  -/
-elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident : command => do
+elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:ident : command => do
   Lean.withExporting (isExporting := (← Command.getScope).isPublic) do
   Command.liftTermElabM do
-    let name ← realizeGlobalConstNoOverloadWithInfo name
-    let cinfo ← getConstInfo name
+    -- Whether we may access private `name`s here depends on whether it is a theorem, so first
+    -- resolve in private scope always
+    let name ← withoutExporting <| realizeGlobalConstNoOverloadWithInfo nameStx
+    let cinfo ← withoutExporting <| getConstInfo name
     let declMods ← elabModifiers mods
     Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
+    unless wasOriginallyTheorem (← getEnv) name do
+      -- Now check again in correct scope for defs
+      discard <| realizeGlobalConstNoOverloadWithInfo nameStx
     let (attrs, machineApplicable) := setDeprecatedTarget name declMods.attrs
+    let env ← getEnv
     let declMods := { declMods with
       computeKind :=
-        if isNoncomputable (← getEnv) name then .noncomputable
+        if isNoncomputable env name then .noncomputable
+        else if isMarkedMeta env name then .meta
         else declMods.computeKind
       isUnsafe := declMods.isUnsafe || cinfo.isUnsafe
       attrs
@@ -113,10 +116,11 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
         safety := if declMods.isUnsafe then .unsafe else .safe
       }
     checkNotAlreadyDeclared declName
-    if declMods.isNoncomputable then
-      addDecl decl
-    else
-      addAndCompile decl
+    addDecl decl
+    if !declMods.isNoncomputable then
+      if declMods.isMeta then
+        modifyEnv (markMeta · declName)
+      compileDecl decl
     addDeclarationRangesFromSyntax declName (← getRef) alias
     Term.addTermInfo' alias (← mkConstWithLevelParams declName) (isBinder := true)
     if let some (doc, isVerso) := declMods.docString? then
@@ -177,11 +181,14 @@ elab (name := aliasLR) mods:declModifiers "alias "
     "⟨" aliasFwd:binderIdent ", " aliasRev:binderIdent "⟩" " := " name:ident : command => do
   Lean.withExporting (isExporting := (← Command.getScope).isPublic) do
   Command.liftTermElabM do
-    let name ← realizeGlobalConstNoOverloadWithInfo name
+    -- The target of an iff alias is always a theorem, so resolve in non-exporting mode to
+    -- support private theorem targets even when the aliases themselves are public.
+    let name ← withoutExporting <| realizeGlobalConstNoOverloadWithInfo name
+    let thm ← withoutExporting <| getConstInfo name
     let declMods ← elabModifiers mods
     let declMods := { declMods with attrs := (setDeprecatedTarget name declMods.attrs).1 }
+    -- Now enter scope where we want to put the new decls
     Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
-    let thm ← getConstInfo name
     if let `(binderIdent| $idFwd:ident) := aliasFwd then
       let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idFwd.getId
       addSide true declName declMods thm

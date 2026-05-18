@@ -15,11 +15,11 @@ so it shouldn't appear when looking for notes with label starting with "te". -/
 #guard_msgs in
 #help note "Other"
 
-library_note "test4"/--
+library_note «test4» /--
 4: This note was not imported, and therefore appears below the imported notes.
 -/
 
-library_note "test5"/--
+library_note «test5» /--
 5: This note was also not imported, and therefore appears below the imported notes,
 and the previously added note.
 -/
@@ -62,6 +62,8 @@ This note has spaces in its name to test export format compatibility.
 -/
 
 -- Verify the declaration name has underscores, not spaces
+/-- info: LibraryNote.note_with_spaces : Batteries.Util.LibraryNote -/
+#guard_msgs in
 #check LibraryNote.note_with_spaces
 
 -- Test that a note with multiple consecutive spaces works
@@ -69,6 +71,8 @@ library_note «note  with   multiple    spaces» /--
 This note has multiple consecutive spaces.
 -/
 
+/-- info: LibraryNote.note__with___multiple____spaces : Batteries.Util.LibraryNote -/
+#guard_msgs in
 #check LibraryNote.note__with___multiple____spaces
 
 /--

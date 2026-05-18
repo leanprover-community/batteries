@@ -44,7 +44,11 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
   if isReservedName env decl then return true
   if let Name.str n s := decl then
     if (← isAutoDecl n) then return true
-    if s.startsWith "proof_" || s.startsWith "match_" || s.startsWith "unsafe_" then return true
+    if s.startsWith "proof_"
+        || s.startsWith "match_"
+        || s.startsWith "unsafe_"
+        || s.startsWith "grind_"
+    then return true
     if env.isConstructor n && s ∈ ["injEq", "inj", "sizeOf_spec", "elim", "noConfusion"] then
       return true
     if let ConstantInfo.inductInfo _ := (← getEnv).find? n then
@@ -55,6 +59,10 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
         return true
       if let some _ := isSubobjectField? env n (.mkSimple s) then
         return true
+    -- Coinductive/inductive lattice-theoretic predicates:
+    if let ConstantInfo.inductInfo _ := env.find? (Name.str n "_functor") then
+      if s == "functor_unfold" || s == casesOnSuffix || s == "mutual" then return true
+      if env.isConstructor (Name.str (Name.str n "_functor") s) then return true
   pure false
 
 /-- A linting test for the `#lint` command. -/
@@ -82,14 +90,12 @@ def getLinter (name declName : Name) : CoreM NamedLinter := unsafe
 
 /-- Defines the `env_linter` extension for adding a linter to the default set. -/
 initialize batteriesLinterExt :
-    PersistentEnvExtension (Name × Bool) (Name × Bool) (NameMap (Name × Bool)) ←
+    SimplePersistentEnvExtension (Name × Bool) (NameMap (Name × Bool)) ←
   let addEntryFn := fun m (n, b) => m.insert (n.updatePrefix .anonymous) (n, b)
-  registerPersistentEnvExtension {
-    mkInitial := pure {}
-    addImportedFn := fun nss => pure <|
+  registerSimplePersistentEnvExtension {
+    addImportedFn := fun nss =>
       nss.foldl (init := {}) fun m ns => ns.foldl (init := m) addEntryFn
     addEntryFn
-    exportEntriesFn := fun es => es.foldl (fun a _ e => a.push e) #[]
   }
 
 /--
