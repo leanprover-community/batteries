@@ -7,7 +7,7 @@ module
 
 @[expose] public section
 
-instance : Coe String Substring := ⟨String.toSubstring⟩
+instance : Coe String Substring.Raw := ⟨String.toRawSubstring⟩
 
 namespace String
 

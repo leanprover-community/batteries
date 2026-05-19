@@ -115,7 +115,7 @@ where
     | nil,          b => return ForInStep.yield b
     | node _ l v r, b => ForInStep.bindM (visit l b) fun b => ForInStep.bindM (f v b) (visit r ·)
 
-instance : ForIn m (RBNode α) α where
+instance [Monad m] : ForIn m (RBNode α) α where
   forIn := RBNode.forIn
 
 /--
@@ -658,7 +658,7 @@ instance (α : Type u) (cmp : α → α → Ordering) : Inhabited (RBSet α cmp)
 /-- `O(n)`. Run monadic function `f` on each element of the tree (in increasing order). -/
 @[inline] def forM [Monad m] (f : α → m PUnit) (t : RBSet α cmp) : m PUnit := t.1.forM f
 
-instance : ForIn m (RBSet α cmp) α where
+instance [Monad m] : ForIn m (RBSet α cmp) α where
   forIn t := t.1.forIn
 
 instance : Std.ToStream (RBSet α cmp) (RBNode.Stream α) := ⟨fun x => x.1.toStream .nil⟩
@@ -944,7 +944,7 @@ variable {α : Type u} {β : Type v} {σ : Type w} {cmp : α → α → Ordering
 @[inline] def forM [Monad m] (f : α → β → m PUnit) (t : RBMap α β cmp) : m PUnit :=
   t.1.forM (fun (a, b) => f a b)
 
-instance : ForIn m (RBMap α β cmp) (α × β) := inferInstanceAs (ForIn _ (RBSet ..) _)
+instance [Monad m] : ForIn m (RBMap α β cmp) (α × β) := inferInstanceAs (ForIn _ (RBSet ..) _)
 
 instance : Std.ToStream (RBMap α β cmp) (RBNode.Stream (α × β)) :=
   inferInstanceAs (Std.ToStream (RBSet ..) _)
@@ -977,10 +977,10 @@ instance : CoeHead (Keys α β cmp) (Array α) := ⟨keysArray⟩
 
 instance : CoeHead (Keys α β cmp) (List α) := ⟨keysList⟩
 
-instance : ForIn m (Keys α β cmp) α where
+instance [Monad m] : ForIn m (Keys α β cmp) α where
   forIn t init f := t.val.forIn init (f ·.1)
 
-instance : ForM m (Keys α β cmp) α where
+instance [Monad m] : ForM m (Keys α β cmp) α where
   forM t f := t.val.forM (f ·.1)
 
 /-- The result of `toStream` on a `Keys`. -/
@@ -1026,10 +1026,10 @@ instance : CoeHead (Values α β cmp) (Array β) := ⟨valuesArray⟩
 
 instance : CoeHead (Values α β cmp) (List β) := ⟨valuesList⟩
 
-instance : ForIn m (Values α β cmp) β where
+instance [Monad m] : ForIn m (Values α β cmp) β where
   forIn t init f := t.val.forIn init (f ·.2)
 
-instance : ForM m (Values α β cmp) β where
+instance [Monad m] : ForM m (Values α β cmp) β where
   forM t f := t.val.forM (f ·.2)
 
 /-- The result of `toStream` on a `Values`. -/

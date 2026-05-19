@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Bailey, F. G. Dorais
 -/
 module
-
+/- Failing on nightly-2025-12-18
 public import Batteries.Data.Char
 public import Batteries.Data.Char.AsciiCasing
 
@@ -84,3 +84,4 @@ ASCII-case insensitive implementation comparison returning an `Ordering`. Useful
 @[implemented_by cmpCaseInsensitiveAsciiOnlyImpl]
 def cmpCaseInsensitiveAsciiOnly (s₁ s₂ : String) : Ordering :=
   compare s₁.caseFoldAsciiOnly s₂.caseFoldAsciiOnly
+-/

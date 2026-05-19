@@ -230,8 +230,8 @@ def parseHeaderFromString (text path : String) :
     throw <| .userError "parse errors in file"
   -- the insertion point for `add` is the first newline after the imports
   let insertion := header.raw.getTailPos?.getD parserState.pos
-  let insertion := text.findAux (· == '\n') text.endPos insertion |>.increaseBy 1
-  pure (path, inputCtx, .mk header.raw[2].getArgs, insertion)
+  let insertion := (text.pos! insertion).find '\n' |>.next!
+  pure (path, inputCtx, .mk header.raw[2].getArgs, insertion.offset)
 
 /-- Parse a source file to extract the location of the import lines, for edits and error messages.
 
@@ -611,24 +611,26 @@ def main (args : List String) : IO UInt32 := do
       try parseHeader srcSearchPath mod
       catch e => println! e.toString; return count
     let text := String.Pos.Raw.extract inputCtx.inputString 0 inputCtx.endPos
+    let insertion := text.pos! insertion
 
     -- Calculate the edit result
-    let mut pos : String.Pos.Raw := 0
+    let mut pos : text.Pos := text.startPos
     let mut out : String := ""
     let mut seen : NameSet := {}
     for stx in imports do
+      let startPos : text.Pos := text.pos! stx.raw.getPos?.get!
       let mod := importId stx
       if remove.contains mod || seen.contains mod then
-        out := out ++ String.Pos.Raw.extract text pos stx.raw.getPos?.get!
+        out := out ++ startPos.extract pos
         -- We use the end position of the syntax, but include whitespace up to the first newline
-        pos := text.findAux (· == '\n') text.endPos stx.raw.getTailPos?.get! |>.increaseBy 1
+        pos := startPos.find '\n' |>.next!
       seen := seen.insert mod
-    out := out ++ String.Pos.Raw.extract text pos insertion
+    out := out ++ pos.extract insertion
     for mod in add do
       if !seen.contains mod then
         seen := seen.insert mod
         out := out ++ s!"import {mod}\n"
-    out := out ++ String.Pos.Raw.extract text insertion text.endPos
+    out := out ++ insertion.extract text.endPos
 
     IO.FS.writeFile path out
     return count + 1

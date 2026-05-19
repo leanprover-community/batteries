@@ -545,7 +545,7 @@ which iterates over the elements in the heap in increasing order.
 protected def forIn [Monad m] (b : BinomialHeap α le) (x : β) (f : α → β → m (ForInStep β)) : m β :=
   ForInStep.run <$> b.1.foldM le (.yield x) fun x a => x.bind (f a)
 
-instance : ForIn m (BinomialHeap α le) α := ⟨BinomialHeap.forIn⟩
+instance [Monad m] : ForIn m (BinomialHeap α le) α := ⟨BinomialHeap.forIn⟩
 
 /-- `O(log n)`. Returns the smallest element in the heap, or `none` if the heap is empty. -/
 @[inline] def head? (b : BinomialHeap α le) : Option α := b.1.head? le

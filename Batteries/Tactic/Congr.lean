@@ -9,6 +9,8 @@ public meta import Lean.Meta.Tactic.Congr
 public meta import Lean.Elab.Tactic.Config
 public meta import Lean.Elab.Tactic.Ext
 public meta import Lean.Elab.Tactic.RCases
+public meta import Lean.Elab.ConfigEval
+public import Lean.Elab.ConfigEval
 
 public meta section
 

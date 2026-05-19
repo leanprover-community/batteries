@@ -13,7 +13,7 @@ namespace Lean.PersistentHashSet
 
 variable [BEq α] [Hashable α]
 
-instance : ForIn m (PersistentHashSet α) α where
+instance [Monad m] : ForIn m (PersistentHashSet α) α where
   forIn s init step := do
     let mut state := init
     for (k, _) in s.set do

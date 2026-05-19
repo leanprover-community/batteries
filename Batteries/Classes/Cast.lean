@@ -5,12 +5,11 @@ Authors: Mario Carneiro, Gabriel Ebner
 -/
 module
 
-public import Batteries.Util.LibraryNote
+public meta import Batteries.Util.LibraryNote
 
 @[expose] public section
 
-library_note "coercion into rings"
-/--
+library_note «coercion into rings» /--
 Coercions such as `Nat.castCoe` that go from a concrete structure such as
 `Nat` to an arbitrary ring `R` should be set up as follows:
 ```lean
