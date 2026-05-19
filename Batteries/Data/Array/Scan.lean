@@ -237,6 +237,9 @@ theorem back?_scanl {f : β → α → β} {as : Array α} :
     (as.scanl f init).back? = some (as.foldl f init) := by
   simp [Array.back?_eq_getElem?]
 
+@[deprecated (since := "2026-05-19")]
+alias back_scanl? := back?_scanl
+
 /-! ### Array.scanr -/
 
 theorem scanr_eq_scanrM {f : α → β → β} {as : Array α} :
