@@ -1,4 +1,3 @@
-import Lean.Util.SearchPath
 import Batteries.Tactic.Lint
 import Batteries.Data.Array.Basic
 import Lake.CLI.Main
@@ -38,64 +37,99 @@ def resolveDefaultRootModules : IO (Array Name) := do
       #[]
   return defaultTargetModules
 
+/-- Arguments for `runLinter`. -/
+structure LinterConfig where
+  /-- Whether to update nolints. Default is `false`; set to `true` with `--update`. -/
+  updateNoLints : Bool := false
+  /-- Whether to throw an error if necessary oleans are not already present (as opposed to building
+  them). Default is `false`; set to `true` with `--no-build`. -/
+  noBuild : Bool := false
+  /-- Whether to enable tracing. Default is `false`; set to `true` with `--trace` or `-v`. -/
+  trace := false
+
+@[always_inline, inline]
+private def Except.consError (e : ε) : Except (List ε) α → Except (List ε) α
+  | Except.error errs => Except.error <| e :: errs
+  | Except.ok _       => Except.error [e]
+
 /--
-Parse args list for `runLinter`
-and return a pair of the update and specified module arguments.
+Parse args list for `runLinter` and return the config and specified module arguments. Default
+config settings are determined by the default values for fields of `LinterConfig`.
 
 Throws an exception if unable to parse the arguments.
-Returns `none` for the specified module if no module is specified.-/
-def parseLinterArgs (args: List String) : Except String (Bool × Option Name) :=
-  let (update, moreArgs) :=
-    match args with
-    | "--update" :: args => (true, args)
-    | _ => (false, args)
-  match moreArgs with
-    | [] => Except.ok (update, none)
-    | [mod] => match mod.toName with
-      | .anonymous => Except.error "cannot convert module to Name"
-      | name => Except.ok (update, some name)
-    | _ => Except.error "cannot parse arguments"
+Returns `none` for the specified module if no modules are specified.-/
+def parseLinterArgs (args : List String) :
+    Except (List String) (LinterConfig × List Name) :=
+  go {} [] args
+where
+  /-- Traverses the list, handling the non-flag elements as modules and erroring if parsing fails. -/
+  go (parsed : LinterConfig) (mods: List Name) : List String → Except (List String) (LinterConfig × List Name)
+    | arg :: rest =>
+      if let some parsed := parseArg parsed arg then
+        go parsed mods rest
+      else
+        match arg.toName with 
+        | .anonymous => Except.error [s!"could not parse argument '{arg}'"]
+        | mod => go parsed (mod :: mods) rest
+    | [] => Except.ok (parsed, mods.reverse)
+
+  /-- Parses a single config argument. -/
+  parseArg (parsed : LinterConfig) : String → Option LinterConfig
+    | "--update"   => some { parsed with updateNoLints := true }
+    | "--no-build" => some { parsed with noBuild := true }
+    | "--trace"
+    | "-v"         => some { parsed with trace := true }
+    | _ => none
 
 /--
 Return an array of the modules to lint.
 
-If `specifiedModule` is not `none` return an array containing only `specifiedModule`.
+If `specifiedModules` is not empty, return an array containing only `specifiedModule`.
 Otherwise, resolve the default root modules from the Lake workspace. -/
-def determineModulesToLint (specifiedModule : Option Name) : IO (Array Name) := do
-  match specifiedModule with
-  | some module =>
-    println!"Running linter on specified module: {module}"
-    return #[module]
-  | none =>
+def determineModulesToLint (specifiedModules : List Name) : IO (Array Name) := do
+  match specifiedModules with
+  | [] =>
     println!"Automatically detecting modules to lint"
     let defaultModules ← resolveDefaultRootModules
     println!"Default modules: {defaultModules}"
     return defaultModules
+  | modules =>
+    println!"Running linter on specified modules: {modules}"
+    return modules.toArray
 
 /-- Run the Batteries linter on a given module and update the linter if `update` is `true`. -/
-unsafe def runLinterOnModule (update : Bool) (module : Name): IO Unit := do
+unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := do
+  let { updateNoLints, noBuild, trace } := cfg
   initSearchPath (← findSysroot)
-  let mFile ← findOLean module
-  unless (← mFile.pathExists) do
-    -- run `lake build module` (and ignore result) if the file hasn't been built yet
-    let child ← IO.Process.spawn {
-      cmd := (← IO.getEnv "LAKE").getD "lake"
-      args := #["build", s!"+{module}"]
-      stdin := .null
-    }
-    _ ← child.wait
+  let rec
+    /-- Builds `module` if the filepath `olean` does not exist. Throws if olean is not found and
+    `noBuild := true`. -/
+    buildIfNeeded (module : Name) : IO Unit := do
+      let olean ← findOLean module
+      unless (← olean.pathExists) do
+        if noBuild then
+          IO.eprintln s!"[{module}] Could not find olean for module `{module}` at given path:\n  \
+            {olean}"
+          IO.Process.exit 1
+        else
+          if trace then
+            IO.println s!"[{module}] Could not find olean for module `{module}` at given path:\n  \
+              {olean}\n\
+              [{module}] Building `{module}`."
+          -- run `lake build +module` (and ignore result) if the file hasn't been built yet
+          let child ← IO.Process.spawn {
+            cmd := (← IO.getEnv "LAKE").getD "lake"
+            args := #["build", s!"+{module}"]
+            stdin := .null
+          }
+          _ ← child.wait
+          -- No need to trace on completion, lake's "Build completed successfully" reaches stdout
+
+  buildIfNeeded module
   -- If the linter is being run on a target that doesn't import `Batteries.Tactic.List`,
   -- the linters are ineffective. So we import it here.
   let lintModule := `Batteries.Tactic.Lint
-  let lintFile ← findOLean lintModule
-  unless (← lintFile.pathExists) do
-    -- run `lake build +Batteries.Tactic.Lint` (and ignore result) if the file hasn't been built yet
-    let child ← IO.Process.spawn {
-      cmd := (← IO.getEnv "LAKE").getD "lake"
-      args := #["build", s!"+{lintModule}"]
-      stdin := .null
-    }
-    _ ← child.wait
+  buildIfNeeded lintModule
   let nolintsFile : FilePath := "scripts/nolints.json"
   let nolints ← if ← nolintsFile.pathExists then
     readJsonFile NoLints nolintsFile
@@ -103,17 +137,35 @@ unsafe def runLinterOnModule (update : Bool) (module : Name): IO Unit := do
     pure #[]
   unsafe Lean.enableInitializersExecution
   let env ← importModules #[module, lintModule] {} (trustLevel := 1024) (loadExts := true)
-  let ctx := { fileName := "", fileMap := default }
+  let mut opts : Options := {}
+  -- Propagate `trace` to `CoreM`
+  if trace then
+    opts := opts.setBool `trace.Batteries.Lint true
+  let ctx := {
+    fileName := ""
+    fileMap := default
+    options := opts  }
   let state := { env }
   Prod.fst <$> (CoreM.toIO · ctx state) do
+    traceLint s!"Starting lint..." (inIO := true) (currentModule := module)
     let decls ← getDeclsInPackage module.getRoot
     let linters ← getChecks (slow := true) (runAlways := none) (runOnly := none)
-    let results ← lintCore decls linters
-    if update then
+    let results ← lintCore decls linters (inIO := true) (currentModule := module)
+    if updateNoLints then
+      traceLint s!"Updating nolints file at {nolintsFile}" (inIO := true) (currentModule := module)
       writeJsonFile (α := NoLints) nolintsFile <|
         .qsort (lt := fun (a, b) (c, d) => a.lt c || (a == c && b.lt d)) <|
         .flatten <| results.map fun (linter, decls) =>
         decls.fold (fun res decl _ => res.push (linter.name, decl)) #[]
+    if trace then
+      let mut nolintTally : Std.HashMap Name Nat := {}
+      for (linter, _) in nolints do
+        nolintTally := nolintTally.alter linter fun
+          | none   => some 1
+          | some n => some (n+1)
+      let msgs := nolintTally.toList.map fun (linter, n) => s!"{linter}: {n}"
+      IO.println s!"[{module}] {nolintsFile} summary (number of nolints per linter):\n  \
+        {"\n  ".intercalate msgs}"
     let results := results.map fun (linter, decls) =>
       .mk linter <| nolints.foldl (init := decls) fun decls (linter', decl') =>
         if linter.name == linter' then decls.erase decl' else decls
@@ -128,22 +180,33 @@ unsafe def runLinterOnModule (update : Bool) (module : Name): IO Unit := do
       IO.println s!"-- Linting passed for {module}."
 
 /--
-Usage: `runLinter [--update] [Batteries.Data.Nat.Basic]`
+Usage: `runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]...`
 
-Runs the linters on all declarations in the given module
+Runs the linters on all declarations in the given modules
 (or all root modules of Lake `lean_lib` and `lean_exe` default targets if no module is specified).
+
 If `--update` is set, the `nolints` file is updated to remove any declarations that no longer need
 to be nolinted.
+
+If `--trace` (or, synonymously, `-v`) is set, tracing will be enabled and logged to stdout.
+
+If `--no-build` is set, `runLinter` will throw if either the oleans to be linted or the oleans
+which drive the linting itself are not present.
 -/
 unsafe def main (args : List String) : IO Unit := do
   let linterArgs := parseLinterArgs args
-  let (update, specifiedModule) ← match linterArgs with
+  let (cfg, mods) ← match linterArgs with
     | Except.ok args => pure args
-    | Except.error msg => do
-      IO.eprintln s!"Error parsing args: {msg}"
-      IO.eprintln "Usage: runLinter [--update] [Batteries.Data.Nat.Basic]"
+    | Except.error msgs => do
+      IO.eprintln s!"Error parsing args:\n  {"\n  ".intercalate msgs}"
+      IO.eprintln "Usage: \
+        runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]..."
       IO.Process.exit 1
 
-  let modulesToLint ← determineModulesToLint specifiedModule
+  let modulesToLint ← determineModulesToLint mods
 
-  modulesToLint.forM <| runLinterOnModule update
+  modulesToLint.forM <| runLinterOnModule cfg
+  -- TODO: Remove manual Process.exit
+  -- We are doing this to shortcut around a race in Lean's IO finalizers that we have observed in Mathlib CI
+  -- (https://leanprover.zulipchat.com/#narrow/channel/287929-mathlib4/topic/slow.20linting.20step.20CI.3F/with/568830914)
+  IO.Process.exit 0

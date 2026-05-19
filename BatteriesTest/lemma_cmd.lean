@@ -3,7 +3,7 @@ import Batteries.Tactic.Lemma
 -- lemma disabled by default
 /--
 info: Try this:
-  theorem
+  [apply] theorem
 ---
 error: `lemma` is not supported by default, please use `theorem` instead.
 Use `set_option lang.lemmaCmd true` to enable the use of the `lemma` command in a file.
@@ -19,7 +19,7 @@ lemma test2 : 3 < 7 := by decide
 -- lemma disabled again
 /--
 info: Try this:
-  theorem
+  [apply] theorem
 ---
 error: `lemma` is not supported by default, please use `theorem` instead.
 Use `set_option lang.lemmaCmd true` to enable the use of the `lemma` command in a file.

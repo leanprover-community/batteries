@@ -1,1 +1,3 @@
-import Batteries.Data.Random.MersenneTwister
+module
+
+public import Batteries.Data.Random.MersenneTwister

@@ -3,6 +3,10 @@ Copyright (c) 2025 Devon Tuma. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma, Quang Dao
 -/
+module
+import all Init.Control.StateRef
+
+@[expose] public section
 
 /-!
 # Laws for Monads with State
@@ -218,4 +222,4 @@ instance {m σ ρ} [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadSta
 
 instance {m ω σ} [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadStateOf σ m] :
     LawfulMonadStateOf σ (StateRefT' ω σ m) :=
-  inferInstanceAs (LawfulMonadStateOf σ (ReaderT _ _))
+  inferInstanceAs (LawfulMonadStateOf σ (ReaderT (ST.Ref ω σ) m))

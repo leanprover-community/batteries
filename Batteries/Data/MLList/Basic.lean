@@ -3,7 +3,11 @@ Copyright (c) 2018 Kim Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Keeley Hoek, Simon Hudon, Kim Morrison
 -/
-import Batteries.Control.AlternativeMonad
+module
+
+public import Batteries.Control.AlternativeMonad
+
+public section
 
 /-! # Monadic lazy lists.
 
@@ -27,7 +31,7 @@ private structure Spec (m : Type u → Type u) where
   uncons : [Monad m] → listM α → m (Option (α × listM α))
   uncons? : listM α → Option (Option (α × listM α))
 
-instance : Nonempty (Spec m) := .intro
+private instance : Nonempty (Spec m) := .intro
   { listM := fun _ => PUnit
     nil := ⟨⟩
     cons := fun _ _ => ⟨⟩
@@ -111,7 +115,7 @@ private local instance [Monad n] : Inhabited (δ → (α → δ → n (ForInStep
       | ForInStep.done d  => pure d
       | ForInStep.yield d => t.forIn d f
 
-instance [Monad m] [MonadLiftT m n] : ForIn n (MLList m α) α where
+instance [Monad m] [Monad n] [MonadLiftT m n] : ForIn n (MLList m α) α where
   forIn := MLList.forIn
 
 /-- Construct a singleton monadic lazy list from a single monadic value. -/

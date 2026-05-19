@@ -3,8 +3,12 @@ Copyright (c) 2025 Christopher Bailey. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Bailey, F. G. Dorais
 -/
-import Batteries.Data.Char
-import Batteries.Data.Char.AsciiCasing
+module
+/- Failing on nightly-2025-12-18
+public import Batteries.Data.Char
+public import Batteries.Data.Char.AsciiCasing
+
+@[expose] public section
 
 namespace String
 
@@ -80,3 +84,4 @@ ASCII-case insensitive implementation comparison returning an `Ordering`. Useful
 @[implemented_by cmpCaseInsensitiveAsciiOnlyImpl]
 def cmpCaseInsensitiveAsciiOnly (s₁ s₂ : String) : Ordering :=
   compare s₁.caseFoldAsciiOnly s₂.caseFoldAsciiOnly
+-/

@@ -3,6 +3,11 @@ Copyright (c) 2018 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
+module
+import Batteries.Tactic.Lint
+public import Batteries.Tactic.Lint.Simp
+
+@[expose] public section
 
 namespace Batteries
 /--
@@ -36,8 +41,10 @@ instance : EmptyCollection (DList α) := ⟨DList.empty⟩
 instance : Inhabited (DList α) := ⟨DList.empty⟩
 
 /-- `O(apply())`. Convert a `DList α` into a `List α` by running the `apply` function. -/
-@[simp] def toList : DList α → List α
+def toList : DList α → List α
   | ⟨f, _⟩ => f []
+
+@[simp] theorem toList_mk : toList ⟨f, h⟩ = f [] := rfl
 
 /-- `O(1)` (`apply` is `O(1)`). A `DList α` corresponding to the list `[a]`. -/
 def singleton (a : α) : DList α where
