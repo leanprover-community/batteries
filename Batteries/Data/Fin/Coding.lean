@@ -237,7 +237,7 @@ def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.su
     | ⟨⟨0, _⟩, x, hx⟩ =>
       split
       · rfl
-      · grind [encodeSigma]
+      · contradiction
     | ⟨⟨i+1, hi⟩, ⟨x, hx⟩⟩ =>
       have : ¬ encodeSigma f ⟨⟨i+1, hi⟩, ⟨x, hx⟩⟩ < f 0 := by simp [encodeSigma]
       rw [dif_neg this]
