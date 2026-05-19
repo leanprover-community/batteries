@@ -35,11 +35,45 @@ error: no attributes start with foobarbaz
 #help attr foobarbaz
 
 /--
-info:
-[inline]: mark definition to be inlined
+info: [inline]: mark definition to be inlined
+  Changes the inlining behavior. This attribute comes in several variants:
+  - `@[inline]`: marks the definition to be inlined when it is appropriate.
+  - `@[inline_if_reduce]`: marks the definition to be inlined if an application of it after inlining
+    and applying reduction isn't a `match` expression. This attribute can be used for inlining
+    structurally recursive functions.
+  - `@[noinline]`: marks the definition to never be inlined.
+  - `@[always_inline]`: marks the definition to always be inlined.
+  - `@[macro_inline]`: marks the definition to always be inlined at the beginning of compilation.
+    This makes it possible to define functions that evaluate some of their parameters lazily.
+    Example:
+    ```
+    @[macro_inline]
+    def test (x y : Nat) : Nat :=
+      if x = 42 then x else y
+  ⏎
+    #eval test 42 (2^1000000000000) -- doesn't compute 2^1000000000000
+    ```
+    Only non-recursive functions may be marked `@[macro_inline]`.
 
-[inline_if_reduce]: mark definition to be inlined when resultant term after reduction is not a
-`cases_on` application
+[inline_if_reduce]: mark definition to be inlined when resultant term after reduction is not a `cases_on` application
+  Changes the inlining behavior. This attribute comes in several variants:
+  - `@[inline]`: marks the definition to be inlined when it is appropriate.
+  - `@[inline_if_reduce]`: marks the definition to be inlined if an application of it after inlining
+    and applying reduction isn't a `match` expression. This attribute can be used for inlining
+    structurally recursive functions.
+  - `@[noinline]`: marks the definition to never be inlined.
+  - `@[always_inline]`: marks the definition to always be inlined.
+  - `@[macro_inline]`: marks the definition to always be inlined at the beginning of compilation.
+    This makes it possible to define functions that evaluate some of their parameters lazily.
+    Example:
+    ```
+    @[macro_inline]
+    def test (x y : Nat) : Nat :=
+      if x = 42 then x else y
+  ⏎
+    #eval test 42 (2^1000000000000) -- doesn't compute 2^1000000000000
+    ```
+    Only non-recursive functions may be marked `@[macro_inline]`.
 -/
 #guard_msgs in
 #help attr inl
@@ -61,10 +95,10 @@ info:
 syntax "("... [«prec(_)»]
   Parentheses are used for grouping precedence expressions.
 
-syntax "+"... [Lean.Parser.Syntax.addPrec]
+syntax ..."+"... [Lean.Parser.Syntax.addPrec]
   Addition of precedences. This is normally used only for offsetting, e.g. `max + 1`.
 
-syntax "-"... [Lean.Parser.Syntax.subPrec]
+syntax ..."-"... [Lean.Parser.Syntax.subPrec]
   Subtraction of precedences. This is normally used only for offsetting, e.g. `max - 1`.
 
 syntax "arg"... [precArg]
@@ -83,7 +117,7 @@ syntax "min"... [precMin]
 syntax "min1"... [precMin1]
   `(min+1)` (we can only write `min+1` after `Meta.lean`)
 
-syntax ... [Lean.Parser.Syntax.numPrec]
+syntax "num"... [Lean.Parser.Syntax.numPrec]
 -/
 #guard_msgs in
 #help cat prec
@@ -95,11 +129,11 @@ syntax "("... [«prec(_)»]
 + macro «_aux_Init_Notation___macroRules_prec(_)_1»
   Parentheses are used for grouping precedence expressions.
 
-syntax "+"... [Lean.Parser.Syntax.addPrec]
+syntax ..."+"... [Lean.Parser.Syntax.addPrec]
   Addition of precedences. This is normally used only for offsetting, e.g. `max + 1`.
 + macro Lean._aux_Init_Meta___macroRules_Lean_Parser_Syntax_addPrec_1
 
-syntax "-"... [Lean.Parser.Syntax.subPrec]
+syntax ..."-"... [Lean.Parser.Syntax.subPrec]
   Subtraction of precedences. This is normally used only for offsetting, e.g. `max - 1`.
 + macro Lean._aux_Init_Meta___macroRules_Lean_Parser_Syntax_subPrec_1
 
@@ -130,7 +164,7 @@ syntax "min1"... [precMin1]
 + macro _aux_Init_Notation___macroRules_precMin1_1
   `(min+1)` (we can only write `min+1` after `Meta.lean`)
 
-syntax ... [Lean.Parser.Syntax.numPrec]
+syntax "num"... [Lean.Parser.Syntax.numPrec]
 -/
 #guard_msgs in
 #help cat+ prec
@@ -233,6 +267,12 @@ syntax "#eval!"... [Lean.Parser.Command.evalBang]
 -/
 #guard_msgs in
 #help command "#e"
+
+-- Notably, we don't show a generic `"/--"` in the following test:
+
+/-- info: syntax "abbrev"... [Lean.Parser.Command.declaration] -/
+#guard_msgs in
+#help command def
 
 /--
 info: syntax "#eval"... [Lean.Parser.Command.eval]
@@ -405,7 +445,10 @@ error: no term declarations start with foobarbaz
 #help term foobarbaz
 
 /--
-info:
+info: syntax "debug_assert!"... [Lean.Parser.Term.debugAssert]
+  `debug_assert! cond` panics if `cond` evaluates to `false` and the executing code has been built
+  with debug assertions enabled (see the `debugAssertions` option).
+
 syntax "decl_name%"... [Lean.Parser.Term.declName]
   A macro which evaluates to the name of the currently elaborating declaration.
 
@@ -415,7 +458,11 @@ syntax "default_or_ofNonempty%"... [Lean.Parser.Term.defaultOrOfNonempty]
 #help term de
 
 /--
-info:
+info: syntax "debug_assert!"... [Lean.Parser.Term.debugAssert]
+  `debug_assert! cond` panics if `cond` evaluates to `false` and the executing code has been built
+  with debug assertions enabled (see the `debugAssertions` option).
++ term elab Lean.Elab.Term.elabDebugAssert
+
 syntax "decl_name%"... [Lean.Parser.Term.declName]
   A macro which evaluates to the name of the currently elaborating declaration.
 + term elab Lean.Elab.Term.elabDeclName

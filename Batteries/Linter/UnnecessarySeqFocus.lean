@@ -3,9 +3,13 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Elab.Command
-import Lean.Linter.Util
-import Batteries.Lean.AttributeExtra
+module
+
+public meta import Lean.Elab.Command
+public meta import Batteries.Lean.AttributeExtra
+public meta import Lean.Linter.Basic
+
+public meta section
 
 namespace Batteries.Linter
 open Lean Elab Command Linter Std
@@ -44,7 +48,7 @@ example : True := by
 namespace UnnecessarySeqFocus
 
 /-- Gets the value of the `linter.unnecessarySeqFocus` option. -/
-def getLinterUnnecessarySeqFocus (o : Options) : Bool :=
+def getLinterUnnecessarySeqFocus (o : LinterOptions) : Bool :=
   getLinterValue linter.unnecessarySeqFocus o
 
 /--
@@ -67,7 +71,7 @@ initialize multigoalAttr : TagAttributeExtra ←
     ``Parser.Tactic.Conv.case',
     ``Parser.Tactic.rotateLeft,
     ``Parser.Tactic.rotateRight,
-    ``Parser.Tactic.tacticShow_,
+    ``Parser.Tactic.show,
     ``Parser.Tactic.tacticStop_
   ]
 
@@ -83,7 +87,7 @@ structure Entry where
   used : Bool
 
 /-- The monad for collecting used tactic syntaxes. -/
-abbrev M (ω) := StateRefT (Std.HashMap String.Range Entry) (ST ω)
+abbrev M (ω) := StateRefT (Std.HashMap Lean.Syntax.Range Entry) (ST ω)
 
 /-- True if this is a `<;>` node in either `tactic` or `conv` classes. -/
 @[inline] def isSeqFocus (k : SyntaxNodeKind) : Bool :=
@@ -149,7 +153,7 @@ end
 
 @[inherit_doc Batteries.Linter.linter.unnecessarySeqFocus]
 def unnecessarySeqFocusLinter : Linter where run := withSetOptionIn fun stx => do
-  unless getLinterUnnecessarySeqFocus (← getOptions) && (← getInfoState).enabled do
+  unless getLinterUnnecessarySeqFocus (← getLinterOptions) && (← getInfoState).enabled do
     return
   if (← get).messages.hasErrors then
     return
@@ -161,8 +165,8 @@ def unnecessarySeqFocusLinter : Linter where run := withSetOptionIn fun stx => d
   let (_, map) := runST fun _ => go.run {}
   let unused := map.fold (init := #[]) fun acc r { stx, used } =>
     if used then acc.push (stx[1].getRange?.getD r, stx[1]) else acc
-  let key (r : String.Range) := (r.start.byteIdx, (-r.stop.byteIdx : Int))
-  let mut last : String.Range := ⟨0, 0⟩
+  let key (r : Lean.Syntax.Range) := (r.start.byteIdx, (-r.stop.byteIdx : Int))
+  let mut last : Lean.Syntax.Range := ⟨0, 0⟩
   for (r, stx) in let _ := @lexOrd; let _ := @ltOfOrd.{0}; unused.qsort (key ·.1 < key ·.1) do
     if last.start ≤ r.start && r.stop ≤ last.stop then continue
     logLint linter.unnecessarySeqFocus stx

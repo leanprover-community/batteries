@@ -3,8 +3,13 @@ Copyright (c) 2021 Shing Tak Lam. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam, Daniel Selsam, Mario Carneiro
 -/
-import Batteries.Lean.Util.EnvSearch
-import Lean.Elab.Tactic.Config
+module
+
+public meta import Batteries.Lean.Util.EnvSearch
+public meta import Lean.Elab.Tactic.Config
+public meta import Lean.Elab.Command
+
+public meta section
 
 namespace Batteries.Tactic
 open Lean Elab Command
@@ -53,6 +58,8 @@ private def takeNameSuffix (cnt : Nat) (name : Name) (pre : Name := .anonymous) 
 private def matchName (opts : PrintPrefixConfig)
                       (pre : Name) (cinfo : ConstantInfo) : MetaM Bool := do
   let name := cinfo.name
+  unless (← hasConst name) do  -- some compiler decls are not known to the elab env, ignore them
+    return false
   let preCnt := pre.getNumParts
   let nameCnt := name.getNumParts
   if preCnt > nameCnt then return false

@@ -3,7 +3,16 @@ Copyright (c) 2025 Devon Tuma. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
-import Batteries.Control.OptionT
+module
+
+public import Batteries.Control.Lemmas
+public import Batteries.Control.OptionT
+import all Init.Control.Option
+import all Init.Control.State
+import all Init.Control.Reader
+import all Init.Control.StateRef
+
+@[expose] public section
 
 
 /-!
@@ -95,7 +104,7 @@ section AlternativeMonad
 
 @[simp] theorem seq_failure [AlternativeMonad m] [LawfulAlternative m] [LawfulMonad m]
     (x : m (α → β)) : x <*> failure = x *> failure := by
-  simp only [seq_eq_bind, map_failure, seqRight_eq, bind_map_left]
+  simp only [seq_eq_bind_map, map_failure, seqRight_eq, bind_map_left]
 
 end AlternativeMonad
 
@@ -119,8 +128,8 @@ instance : AlternativeMonad Option.{u} where
 instance : LawfulAlternative Option.{u} where
   map_failure _ := rfl
   failure_seq _ := rfl
-  orElse_failure := Option.orElse_none
-  failure_orElse := Option.none_orElse
+  orElse_failure x := by cases x <;> rfl
+  failure_orElse := by simp [failure]
   orElse_assoc | some _, _, _ => rfl | none, _, _ => rfl
   map_orElse | some _ => by simp | none => by simp
 
@@ -188,9 +197,9 @@ instance [AlternativeMonad m] : AlternativeMonad (StateRefT' ω σ m) where
 
 instance [AlternativeMonad m] [LawfulAlternative m] :
     LawfulAlternative (StateRefT' ω σ m) :=
-  inferInstanceAs (LawfulAlternative (ReaderT _ _))
+  inferInstanceAs (LawfulAlternative (ReaderT (ST.Ref ω σ) m))
 
 instance [AlternativeMonad m] : LawfulAlternativeLift m (StateRefT' ω σ m) :=
-  inferInstanceAs (LawfulAlternativeLift m (ReaderT _ _))
+  inferInstanceAs (LawfulAlternativeLift m (ReaderT (ST.Ref ω σ) m))
 
 end StateRefT'

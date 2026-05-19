@@ -3,7 +3,9 @@ Copyright (c) 2023 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
-import Batteries.Tactic.Alias
+module
+
+@[expose] public section
 
 namespace ByteArray
 
@@ -21,18 +23,9 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
 
 /-! ### empty -/
 
-@[simp] theorem data_mkEmpty (cap) : (mkEmpty cap).data = #[] := rfl
-
-@[simp] theorem data_empty : empty.data = #[] := rfl
-
-@[simp] theorem size_empty : empty.size = 0 := rfl
+@[simp] theorem data_mkEmpty (cap) : (emptyWithCapacity cap).data = #[] := rfl
 
 /-! ### push -/
-
-@[simp] theorem data_push (a : ByteArray) (b : UInt8) : (a.push b).data = a.data.push b := rfl
-
-@[simp] theorem size_push (a : ByteArray) (b : UInt8) : (a.push b).size = a.size + 1 :=
-  Array.size_push ..
 
 @[simp] theorem get_push_eq (a : ByteArray) (x : UInt8) : (a.push x)[a.size] = x :=
   Array.getElem_push_eq ..
@@ -43,15 +36,12 @@ theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
 
 /-! ### set -/
 
-@[simp] theorem data_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
-    (a.set i v).data = a.data.set i v i.isLt := rfl
-
 @[simp] theorem size_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
     (a.set i v).size = a.size :=
   Array.size_set ..
 
 @[simp] theorem get_set_eq (a : ByteArray) (i : Fin a.size) (v : UInt8) : (a.set i v)[i.val] = v :=
-  Array.getElem_set_self _ _ _ _
+  Array.getElem_set_self _
 
 theorem get_set_ne (a : ByteArray) (i : Fin a.size) (v : UInt8) (hj : j < a.size) (h : i.val ≠ j) :
     (a.set i v)[j]'(a.size_set .. ▸ hj) = a[j] :=
@@ -69,15 +59,6 @@ theorem set_set (a : ByteArray) (i : Fin a.size) (v v' : UInt8) :
 
 /-! ### append -/
 
-@[simp] theorem append_eq (a b) : ByteArray.append a b = a ++ b := rfl
-
-@[simp] theorem data_append (a b : ByteArray) : (a ++ b).data = a.data ++ b.data := by
-  rw [←append_eq]; simp [ByteArray.append, size]
-  rw [Array.extract_empty_of_stop_le_start (h:=Nat.le_add_right ..), Array.append_empty]
-
-theorem size_append (a b : ByteArray) : (a ++ b).size = a.size + b.size := by
-  simp only [size, append_eq, data_append]; exact Array.size_append ..
-
 theorem get_append_left {a b : ByteArray} (hlt : i < a.size)
     (h : i < (a ++ b).size := size_append .. ▸ Nat.lt_of_lt_of_le hlt (Nat.le_add_right ..)) :
     (a ++ b)[i] = a[i] := by
@@ -90,17 +71,6 @@ theorem get_append_right {a b : ByteArray} (hle : a.size ≤ i) (h : i < (a ++ b
 
 /-! ### extract -/
 
-@[simp] theorem data_extract (a : ByteArray) (start stop) :
-    (a.extract start stop).data = a.data.extract start stop := by
-  simp [extract]
-  match Nat.le_total start stop with
-  | .inl h => simp [h, Nat.add_sub_cancel']
-  | .inr h => simp [h, Nat.sub_eq_zero_of_le, Array.extract_empty_of_stop_le_start]
-
-@[simp] theorem size_extract (a : ByteArray) (start stop) :
-    (a.extract start stop).size = min stop a.size - start := by
-  simp [size]
-
 theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start stop).size) :
     start + i < a.size := by
   apply Nat.add_lt_of_lt_sub'; apply Nat.lt_of_lt_of_le h
@@ -108,23 +78,23 @@ theorem get_extract_aux {a : ByteArray} {start stop} (h : i < (a.extract start s
 
 @[simp] theorem get_extract {a : ByteArray} {start stop} (h : i < (a.extract start stop).size) :
     (a.extract start stop)[i] = a[start+i]'(get_extract_aux h) := by
-  simp [getElem_eq_data_getElem]
+  simp [getElem_eq_data_getElem]; rfl
 
 /-! ### ofFn -/
 
 /--- `ofFn f` with `f : Fin n → UInt8` returns the byte array whose `i`th element is `f i`. --/
 @[inline] def ofFn (f : Fin n → UInt8) : ByteArray :=
-  Fin.foldl n (fun acc i => acc.push (f i)) (mkEmpty n)
+  Fin.foldl n (fun acc i => acc.push (f i)) (emptyWithCapacity n)
 
-@[simp] theorem ofFn_zero (f : Fin 0 → UInt8) : ofFn f = empty := rfl
+@[simp] theorem ofFn_zero (f : Fin 0 → UInt8) : ofFn f = empty := by simp [ofFn]
 
 theorem ofFn_succ (f : Fin (n+1) → UInt8) :
     ofFn f = (ofFn fun i => f i.castSucc).push (f (Fin.last n)) := by
-  simp [ofFn, Fin.foldl_succ_last, mkEmpty]
+  simp [ofFn, Fin.foldl_succ_last, emptyWithCapacity]
 
 @[simp] theorem data_ofFn (f : Fin n → UInt8) : (ofFn f).data = .ofFn f := by
   induction n with
-  | zero => rfl
+  | zero => simp
   | succ n ih => simp [ofFn_succ, Array.ofFn_succ, ih, Fin.last]
 
 @[simp] theorem size_ofFn (f : Fin n → UInt8) : (ofFn f).size = n := by

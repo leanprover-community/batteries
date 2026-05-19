@@ -3,8 +3,11 @@ Copyright (c) 2022 Arthur Paulino. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Mario Carneiro
 -/
-import Batteries.Data.List.Basic
-import Lean.Elab.Tactic.Basic
+module
+
+public meta import Lean.Elab.Tactic.Basic
+
+public meta section
 
 /-!
 # The `on_goal`, `pick_goal`, and `swap` tactics.
