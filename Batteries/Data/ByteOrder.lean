@@ -5,7 +5,8 @@ Authors: François G. Dorais
 -/
 
 module
-
+meta import Std.Tactic.BVDecide
+import Std.Tactic.BVDecide.Bitblast.BVExpr.Basic
 public import Batteries.Data.ByteArray
 
 /-! # Byte Order
@@ -54,11 +55,21 @@ public def System.Platform.byteOrder : System.ByteOrder :=
 public def UInt16.byteswap (x : UInt16) : UInt16 :=
   x <<< 8 ||| x >>> 8
 
+@[simp, grind =]
+theorem UInt16.byteswap_byteswap (x : UInt16) : x.byteswap.byteswap = x := by
+  simp only [byteswap]
+  bv_decide
+
 /-- Swap the bytes of a `UInt32` scalar. -/
 @[expose, inline]
 public def UInt32.byteswap (x : UInt32) : UInt32 :=
   let x := x <<< 16 ||| x >>> 16
   (x &&& 0xFF00FF00) >>> 8 ||| (x <<< 8 &&& 0xFF00FF00)
+
+@[simp, grind =]
+theorem UInt32.byteswap_byteswap (x : UInt32) : x.byteswap.byteswap = x := by
+  simp only [byteswap]
+  bv_decide
 
 /-- Swap the byte of a `UInt64` scalar. -/
 @[expose, inline]
@@ -66,6 +77,11 @@ public def UInt64.byteswap (x : UInt64) : UInt64 :=
   let x := x <<< 32 ||| x >>> 32
   let x := (x &&& 0xFFFF0000FFFF0000) >>> 16 ||| (x <<< 16 &&& 0xFFFF0000FFFF0000)
   (x &&& 0xFF00FF00FF00FF00) >>> 8 ||| (x <<< 8 &&& 0xFF00FF00FF00FF00)
+
+@[simp, grind =]
+theorem UInt64.byteswap_byteswap (x : UInt64) : x.byteswap.byteswap = x := by
+  simp only [byteswap]
+  bv_decide
 
 /-- Convert to `endian` byte ordering. -/
 @[expose, inline]
@@ -134,8 +150,22 @@ public def UInt16.toByteArray (x : UInt16) : ByteArray :=
     .mk #[(x >>> 8).toUInt8, x.toUInt8]
 
 @[simp, grind =]
-public theorem UInt16.size_toByteArray (x : UInt16) : x.toByteArray.size = 2 := by
+public theorem UInt16.size_toByteArray {x : UInt16} : x.toByteArray.size = 2 := by
   cases _ : System.Platform.byteOrder <;> (simp only [toByteArray, *]; rfl)
+
+theorem UInt16.getElem_toByteArray_littleEndian (h : System.Platform.byteOrder = .littleEndian)
+    (x : UInt16) (i) (hi : i < x.toByteArray.size) :
+    x.toByteArray[i] = (x >>> (8 * i.toUInt16)).toUInt8 := by
+  simp only [toByteArray, h, ↓reduceIte, ByteArray.getElem_eq_data_getElem, List.getElem_toArray,
+    Nat.toUInt16_eq]
+  match i with | 0 | 1 => rfl
+
+theorem UInt16.getElem_toByteArray_bigEndian (h : System.Platform.byteOrder = .bigEndian)
+    (x : UInt16) (i) (hi : i < x.toByteArray.size) :
+    x.toByteArray[i] = (x >>> (8 * (1 - i).toUInt16)).toUInt8 := by
+  simp only [toByteArray, h, reduceCtorEq, ↓reduceIte, ByteArray.getElem_eq_data_getElem,
+    List.getElem_toArray, Nat.toUInt16_eq]
+  match i with | 0 | 1 => simp
 
 @[inline]
 unsafe def UInt32.toByteArrayImpl (x : UInt32) : ByteArray :=
@@ -153,8 +183,22 @@ public def UInt32.toByteArray (x : UInt32) : ByteArray :=
     .mk #[(x >>> 24).toUInt8, (x >>> 16).toUInt8, (x >>> 8).toUInt8, x.toUInt8]
 
 @[simp, grind =]
-public theorem UInt32.size_toByteArray (x : UInt32) : x.toByteArray.size = 4 := by
+public theorem UInt32.size_toByteArray {x : UInt32} : x.toByteArray.size = 4 := by
   cases _ : System.Platform.byteOrder <;> (simp only [toByteArray, *]; rfl)
+
+theorem UInt32.getElem_toByteArray_littleEndian (h : System.Platform.byteOrder = .littleEndian)
+    (x : UInt32) (i) (hi : i < x.toByteArray.size) :
+    x.toByteArray[i] = (x >>> (8 * i.toUInt32)).toUInt8 := by
+  simp only [toByteArray, h, ↓reduceIte, ByteArray.getElem_eq_data_getElem, List.getElem_toArray,
+    Nat.toUInt32_eq]
+  match i with | 0 | 1 | 2 | 3 => rfl
+
+theorem UInt32.getElem_toByteArray_bigEndian (h : System.Platform.byteOrder = .bigEndian)
+    (x : UInt32) (i) (hi : i < x.toByteArray.size) :
+    x.toByteArray[i] = (x >>> (8 * (3 - i).toUInt32)).toUInt8 := by
+  simp only [toByteArray, h, reduceCtorEq, ↓reduceIte, ByteArray.getElem_eq_data_getElem,
+    List.getElem_toArray, Nat.toUInt32_eq]
+  match i with | 0 | 1 | 2 | 3 => simp
 
 @[inline]
 unsafe def UInt64.toByteArrayImpl (x : UInt64) : ByteArray :=
@@ -170,9 +214,44 @@ public def UInt64.toByteArray (x : UInt64) : ByteArray :=
     .mk #[x.toUInt8, (x >>> 8).toUInt8, (x >>> 16).toUInt8, (x >>> 24).toUInt8,
       (x >>> 32).toUInt8, (x >>> 40).toUInt8, (x >>> 48).toUInt8, (x >>> 56).toUInt8]
   else -- default to big endian even if platform is mixed endian
-    .mk #[(x >>> 56).toUInt8, (x >>> 48).toUInt8, (x >>> 56).toUInt8, (x >>> 32).toUInt8,
+    .mk #[(x >>> 56).toUInt8, (x >>> 48).toUInt8, (x >>> 40).toUInt8, (x >>> 32).toUInt8,
       (x >>> 24).toUInt8, (x >>> 16).toUInt8, (x >>> 8).toUInt8, x.toUInt8]
 
+theorem UInt64.getElem_toByteArray_littleEndian (h : System.Platform.byteOrder = .littleEndian)
+    (x : UInt64) (i) (hi : i < x.toByteArray.size) :
+    x.toByteArray[i] = (x >>> (8 * i.toUInt64)).toUInt8 := by
+  simp only [toByteArray, h, ↓reduceIte, ByteArray.getElem_eq_data_getElem, List.getElem_toArray,
+    Nat.toUInt64_eq]
+  match i with | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 => rfl
+
+theorem UInt64.getElem_toByteArray_bigEndian (h : System.Platform.byteOrder = .bigEndian)
+    (x : UInt64) (i) (hi : i < x.toByteArray.size) :
+    x.toByteArray[i] = (x >>> (8 * (7 - i).toUInt64)).toUInt8 := by
+  simp only [toByteArray, h, reduceCtorEq, ↓reduceIte, ByteArray.getElem_eq_data_getElem,
+    List.getElem_toArray, Nat.toUInt64_eq]
+  match i with | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 => simp
+
 @[simp, grind =]
-public theorem UInt64.size_toByteArray (x : UInt64) : x.toByteArray.size = 8 := by
+public theorem UInt64.size_toByteArray {x : UInt64} : x.toByteArray.size = 8 := by
   cases _ : System.Platform.byteOrder <;> (simp only [toByteArray, *]; rfl)
+
+theorem UInt16.ofByteArray_toByteArray (x : UInt16) :
+    ofByteArray x.toByteArray size_toByteArray = x := by
+  cases h : System.Platform.byteOrder <;> simp only [ofByteArray, h, reduceCtorEq, ↓reduceIte,
+    toByteArray, ByteArray.getElem_eq_data_getElem, List.getElem_toArray, List.getElem_cons_zero,
+    toUInt16_toUInt8, List.getElem_cons_succ]
+  all_goals bv_decide
+
+theorem UInt32.ofByteArray_toByteArray (x : UInt32) :
+    ofByteArray x.toByteArray size_toByteArray = x := by
+  cases h : System.Platform.byteOrder <;> simp only [ofByteArray, h, reduceCtorEq, ↓reduceIte,
+    toByteArray, ByteArray.getElem_eq_data_getElem, List.getElem_toArray, List.getElem_cons_zero,
+    toUInt32_toUInt8, List.getElem_cons_succ]
+  all_goals bv_decide
+
+theorem UInt64.ofByteArray_toByteArray (x : UInt64) :
+    ofByteArray x.toByteArray size_toByteArray = x := by
+  cases h : System.Platform.byteOrder <;> simp only [ofByteArray, h, reduceCtorEq, ↓reduceIte,
+    toByteArray, ByteArray.getElem_eq_data_getElem, List.getElem_toArray, List.getElem_cons_zero,
+    toUInt64_toUInt8, List.getElem_cons_succ]
+  all_goals bv_decide
