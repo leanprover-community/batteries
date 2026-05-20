@@ -12,6 +12,7 @@ name = "Batteries"
 [[lean_lib]]
 name = "BatteriesTest"
 globs = ["BatteriesTest.+"]
+precompileModules = true
 leanOptions = {linter.missingDocs = false}
 
 [[lean_exe]]

@@ -6,6 +6,8 @@ Authors: François G. Dorais
 
 module
 
+public import Batteries.Data.ByteArray
+
 /-! # Byte Order
 
 Basic utilities to handle byte order for scalar types.
@@ -116,11 +118,12 @@ public def UInt64.ofByteArray (b : @& ByteArray) (h : b.size = 8) : UInt64 :=
       ||| b[4].toUInt64) <<< 8 ||| b[5].toUInt64) <<< 8
       ||| b[6].toUInt64) <<< 8 ||| b[7].toUInt64
 
-@[inline, never_extract] def UInt16.toByteArrayImpl (x : UInt16) : ByteArray :=
-  set .empty x
+@[inline]
+unsafe def UInt16.toByteArrayImpl (x : UInt16) : ByteArray :=
+  set (ByteArray.allocate 2 2 (USize.le_refl _)) x
 where
-  @[extern c inline "#1 = lean_alloc_sarray(1, 2, 2);\n*(uint16_t*)lean_sarray_cptr(#1) = #2"]
-  set (_b : @& ByteArray) (_x : UInt16) := _b
+  @[extern c inline "#1;\n*(uint16_t*)lean_sarray_cptr(#1) = #2"]
+  set (_b : ByteArray) (_x : UInt16) := _b
 
 /-- Convert a `UInt16` scalar into a byte array in platform byte order. -/
 @[expose, implemented_by UInt16.toByteArrayImpl]
@@ -134,11 +137,12 @@ public def UInt16.toByteArray (x : UInt16) : ByteArray :=
 public theorem UInt16.size_toByteArray (x : UInt16) : x.toByteArray.size = 2 := by
   cases _ : System.Platform.byteOrder <;> (simp only [toByteArray, *]; rfl)
 
-@[inline, never_extract] def UInt32.toByteArrayImpl (x : UInt32) : ByteArray :=
-  set .empty x
+@[inline]
+unsafe def UInt32.toByteArrayImpl (x : UInt32) : ByteArray :=
+  set (ByteArray.allocate 4 4 (USize.le_refl _)) x
 where
-  @[extern c inline "#1 = lean_alloc_sarray(1, 4, 4);\n*(uint32_t*)lean_sarray_cptr(#1) = #2"]
-  set (_b : @& ByteArray) (_x : UInt32) := _b
+  @[extern c inline "#1;\n*(uint32_t*)lean_sarray_cptr(#1) = #2"]
+  set (_b : ByteArray) (_x : UInt32) := _b
 
 /-- Convert a `UInt32` scalar into a byte array in platform byte order. -/
 @[expose, implemented_by UInt32.toByteArrayImpl]
@@ -152,11 +156,12 @@ public def UInt32.toByteArray (x : UInt32) : ByteArray :=
 public theorem UInt32.size_toByteArray (x : UInt32) : x.toByteArray.size = 4 := by
   cases _ : System.Platform.byteOrder <;> (simp only [toByteArray, *]; rfl)
 
-@[inline, never_extract] def UInt64.toByteArrayImpl (x : UInt64) : ByteArray :=
-  set .empty x
+@[inline]
+unsafe def UInt64.toByteArrayImpl (x : UInt64) : ByteArray :=
+  set (ByteArray.allocate 8 8 (USize.le_refl _)) x
 where
-  @[extern c inline "#1 = lean_alloc_sarray(1, 8, 8);\n*(uint64_t*)lean_sarray_cptr(#1) = #2"]
-  set (_b : @& ByteArray) (_x : UInt64) := _b
+  @[extern c inline "#1;\n*(uint64_t*)lean_sarray_cptr(#1) = #2"]
+  set (_b : ByteArray) (_x : UInt64) := _b
 
 /-- Convert a `UInt64` scalar into a byte array in platform byte order. -/
 @[expose, implemented_by UInt64.toByteArrayImpl]
