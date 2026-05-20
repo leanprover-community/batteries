@@ -5,6 +5,7 @@ Authors: François G. Dorais
 -/
 
 module
+import Batteries.Util.ProofWanted
 meta import Std.Tactic.BVDecide
 import Std.Tactic.BVDecide.Bitblast.BVExpr.Basic
 public import Batteries.Data.ByteArray
@@ -153,14 +154,16 @@ public def UInt16.toByteArray (x : UInt16) : ByteArray :=
 public theorem UInt16.size_toByteArray {x : UInt16} : x.toByteArray.size = 2 := by
   cases _ : System.Platform.byteOrder <;> (simp only [toByteArray, *]; rfl)
 
-theorem UInt16.getElem_toByteArray_littleEndian (h : System.Platform.byteOrder = .littleEndian)
+@[grind =]
+public theorem UInt16.getElem_toByteArray_littleEndian (h : System.Platform.byteOrder = .littleEndian)
     (x : UInt16) (i) (hi : i < x.toByteArray.size) :
     x.toByteArray[i] = (x >>> (8 * i.toUInt16)).toUInt8 := by
   simp only [toByteArray, h, ↓reduceIte, ByteArray.getElem_eq_data_getElem, List.getElem_toArray,
     Nat.toUInt16_eq]
   match i with | 0 | 1 => rfl
 
-theorem UInt16.getElem_toByteArray_bigEndian (h : System.Platform.byteOrder = .bigEndian)
+@[grind =]
+public theorem UInt16.getElem_toByteArray_bigEndian (h : System.Platform.byteOrder = .bigEndian)
     (x : UInt16) (i) (hi : i < x.toByteArray.size) :
     x.toByteArray[i] = (x >>> (8 * (1 - i).toUInt16)).toUInt8 := by
   simp only [toByteArray, h, reduceCtorEq, ↓reduceIte, ByteArray.getElem_eq_data_getElem,
@@ -186,14 +189,16 @@ public def UInt32.toByteArray (x : UInt32) : ByteArray :=
 public theorem UInt32.size_toByteArray {x : UInt32} : x.toByteArray.size = 4 := by
   cases _ : System.Platform.byteOrder <;> (simp only [toByteArray, *]; rfl)
 
-theorem UInt32.getElem_toByteArray_littleEndian (h : System.Platform.byteOrder = .littleEndian)
+@[grind =]
+public theorem UInt32.getElem_toByteArray_littleEndian (h : System.Platform.byteOrder = .littleEndian)
     (x : UInt32) (i) (hi : i < x.toByteArray.size) :
     x.toByteArray[i] = (x >>> (8 * i.toUInt32)).toUInt8 := by
   simp only [toByteArray, h, ↓reduceIte, ByteArray.getElem_eq_data_getElem, List.getElem_toArray,
     Nat.toUInt32_eq]
   match i with | 0 | 1 | 2 | 3 => rfl
 
-theorem UInt32.getElem_toByteArray_bigEndian (h : System.Platform.byteOrder = .bigEndian)
+@[grind =]
+public theorem UInt32.getElem_toByteArray_bigEndian (h : System.Platform.byteOrder = .bigEndian)
     (x : UInt32) (i) (hi : i < x.toByteArray.size) :
     x.toByteArray[i] = (x >>> (8 * (3 - i).toUInt32)).toUInt8 := by
   simp only [toByteArray, h, reduceCtorEq, ↓reduceIte, ByteArray.getElem_eq_data_getElem,
@@ -217,14 +222,16 @@ public def UInt64.toByteArray (x : UInt64) : ByteArray :=
     .mk #[(x >>> 56).toUInt8, (x >>> 48).toUInt8, (x >>> 40).toUInt8, (x >>> 32).toUInt8,
       (x >>> 24).toUInt8, (x >>> 16).toUInt8, (x >>> 8).toUInt8, x.toUInt8]
 
-theorem UInt64.getElem_toByteArray_littleEndian (h : System.Platform.byteOrder = .littleEndian)
+@[grind =]
+public theorem UInt64.getElem_toByteArray_littleEndian (h : System.Platform.byteOrder = .littleEndian)
     (x : UInt64) (i) (hi : i < x.toByteArray.size) :
     x.toByteArray[i] = (x >>> (8 * i.toUInt64)).toUInt8 := by
   simp only [toByteArray, h, ↓reduceIte, ByteArray.getElem_eq_data_getElem, List.getElem_toArray,
     Nat.toUInt64_eq]
   match i with | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 => rfl
 
-theorem UInt64.getElem_toByteArray_bigEndian (h : System.Platform.byteOrder = .bigEndian)
+@[grind =]
+public theorem UInt64.getElem_toByteArray_bigEndian (h : System.Platform.byteOrder = .bigEndian)
     (x : UInt64) (i) (hi : i < x.toByteArray.size) :
     x.toByteArray[i] = (x >>> (8 * (7 - i).toUInt64)).toUInt8 := by
   simp only [toByteArray, h, reduceCtorEq, ↓reduceIte, ByteArray.getElem_eq_data_getElem,
@@ -235,23 +242,35 @@ theorem UInt64.getElem_toByteArray_bigEndian (h : System.Platform.byteOrder = .b
 public theorem UInt64.size_toByteArray {x : UInt64} : x.toByteArray.size = 8 := by
   cases _ : System.Platform.byteOrder <;> (simp only [toByteArray, *]; rfl)
 
-theorem UInt16.ofByteArray_toByteArray (x : UInt16) :
+@[simp, grind =]
+public theorem UInt16.ofByteArray_toByteArray (x : UInt16) :
     ofByteArray x.toByteArray size_toByteArray = x := by
-  cases h : System.Platform.byteOrder <;> simp only [ofByteArray, h, reduceCtorEq, ↓reduceIte,
+  cases hp : System.Platform.byteOrder <;> simp only [ofByteArray, hp, reduceCtorEq, ↓reduceIte,
     toByteArray, ByteArray.getElem_eq_data_getElem, List.getElem_toArray, List.getElem_cons_zero,
     toUInt16_toUInt8, List.getElem_cons_succ]
   all_goals bv_decide
 
-theorem UInt32.ofByteArray_toByteArray (x : UInt32) :
+@[simp, grind =]
+public theorem UInt32.ofByteArray_toByteArray (x : UInt32) :
     ofByteArray x.toByteArray size_toByteArray = x := by
-  cases h : System.Platform.byteOrder <;> simp only [ofByteArray, h, reduceCtorEq, ↓reduceIte,
+  cases hp : System.Platform.byteOrder <;> simp only [ofByteArray, hp, reduceCtorEq, ↓reduceIte,
     toByteArray, ByteArray.getElem_eq_data_getElem, List.getElem_toArray, List.getElem_cons_zero,
     toUInt32_toUInt8, List.getElem_cons_succ]
   all_goals bv_decide
 
-theorem UInt64.ofByteArray_toByteArray (x : UInt64) :
+@[simp, grind =]
+public theorem UInt64.ofByteArray_toByteArray (x : UInt64) :
     ofByteArray x.toByteArray size_toByteArray = x := by
   cases h : System.Platform.byteOrder <;> simp only [ofByteArray, h, reduceCtorEq, ↓reduceIte,
     toByteArray, ByteArray.getElem_eq_data_getElem, List.getElem_toArray, List.getElem_cons_zero,
     toUInt64_toUInt8, List.getElem_cons_succ]
   all_goals bv_decide
+
+proof_wanted UInt16.toByteArray_ofByteArray (b : ByteArray) (h : b.size = 2) :
+    (ofByteArray b h).toByteArray = b
+
+proof_wanted UInt32.toByteArray_ofByteArray (b : ByteArray) (h : b.size = 4) :
+    (ofByteArray b h).toByteArray = b
+
+proof_wanted UInt64.toByteArray_ofByteArray (b : ByteArray) (h : b.size = 8) :
+    (ofByteArray b h).toByteArray = b
