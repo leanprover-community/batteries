@@ -173,8 +173,8 @@ public theorem UInt16.size_toByteArray {x : UInt16} : x.toByteArray.size = 2 := 
   cases _ : System.Platform.byteOrder <;> (simp only [toByteArray, *]; rfl)
 
 @[grind =]
-public theorem UInt16.getElem_toByteArray_littleEndian (h : System.Platform.byteOrder = .littleEndian)
-    (x : UInt16) (i) (hi : i < x.toByteArray.size) :
+public theorem UInt16.getElem_toByteArray_littleEndian
+    (h : System.Platform.byteOrder = .littleEndian) (x : UInt16) (i) (hi : i < x.toByteArray.size) :
     x.toByteArray[i] = (x >>> (8 * i.toUInt16)).toUInt8 := by
   simp only [toByteArray, h, ↓reduceIte, ByteArray.getElem_eq_data_getElem, List.getElem_toArray,
     Nat.toUInt16_eq]
@@ -208,8 +208,8 @@ public theorem UInt32.size_toByteArray {x : UInt32} : x.toByteArray.size = 4 := 
   cases _ : System.Platform.byteOrder <;> (simp only [toByteArray, *]; rfl)
 
 @[grind =]
-public theorem UInt32.getElem_toByteArray_littleEndian (h : System.Platform.byteOrder = .littleEndian)
-    (x : UInt32) (i) (hi : i < x.toByteArray.size) :
+public theorem UInt32.getElem_toByteArray_littleEndian
+    (h : System.Platform.byteOrder = .littleEndian) (x : UInt32) (i) (hi : i < x.toByteArray.size) :
     x.toByteArray[i] = (x >>> (8 * i.toUInt32)).toUInt8 := by
   simp only [toByteArray, h, ↓reduceIte, ByteArray.getElem_eq_data_getElem, List.getElem_toArray,
     Nat.toUInt32_eq]
