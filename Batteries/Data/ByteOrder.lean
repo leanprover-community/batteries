@@ -91,6 +91,12 @@ public def UInt16.toByteOrder (x : UInt16) (endian : System.ByteOrder) : UInt16 
   | .littleEndian, .bigEndian | .bigEndian, .littleEndian => x.byteswap
   | _, _ => x
 
+/-- Convert to big endian byte ordering. -/
+public abbrev UInt16.toBigEndian (x : UInt16) : UInt16 := x.toByteOrder .bigEndian
+
+/-- Convert to little endian byte ordering. -/
+public abbrev UInt16.toLittleEndian (x : UInt16) : UInt16 := x.toByteOrder .littleEndian
+
 /-- Convert to `endian` byte ordering. -/
 @[expose, inline]
 public def UInt32.toByteOrder (x : UInt32) (endian : System.ByteOrder) : UInt32 :=
@@ -98,12 +104,24 @@ public def UInt32.toByteOrder (x : UInt32) (endian : System.ByteOrder) : UInt32 
   | .littleEndian, .bigEndian | .bigEndian, .littleEndian => x.byteswap
   | _, _ => x
 
+/-- Convert to big endian byte ordering. -/
+public abbrev UInt32.toBigEndian (x : UInt32) : UInt32 := x.toByteOrder .bigEndian
+
+/-- Convert to little endian byte ordering. -/
+public abbrev UInt32.toLittleEndian (x : UInt32) : UInt32 := x.toByteOrder .littleEndian
+
 /-- Convert to `endian` byte ordering. -/
 @[expose, inline]
 public def UInt64.toByteOrder (x : UInt64) (endian : System.ByteOrder) : UInt64 :=
   match endian, System.Platform.byteOrder with
   | .littleEndian, .bigEndian | .bigEndian, .littleEndian => x.byteswap
   | _, _ => x
+
+/-- Convert to big endian byte ordering. -/
+public abbrev UInt64.toBigEndian (x : UInt64) : UInt64 := x.toByteOrder .bigEndian
+
+/-- Convert to little endian byte ordering. -/
+public abbrev UInt64.toLittleEndian (x : UInt64) : UInt64 := x.toByteOrder .littleEndian
 
 /-- Convert a byte array of size 2 into a `UInt16` scalar in platform byte order. -/
 @[expose, never_extract, extern c inline "*(uint16_t*)lean_sarray_cptr(#1)"]
