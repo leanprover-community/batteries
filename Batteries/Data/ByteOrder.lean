@@ -241,8 +241,8 @@ public def UInt64.toByteArray (x : UInt64) : ByteArray :=
       (x >>> 24).toUInt8, (x >>> 16).toUInt8, (x >>> 8).toUInt8, x.toUInt8]
 
 @[grind =]
-public theorem UInt64.getElem_toByteArray_littleEndian (h : System.Platform.byteOrder = .littleEndian)
-    (x : UInt64) (i) (hi : i < x.toByteArray.size) :
+public theorem UInt64.getElem_toByteArray_littleEndian
+    (h : System.Platform.byteOrder = .littleEndian) (x : UInt64) (i) (hi : i < x.toByteArray.size) :
     x.toByteArray[i] = (x >>> (8 * i.toUInt64)).toUInt8 := by
   simp only [toByteArray, h, ↓reduceIte, ByteArray.getElem_eq_data_getElem, List.getElem_toArray,
     Nat.toUInt64_eq]
