@@ -1,5 +1,7 @@
 import Batteries.Tactic.SeqFocus
 
+set_option linter.unreachableTactic false
+
 example : (True ∧ (∃ x : Nat, x = x)) ∧ True := by
   constructor
   constructor
