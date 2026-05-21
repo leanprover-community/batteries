@@ -36,20 +36,15 @@ attribute [inherit_doc System.ByteOrder] System.ByteOrder.littleEndian
 
 /-- Determine the byte order of the host platform.
 
-The host platform is expected to be `bigEndian` or `littleEndian`. In the rare
-event that the platform is mixed endian, `System.byteOrder.platform` is returned.
+The host platform is expected to be `bigEndian` or `littleEndian`. Mixed endian
+platforms are not supported.
 -/
 public def System.Platform.byteOrder : System.ByteOrder :=
-  if ntohl 0x01020304 = 0x01020304 then
-    .bigEndian
-  else if ntohl 0x01020304 = 0x04030201 then
-    .littleEndian
-  else
-    .platform
-  where
-    /-- The C function `ntohl` converts a `UInt32` in network byte order (big endian) to a
-      `UInt32` in host byte order. -/
-    @[extern "ntohl"] ntohl : UInt32 → UInt32 := id
+  let b : ByteArray := .mk #[1, 0]
+  if test b = 1 then .littleEndian else .bigEndian
+where
+  @[never_extract, extern c inline "*(uint16_t*)lean_sarray_cptr(#1)"]
+  test : ByteArray → UInt16 := fun _ => 0
 
 /-- Swap the bytes of a `UInt16` scalar. -/
 @[expose, inline]
