@@ -5,6 +5,7 @@ Authors: David Thrane Christiansen, Kim Morrison
 -/
 module
 
+public import Batteries.Tactic.Lint.Misc
 public meta import Lean.Elab.Command
 public meta import Lean.Elab.Term
 public meta import Batteries.Lean.Syntax
@@ -28,7 +29,7 @@ structure ProofWanted (α : Sort u) : Type where
 
 /-- Reducible accessor so a binder of type `ProofWanted.Stmt foo` reduces to `foo`'s
 statement. Used by the desugaring of `❰foo❱`. -/
-@[reducible]
+@[reducible, nolint unusedArguments]
 def ProofWanted.Stmt {α : Sort u} (_ : ProofWanted α) : Sort u := α
 
 end
@@ -114,23 +115,18 @@ def elabProofWanted : CommandElab
     -- (1) Brackets aren't allowed inside binder types in this version.
     for arg in args do
       rejectRefsIn "binder types" arg.raw
-    -- (2) Walk the result type, collecting and rewriting each `❰x❱` reference.
-    let nameToHypRef : IO.Ref (NameMap (TSyntax `ident)) ← IO.mkRef {}
+    -- (2) Walk the result type, replacing each `❰x❱` reference with a fresh hypothesis ident.
+    -- Each occurrence (even repeated `❰x❱`s for the same `x`) gets its own binder.
     let hypOrderRef : IO.Ref (Array (Name × TSyntax `ident)) ← IO.mkRef #[]
     let res' ← res.raw.replaceM fun s => do
       unless s.getKind == ``proofWantedRef do return none
       let identStx : Syntax.Ident := ⟨s[1]⟩
       let nm ← liftCoreM <| Elab.realizeGlobalConstNoOverloadWithInfo identStx
-      let m ← nameToHypRef.get
-      match m.find? nm with
-      | some h => return some h.raw
-      | none =>
-        validateProofWantedRef nm identStx
-        let fresh ← freshHypName nm
-        let hyp : TSyntax `ident := mkIdent fresh
-        nameToHypRef.set (m.insert nm hyp)
-        hypOrderRef.modify (·.push (nm, hyp))
-        return some hyp.raw
+      validateProofWantedRef nm identStx
+      let fresh ← freshHypName nm
+      let hyp : TSyntax `ident := mkIdent fresh
+      hypOrderRef.modify (·.push (nm, hyp))
+      return some hyp.raw
     let res' : TSyntax `term := ⟨res'⟩
     let order : Array (Name × TSyntax `ident) ← hypOrderRef.get
     -- (3) Build the extra bracketed binders.
