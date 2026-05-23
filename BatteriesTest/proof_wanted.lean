@@ -21,13 +21,13 @@ info: env_trace : ProofWanted (17 = 37)
 proof_wanted with_ref :
     (⟨17, by rw [❰env_trace❱]; decide⟩ : Fin 50) = 0
 
-/-! Each `❰foo❱` occurrence gets its own fresh hypothesis (no deduplication). -/
+/-! Repeated references to the same bracket share one hypothesis binder. -/
 proof_wanted double_ref :
     (⟨17, by rw [❰env_trace❱]; decide⟩ : Fin 50)
       = (⟨17, by rw [❰env_trace❱]; decide⟩ : Fin 50)
 
 /--
-info: double_ref : (h_env_trace h_env_trace_1 : env_trace.Stmt) → ProofWanted (⟨17, ⋯⟩ = ⟨17, ⋯⟩)
+info: double_ref : (h_env_trace : env_trace.Stmt) → ProofWanted (⟨17, ⋯⟩ = ⟨17, ⋯⟩)
 -/
 #guard_msgs in #check @double_ref
 
