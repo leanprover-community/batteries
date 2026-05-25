@@ -15,7 +15,7 @@ info: env_trace : ProofWanted (17 = 37)
 -/
 #guard_msgs in #check @env_trace
 
-/-! ## The headline bracket feature -/
+/-! ## Bracket references -/
 
 /-! Forward reference via `❰…❱` works: the resulting statement records "if env_trace then …". -/
 proof_wanted with_ref :
@@ -27,7 +27,7 @@ proof_wanted double_ref :
       = (⟨17, by rw [❰env_trace❱]; decide⟩ : Fin 50)
 
 /--
-info: double_ref : (h_env_trace : env_trace.Stmt) → ProofWanted (⟨17, ⋯⟩ = ⟨17, ⋯⟩)
+info: @double_ref : {h_env_trace : env_trace.Stmt} → ProofWanted (⟨17, ⋯⟩ = ⟨17, ⋯⟩)
 -/
 #guard_msgs in #check @double_ref
 
@@ -38,11 +38,62 @@ proof_wanted two_refs :
     (⟨17, by rw [❰env_trace❱]; decide⟩ : Fin 50)
       = (⟨5, by rw [❰other_eq❱]; decide⟩ : Fin 50)
 
--- Two distinct brackets produce two distinct binders, in order of first occurrence.
+/-! Two distinct brackets produce two distinct binders, in order of first occurrence. -/
 /--
-info: two_refs : (h_env_trace : env_trace.Stmt) → (h_other_eq : other_eq.Stmt) → ProofWanted (⟨17, ⋯⟩ = ⟨5, ⋯⟩)
+info: @two_refs : {h_env_trace : env_trace.Stmt} → {h_other_eq : other_eq.Stmt} → ProofWanted (⟨17, ⋯⟩ = ⟨5, ⋯⟩)
 -/
 #guard_msgs in #check @two_refs
+
+/-! ## Parametrised references
+
+`❰foo❱` applied to arguments works when `foo` has its own binders. -/
+
+proof_wanted param_pw (n : Nat) : n = n
+
+proof_wanted ref_param_pw :
+    (⟨5, by rw [❰param_pw❱ 5]; decide⟩ : Fin 50) = 0
+
+/--
+info: @ref_param_pw : {h_param_pw : ∀ (n : Nat), (param_pw n).Stmt} → ProofWanted (⟨5, ⋯⟩ = 0)
+-/
+#guard_msgs in #check @ref_param_pw
+
+/-! Implicit binders. The printed `param_imp.Stmt` drops the implicit argument cosmetically; the
+underlying type retains it (see `set_option pp.all true`). -/
+
+proof_wanted param_imp {n : Nat} : n = n
+
+proof_wanted ref_param_imp :
+    (⟨5, by rw [show (5 : Nat) = 5 from ❰param_imp❱]; decide⟩ : Fin 50) = 0
+
+/--
+info: @ref_param_imp : {h_param_imp : ∀ {n : Nat}, param_imp.Stmt} → ProofWanted (⟨5, ⋯⟩ = 0)
+-/
+#guard_msgs in #check @ref_param_imp
+
+/-! Instance binders. `❰param_inst❱` resolves the instance from context. -/
+
+proof_wanted param_inst [Decidable True] : True
+
+proof_wanted ref_param_inst :
+    (⟨0, by have : True := ❰param_inst❱; decide⟩ : Fin 50) = 0
+
+/--
+info: @ref_param_inst : {h_param_inst : ∀ [inst : Decidable True], param_inst.Stmt} → ProofWanted (⟨0, ⋯⟩ = 0)
+-/
+#guard_msgs in #check @ref_param_inst
+
+/-! Multiple dependent binders. -/
+
+proof_wanted param_many (n : Nat) (h : n > 0) : n - 1 < n
+
+proof_wanted ref_param_many :
+    (⟨3, by have := ❰param_many❱ 4 (by decide); omega⟩ : Fin 50) = ⟨3, by decide⟩
+
+/--
+info: @ref_param_many : {h_param_many : ∀ (n : Nat) (h : n > 0), (param_many n h).Stmt} → ProofWanted (⟨3, ⋯⟩ = ⟨3, ⋯⟩)
+-/
+#guard_msgs in #check @ref_param_many
 
 /-! ## Error cases -/
 
@@ -56,7 +107,7 @@ error: Unknown constant `not_declared`
 private def regular_def : Nat := 0
 
 /--
-error: `regular_def` is not a `proof_wanted` declaration (its type is not `ProofWanted _`)
+error: `regular_def` is not a `proof_wanted` declaration (its type doesn't end in `ProofWanted _`)
 -/
 #guard_msgs in proof_wanted bad_not_pw : ❰regular_def❱
 
