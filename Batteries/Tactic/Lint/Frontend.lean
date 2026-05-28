@@ -232,7 +232,7 @@ def formatLinterResults
         else
           printWarnings results
       pure $ some m!"/- The `{linter.name}` linter reports:\n{linter.errorsFound
-        }\nUse `@[nolint {linter.name}]` to ignore a declaration. -/\n{warnings}\n"
+        }\nThis linter can be disabled with `@[nolint {linter.name}]`. -/\n{warnings}\n"
     else if verbose = LintVerbosity.high then
       pure $ some m!"/- OK: {linter.noErrorsFound} -/"
     else
