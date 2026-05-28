@@ -209,8 +209,6 @@ instance {m σ ρ} [Monad m] [LawfulMonad m] [MonadStateOf σ m] [LawfulMonadSta
     LawfulMonadStateOf σ (ReaderT ρ m) where
   modifyGet_eq f := ReaderT.ext fun ctx => by
     simp [← liftM_modifyGet, LawfulMonadStateOf.modifyGet_eq, ← liftM_get]
-    -- Needed after leanprover/lean4#13283, but we should find the missing lemma here.
-    rfl
   get_bind_const mx := ReaderT.ext fun ctx => by
     simp [← liftM_get]
   get_bind_get_bind mx := ReaderT.ext fun ctx => by
