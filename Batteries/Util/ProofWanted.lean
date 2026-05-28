@@ -10,8 +10,6 @@ public meta import Lean.Elab.Command
 public meta import Lean.Elab.Term
 public meta import Batteries.Lean.Syntax
 
-@[expose] public section
-
 /-!
 # The `proof_wanted` command
 
@@ -29,16 +27,14 @@ Lean input method.
 -/
 
 /-- Wrapper recording that a `proof_wanted` of statement `α` has been declared. -/
-structure ProofWanted (α : Sort u) : Type where
+public structure ProofWanted (α : Sort u) : Type where
   /-- The trivial constructor; carries no information. -/
   mk ::
 
 /-- Reducible accessor so a binder of type `ProofWanted.Stmt foo` reduces to `foo`'s
 statement. Used by the desugaring of `❰foo❱`. -/
-@[reducible, nolint unusedArguments]
-def ProofWanted.Stmt {α : Sort u} (_ : ProofWanted α) : Sort u := α
-
-end
+@[reducible, nolint unusedArguments, expose]
+public def ProofWanted.Stmt {α : Sort u} (_ : ProofWanted α) : Sort u := α
 
 public meta section
 
@@ -73,15 +69,24 @@ ProofWanted _`, the binder type is itself Π-quantified, so `❰foo❱ x y` appl
 
 Typical usage:
 ```
-proof_wanted seventeen_eq_thirtyseven : 17 = 37
+-- A parameterless wanted fact:
+proof_wanted size_of_two_pushes_onto_empty :
+    ((#[] : Array Nat).push 1 |>.push 2).size = 2
 
-proof_wanted seventeen_in_fifty :
-    (⟨17, by rw [❰seventeen_eq_thirtyseven❱]; decide⟩ : Fin 50) = 0
+-- Referencing an earlier `proof_wanted` inside a statement (here in the `Fin`
+-- bound proof, which rewrites by the wanted fact):
+proof_wanted first_index_after_two_pushes :
+    (⟨0, by rw [❰size_of_two_pushes_onto_empty❱]; decide⟩
+      : Fin ((#[] : Array Nat).push 1 |>.push 2).size).val = 0
 
-proof_wanted nat_refl_unconditional (n : Nat) : n = n
+-- A parametrised wanted fact:
+proof_wanted size_after_two_pushes {α : Type _} (a : Array α) (x y : α) :
+    ((a.push x).push y).size = a.size + 2
 
-proof_wanted refl_at_five :
-    (⟨5, by rw [❰nat_refl_unconditional❱ 5]; decide⟩ : Fin 50) = 0
+-- Referencing the parametrised wanted with arguments: `❰foo❱ a x y`.
+proof_wanted index_after_two_pushes {α : Type _} (a : Array α) (x y : α) :
+    (⟨a.size, by rw [❰size_after_two_pushes❱ a x y]; omega⟩
+      : Fin ((a.push x).push y).size).val = a.size
 ```
 -/
 @[command_parser]
