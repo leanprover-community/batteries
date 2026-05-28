@@ -524,7 +524,7 @@ theorem Ordered.lowerBound?_greatest_lb [Std.TransCmp (α := α) cmp] [IsCut cmp
   rw [← reverse_reverse t, lowerBound?_reverse] at h1
   rw [← Ordering.swap_inj] at h3 ⊢
   revert h2 h3 h4
-  simpa [-Ordering.swap_inj] using
+  simpa [-Ordering.swap_inj] using!
     h.reverse.upperBound?_least_ub (fun h => All.reverse.2 <| (hlb h).imp .flip) h1
 
 /--
@@ -588,7 +588,7 @@ theorem Ordered.lt_upperBound? [Std.TransCmp (α := α) cmp] [IsStrictCut cmp cu
     cmp y x = .lt ↔ cut y = .gt := by
   rw [← reverse_reverse t, upperBound?_reverse] at H
   rw [← Ordering.swap_inj (o₂ := .gt)]
-  revert hy; simpa [-Ordering.swap_inj] using ht.reverse.lowerBound?_lt H
+  revert hy; simpa [-Ordering.swap_inj] using! ht.reverse.lowerBound?_lt H
 
 end «upperBound? and lowerBound?»
 
@@ -948,7 +948,7 @@ theorem mem_insert_of_mem [Std.TransCmp (α := α) cmp] (v) {t : RBSet α cmp}
 theorem mem_toList_insert [Std.TransCmp (α := α) cmp] {t : RBSet α cmp} :
     v' ∈ toList (t.insert v) ↔ (v' ∈ toList t ∧ t.find? v ≠ some v') ∨ v' = v := by
   let ⟨ht₁, _, _, ht₂⟩ := t.2.out
-  simpa [mem_toList] using RBNode.mem_insert ht₂ ht₁
+  simpa [mem_toList] using! RBNode.mem_insert ht₂ ht₁
 
 theorem mem_insert [Std.TransCmp (α := α) cmp] {t : RBSet α cmp} :
     v' ∈ t.insert v ↔ v' ∈ t ∨ cmp v v' = .eq := by
