@@ -72,7 +72,7 @@ open Array renaming map -> listMap
 /--
 info: open Lean Lean.Meta
 open Lean.Elab hiding TermElabM
-open Lean.Elab.Command Batteries
+open Lean.Elab.Command Lean.Meta.Command Batteries
 open Array renaming map → listMap
 -/
 #guard_msgs in #where
