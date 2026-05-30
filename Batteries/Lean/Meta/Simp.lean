@@ -59,7 +59,8 @@ def mkSimpContext' (simpTheorems : SimpTheorems) (stx : Syntax) (eraseLocal : Bo
     pure simpTheorems
   let simprocs ← if simpOnly then pure {} else Simp.getSimprocs
   let congrTheorems ← Meta.getSimpCongrTheorems
-  let ctx ← Simp.mkContext (← elabSimpConfig stx[1] (kind := kind)) #[simpTheorems] congrTheorems
+  let { config, userConfig } ← elabSimpConfig stx[1] (kind := kind)
+  let ctx ← Simp.mkContext config #[simpTheorems] congrTheorems userConfig
   let r ← elabSimpArgs stx[4] (simprocs := #[simprocs]) ctx eraseLocal kind
     (ignoreStarArg := ignoreStarArg)
   return { r with dischargeWrapper }
