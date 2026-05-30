@@ -1,6 +1,5 @@
 module
 
-public import Batteries.Linter.DeprecatedModule
 public import Batteries.Data.RBMap.Basic
 public import Batteries.Data.RBMap.Depth
 public import Batteries.Data.RBMap.Lemmas
