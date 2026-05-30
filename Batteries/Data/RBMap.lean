@@ -1,4 +1,4 @@
-module
+module -- deprecated_module: ignore
 
 public import Batteries.Data.RBMap.Basic
 public import Batteries.Data.RBMap.Depth
