@@ -112,8 +112,14 @@ has been used. -/
       if ← isProp info.type then return some "is a def, should be a lemma/theorem"
     return none
 
-/-- A linter for checking whether statements of declarations are well-typed. -/
-@[env_linter] def checkType : Linter where
+/-- A linter for checking whether statements of declarations are well-typed.
+
+This linter is disabled by default: declarations are already type-checked when added to the
+environment, so re-checking every statement is redundant in normal use. As an alternative
+defence-in-depth measure for catching kernel/elaborator bugs, prefer running an external
+checker such as `lean4checker` or `trepplein`.
+-/
+@[env_linter disabled] def checkType : Linter where
   noErrorsFound :=
     "The statements of all declarations type-check with default reducibility settings."
   errorsFound := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS DO NOT TYPE-CHECK."
