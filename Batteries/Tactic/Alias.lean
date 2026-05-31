@@ -63,21 +63,47 @@ def addAliasDocstring (declName : Name) (info : AliasInfo) : CoreM Unit := do
 initialize aliasExt : MapDeclarationExtension AliasInfo ← mkMapDeclarationExtension
 
 /-- Get the alias information for a name -/
-def getHeadAliasInfo?  [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
+def getAliasInfo?  [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
   return aliasExt.find? (← getEnv) name
 
-/-- Get the transitive alias information for a name -/
-partial def getRootAliasInfo?  [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
-  let info? ← getHeadAliasInfo? name
-  if let some (.plain n) := info? then
-    if let some info ← getRootAliasInfo? n then
-      return info
-  return info?
+/-- Get the old alias information for a name. -/
+partial def getOldAliasInfo? [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
+  match ← getAliasInfo? name with
+  | some (.plain n) => getOldAliasInfo? n
+  | some (.forward n) =>
+    if let some (.plain n') ← getOldAliasInfo? n then
+      return some (.forward n')
+    else
+      return some (.forward n)
+  | some (.reverse n) =>
+    if let some (.plain n') ← getOldAliasInfo? n then
+      return some (.reverse n')
+    else
+      return some (.reverse n)
+  | none => return none
 
 /-- Get the alias information for a name -/
-@[deprecated getRootAliasInfo? (since := "2026-04-11")]
+@[deprecated "use `getAliasInfo?` or `getOldAliasInfo?` for the original behavior"
+  (since := "2026-04-11")]
 def getAliasInfo [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) :=
-  getRootAliasInfo? name
+  getOldAliasInfo? name
+
+/-- Returns the path of aliases starting at a given name.
+
+The return value is a pair `(mps, name)` where `name` is the final non-aliased name in the
+alias chain and `mps` is a list of `Bool` indicating the sequence of forward (`true`) and
+reverse (`false`) aliases along the chain.
+-/
+partial def getAliasPath [Monad m] [MonadEnv m] (name : Name) : m (List Bool × Name) := do
+  match ← getAliasInfo? name with
+  | some (.plain name) => getAliasPath name
+  | some (.forward name) =>
+    let (p, name) ← getAliasPath name
+    return (true :: p, name)
+  | some (.reverse name) =>
+    let (p, name) ← getAliasPath name
+    return (false :: p, name)
+  | none => return ([], name)
 
 /-- Set the alias info for a new declaration -/
 def setAliasInfo [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit :=
