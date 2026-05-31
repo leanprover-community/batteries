@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Gabriel Ebner
 -/
 module
 
-public import Batteries.Util.LibraryNote
+public meta import Batteries.Util.LibraryNote
 
 @[expose] public section
 

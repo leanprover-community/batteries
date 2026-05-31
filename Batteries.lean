@@ -1,4 +1,4 @@
-module
+module -- deprecated_module: ignore
 
 public import Batteries.Classes.Cast
 public import Batteries.Classes.Deprecated
