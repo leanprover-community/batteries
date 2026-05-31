@@ -1,6 +1,5 @@
 module
 
-public import Batteries.Linter.DeprecatedModule
 public import Batteries.Lean.EStateM
 public import Batteries.Lean.Except
 public import BatteriesRecycling.MonadSatisfying.Basic
