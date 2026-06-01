@@ -91,6 +91,11 @@ proof_wanted first_index_after_two_pushes :
 proof_wanted size_after_two_pushes {α : Type _} (a : Array α) (x y : α) :
     ((a.push x).push y).size = a.size + 2
 
+-- Referencing the parametrised wanted with arguments: `❰foo❱ a x y`.
+proof_wanted index_after_two_pushes {α : Type _} (a : Array α) (x y : α) :
+    (⟨a.size, by rw [❰size_after_two_pushes❱ a x y]; omega⟩
+      : Fin ((a.push x).push y).size).val = a.size
+
 -- A partial proof may be supplied with `:= body`, deferring the harder step via `❰…❱`:
 proof_wanted size_after_three_pushes {α : Type _} (a : Array α) (x y z : α) :
     (((a.push x).push y).push z).size = a.size + 3 := by
