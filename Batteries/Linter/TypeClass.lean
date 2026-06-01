@@ -10,8 +10,8 @@ public meta import Batteries.Tactic.Lint.Basic
 
 public meta section
 
-namespace Batteries.Tactic.Lint
-open Lean Meta
+namespace Batteries.Linter
+open Lean Meta Tactic Lint
 
 /--
 Lints for instances with arguments that cannot be filled in, like

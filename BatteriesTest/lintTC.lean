@@ -1,7 +1,5 @@
-import Batteries.Tactic.Lint.TypeClass
+import Batteries.Linter.TypeClass
 import Lean.Elab.Command
-
-open Batteries.Tactic.Lint
 
 namespace A
 
