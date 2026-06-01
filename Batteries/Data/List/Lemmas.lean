@@ -1370,3 +1370,25 @@ theorem take_succ_drop {l : List α} {n stop : Nat}
     (l.drop stop |>.take (n + 1)) = (l.drop stop |>.take n) ++ [l[stop + n]'(by omega)] := by
   rw [← List.take_append_getElem (by simpa [← List.length_drop] using h)]
   simp [List.getElem_drop]
+
+/-! ### max!/min! -/
+
+theorem max?_eq_some_max! {α} [Inhabited α] [Max α] (l : List α) (hl : l ≠ []) : l.max? = some l.max! := by
+  grind [= max!]
+
+theorem max!_eq_max {α} [Inhabited α] [Max α] (l : List α) (hl : l ≠ []) : l.max! = l.max hl := by
+  dsimp only [max!]
+  rw [max?_eq_some_max hl]
+
+grind_pattern max!_eq_max => l.max! where
+  guard l ≠ []
+
+theorem min?_eq_some_min! {α} [Inhabited α] [Min α] (l : List α) (hl : l ≠ []) : l.min? = some l.min! := by
+  grind [= min!]
+
+theorem min!_eq_min {α} [Inhabited α] [Min α] (l : List α) (hl : l ≠ []) : l.min! = l.min hl := by
+  dsimp only [min!]
+  rw [min?_eq_some_min hl]
+
+grind_pattern min!_eq_min => l.min! where
+  guard l ≠ []
