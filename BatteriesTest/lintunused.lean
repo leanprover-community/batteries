@@ -9,6 +9,7 @@ def foo (h : 1 = 1) : Bool := sorry
 def foo' (_h : 1 = 1) : Bool := true
 
 -- should not be ignored
+set_option linter.unusedVariables false in
 def fooBad (h : 1 = 1) : Bool := true
 
 /--
