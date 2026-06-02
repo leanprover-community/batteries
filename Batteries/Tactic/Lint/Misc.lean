@@ -61,7 +61,7 @@ their value, and allow arguments starting with `_` to be unused. -/
         !ldecl.userName.isInternal && !e.containsFVar ldecl.fvarId
       if unused.isEmpty then return none
       addMessageContextFull <| .joinSep (← unused.toList.mapM fun (ldecl, i) =>
-          return m!"argument {i+1} {ldecl.toExpr} : {ldecl.type}") m!", "
+          return m!"argument {i+1}: {ldecl.toExpr} : {ldecl.type}") m!", "
 
 /-- A linter for checking definition doc strings. -/
 @[env_linter] def docBlame : Linter where
