@@ -64,6 +64,7 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
       if s == "functor_unfold" || s == casesOnSuffix || s == "mutual" then return true
       if env.isConstructor (Name.str (Name.str n "_functor") s) then return true
   pure false
+
 /--
 Returns true if `decl` is a private or automatically generated declaration.
 
