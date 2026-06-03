@@ -23,3 +23,19 @@ error: Cannot add attribute `[env_linter]`: Declaration `_private.BatteriesTest.
 -/
 #guard_msgs (error, drop warning) in
 @[env_linter] meta def foo'' : Linter := sorry
+
+/--
+error: Invalid attribute scope: Attribute `[env_linter]` must be global, not `local`
+-/
+#guard_msgs (error, drop warning) in
+@[local env_linter] public meta def foo''' : Linter := sorry
+
+namespace Foo
+
+/--
+error: Invalid attribute scope: Attribute `[env_linter]` must be global, not `scoped`
+-/
+#guard_msgs (error, drop warning) in
+@[scoped env_linter] public meta def foo'''' : Linter := sorry
+
+end Foo
