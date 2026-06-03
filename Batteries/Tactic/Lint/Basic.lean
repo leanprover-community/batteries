@@ -112,7 +112,7 @@ initialize registerBuiltinAttribute {
   descr := "Use this declaration as a linting test in #lint"
   add   := fun decl stx kind => do
     let dflt := stx[1].isNone
-    unless kind == .global do throwError "invalid attribute `env_linter`, must be global"
+    unless kind == .global do throwAttrMustBeGlobal `env_linter kind
     let shortName := decl.updatePrefix .anonymous
     if let some (declName, _) := (batteriesLinterExt.getState (← getEnv)).find? shortName then
       Elab.addConstInfo stx declName
