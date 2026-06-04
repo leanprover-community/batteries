@@ -37,7 +37,7 @@ Returns true if `decl` is an automatically generated declaration.
 Also returns true if `decl` is an internal name or created during macro
 expansion.
 -/
-def _root_.Lean.Environment.isAutoDecl (decl : Name) (env : Environment) : Bool := Id.run do
+def _root_.Lean.Environment.isAutoDecl (env : Environment) (decl : Name) : Bool := Id.run do
   if decl.hasMacroScopes then return true
   if decl.isInternal then return true
   if isReservedName env decl then return true
