@@ -43,7 +43,8 @@ SOME SIMP LEMMAS ARE NOT IN SIMP-NORMAL FORM.
 Please change the lemma to make sure their left-hand sides are in simp normal form.
 To learn about simp normal forms, see
 https://leanprover-community.github.io/extras/simp.html#simp-normal-form
-and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/. -/
+and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/.
+This linter can be disabled with `@[nolint simpNF]`. -/
 #check @Bundle.of_op /- Left-hand side simplifies from
   MyClass.op
 to
