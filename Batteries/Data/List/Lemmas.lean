@@ -1373,22 +1373,20 @@ theorem take_succ_drop {l : List α} {n stop : Nat}
 
 /-! ### max!/min! -/
 
-theorem max?_eq_some_max! {α} [Inhabited α] [Max α] (l : List α) (hl : l ≠ []) : l.max? = some l.max! := by
-  grind [= max!]
+@[simp, grind =]
+theorem max!_eq_max?_getD [Inhabited α] {l : List α} [Max α] :
+    l.max! = (l.max?).getD (default : α) := by rw [max!]; cases l.max? <;> rfl
 
-theorem max!_eq_max {α} [Inhabited α] [Max α] (l : List α) (hl : l ≠ []) : l.max! = l.max hl := by
-  dsimp only [max!]
-  rw [max?_eq_some_max hl]
+@[simp, grind =] theorem max!_eq_max_of_ne {α} [Inhabited α] [Max α] (l : List α) (hl : l ≠ []) :
+    l.max! = l.max hl := by grind [List.max?_eq_some_max]
 
-grind_pattern max!_eq_max => l.max! where
-  guard l ≠ []
+@[simp, grind =] theorem max!_nil {α} [Inhabited α] [Max α] : ([] : List α).max! = default := rfl
 
-theorem min?_eq_some_min! {α} [Inhabited α] [Min α] (l : List α) (hl : l ≠ []) : l.min? = some l.min! := by
-  grind [= min!]
+@[simp, grind =]
+theorem min!_eq_min?_getD [Inhabited α] {l : List α} [Min α] :
+    l.min! = (l.min?).getD (default : α) := by rw [min!]; cases l.min? <;> rfl
 
-theorem min!_eq_min {α} [Inhabited α] [Min α] (l : List α) (hl : l ≠ []) : l.min! = l.min hl := by
-  dsimp only [min!]
-  rw [min?_eq_some_min hl]
+@[simp, grind =] theorem min!_eq_min_of_ne {α} [Inhabited α] [Min α] (l : List α) (hl : l ≠ []) :
+    l.min! = l.min hl := by grind [List.min?_eq_some_min]
 
-grind_pattern min!_eq_min => l.min! where
-  guard l ≠ []
+@[simp, grind =] theorem min!_nil {α} [Inhabited α] [Min α] : ([] : List α).min! = default := rfl
