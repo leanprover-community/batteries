@@ -47,13 +47,63 @@ def AliasInfo.toString : AliasInfo → String
   | forward n => s!"**Alias** of the forward direction of `{n}`."
   | reverse n => s!"**Alias** of the reverse direction of `{n}`."
 
+/--
+Add a docstring to the alias `declName` if it doesn't already have one.
+This needs to run after elaboration of attributes, because e.g. `inherit_doc` could a add docstring.
+This is also used in `to_additive`/`to_dual`.
+-/
+def addAliasDocstring (declName : Name) (info : AliasInfo) : CoreM Unit := do
+  if (← findDocString? (← getEnv) declName).isNone then
+    let mut doc := info.toString
+    if let some origDoc ← findDocString? (← getEnv) info.name then
+      doc := s!"{doc}\n\n---\n\n{origDoc}"
+    addDocStringCore declName doc
 
 /-- Environment extension for registering aliases -/
 initialize aliasExt : MapDeclarationExtension AliasInfo ← mkMapDeclarationExtension
 
 /-- Get the alias information for a name -/
-def getAliasInfo [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
+def getAliasInfo?  [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
   return aliasExt.find? (← getEnv) name
+
+/-- Get the old alias information for a name. -/
+partial def getOldAliasInfo? [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) := do
+  match ← getAliasInfo? name with
+  | some (.plain n) => getOldAliasInfo? n
+  | some (.forward n) =>
+    if let some (.plain n') ← getOldAliasInfo? n then
+      return some (.forward n')
+    else
+      return some (.forward n)
+  | some (.reverse n) =>
+    if let some (.plain n') ← getOldAliasInfo? n then
+      return some (.reverse n')
+    else
+      return some (.reverse n)
+  | none => return none
+
+/-- Get the alias information for a name -/
+@[deprecated "use `getAliasInfo?` or `getOldAliasInfo?` for the original behavior"
+  (since := "2026-04-11")]
+def getAliasInfo [Monad m] [MonadEnv m] (name : Name) : m (Option AliasInfo) :=
+  getOldAliasInfo? name
+
+/-- Returns the path of aliases starting at a given name.
+
+The return value is a pair `(mps, name)` where `name` is the final non-aliased name in the
+alias chain and `mps` is a list of `Bool` indicating the sequence of forward (`true`) and
+reverse (`false`) aliases along the chain.
+-/
+partial def getAliasPath [Monad m] [MonadEnv m] (name : Name) : m (List Bool × Name) := do
+  match ← getAliasInfo? name with
+  | some (.plain name) => getAliasPath name
+  | some (.forward name) =>
+    let (p, name) ← getAliasPath name
+    return (true :: p, name)
+  | some (.reverse name) =>
+    let (p, name) ← getAliasPath name
+    return (false :: p, name)
+  | none => return ([], name)
 
 /-- Set the alias info for a new declaration -/
 def setAliasInfo [MonadEnv m] (info : AliasInfo) (declName : Name) : m Unit :=
@@ -80,17 +130,24 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
 
   These commands accept all modifiers and attributes that `def` and `theorem` do.
  -/
-elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident : command => do
+elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:ident : command => do
   Lean.withExporting (isExporting := (← Command.getScope).isPublic) do
   Command.liftTermElabM do
-    let name ← realizeGlobalConstNoOverloadWithInfo name
-    let cinfo ← getConstInfo name
+    -- Whether we may access private `name`s here depends on whether it is a theorem, so first
+    -- resolve in private scope always
+    let name ← withoutExporting <| realizeGlobalConstNoOverloadWithInfo nameStx
+    let cinfo ← withoutExporting <| getConstInfo name
     let declMods ← elabModifiers mods
     Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
+    unless wasOriginallyTheorem (← getEnv) name do
+      -- Now check again in correct scope for defs
+      discard <| realizeGlobalConstNoOverloadWithInfo nameStx
     let (attrs, machineApplicable) := setDeprecatedTarget name declMods.attrs
+    let env ← getEnv
     let declMods := { declMods with
       computeKind :=
-        if isNoncomputable (← getEnv) name then .noncomputable
+        if isNoncomputable env name then .noncomputable
+        else if isMarkedMeta env name then .meta
         else declMods.computeKind
       isUnsafe := declMods.isUnsafe || cinfo.isUnsafe
       attrs
@@ -109,27 +166,22 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " name:ident :
         safety := if declMods.isUnsafe then .unsafe else .safe
       }
     checkNotAlreadyDeclared declName
-    if declMods.isNoncomputable then
-      addDecl decl
-    else
-      addAndCompile decl
+    addDecl decl
+    if !declMods.isNoncomputable then
+      if declMods.isMeta then
+        modifyEnv (markMeta · declName)
+      compileDecl decl
     addDeclarationRangesFromSyntax declName (← getRef) alias
     Term.addTermInfo' alias (← mkConstWithLevelParams declName) (isBinder := true)
     if let some (doc, isVerso) := declMods.docString? then
       addDocStringOf isVerso declName (mkNullNode #[]) doc
     enableRealizationsForConst declName
-    Term.applyAttributes declName declMods.attrs
-    let info := (← getAliasInfo name).getD <| AliasInfo.plain name
+    let info := AliasInfo.plain name
     setAliasInfo info declName
+    Term.applyAttributes declName declMods.attrs
     if machineApplicable then
       modifyEnv (machineApplicableDeprecated.tag · declName)
-    /- alias doesn't trigger the missing docs linter so we add a default. We can't just check
-      `declMods` because a docstring may have been added by an attribute. -/
-    if (← findDocString? (← getEnv) declName).isNone then
-      let mut doc := info.toString
-      if let some origDoc ← findDocString? (← getEnv) name then
-        doc := s!"{doc}\n\n---\n\n{origDoc}"
-      addDocStringCore declName doc
+    addAliasDocstring declName info
 
 /--
 Given a possibly forall-quantified iff expression `prf`, produce a value for one
@@ -155,29 +207,24 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
   }
   if let some (doc, isVerso) := declMods.docString? then
     addDocStringOf isVerso declName (mkNullNode #[]) doc
-  Term.applyAttributes declName declMods.attrs
-  let info := match ← getAliasInfo thm.name with
-    | some (.plain name) => if mp then AliasInfo.forward name else AliasInfo.reverse name
-    | _ => if mp then AliasInfo.forward thm.name else AliasInfo.reverse thm.name
+  let info := if mp then AliasInfo.forward thm.name else AliasInfo.reverse thm.name
   setAliasInfo info declName
-  /- alias doesn't trigger the missing docs linter so we add a default. We can't just check
-    `declMods` because a docstring may have been added by an attribute. -/
-  if (← findDocString? (← getEnv) declName).isNone then
-    let mut doc := info.toString
-    if let some origDoc ← findDocString? (← getEnv) thm.name then
-      doc := s!"{doc}\n\n---\n\n{origDoc}"
-    addDocStringCore declName doc
+  Term.applyAttributes declName declMods.attrs
+  addAliasDocstring declName info
 
 @[inherit_doc «alias»]
 elab (name := aliasLR) mods:declModifiers "alias "
     "⟨" aliasFwd:binderIdent ", " aliasRev:binderIdent "⟩" " := " name:ident : command => do
   Lean.withExporting (isExporting := (← Command.getScope).isPublic) do
   Command.liftTermElabM do
-    let name ← realizeGlobalConstNoOverloadWithInfo name
+    -- The target of an iff alias is always a theorem, so resolve in non-exporting mode to
+    -- support private theorem targets even when the aliases themselves are public.
+    let name ← withoutExporting <| realizeGlobalConstNoOverloadWithInfo name
+    let thm ← withoutExporting <| getConstInfo name
     let declMods ← elabModifiers mods
     let declMods := { declMods with attrs := (setDeprecatedTarget name declMods.attrs).1 }
+    -- Now enter scope where we want to put the new decls
     Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
-    let thm ← getConstInfo name
     if let `(binderIdent| $idFwd:ident) := aliasFwd then
       let (declName, _) ← mkDeclName (← getCurrNamespace) declMods idFwd.getId
       addSide true declName declMods thm
