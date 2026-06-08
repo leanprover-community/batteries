@@ -145,15 +145,9 @@ theorem findSome?_eq_some_iff {f : Fin n → Option α} :
 theorem isNone_findSome?_iff {f : Fin n → Option α} :
     (findSome? f).isNone ↔ ∀ i, (f i).isNone := by simp
 
-@[deprecated (since := "2025-09-28")]
-alias findSome?_isNone_iff := isNone_findSome?_iff
-
 @[simp] theorem isSome_findSome?_iff {f : Fin n → Option α} :
     (findSome? f).isSome ↔ ∃ i, (f i).isSome := by
   cases h : findSome? f <;> grind
-
-@[deprecated (since := "2025-09-28")]
-alias findSome?_isSome_iff := isSome_findSome?_iff
 
 theorem exists_minimal_of_findSome?_eq_some {f : Fin n → Option α}
     (h : findSome? f = some x) : ∃ i, f i = some x ∧ ∀ j < i, f j = none :=
@@ -161,9 +155,6 @@ theorem exists_minimal_of_findSome?_eq_some {f : Fin n → Option α}
 
 theorem exists_eq_some_of_findSome?_eq_some {f : Fin n → Option α}
     (h : findSome? f = some x) : ∃ i, f i = some x := by grind
-
-@[deprecated (since := "2025-09-28")]
-alias exists_of_findSome?_eq_some := exists_eq_some_of_findSome?_eq_some
 
 theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f = none) (i) :
     f i = none := findSome?_eq_none_iff.1 h i
@@ -291,20 +282,13 @@ theorem find?_succ {p : Fin (n+1) → Bool} :
 theorem find?_eq_some_iff {p : Fin n → Bool} :
     find? p = some i ↔ p i ∧ ∀ j, j < i → p j = false := by simp [and_assoc]
 
-@[simp]
 theorem isSome_find?_iff {p : Fin n → Bool} :
     (find? p).isSome ↔ ∃ i, p i := by simp
-
-@[deprecated (since := "2025-09-28")]
-alias find?_isSome_iff := isSome_find?_iff
 
 @[grind =]
 theorem find?_eq_none_iff {p : Fin n → Bool} : find? p = none ↔ ∀ i, p i = false := by simp
 
 theorem isNone_find?_iff {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, p i = false := by simp
-
-@[deprecated (since := "2025-09-28")]
-alias find?_isNone_iff := isNone_find?_iff
 
 theorem eq_true_of_find?_eq_some {p : Fin n → Bool} (h : find? p = some i) : p i :=
     (find?_eq_some_iff.mp h).1
@@ -439,14 +423,6 @@ theorem all_eq_all_finRange {p : Fin n → Bool} : Fin.all p = (List.finRange n)
   rw [Bool.eq_iff_iff]
   simp only [Fin.all, find?_eq_find?_finRange, Option.isNone_iff_eq_none, List.find?_eq_none,
     Bool.not_eq_eq_eq_not, Bool.not_true, Bool.not_eq_false, List.all_eq, decide_eq_true_eq]
-
--- The instance in Lean is not tail recursive and leads to stack overflow.
-instance (p : Fin n → Prop) [DecidablePred p] : Decidable (∃ i, p i) :=
-  decidable_of_iff (Fin.any (p ·) = true) (by simp)
-
--- The instance in Lean is not tail recursive and leads to stack overflow.
-instance (p : Fin n → Prop) [DecidablePred p] : Decidable (∀ i, p i) :=
-  decidable_of_iff (Fin.all (p ·) = true) (by simp)
 
 /-! ### divNat / modNat / mkDivMod -/
 
