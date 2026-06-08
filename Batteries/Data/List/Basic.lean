@@ -1091,17 +1091,6 @@ where
     | some s => (acc.reverse, s)
 
 /--
-Computes the product of the elements of a list.
-
-Examples:
-
-[a, b, c].prod = a * (b * (c * 1))
-[2, 3, 5].prod = 30
--/
-@[expose] def prod [Mul α] [One α] (xs : List α) : α :=
-  xs.foldr (· * ·) 1
-
-/--
 Computes the partial sums of the elements of a list.
 
 Examples:
