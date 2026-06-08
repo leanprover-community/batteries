@@ -1,7 +1,7 @@
 name = "batteries"
 testDriver = "BatteriesTest"
 lintDriver = "runLinter"
-defaultTargets = ["Batteries", "BatteriesRecycling", "runLinter"]
+defaultTargets = ["Batteries", "runLinter"]
 
 [leanOptions]
 linter.missingDocs = true

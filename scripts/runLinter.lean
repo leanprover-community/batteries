@@ -28,13 +28,13 @@ def resolveDefaultRootModules : IO (Array Name) := do
     | throw <| IO.userError "failed to load Lake workspace"
 
   -- build an array of all root modules of `lean_exe` and `lean_lib` default targets
-  let defaultTargetModules ← workspace.root.defaultTargets.flatMapM fun target => do
+  let defaultTargetModules := workspace.root.defaultTargets.flatMap fun target =>
     if let some lib := workspace.root.findLeanLib? target then
-      pure <| (← lib.getModuleArray).map Lake.Module.name
+      lib.roots
     else if let some exe := workspace.root.findLeanExe? target then
-      pure #[exe.config.root]
+      #[exe.config.root]
     else
-      pure #[]
+      #[]
   return defaultTargetModules
 
 /-- Arguments for `runLinter`. -/
@@ -68,7 +68,7 @@ where
       if let some parsed := parseArg parsed arg then
         go parsed mods rest
       else
-        match arg.toName with
+        match arg.toName with 
         | .anonymous => Except.error [s!"could not parse argument '{arg}'"]
         | mod => go parsed (mod :: mods) rest
     | [] => Except.ok (parsed, mods.reverse)
