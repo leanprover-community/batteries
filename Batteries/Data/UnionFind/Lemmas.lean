@@ -3,7 +3,11 @@ Copyright (c) 2021 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Batteries.Data.UnionFind.Basic
+module
+
+public import Batteries.Data.UnionFind.Basic
+
+@[expose] public section
 
 namespace Batteries.UnionFind
 
@@ -18,7 +22,7 @@ namespace Batteries.UnionFind
     parentD (arr.push ⟨arr.size, 0⟩) a = parentD arr a := by
   simp [parentD]; split <;> split <;> try simp [Array.getElem_push, *]
   · next h1 h2 =>
-    simp [Nat.lt_succ] at h1 h2
+    simp [Nat.lt_succ_iff] at h1 h2
     exact Nat.le_antisymm h2 h1
   · next h1 h2 => cases h1 (Nat.lt_succ_of_lt h2)
 

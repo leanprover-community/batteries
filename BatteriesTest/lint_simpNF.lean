@@ -67,4 +67,34 @@ theorem eqToFun_comp_iso_hom_eq_self {β} {X : Type} {f : β → Type}
     eqToFun (by simp [w]) ∘ (z j').toFun = (z j).toFun := by
   cases w; rfl
 
+/-! Test that the simpNF linter does not report false positives when `dsimp` changes
+implicit arguments (e.g. unfolding carrier types in bundled structures).
+See https://github.com/leanprover/lean4/pull/12179. -/
+section BackwardDefEqRespectTransparency
+
+class MyClass (α : Type) where
+  op : α → α
+
+structure Bundle where
+  carrier : Type
+  [inst : MyClass carrier]
+
+attribute [instance] Bundle.inst
+
+def Bundle.of (X : Type) [MyClass X] : Bundle where
+  carrier := X
+
+@[simp]
+theorem Bundle.of_carrier (X : Type) [MyClass X] : (Bundle.of X).carrier = X := rfl
+
+-- This simp lemma has a LHS where the implicit `α` argument to `MyClass.op` is
+-- `Bundle.carrier (Bundle.of X)` rather than `X`. `dsimp [Bundle.of_carrier]` can
+-- partially unfold this, but the result is the same up to the old defeq behavior.
+-- The linter should not flag this.
+@[simp]
+theorem Bundle.of_op {X : Type} [MyClass X] :
+    @MyClass.op (Bundle.of X).carrier (Bundle.of X).inst = @MyClass.op X _ := rfl
+
+end BackwardDefEqRespectTransparency
+
 #lint- only simpNF

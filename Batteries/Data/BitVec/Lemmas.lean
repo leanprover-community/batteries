@@ -3,13 +3,25 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
-import Batteries.Tactic.Alias
-import Batteries.Data.BitVec.Basic
-import Batteries.Data.Fin.OfBits
-import Batteries.Data.Nat.Lemmas
-import Batteries.Data.Int
+module
+
+public import Batteries.Tactic.Alias
+public import Batteries.Data.BitVec.Basic
+public import Batteries.Data.Fin.OfBits
+public import Batteries.Data.Nat.Lemmas
+public import Batteries.Data.Int
+
+@[expose] public section
 
 namespace BitVec
+
+@[simp]
+theorem toNat_pow (b : BitVec w) (n : Nat) : (b ^ n).toNat = (b.toNat ^ n) % (2 ^ w) := by
+  induction n <;> simp_all [Lean.Grind.Semiring.pow_succ]
+
+@[simp]
+theorem ofNat_pow (w x n : Nat) : BitVec.ofNat w (x ^ n) = BitVec.ofNat w x ^ n := by
+  rw [← toNat_inj, toNat_ofNat, toNat_pow, toNat_ofNat, Nat.pow_mod]
 
 @[simp] theorem toNat_ofFnLEAux (m : Nat) (f : Fin n → Bool) :
     (ofFnLEAux m f).toNat = Nat.ofBits f % 2 ^ m := by
@@ -36,7 +48,7 @@ namespace BitVec
   simp only [BitVec.toInt, Int.ofBits, toNat_ofFnLE, Int.subNatNat_eq_coe]; rfl
 
 -- TODO: consider these for global `grind` attributes.
-attribute [local grind] Fin.succ Fin.rev Fin.last Fin.zero_eta
+attribute [local grind =] Fin.succ Fin.rev Fin.last Fin.zero_eta
 
 theorem getElem_ofFnLEAux (f : Fin n → Bool) (i) (h : i < n) (h' : i < m) :
     (ofFnLEAux m f)[i] = f ⟨i, h⟩ := by

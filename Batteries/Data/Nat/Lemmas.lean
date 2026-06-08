@@ -3,8 +3,12 @@ Copyright (c) 2016 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import Batteries.Tactic.Alias
-import Batteries.Data.Nat.Basic
+module
+
+public import Batteries.Tactic.Alias
+public import Batteries.Data.Nat.Basic
+
+@[expose] public section
 
 /-! # Basic lemmas about natural numbers
 
@@ -203,6 +207,9 @@ theorem testBit_ofBits (f : Fin n → Bool) :
   cases Nat.lt_or_ge i n with
   | inl h => simp [h]
   | inr h => simp [h, Nat.not_lt_of_ge h]
+
+theorem ofBits_testBit (x n) : ofBits (fun i : Fin n => x.testBit i) = x % 2 ^ n := by
+  apply eq_of_testBit_eq; simp [testBit_ofBits]
 
 /-! ### Misc -/
 

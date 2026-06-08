@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 
 Authors: Kim Morrison
 -/
+module
+
+@[expose] public section
 
 /-!
 While this file is currently empty, it is intended as a home for any lemmas which are required for

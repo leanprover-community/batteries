@@ -3,7 +3,11 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
-import Batteries.Tactic.Alias
+module
+
+public import Batteries.Tactic.Alias
+
+@[expose] public section
 
 namespace Array
 
@@ -32,11 +36,11 @@ instance (R : α → α → Prop) [DecidableRel R] (as) : Decidable (Pairwise R 
     · intro h ⟨j, hj⟩ ⟨i, hlt⟩; exact h i j (Nat.lt_trans hlt hj) hj hlt
   decidable_of_iff _ this
 
-@[grind]
+@[grind ←]
 theorem pairwise_empty : #[].Pairwise R := by
   unfold Pairwise; exact List.Pairwise.nil
 
-@[grind]
+@[grind ←]
 theorem pairwise_singleton (R : α → α → Prop) (a) : #[a].Pairwise R := by
   unfold Pairwise; exact List.pairwise_singleton ..
 

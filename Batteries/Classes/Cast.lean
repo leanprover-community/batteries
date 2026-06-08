@@ -3,10 +3,13 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Gabriel Ebner
 -/
-import Batteries.Util.LibraryNote
+module
 
-library_note "coercion into rings"
-/--
+public meta import Batteries.Util.LibraryNote
+
+@[expose] public section
+
+library_note «coercion into rings» /--
 Coercions such as `Nat.castCoe` that go from a concrete structure such as
 `Nat` to an arbitrary ring `R` should be set up as follows:
 ```lean

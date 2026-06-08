@@ -3,11 +3,15 @@ Copyright (c) 2023 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Elab.BuiltinTerm
-import Lean.Elab.BuiltinNotation
-import Lean.Server.InfoUtils
-import Lean.Server.CodeActions.Provider
-import Batteries.CodeAction.Attr
+module
+
+public meta import Lean.Elab.BuiltinTerm
+public meta import Lean.Elab.BuiltinNotation
+public meta import Lean.Server.InfoUtils
+public meta import Lean.Server.CodeActions.Provider
+public meta import Batteries.CodeAction.Attr
+
+public meta section
 
 /-!
 # Initial setup for code actions

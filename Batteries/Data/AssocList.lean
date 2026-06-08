@@ -3,7 +3,11 @@ Copyright (c) 2019 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import Batteries.Data.List.Basic
+module
+
+public import Batteries.Data.List.Basic
+
+@[expose] public section
 
 namespace Batteries
 
@@ -238,7 +242,7 @@ with key equal to `a` to have key `a` and value `f a' b`.
     | ForInStep.done d  => pure d
     | ForInStep.yield d => es.forIn d f
 
-instance : ForIn m (AssocList α β) (α × β) where
+instance [Monad m] : ForIn m (AssocList α β) (α × β) where
   forIn := AssocList.forIn
 
 @[simp] theorem forIn_eq [Monad m] (l : AssocList α β) (init : δ)
@@ -252,8 +256,8 @@ def pop? : AssocList α β → Option ((α × β) × AssocList α β)
   | nil => none
   | cons a b l => some ((a, b), l)
 
-instance : ToStream (AssocList α β) (AssocList α β) := ⟨fun x => x⟩
-instance : Stream (AssocList α β) (α × β) := ⟨pop?⟩
+instance : Std.ToStream (AssocList α β) (AssocList α β) := ⟨fun x => x⟩
+instance : Std.Stream (AssocList α β) (α × β) := ⟨pop?⟩
 
 /-- Converts a list into an `AssocList`. This is the inverse function to `AssocList.toList`. -/
 @[simp] def _root_.List.toAssocList : List (α × β) → AssocList α β
