@@ -19,6 +19,15 @@ def writeJsonFile [ToJson α] (path : System.FilePath) (a : α) : IO Unit :=
 
 open Lake
 
+/-- Return the lake workspace. -/
+def getLakeWorkspace : IO Workspace := do
+  -- load the Lake workspace
+  let (elanInstall?, leanInstall?, lakeInstall?) ← findInstall?
+  let config ← MonadError.runEIO <| mkLoadConfig { elanInstall?, leanInstall?, lakeInstall? }
+  let some workspace ← loadWorkspace config |>.toBaseIO
+    | throw <| IO.userError "failed to load Lake workspace"
+  return workspace
+
 /-- Arguments for `runLinter`. -/
 structure LinterConfig where
   /-- Whether to update nolints. Default is `false`; set to `true` with `--update`. -/
@@ -87,13 +96,9 @@ def getModulesOfKey (workspace : Workspace) : BuildKey → IO (Option (Array Nam
 /--
 Return an array of the lint groups (name and associated modules) to lint by parsing the workspace and target specs. -/
 def determineModulesToLint (targetSpecs : List String) : IO (Array (String × Array Name × (Name → Bool))) := do
-  -- load the Lake workspace
-  let (elanInstall?, leanInstall?, lakeInstall?) ← findInstall?
-  let config ← MonadError.runEIO <| mkLoadConfig { elanInstall?, leanInstall?, lakeInstall? }
-  let some workspace ← loadWorkspace config |>.toBaseIO
-    | throw <| IO.userError "failed to load Lake workspace"
+  let workspace ← getLakeWorkspace
 
-  let specs ← match (← parseTargetSpecs workspace targetSpecs |>.toBaseIO) with
+  let specs ← match ← parseTargetSpecs workspace targetSpecs |>.toBaseIO with
     | .ok specs => pure specs
     | .error err => throw <| IO.userError (toString err)
 
