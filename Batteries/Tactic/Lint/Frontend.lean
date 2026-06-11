@@ -256,15 +256,19 @@ def getDeclsInCurrModule : CoreM (Array Name) := do
 def getAllDecls : CoreM (Array Name) := do
   pure $ (← getEnv).constants.map₁.fold (init := ← getDeclsInCurrModule) fun r k _ => r.push k
 
-/-- Get the list of all declarations in the specified package. -/
-def getDeclsInPackage (pkg : Name) : CoreM (Array Name) := do
+/-- Get the list of all declarations in modules satifying `includeModule`. -/
+def getDeclsFilterModuleName (includeModule : Name → Bool) : CoreM (Array Name) := do
   let env ← getEnv
   let mut decls ← getDeclsInCurrModule
-  let modules := env.header.moduleNames.map (pkg.isPrefixOf ·)
+  let modules := env.header.moduleNames.map (includeModule)
   return env.constants.map₁.fold (init := decls) fun decls declName _ =>
     if modules[env.const2ModIdx[declName]?.get!]! then
       decls.push declName
     else decls
+
+/-- Get the list of all declarations in the specified package. -/
+def getDeclsInPackage (pkg : Name) : CoreM (Array Name) :=
+  getDeclsFilterModuleName (pkg.isPrefixOf ·)
 
 /-- The `in foo` config argument allows running the linter on a specified project. -/
 syntax inProject := " in " ident
