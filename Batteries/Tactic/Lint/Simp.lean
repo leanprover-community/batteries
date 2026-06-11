@@ -195,7 +195,8 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
               unless ← isSimpEq hType' ldecl.type do
                 let (hType', ldecl_type) ← addPPExplicitToExposeDiff hType' ldecl.type
                 hints := hints ++ m!"\
-                  \nThe simp lemma may be invalid because hypothesis {name} simplifies from{indentD ldecl_type}\
+                  \nThe simp lemma may be invalid because hypothesis {name} simplifies from{
+                      indentD ldecl_type}\
                   \nto{indentD hType'}\
                   \nusing{indentD <| ← formatLemmas stats.usedTheorems simpName none}\
                   \nTry to change the hypothesis to the simplified term!"
