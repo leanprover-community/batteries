@@ -202,7 +202,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (groupName : String) (modules 
       IO.println s!"-- Linting passed for {groupName}."
 
 /--
-Usage: `runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]`
+Usage: `runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]...`
 
 Runs the linters on all declarations in modules provided by the given lake target
 (or the default targets if none are specified). Modules within a target are imported into a single
