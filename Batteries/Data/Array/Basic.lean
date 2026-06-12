@@ -141,6 +141,7 @@ May be asserted to be true in an unsafe context via `Array.unsafe_sizeFitsUsize`
 -/
 private abbrev SizeFitsUSize (a : Array α) : Prop := a.size < USize.size
 
+set_option linter.defProp false in
 /-
 This is guaranteed by the Array docs but it is unprovable.
 Can be used in unsafe functions to write more efficient implementations
