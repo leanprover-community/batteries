@@ -8,6 +8,7 @@ module
 public import Batteries.Tactic.Lint.Misc
 public meta import Lean.Elab.Command
 public meta import Lean.Elab.Term
+public meta import Lean.Meta.Tactic.TryThis
 public meta import Batteries.Lean.Syntax
 
 /-!
@@ -18,9 +19,13 @@ without blocking compilation. The declaration elaborates to a private placeholde
 binders : ProofWanted T := ⟨⟩`, so the wanted result is visible to downstream files and tools
 by type rather than by side-channel.
 
-Inside another `proof_wanted` statement, `❰foo❱` references an earlier `proof_wanted`; for
-parametrised `foo`, write `❰foo❱ x y` to apply it. The brackets desugar to fresh hypothesis
-binders, so the dependency appears in the recorded type.
+Inside another `proof_wanted`, `❰foo❱` references an earlier `proof_wanted`; for parametrised
+`foo`, write `❰foo❱ x y` to apply it. The brackets desugar to fresh hypothesis binders, so the
+dependency appears in the recorded type.
+
+A partial proof may be supplied with `proof_wanted name binders : T := body`. The body must
+reference at least one `❰…❱` (in the statement or the body); a complete proof should be a
+`theorem` instead, and the error includes a `Try this:` suggestion to that effect.
 
 The `❰` and `❱` characters (U+2770, U+2771) are entered as `\h<` and `\h>` with the standard
 Lean input method.
@@ -41,31 +46,34 @@ public meta section
 open Lean Elab Command
 
 /-- Internal bracket syntax `❰foo❱` for referencing an earlier `proof_wanted`.
-Only meaningful inside the statement of a `proof_wanted`; the term elaborator
+Only meaningful inside the statement or body of a `proof_wanted`; the term elaborator
 errors everywhere else. -/
 syntax (name := proofWantedRef) "❰" ident "❱" : term
 
-/-- Elaborator that errors when `❰…❱` is used outside a `proof_wanted` statement. -/
+/-- Elaborator that errors when `❰…❱` is used outside a `proof_wanted`. -/
 @[term_elab proofWantedRef]
 def elabProofWantedRef : Term.TermElab := fun _ _ =>
-  throwError "`❰…❱` may only appear inside the statement of `proof_wanted`"
+  throwError "`❰…❱` may only appear inside the statement or body of `proof_wanted`"
 
 /-- This proof would be a welcome contribution to the library!
 
-The syntax of `proof_wanted` declarations is just like that of `theorem`, but without `:=` or the
-proof. Lean checks that `proof_wanted` declarations are well-formed (e.g. it ensures that all the
-mentioned names are in scope, and that the theorem statement is a valid proposition), and records a
-private placeholder declaration of type `... → ProofWanted statement`.
+The syntax of `proof_wanted` declarations is just like that of `theorem`. Without `:=` and a
+proof body it records a wanted theorem; with one it records a partial proof that still depends on
+other wanted lemmas. Lean checks that `proof_wanted` declarations are well-formed (e.g. it ensures
+that all the mentioned names are in scope, and that the theorem statement is a valid proposition),
+and records a private placeholder declaration of type `... → ProofWanted statement`.
 
 Modifiers (such as `@[simp]`) are accepted for syntactic compatibility with `theorem` but are
 currently ignored.
 
-Inside another `proof_wanted`'s statement, write `❰foo❱` to assume an earlier `proof_wanted`
-named `foo`. The bracket may only appear inside the statement, since there is no proof body. It
-desugars to a fresh hypothesis binder of the matching type; for parametrised `foo : ∀ args,
-ProofWanted _`, the binder type is itself Π-quantified, so `❰foo❱ x y` applies the parameter to
-`x y`. `❰foo❱` only resolves names within the current file, since the placeholders are
-`private`.
+Inside another `proof_wanted`, write `❰foo❱` to reference an earlier `proof_wanted` named `foo`.
+The bracket may appear in the statement or the body, and each distinct reference becomes a fresh
+hypothesis binder of the matching type. For parametrised `foo : ∀ args, ProofWanted _`, the
+binder type is itself Π-quantified, so `❰foo❱ x y` applies the parameter to `x y`. `❰foo❱` only
+resolves names within the current file, since the placeholders are `private`.
+
+A body must reference at least one `❰…❱` (in the statement or the body); otherwise the body is
+a complete proof and the declaration should be a `theorem`.
 
 Typical usage:
 ```
@@ -87,12 +95,18 @@ proof_wanted size_after_two_pushes {α : Type _} (a : Array α) (x y : α) :
 proof_wanted index_after_two_pushes {α : Type _} (a : Array α) (x y : α) :
     (⟨a.size, by rw [❰size_after_two_pushes❱ a x y]; omega⟩
       : Fin ((a.push x).push y).size).val = a.size
+
+-- A partial proof may be supplied with `:= body`, deferring the harder step via `❰…❱`:
+proof_wanted size_after_three_pushes {α : Type _} (a : Array α) (x y z : α) :
+    (((a.push x).push y).push z).size = a.size + 3 := by
+  rw [Array.size_push, ❰size_after_two_pushes❱ a x y]
 ```
 -/
 @[command_parser]
 def «proof_wanted» := leading_parser
   Parser.Command.declModifiers false >> "proof_wanted" >>
-    Parser.Command.declId >> Parser.ppIndent Parser.Command.declSig
+    Parser.Command.declId >> Parser.ppIndent Parser.Command.declSig >>
+    Parser.optional (" := " >> Parser.termParser)
 
 /-- Walk a syntax tree, throwing on the first `proofWantedRef` node found. -/
 private def rejectRefsIn (loc : String) (stx : Syntax) : CommandElabM Unit := do
@@ -147,12 +161,17 @@ private def validateProofWantedRef (nm : Name) (stx : Syntax) :
       let isCls : Bool := match αInst.getAppFn with
         | .const n _ => Lean.isClass env n
         | _ => false
-      -- Build syntax `∀ <foo's binders>, ProofWanted.Stmt (@foo.{us} arg1 ... argN)`. The `@`
-      -- keeps every implicit argument explicit so the syntax round-trips; the universe
-      -- annotations bind to `nm`'s own level params (auto-bound for the enclosing `proof_wanted`).
+      -- Build syntax `∀ <foo's binders>, ProofWanted.Stmt (@foo.{_, …} arg1 ... argN)`. The `@`
+      -- keeps every implicit argument explicit so the syntax round-trips. Each universe level is a
+      -- hole `_` rather than `nm`'s own level name: a named level would auto-bind to a fresh,
+      -- distinct param of the enclosing `proof_wanted`, leaving the hypothesis monomorphic at a
+      -- universe that can never match the use site (e.g. referencing `exists_ulift.{w}` at universe
+      -- `u`). A hole instead unifies with whatever universe the reference is used at. The single
+      -- remaining gap is using one reference at two different universes, which no single binder can
+      -- express; see the `ulift`/`TODO` tests in `BatteriesTest/proof_wanted.lean`.
       let fooIdent := mkIdent nm
       let levelStxs : Array (TSyntax `level) ←
-        info.levelParams.toArray.mapM fun u => `(level| $(mkIdent u):ident)
+        info.levelParams.toArray.mapM fun _ => `(level| _)
       let argIdents : Array (TSyntax `term) ← fvars.mapM fun fvar => do
         let decl ← fvar.fvarId!.getDecl
         return ⟨mkIdent decl.userName⟩
@@ -179,19 +198,21 @@ private def validateProofWantedRef (nm : Name) (stx : Syntax) :
       return { binderType := binderTySyn, isClass := isCls }
 
 /-- Elaborate a `proof_wanted` declaration into a private placeholder `def` of type `ProofWanted`,
-expanding any `❰…❱` references to fresh hypothesis binders. -/
+expanding any `❰…❱` references to fresh hypothesis binders. If a body is supplied, it is
+type-checked against the statement; the placeholder still carries no proof. -/
 @[command_elab «proof_wanted»]
-def elabProofWanted : CommandElab
-  | `($_mods:declModifiers proof_wanted $name $args* : $res) => do
+def elabProofWanted : CommandElab := fun stx => do
+  match stx with
+  | `($mods:declModifiers proof_wanted $name $args* : $res $[:= $body?]?) => do
     for arg in args do
       rejectRefsIn "binder types" arg.raw
-    -- Brackets are deduplicated by referenced name, so repeated `❰x❱` references share one
-    -- hypothesis binder rather than producing `x.Stmt → x.Stmt → …`.
+    -- Brackets are deduplicated by referenced name across both the statement and the body, so
+    -- repeated `❰x❱` references share one hypothesis binder.
     let nameToHypRef : IO.Ref (NameMap (TSyntax `ident)) ← IO.mkRef {}
     let hypOrderRef : IO.Ref (Array (TSyntax `ident × ProofWantedRefInfo)) ← IO.mkRef #[]
-    let res' ← res.raw.replaceM fun s => do
-      unless s.getKind == ``proofWantedRef do return none
-      let identStx : Syntax.Ident := ⟨s[1]⟩
+    let rewriteRefs (s : Syntax) : CommandElabM Syntax := s.replaceM fun node => do
+      unless node.getKind == ``proofWantedRef do return none
+      let identStx : Syntax.Ident := ⟨node[1]⟩
       let nm ← liftCoreM <| Elab.realizeGlobalConstNoOverloadWithInfo identStx
       let m ← nameToHypRef.get
       match m.find? nm with
@@ -203,8 +224,20 @@ def elabProofWanted : CommandElab
         nameToHypRef.set (m.insert nm hyp)
         hypOrderRef.modify (·.push (hyp, refInfo))
         return some hyp.raw
-    let res' : TSyntax `term := ⟨res'⟩
-    let order : Array (TSyntax `ident × ProofWantedRefInfo) ← hypOrderRef.get
+    let res' : TSyntax `term := ⟨← rewriteRefs res.raw⟩
+    let body'? : Option (TSyntax `term) ← body?.mapM fun b => return ⟨← rewriteRefs b.raw⟩
+    let order ← hypOrderRef.get
+    -- A body with no brackets anywhere is a complete proof; suggest `theorem` instead.
+    if let some body := body? then
+      if order.isEmpty then
+        let thmStx ← `(command|
+          $mods:declModifiers theorem $name $args* : $res := $body)
+        liftCoreM <| Lean.Meta.Tactic.TryThis.addSuggestion stx
+          { suggestion := .tsyntax thmStx }
+        throwError
+          "`proof_wanted` with a body but no `❰…❱` reference is just a `theorem`; \
+           either replace `proof_wanted` with `theorem`, or reference another `proof_wanted` \
+           via `❰…❱` in the statement or body"
     -- Class-valued wanted refs get instance binders so Lean's typeclass synth can use them
     -- (including via Π-instance synth when chained through another wanted). Non-class refs
     -- get implicit binders so the chained-dependency parameter can be unified at use sites.
@@ -215,10 +248,21 @@ def elabProofWanted : CommandElab
         `(Parser.Term.bracketedBinderF| {$hyp : $(refInfo.binderType)})
     -- The `(_ : Prop)` ascription reproduces the "not a proposition" check `theorem` gives for
     -- free; `linter.unusedVariables` is silenced because user binders may only appear in the
-    -- statement.
-    elabCommand <| ← `(
-      section
-      set_option linter.unusedVariables false
-      private def $name $args* $extraBinders* : ProofWanted (($res' : Prop)) := ⟨⟩
-      end)
+    -- statement. The body, if present, is discharged via `have` so it is type-checked but
+    -- discarded.
+    match body'? with
+    | none =>
+      elabCommand <| ← `(
+        section
+        set_option linter.unusedVariables false
+        private def $name $args* $extraBinders* : ProofWanted (($res' : Prop)) := ⟨⟩
+        end)
+    | some body' =>
+      elabCommand <| ← `(
+        section
+        set_option linter.unusedVariables false
+        private def $name $args* $extraBinders* : ProofWanted (($res' : Prop)) :=
+          have : ($res' : Prop) := $body'
+          ⟨⟩
+        end)
   | _ => throwUnsupportedSyntax

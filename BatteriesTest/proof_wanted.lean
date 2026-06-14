@@ -121,7 +121,7 @@ error: `fake_pw` is a `ProofWanted`, but its statement is not a proposition
 
 /-! Using `❰…❱` outside `proof_wanted`. -/
 /--
-error: `❰…❱` may only appear inside the statement of `proof_wanted`
+error: `❰…❱` may only appear inside the statement or body of `proof_wanted`
 -/
 #guard_msgs in example : True := ❰env_trace❱
 
@@ -142,6 +142,108 @@ of sort `Type 1` but is expected to have type
 of sort `Type`
 -/
 #guard_msgs in proof_wanted bad_not_a_prop (x : Nat) : Nat
+
+/-! ## Bodies -/
+
+private def foo : Nat := 17
+proof_wanted foo_eq_37 : foo = 37
+proof_wanted thirtyseven_eq_41 : (37 : Nat) = 41
+
+/-! Body-only references still become binders on the recorded placeholder. -/
+proof_wanted foo_eq_41 : foo = 41 := by
+  rw [❰foo_eq_37❱]; exact ❰thirtyseven_eq_41❱
+
+/--
+info: @foo_eq_41 : {h_foo_eq_37 : foo_eq_37.Stmt} → {h_thirtyseven_eq_41 : thirtyseven_eq_41.Stmt} → ProofWanted (foo = 41)
+-/
+#guard_msgs in #check @foo_eq_41
+
+/-! A reference shared between statement and body is deduplicated. -/
+proof_wanted foo_eq_41_fin :
+    (⟨foo, by rw [❰foo_eq_37❱]; decide⟩ : Fin 50) = ⟨41, by decide⟩ := by
+  apply Fin.ext
+  show foo = 41
+  rw [❰foo_eq_37❱]; exact ❰thirtyseven_eq_41❱
+
+/--
+info: @foo_eq_41_fin : {h_foo_eq_37 : foo_eq_37.Stmt} →
+  {h_thirtyseven_eq_41 : thirtyseven_eq_41.Stmt} → ProofWanted (⟨foo, ⋯⟩ = ⟨41, ⋯⟩)
+-/
+#guard_msgs in #check @foo_eq_41_fin
+
+/-! A body that doesn't type-check is rejected; the bracket has already been substituted for the
+hypothesis binder by the time the error is reported. -/
+/--
+error: Type mismatch
+  h_foo_eq_37✝
+has type
+  foo_eq_37.Stmt
+but is expected to have type
+  foo + 1 = 38
+-/
+#guard_msgs in proof_wanted bad_body : foo + 1 = 38 := ❰foo_eq_37❱
+
+/-! A body may reference a parametrised `proof_wanted`. -/
+
+proof_wanted foo_param (m : Nat) : foo = m
+
+proof_wanted foo_eq_99 : foo = 99 := ❰foo_param❱ 99
+
+/--
+info: @foo_eq_99 : {h_foo_param : ∀ (m : Nat), (foo_param m).Stmt} → ProofWanted (foo = 99)
+-/
+#guard_msgs in #check @foo_eq_99
+
+/-! A body with no `❰…❱` reference anywhere is rejected with a `Try this:` pointing at
+`theorem`. -/
+/--
+info: Try this:
+  [apply] theorem trivially_true : True :=
+    trivial
+---
+error: `proof_wanted` with a body but no `❰…❱` reference is just a `theorem`; either replace `proof_wanted` with `theorem`, or reference another `proof_wanted` via `❰…❱` in the statement or body
+-/
+#guard_msgs in proof_wanted trivially_true : True := trivial
+
+/-! ## Universe-polymorphic references
+
+A reference to a universe-polymorphic `proof_wanted` is usable at a single use-site universe: the
+generated hypothesis binder spells the reference's universe levels as holes, so they unify with
+whatever universe the reference is used at (here `u`, distinct from the referenced `w`). -/
+
+proof_wanted exists_ulift.{w} : ∃ x : ULift.{w} Nat, x.down = 1
+
+proof_wanted exists_ulift_down.{u} : ∃ x : ULift.{u} Nat, x.down = 1 := by
+  obtain ⟨x : ULift.{u} Nat, hx⟩ := ❰exists_ulift❱
+  exact ⟨x, hx⟩
+
+/--
+info: @exists_ulift_down : {h_exists_ulift : exists_ulift.Stmt} → ProofWanted (∃ x, x.down = 1)
+-/
+#guard_msgs in #check @exists_ulift_down
+
+/-! TODO: a single `❰…❱` reference desugars to one hypothesis binder, which is monomorphic in
+universes. Using that one reference at two *different* universes therefore fails: the binder unifies
+with the first use's universe (`u` below) and the second use (`v`) then mismatches. Lifting this
+would need a universe-polymorphic hypothesis, which the term language can't express; the alternative
+is a separate `proof_wanted` per universe. Flagged for future contributors. -/
+/--
+error: Type mismatch
+  h_exists_ulift✝
+has type
+  ProofWanted.Stmt.{0} exists_ulift.{u}
+but is expected to have type
+  Exists.{v + 1} fun y => Eq.{1} (ULift.down.{v, 0} y) 1
+-/
+#guard_msgs in
+set_option pp.universes true in
+proof_wanted exists_ulift_two.{u, v} :
+    ∃ x : ULift.{u} Nat, ∃ y : ULift.{v} Nat, x.down = y.down := by
+  have hu : ∃ x : ULift.{u} Nat, x.down = 1 := ❰exists_ulift❱
+  have hv : ∃ y : ULift.{v} Nat, y.down = 1 := ❰exists_ulift❱
+  obtain ⟨x, hx⟩ := hu
+  obtain ⟨y, hy⟩ := hv
+  exact ⟨x, y, hx.trans hy.symm⟩
 
 /-! ## Namespacing -/
 
