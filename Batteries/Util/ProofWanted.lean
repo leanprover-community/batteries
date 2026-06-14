@@ -161,12 +161,17 @@ private def validateProofWantedRef (nm : Name) (stx : Syntax) :
       let isCls : Bool := match αInst.getAppFn with
         | .const n _ => Lean.isClass env n
         | _ => false
-      -- Build syntax `∀ <foo's binders>, ProofWanted.Stmt (@foo.{us} arg1 ... argN)`. The `@`
-      -- keeps every implicit argument explicit so the syntax round-trips; the universe
-      -- annotations bind to `nm`'s own level params (auto-bound for the enclosing `proof_wanted`).
+      -- Build syntax `∀ <foo's binders>, ProofWanted.Stmt (@foo.{_, …} arg1 ... argN)`. The `@`
+      -- keeps every implicit argument explicit so the syntax round-trips. Each universe level is a
+      -- hole `_` rather than `nm`'s own level name: a named level would auto-bind to a fresh,
+      -- distinct param of the enclosing `proof_wanted`, leaving the hypothesis monomorphic at a
+      -- universe that can never match the use site (e.g. referencing `exists_ulift.{w}` at universe
+      -- `u`). A hole instead unifies with whatever universe the reference is used at. The single
+      -- remaining gap is using one reference at two different universes, which no single binder can
+      -- express; see the `ulift`/`TODO` tests in `BatteriesTest/proof_wanted.lean`.
       let fooIdent := mkIdent nm
       let levelStxs : Array (TSyntax `level) ←
-        info.levelParams.toArray.mapM fun u => `(level| $(mkIdent u):ident)
+        info.levelParams.toArray.mapM fun _ => `(level| _)
       let argIdents : Array (TSyntax `term) ← fvars.mapM fun fvar => do
         let decl ← fvar.fvarId!.getDecl
         return ⟨mkIdent decl.userName⟩

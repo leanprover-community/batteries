@@ -205,6 +205,46 @@ error: `proof_wanted` with a body but no `❰…❱` reference is just a `theore
 -/
 #guard_msgs in proof_wanted trivially_true : True := trivial
 
+/-! ## Universe-polymorphic references
+
+A reference to a universe-polymorphic `proof_wanted` is usable at a single use-site universe: the
+generated hypothesis binder spells the reference's universe levels as holes, so they unify with
+whatever universe the reference is used at (here `u`, distinct from the referenced `w`). -/
+
+proof_wanted exists_ulift.{w} : ∃ x : ULift.{w} Nat, x.down = 1
+
+proof_wanted exists_ulift_down.{u} : ∃ x : ULift.{u} Nat, x.down = 1 := by
+  obtain ⟨x : ULift.{u} Nat, hx⟩ := ❰exists_ulift❱
+  exact ⟨x, hx⟩
+
+/--
+info: @exists_ulift_down : {h_exists_ulift : exists_ulift.Stmt} → ProofWanted (∃ x, x.down = 1)
+-/
+#guard_msgs in #check @exists_ulift_down
+
+/-! TODO: a single `❰…❱` reference desugars to one hypothesis binder, which is monomorphic in
+universes. Using that one reference at two *different* universes therefore fails: the binder unifies
+with the first use's universe (`u` below) and the second use (`v`) then mismatches. Lifting this
+would need a universe-polymorphic hypothesis, which the term language can't express; the alternative
+is a separate `proof_wanted` per universe. Flagged for future contributors. -/
+/--
+error: Type mismatch
+  h_exists_ulift✝
+has type
+  ProofWanted.Stmt.{0} exists_ulift.{u}
+but is expected to have type
+  Exists.{v + 1} fun y => Eq.{1} (ULift.down.{v, 0} y) 1
+-/
+#guard_msgs in
+set_option pp.universes true in
+proof_wanted exists_ulift_two.{u, v} :
+    ∃ x : ULift.{u} Nat, ∃ y : ULift.{v} Nat, x.down = y.down := by
+  have hu : ∃ x : ULift.{u} Nat, x.down = 1 := ❰exists_ulift❱
+  have hv : ∃ y : ULift.{v} Nat, y.down = 1 := ❰exists_ulift❱
+  obtain ⟨x, hx⟩ := hu
+  obtain ⟨y, hy⟩ := hv
+  exact ⟨x, y, hx.trans hy.symm⟩
+
 /-! ## Namespacing -/
 
 namespace N
