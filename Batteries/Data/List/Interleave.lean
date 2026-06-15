@@ -73,6 +73,37 @@ theorem interleave_append_right_of_length_add_one_eq_length (h₁₂ : l₁.leng
   simpa using interleave_append_append_of_length_add_one_eq_length h₁₂ [] _
 
 @[simp]
+theorem reverse_interleave_of_length_eq_length :
+    ∀ {l₁ l₂ : List α}, l₁.length = l₂.length →
+      (l₁.interleave l₂).reverse = l₂.reverse.interleave l₁.reverse
+  | [], [], _ => by simp
+  | a :: l₁, b :: l₂, _ => by simp_all [reverse_interleave_of_length_eq_length]
+
+@[simp]
+theorem reverse_interleave_of_length_add_one_eq_length :
+    ∀ {l₁ l₂ : List α}, l₁.length + 1 = l₂.length →
+      (l₁.interleave l₂).reverse = l₁.reverse.interleave l₂.reverse
+  | [], [a], _ => by simp
+  | a :: l₁, b :: l₂, _ => by simp_all [reverse_interleave_of_length_add_one_eq_length]
+
+@[simp]
+theorem interleave_ofFn_ofFn :
+    ∀ {n : ℕ} {f g : Fin n → α},
+      interleave (ofFn f) (ofFn g) =
+        ofFn (n := 2 * n) (fun i ↦ if i.val % 2 = 0 then g ⟨i / 2, by lia⟩ else f ⟨i / 2, by lia⟩)
+  | 0, f, g  => by simp
+  | n + 1, f, g => by simp_all [interleave_ofFn_ofFn]; grind
+
+@[simp]
+theorem interleave_ofFn_ofFn' :
+    ∀ {n : ℕ} {f : Fin n → α} {g : Fin (n + 1) → α},
+      interleave (ofFn f) (ofFn g) =
+        ofFn (n := 2 * n + 1)
+          (fun i ↦ if hi : i.val % 2 = 0 then g ⟨i / 2, by lia⟩ else f ⟨i / 2, by lia⟩)
+  | 0, f, g  => by simp
+  | n + 1, f, g => by simp_all [interleave_ofFn_ofFn]; grind
+
+@[simp]
 theorem left_sublist_interleave : ∀ {l₁ l₂ : List α}, l₁.length ≤ l₂.length → l₁ <+ l₁.interleave l₂
   | [], _, _ => by simp
   | a :: l₁, b :: l₂, h => by
@@ -175,6 +206,35 @@ theorem interleaves_append_singleton_append_singleton_of_length_add_one_eq_lengt
     (h : l₁.length + 1 = l₂.length) :
     Interleaves r (l₁ ++ [a]) (l₂ ++ [b]) ↔ r a b ∧ Interleaves r (l₁ ++ [a]) l₂ := by
   simp [interleaves_iff_length_isChain_interleave, and_comm, *]
+
+theorem interleaves_reverse_reverse_of_length_eq_length (h : l₁.length = l₂.length) :
+    Interleaves r l₁.reverse l₂.reverse ↔ Interleaves (Function.swap r) l₂ l₁ := by
+  simp [interleaves_iff_length_isChain_interleave, ← reverse_interleave_of_length_eq_length,
+    isChain_reverse, *]
+
+theorem interleaves_reverse_reverse_of_length_add_one_eq_length (h : l₁.length + 1 = l₂.length) :
+    Interleaves r l₁.reverse l₂.reverse ↔ Interleaves (Function.swap r) l₁ l₂ := by
+  simp [interleaves_iff_length_isChain_interleave, ← reverse_interleave_of_length_add_one_eq_length,
+    isChain_reverse, *]
+
+theorem interleaves_ofFn {n : ℕ} {f g : Fin n → α} :
+    Interleaves r (ofFn f) (ofFn g) ↔
+      (∀ i, r (g i) (f i)) ∧ ∀ (i : ℕ) (hi : i + 1 < n), r (f ⟨i, by lia⟩) (g ⟨i + 1, hi⟩) := by
+  simp only [interleaves_iff_length_isChain_interleave, length_ofFn, Nat.succ_ne_self, or_false,
+    interleave_ofFn_ofFn, isChain_ofFn, true_and]
+  refine ⟨fun h ↦ ?_, fun h i hi ↦ by have := h.1 ⟨i / 2, by lia⟩; grind⟩
+  exact ⟨fun i ↦ by have := h (2 * i); grind, fun i hi ↦ by have := h (2 * i + 1); grind⟩
+
+theorem interleaves_ofFn' {n : ℕ} {f : Fin n → α} {g : Fin (n + 1) → α} :
+    Interleaves r (ofFn f) (ofFn g) ↔
+      (∀ i : Fin n, r (f i) (g i.succ)) ∧ ∀ i : Fin n, r (g i.castSucc) (f i) := by
+  simp only [interleaves_iff_length_isChain_interleave, length_ofFn, Nat.left_eq_add,
+    interleave_ofFn_ofFn', isChain_ofFn, Nat.succ_ne_self, or_true, true_and]
+  -- FIXME: Why doesn't `grind unfold these?
+  unfold Fin.castSucc Fin.castAdd Fin.castLE
+  refine ⟨fun h ↦ ?_, fun h i hi ↦ by
+    have := h.1 ⟨i / 2, by lia⟩; have := h.2 ⟨i / 2, by lia⟩; grind⟩
+  exact ⟨fun i ↦ by have := h (2 * i + 1); grind, fun i ↦ by have := h (2 * i); grind⟩
 
 variable [Trans r r r]
 
