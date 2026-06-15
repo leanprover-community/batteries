@@ -7,8 +7,10 @@ module
 
 public meta import Lean.Elab.DeclarationRange
 public meta import Lean.Meta.Tactic.Cases
-public meta import Mathlib.Lean.Meta
-public meta import Mathlib.Lean.Name
+public meta import Batteries.Lean.Meta.Basic
+public meta import Batteries.Lean.Name
+public meta import Lean.Meta.Tactic.Apply
+public meta import Lean.Elab.Command
 
 /-!
 # mk_iff_of_inductive_prop
@@ -100,7 +102,7 @@ def mkAndList : List Expr → Expr := mkOpList (mkConst `And) (mkConst `True)
 def mkOrList : List Expr → Expr := mkOpList (mkConst `Or) (mkConst `False)
 
 /-- Drops the final element of a list. -/
-def List.init {α : Type*} : List α → List α
+def List.init {α : Type u} : List α → List α
   | []     => []
   | [_]    => []
   | a::l => a::init l
@@ -243,7 +245,7 @@ Example:
 listBoolMerge [false, true, false, true] [0, 1, 2, 3, 4] = [none, (some 0), none, (some 1)]
 ```
 -/
-def listBoolMerge {α : Type*} : List Bool → List α → List (Option α)
+def listBoolMerge {α : Type u} : List Bool → List α → List (Option α)
   | [], _ => []
   | false :: xs, ys => none :: listBoolMerge xs ys
   | true :: xs, y :: ys => some y :: listBoolMerge xs ys

@@ -5,9 +5,9 @@ Authors: Mario Carneiro, Jannis Limperg
 -/
 module
 
-public import Lean.Meta.Tactic.Intro
 public import Batteries.Control.AlternativeMonad
-import Lean.Meta.SynthInstance
+public import Lean.Elab.Tactic.Basic
+public import Lean.Meta.Tactic.Intro
 
 public section
 
@@ -91,6 +91,17 @@ end MetavarContext
 
 
 namespace MVarId
+
+/-- Has the effect of `refine ⟨e₁,e₂,⋯, ?_⟩`.
+-/
+def existsi (mvar : MVarId) (es : List Expr) : MetaM MVarId := do
+  es.foldlM (fun mv e ↦ do
+      let (subgoals,_) ← Elab.Term.TermElabM.run <| Elab.Tactic.run mv do
+        Elab.Tactic.evalTactic (← `(tactic| refine ⟨?_,?_⟩))
+      let [sg1, sg2] := subgoals | throwError "expected two subgoals"
+      sg1.assign e
+      pure sg2)
+    mvar
 
 /--
 Check whether a metavariable is declared.
