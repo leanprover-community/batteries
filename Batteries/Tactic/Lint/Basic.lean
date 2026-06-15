@@ -80,8 +80,21 @@ Returns true if `decl` is a private or automatically generated declaration.
 
 Also returns true if `decl` is an internal name or created during macro expansion.
 -/
-@[inline] def isPrivateOrAutoDecl (decl : Name) : CoreM Bool :=
-  pure (isPrivateName decl) <||> isAutoDecl decl
+@[inline]
+def _root_.Lean.Environment.isPrivateOrAutoDecl (env : Environment) (decl : Name) : Bool :=
+  isPrivateName decl || env.isAutoDecl decl
+
+/--
+Returns true if `decl` is a private or automatically generated declaration.
+
+Also returns true if `decl` is an internal name or created during macro expansion.
+
+See `Lean.Environment.isPrivateOrAutoDecl` for an identical pure version of this function on the
+environment.
+-/
+@[inline]
+def isPrivateOrAutoDecl {m} [Monad m] [MonadEnv m] (decl : Name) : m Bool :=
+  return (← getEnv).isPrivateOrAutoDecl decl
 
 /-- A linting test for the `#lint` command. -/
 structure Linter where
