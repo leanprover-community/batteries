@@ -22,10 +22,10 @@ public import Batteries.Control.Nondet.Basic
 public import Batteries.Control.OptionT
 public import Batteries.Data.Array
 public import Batteries.Data.AssocList
-public import Batteries.Data.Bool
 public import Batteries.Data.BinaryHeap
 public import Batteries.Data.BinomialHeap
 public import Batteries.Data.BitVec
+public import Batteries.Data.Bool
 public import Batteries.Data.ByteArray
 public import Batteries.Data.ByteSlice
 public import Batteries.Data.Char
@@ -69,6 +69,7 @@ public import Batteries.Lean.Meta.SavedState
 public import Batteries.Lean.Meta.Simp
 public import Batteries.Lean.Meta.UnusedNames
 public import Batteries.Lean.MonadBacktrack
+public import Batteries.Lean.Name
 public import Batteries.Lean.NameMapAttribute
 public import Batteries.Lean.PersistentHashMap
 public import Batteries.Lean.PersistentHashSet
@@ -98,6 +99,7 @@ public import Batteries.Tactic.Lint.Frontend
 public import Batteries.Tactic.Lint.Misc
 public import Batteries.Tactic.Lint.Simp
 public import Batteries.Tactic.Lint.TypeClass
+public import Batteries.Tactic.MkIff
 public import Batteries.Tactic.NoMatch
 public import Batteries.Tactic.OpenPrivate
 public import Batteries.Tactic.PermuteGoals
