@@ -30,7 +30,7 @@ the `mk_iff` attribute.
 
 public meta section
 
-namespace Mathlib.Tactic.MkIff
+namespace Batteries.Tactic.MkIff
 
 open Lean Meta Elab
 
@@ -421,4 +421,4 @@ initialize Lean.registerBuiltinAttribute {
     mkIffOfInductivePropImpl decl tgt idStx
 }
 
-end Mathlib.Tactic.MkIff
+end Batteries.Tactic.MkIff
