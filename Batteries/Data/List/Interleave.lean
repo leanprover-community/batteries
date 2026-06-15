@@ -88,7 +88,7 @@ theorem reverse_interleave_of_length_add_one_eq_length :
 
 @[simp]
 theorem interleave_ofFn_ofFn :
-    ∀ {n : ℕ} {f g : Fin n → α},
+    ∀ {n : Nat} {f g : Fin n → α},
       interleave (ofFn f) (ofFn g) =
         ofFn (n := 2 * n) (fun i ↦ if i.val % 2 = 0 then g ⟨i / 2, by lia⟩ else f ⟨i / 2, by lia⟩)
   | 0, f, g  => by simp
@@ -96,7 +96,7 @@ theorem interleave_ofFn_ofFn :
 
 @[simp]
 theorem interleave_ofFn_ofFn' :
-    ∀ {n : ℕ} {f : Fin n → α} {g : Fin (n + 1) → α},
+    ∀ {n : Nat} {f : Fin n → α} {g : Fin (n + 1) → α},
       interleave (ofFn f) (ofFn g) =
         ofFn (n := 2 * n + 1)
           (fun i ↦ if hi : i.val % 2 = 0 then g ⟨i / 2, by lia⟩ else f ⟨i / 2, by lia⟩)
@@ -208,24 +208,24 @@ theorem interleaves_append_singleton_append_singleton_of_length_add_one_eq_lengt
   simp [interleaves_iff_length_isChain_interleave, and_comm, *]
 
 theorem interleaves_reverse_reverse_of_length_eq_length (h : l₁.length = l₂.length) :
-    Interleaves r l₁.reverse l₂.reverse ↔ Interleaves (Function.swap r) l₂ l₁ := by
+    Interleaves r l₁.reverse l₂.reverse ↔ Interleaves (fun a b ↦ r b a) l₂ l₁ := by
   simp [interleaves_iff_length_isChain_interleave, ← reverse_interleave_of_length_eq_length,
     isChain_reverse, *]
 
 theorem interleaves_reverse_reverse_of_length_add_one_eq_length (h : l₁.length + 1 = l₂.length) :
-    Interleaves r l₁.reverse l₂.reverse ↔ Interleaves (Function.swap r) l₁ l₂ := by
+    Interleaves r l₁.reverse l₂.reverse ↔ Interleaves (fun a b ↦ r b a) l₁ l₂ := by
   simp [interleaves_iff_length_isChain_interleave, ← reverse_interleave_of_length_add_one_eq_length,
     isChain_reverse, *]
 
-theorem interleaves_ofFn {n : ℕ} {f g : Fin n → α} :
+theorem interleaves_ofFn {n : Nat} {f g : Fin n → α} :
     Interleaves r (ofFn f) (ofFn g) ↔
-      (∀ i, r (g i) (f i)) ∧ ∀ (i : ℕ) (hi : i + 1 < n), r (f ⟨i, by lia⟩) (g ⟨i + 1, hi⟩) := by
+      (∀ i, r (g i) (f i)) ∧ ∀ (i : Nat) (hi : i + 1 < n), r (f ⟨i, by lia⟩) (g ⟨i + 1, hi⟩) := by
   simp only [interleaves_iff_length_isChain_interleave, length_ofFn, Nat.succ_ne_self, or_false,
     interleave_ofFn_ofFn, isChain_ofFn, true_and]
   refine ⟨fun h ↦ ?_, fun h i hi ↦ by have := h.1 ⟨i / 2, by lia⟩; grind⟩
   exact ⟨fun i ↦ by have := h (2 * i); grind, fun i hi ↦ by have := h (2 * i + 1); grind⟩
 
-theorem interleaves_ofFn' {n : ℕ} {f : Fin n → α} {g : Fin (n + 1) → α} :
+theorem interleaves_ofFn' {n : Nat} {f : Fin n → α} {g : Fin (n + 1) → α} :
     Interleaves r (ofFn f) (ofFn g) ↔
       (∀ i : Fin n, r (f i) (g i.succ)) ∧ ∀ i : Fin n, r (g i.castSucc) (f i) := by
   simp only [interleaves_iff_length_isChain_interleave, length_ofFn, Nat.left_eq_add,

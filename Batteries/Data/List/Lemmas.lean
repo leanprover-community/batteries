@@ -389,6 +389,9 @@ attribute [simp, grind ←] Pairwise.nil
 @[deprecated (since := "2025-09-19")]
 alias chain_cons := isChain_cons_cons
 
+theorem isChain_pair {x y} : IsChain R [x, y] ↔ R x y := by
+  simp only [IsChain.singleton, isChain_cons_cons, and_true]
+
 theorem rel_of_isChain_cons_cons (p : IsChain R (a :: b :: l)) : R a b :=
   (isChain_cons_cons.1 p).1
 
@@ -460,6 +463,18 @@ theorem isChain_split {c : α} {l₁ l₂ : List α} :
 theorem isChain_append_cons_cons {b c : α} {l₁ l₂ : List α} :
     IsChain R (l₁ ++ b :: c :: l₂) ↔ IsChain R (l₁ ++ [b]) ∧ R b c ∧ IsChain R (c :: l₂) := by
   rw [isChain_split, isChain_cons_cons]
+
+theorem isChain_reverse {l : List α} : l.reverse.IsChain R ↔ l.IsChain (fun a b => R b a) := by
+  induction l using twoStepInduction with
+  | nil => grind
+  | singleton a => grind
+  | cons_cons a b l IH IH2 =>
+    rw [isChain_cons_cons, reverse_cons, reverse_cons, append_assoc, cons_append, nil_append,
+      isChain_split, ← reverse_cons, IH2, and_comm, isChain_pair]
+
+theorem isChain_ofFn {f : Fin n → α} {r : α → α → Prop} :
+    (ofFn f).IsChain r ↔ ∀ (i) (hi : i + 1 < n), r (f ⟨i, by lia⟩) (f ⟨i + 1, hi⟩) := by
+  simp [isChain_iff_getElem]
 
 /-! ### range', range -/
 
