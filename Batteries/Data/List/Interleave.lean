@@ -121,7 +121,12 @@ theorem interleaves_nil_cons : Interleaves r [] (a :: l) ↔ l = [] := by grind 
 theorem not_interleaves_cons_nil : ¬ Interleaves r (a :: l) [] := by grind [interleaves_iff]
 
 @[simp]
-theorem interleaves_singleton_singleton : Interleaves r [a] [b] ↔ r b a := by grind [interleaves_iff]
+theorem interleaves_cons_cons :
+    Interleaves r (a :: l₁) (b :: l₂) ↔ r b a ∧ Interleaves r l₂ (a :: l₁) := by
+  grind [interleaves_iff]
+
+@[simp high]
+theorem interleaves_singleton_singleton : Interleaves r [a] [b] ↔ r b a := by simp
 
 theorem Interleaves.mono (hrs : ∀ ⦃a b⦄, r a b → s a b) :
     ∀ l₁ l₂ : List α, Interleaves r l₁ l₂ → Interleaves s l₁ l₂
@@ -158,6 +163,18 @@ theorem interleaves_iff_length_isChain_interleave :
         rw [interleaves_iff_length_isChain_interleave]
         simp_all
 termination_by l₁ l₂ => l₁.length + l₂.length
+
+@[simp]
+theorem interleaves_append_singleton_append_singleton_of_length_eq_length
+    (h : l₁.length = l₂.length) :
+    Interleaves r (l₁ ++ [a]) (l₂ ++ [b]) ↔ r b a ∧ Interleaves r l₁ (l₂ ++ [b]) := by
+  simp [interleaves_iff_length_isChain_interleave, and_comm, *]
+
+@[simp]
+theorem interleaves_append_singleton_append_singleton_of_length_add_one_eq_length
+    (h : l₁.length + 1 = l₂.length) :
+    Interleaves r (l₁ ++ [a]) (l₂ ++ [b]) ↔ r a b ∧ Interleaves r (l₁ ++ [a]) l₂ := by
+  simp [interleaves_iff_length_isChain_interleave, and_comm, *]
 
 variable [Trans r r r]
 

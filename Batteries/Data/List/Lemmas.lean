@@ -15,6 +15,21 @@ namespace List
 instance instNeZeroNatLengthCons {a : α} {l : List α} : NeZero (a :: l).length :=
   ⟨Nat.succ_ne_zero _⟩
 
+/--
+A recursion principle for lists which separates the singleton case.
+-/
+@[elab_as_elim]
+def twoStepInduction {motive : (l : List α) → Sort u} (nil : motive [])
+    (singleton : ∀ x, motive [x])
+    (cons_cons : ∀ x y xs, motive xs → (∀ y, motive (y :: xs)) → motive (x :: y :: xs))
+    (l : List α) : motive l := match l with
+  | [] => nil
+  | [x] => singleton x
+  | x :: y :: xs =>
+    cons_cons x y xs
+    (twoStepInduction nil singleton cons_cons xs)
+    (fun y => twoStepInduction nil singleton cons_cons (y :: xs))
+
 /-! ### count -/
 
 theorem count_getElem_take_succ [BEq α] [EquivBEq α] {xs : List α}
@@ -436,6 +451,15 @@ theorem isChain_iff_getElem {l : List α} :
 
 theorem IsChain.getElem {l : List α} (c : IsChain R l) (i : Nat) (hi : i + 1 < l.length) :
     R l[i] l[i + 1] := isChain_iff_getElem.mp c _ _
+
+theorem isChain_split {c : α} {l₁ l₂ : List α} :
+    IsChain R (l₁ ++ c :: l₂) ↔ IsChain R (l₁ ++ [c]) ∧ IsChain R (c :: l₂) := by
+  induction l₁ using twoStepInduction generalizing l₂ with grind
+
+@[simp]
+theorem isChain_append_cons_cons {b c : α} {l₁ l₂ : List α} :
+    IsChain R (l₁ ++ b :: c :: l₂) ↔ IsChain R (l₁ ++ [b]) ∧ R b c ∧ IsChain R (c :: l₂) := by
+  rw [isChain_split, isChain_cons_cons]
 
 /-! ### range', range -/
 
