@@ -95,7 +95,7 @@ namespace MVarId
 /-- Has the effect of `refine ⟨e₁,e₂,⋯, ?_⟩`.
 -/
 def existsi (mvar : MVarId) (es : List Expr) : MetaM MVarId := do
-  es.foldlM (fun mv e ↦ do
+  es.foldlM (fun mv e => do
       let (subgoals,_) ← Elab.Term.TermElabM.run <| Elab.Tactic.run mv do
         Elab.Tactic.evalTactic (← `(tactic| refine ⟨?_,?_⟩))
       let [sg1, sg2] := subgoals | throwError "expected two subgoals"

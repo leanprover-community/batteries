@@ -51,7 +51,7 @@ private def select (m n : Nat) (goal : MVarId) : MetaM MVarId :=
 
 /-- `compactRelation bs as_ps`: Produce a relation of the form:
 ```lean
-R := fun as ↦ ∃ bs, ⋀_i a_i = p_i[bs]
+R := fun as => ∃ bs, ⋀_i a_i = p_i[bs]
 ```
 This relation is user-visible, so we compact it by removing each `b_j` where a `p_i = b_j`, and
 hence `a_i = b_j`. We need to take care when there are `p_i` and `p_j` with `p_i = p_j = b_k`.
@@ -60,14 +60,14 @@ partial def compactRelation :
     List Expr → List (Expr × Expr) → List (Option Expr) × List (Expr × Expr) × (Expr → Expr)
 | [],    as_ps => ([], as_ps, id)
 | b::bs, as_ps =>
-  match as_ps.span (fun ⟨_, p⟩ ↦ p != b) with
+  match as_ps.span (fun ⟨_, p⟩ => p != b) with
     | (_, []) => -- found nothing in ps equal to b
       let (bs, as_ps', subst) := compactRelation bs as_ps
       (b::bs, as_ps', subst)
     | (ps₁, (a, _) :: ps₂) => -- found one that matches b. Remove it.
-      let i := fun e ↦ e.replaceFVar b a
+      let i := fun e => e.replaceFVar b a
       let (bs, as_ps', subst) :=
-        compactRelation (bs.map i) ((ps₁ ++ ps₂).map (fun ⟨a, p⟩ ↦ (a, i p)))
+        compactRelation (bs.map i) ((ps₁ ++ ps₂).map (fun ⟨a, p⟩ => (a, i p)))
       (none :: bs, as_ps', i ∘ subst)
 
 private def updateLambdaBinderInfoD! (e : Expr) : Expr :=
@@ -141,12 +141,12 @@ while proving the iff theorem, and a proposition representing the constructor.
 def constrToProp (univs : List Level) (params : List Expr) (idxs : List Expr) (c : Name) :
     MetaM (Shape × Expr) := do
   let type := (← getConstInfo c).instantiateTypeLevelParams univs
-  let type' ← Meta.forallBoundedTelescope type (params.length) fun fvars ty ↦ do
+  let type' ← Meta.forallBoundedTelescope type (params.length) fun fvars ty => do
     pure <| ty.replaceFVars fvars params.toArray
-  Meta.forallTelescope type' fun fvars ty ↦ do
+  Meta.forallTelescope type' fun fvars ty => do
     let idxs_inst := ty.getAppArgs.toList.drop params.length
     let (bs, eqs, subst) := compactRelation fvars.toList (idxs.zip idxs_inst)
-    let eqs ← eqs.mapM (fun ⟨idx, inst⟩ ↦ do
+    let eqs ← eqs.mapM (fun ⟨idx, inst⟩ => do
       let ty ← idx.fvarId!.getType
       let instTy ← inferType inst
       let u := (← inferType ty).sortLevel!
@@ -196,9 +196,9 @@ def toCases (mvar : MVarId) (shape : List Shape) : MetaM Unit :=
 do
   let ⟨h, mvar'⟩ ← mvar.intro1
   let subgoals ← mvar'.cases h
-  let _ ← (shape.zip subgoals.toList).zipIdx.mapM fun ⟨⟨⟨shape, t⟩, subgoal⟩, p⟩ ↦ do
+  let _ ← (shape.zip subgoals.toList).zipIdx.mapM fun ⟨⟨⟨shape, t⟩, subgoal⟩, p⟩ => do
     let vars := subgoal.fields
-    let si := (shape.zip vars.toList).filterMap (fun ⟨c,v⟩ ↦ if c then some v else none)
+    let si := (shape.zip vars.toList).filterMap (fun ⟨c,v⟩ => if c then some v else none)
     let mvar'' ← select p (subgoals.size - 1) subgoal.mvarId
     match t with
     | none => do
@@ -261,7 +261,7 @@ def toInductive (mvar : MVarId) (cs : List Name)
                   pure ()
   | (n + 1) => do
       let subgoals ← nCasesSum n mvar h
-      let _ ← (cs.zip (subgoals.zip s)).mapM fun ⟨constr_name, ⟨h, mv⟩, bs, e⟩ ↦ do
+      let _ ← (cs.zip (subgoals.zip s)).mapM fun ⟨constr_name, ⟨h, mv⟩, bs, e⟩ => do
         let n := (bs.filter id).length
         let (mvar', _fvars) ← match e with
         | none => nCasesProd (n-1) mv h
@@ -277,14 +277,14 @@ def toInductive (mvar : MVarId) (cs : List Name)
            `subst` will change the dependent hypotheses, so that the `uniq` local names
            are wrong afterwards. Instead we revert them and pull them out one-by-one. -/
            let (_, mv3) ← mv2.revert fvars'.toArray
-           let mv4 ← fvars'.foldlM (fun mv _ ↦ do let ⟨fv, mv'⟩ ← mv.intro1; subst mv' fv) mv3
+           let mv4 ← fvars'.foldlM (fun mv _ => do let ⟨fv, mv'⟩ ← mv.intro1; subst mv' fv) mv3
            pure (mv4, fvars)
         mvar'.withContext do
           let fvarIds := (← getLCtx).getFVarIds.toList
           let gs := fvarIds.take gs.length
           let hs := (fvarIds.reverse.take n).reverse
           let m := gs.map some ++ listBoolMerge bs hs
-          let args ← m.mapM fun a ↦
+          let args ← m.mapM fun a =>
             match a with
             | some v => pure (mkFVar v)
             | none => mkFreshExprMVar none
@@ -309,7 +309,7 @@ def mkIffOfInductivePropImpl (ind : Name) (rel : Name) (relStx : Syntax) : MetaM
   /- we use these names for our universe parameters, maybe we should construct a copy of them
   using `uniq_name` -/
 
-  let (thmTy, shape) ← Meta.forallTelescope type fun fvars ty ↦ do
+  let (thmTy, shape) ← Meta.forallTelescope type fun fvars ty => do
     if !ty.isProp then throwError "mk_iff only applies to prop-valued declarations"
     let lhs := mkAppN (mkConst ind univs) fvars
     let fvars' := fvars.toList
