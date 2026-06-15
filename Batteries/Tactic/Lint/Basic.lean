@@ -37,13 +37,12 @@ Returns true if `decl` is an automatically generated declaration.
 Also returns true if `decl` is an internal name or created during macro
 expansion.
 -/
-def isAutoDecl (decl : Name) : CoreM Bool := do
+def _root_.Lean.Environment.isAutoDecl (env : Environment) (decl : Name) : Bool := Id.run do
   if decl.hasMacroScopes then return true
   if decl.isInternal then return true
-  let env ← getEnv
   if isReservedName env decl then return true
   if let Name.str n s := decl then
-    if (← isAutoDecl n) then return true
+    if env.isAutoDecl n then return true
     if s.startsWith "proof_"
         || s.startsWith "match_"
         || s.startsWith "unsafe_"
@@ -51,7 +50,7 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
     then return true
     if env.isConstructor n && s ∈ ["injEq", "inj", "sizeOf_spec", "elim", "noConfusion"] then
       return true
-    if let ConstantInfo.inductInfo _ := (← getEnv).find? n then
+    if let ConstantInfo.inductInfo _ := env.find? n then
       if s.startsWith "brecOn_" || s.startsWith "below_" then return true
       if s ∈ [casesOnSuffix, recOnSuffix, brecOnSuffix, belowSuffix,
           "ndrec", "ndrecOn", "noConfusionType", "noConfusion", "ofNat", "toCtorIdx", "ctorIdx",
@@ -64,6 +63,17 @@ def isAutoDecl (decl : Name) : CoreM Bool := do
       if s == "functor_unfold" || s == casesOnSuffix || s == "mutual" then return true
       if env.isConstructor (Name.str (Name.str n "_functor") s) then return true
   pure false
+
+/--
+Returns true if `decl` is an automatically generated declaration.
+
+Also returns true if `decl` is an internal name or created during macro
+expansion.
+
+See `Lean.Environment.isAutoDecl` for an identical pure version of this function on the environment.
+-/
+@[inline] def isAutoDecl {m} [Monad m] [MonadEnv m] (decl : Name) : m Bool :=
+  return (← getEnv).isAutoDecl decl
 
 /--
 Returns true if `decl` is a private or automatically generated declaration.
