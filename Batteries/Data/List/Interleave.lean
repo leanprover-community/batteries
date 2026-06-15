@@ -46,11 +46,31 @@ theorem interleave_append_append_of_length_eq_length :
   | a :: l₁, b :: l₂, _, l₃, l₄ => by simp_all [interleave_append_append_of_length_eq_length]
 
 @[simp]
+theorem interleave_append_left_of_length_eq_length (h₁₂ : l₁.length = l₂.length) (l₃ : List α) :
+    (l₁ ++ l₃).interleave l₂ = l₁.interleave l₂ ++ l₃.interleave [] := by
+  simpa using interleave_append_append_of_length_eq_length h₁₂ _ []
+
+@[simp]
+theorem interleave_append_right_of_length_eq_length (h₁₂ : l₁.length = l₂.length) (l₃ : List α) :
+    l₁.interleave (l₂ ++ l₃) = l₁.interleave l₂ ++ [].interleave l₃ := by
+  simpa using interleave_append_append_of_length_eq_length h₁₂ [] _
+
+@[simp]
 theorem interleave_append_append_of_length_add_one_eq_length :
     ∀ {l₁ l₂ : List α} (_h₁₂ : l₁.length + 1 = l₂.length) (l₃ l₄ : List α),
       (l₁ ++ l₃).interleave (l₂ ++ l₄) = l₁.interleave l₂ ++ l₄.interleave l₃
   | [], b :: l₂, _, l₃, l₄ => by simp_all
   | a :: l₁, b :: c :: l₂, _, l₃, l₄ => by simp_all [interleave_append_append_of_length_eq_length]
+
+@[simp]
+theorem interleave_append_left_of_length_add_one_eq_length (h₁₂ : l₁.length + 1 = l₂.length)
+    (l₃ : List α) : (l₁ ++ l₃).interleave l₂ = l₁.interleave l₂ ++ [].interleave l₃ := by
+  simpa using interleave_append_append_of_length_add_one_eq_length h₁₂ _ []
+
+@[simp]
+theorem interleave_append_right_of_length_add_one_eq_length (h₁₂ : l₁.length + 1 = l₂.length)
+    (l₃ : List α) : l₁.interleave (l₂ ++ l₃) = l₁.interleave l₂ ++ l₃.interleave [] := by
+  simpa using interleave_append_append_of_length_add_one_eq_length h₁₂ [] _
 
 @[simp]
 theorem left_sublist_interleave : ∀ {l₁ l₂ : List α}, l₁.length ≤ l₂.length → l₁ <+ l₁.interleave l₂
