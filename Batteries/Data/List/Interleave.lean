@@ -94,7 +94,6 @@ theorem interleave_ofFn_ofFn :
   | 0, f, g  => by simp
   | n + 1, f, g => by simp_all [interleave_ofFn_ofFn]; grind
 
-@[simp]
 theorem interleave_ofFn_ofFn' :
     ∀ {n : Nat} {f : Fin n → α} {g : Fin (n + 1) → α},
       interleave (ofFn f) (ofFn g) =
