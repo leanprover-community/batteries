@@ -10,8 +10,8 @@ public meta import Lean.Meta.Tactic.Cases
 public meta import Batteries.Lean.Meta.Basic
 public meta import Batteries.Lean.Name
 public meta import Lean.Meta.Tactic.Apply
+public meta import Lean.Meta.Tactic.Constructor
 public meta import Lean.Elab.Command
-public meta import Lean.Elab.Tactic.Basic
 
 /-!
 # mk_iff_of_inductive_prop
@@ -30,7 +30,42 @@ This tactic can be called using either the `mk_iff_of_inductive_prop` user comma
 the `mk_iff` attribute.
 -/
 
-public meta section
+meta section
+
+namespace Lean
+
+/-- Make an n-ary `Or` application. `mkOrN []` returns `False`.
+This mirrors the core `Lean.mkAndN`. -/
+public def mkOrN : List Expr → Expr
+  | []      => mkConst ``False
+  | [p]     => p
+  | p :: ps => mkOr p (mkOrN ps)
+
+/--
+Takes an array `xs` of free variables and a body term `e`, and builds the
+existential `∃ x₁ ⋯ xₙ, e`, abstracting each `xᵢ` from `e` and from the types
+of the later binders.
+
+This is the existential analogue of `Lean.Meta.mkForallFVars`. Unlike `∀`/`λ`,
+`Exists` is not a primitive binder (`∃ x, p` is `Exists fun x => p`), so this is
+built by folding `Exists` applications over `mkLambdaFVars`. Whenever a binder
+has a `Prop`-valued type and does not occur in the remaining body, the
+non-dependent `∃ _ : p, q` is emitted as `p ∧ q` instead.
+-/
+public def Meta.mkExistsFVars (xs : Array Expr) (e : Expr) : MetaM Expr :=
+  xs.foldrM (fun x b => do
+    let t ← inferType x
+    let l := (← inferType t).sortLevel!
+    if x.occurs b || l != .zero then
+      -- `∃ x, b`; rebuild the lambda with a default binder so `x` prints explicitly
+      let .lam n d body _ ← mkLambdaFVars #[x] b
+        | panic! "mkLambdaFVars did not produce a lambda"
+      pure (mkApp2 (.const ``Exists [l]) t (.lam n d body .default))
+    else
+      pure (mkAnd t b))
+    e
+
+end Lean
 
 namespace Batteries.Tactic.MkIff
 
@@ -38,17 +73,17 @@ open Lean Meta Elab
 
 /-- `select m n` runs `right` `m` times; if `m < n`, then it also runs `left` once.
 Fails if `n < m`. -/
-private def select (m n : Nat) (goal : MVarId) : MetaM MVarId :=
+def select (m n : Nat) (goal : MVarId) : MetaM MVarId :=
   match m,n with
   | 0, 0             => pure goal
   | 0, (_ + 1)       => do
-    let [new_goal] ← goal.nthConstructor `left 0 (some 2)
+    let [newGoal] ← goal.nthConstructor `left 0 (some 2)
       | throwError "expected only one new goal"
-    pure new_goal
+    pure newGoal
   | (m + 1), (n + 1) => do
-    let [new_goal] ← goal.nthConstructor `right 1 (some 2)
+    let [newGoal] ← goal.nthConstructor `right 1 (some 2)
       | throwError "expected only one new goal"
-    select m n new_goal
+    select m n newGoal
   | _, _             => failure
 
 /-- `compactRelation bs as_ps`: Produce a relation of the form:
@@ -60,54 +95,17 @@ hence `a_i = b_j`. We need to take care when there are `p_i` and `p_j` with `p_i
 -/
 partial def compactRelation :
     List Expr → List (Expr × Expr) → List (Option Expr) × List (Expr × Expr) × (Expr → Expr)
-| [],    as_ps => ([], as_ps, id)
-| b::bs, as_ps =>
-  match as_ps.span (fun ⟨_, p⟩ => p != b) with
+| [],    asPs => ([], asPs, id)
+| b::bs, asPs =>
+  match asPs.span (fun ⟨_, p⟩ => p != b) with
     | (_, []) => -- found nothing in ps equal to b
-      let (bs, as_ps', subst) := compactRelation bs as_ps
-      (b::bs, as_ps', subst)
+      let (bs, asPs', subst) := compactRelation bs asPs
+      (b::bs, asPs', subst)
     | (ps₁, (a, _) :: ps₂) => -- found one that matches b. Remove it.
       let i := fun e => e.replaceFVar b a
-      let (bs, as_ps', subst) :=
+      let (bs, asPs', subst) :=
         compactRelation (bs.map i) ((ps₁ ++ ps₂).map (fun ⟨a, p⟩ => (a, i p)))
-      (none :: bs, as_ps', i ∘ subst)
-
-private def updateLambdaBinderInfoD! (e : Expr) : Expr :=
-  match e with
-  | .lam n domain body _ => .lam n domain body .default
-  | _           => panic! "lambda expected"
-
-/-- Generates an expression of the form `∃ (args), inner`. `args` is assumed to be a list of fvars.
-When possible, `p ∧ q` is used instead of `∃ (_ : p), q`. -/
-def mkExistsList (args : List Expr) (inner : Expr) : MetaM Expr :=
-  args.foldrM
-    (fun arg i:Expr => do
-      let t ← inferType arg
-      let l := (← inferType t).sortLevel!
-      if arg.occurs i || l != Level.zero
-        then pure (mkApp2 (.const `Exists [l]) t
-          (updateLambdaBinderInfoD! <| ← mkLambdaFVars #[arg] i))
-        else pure <| mkApp2 (mkConst `And) t i)
-    inner
-
-/-- `mkOpList op empty [x1, x2, ...]` is defined as `op x1 (op x2 ...)`.
-  Returns `empty` if the list is empty. -/
-def mkOpList (op : Expr) (empty : Expr) : List Expr → Expr
-  | []        => empty
-  | [e]       => e
-  | (e :: es) => mkApp2 op e <| mkOpList op empty es
-
-/-- `mkAndList [x1, x2, ...]` is defined as `x1 ∧ (x2 ∧ ...)`, or `True` if the list is empty. -/
-def mkAndList : List Expr → Expr := mkOpList (mkConst `And) (mkConst `True)
-
-/-- `mkOrList [x1, x2, ...]` is defined as `x1 ∨ (x2 ∨ ...)`, or `False` if the list is empty. -/
-def mkOrList : List Expr → Expr := mkOpList (mkConst `Or) (mkConst `False)
-
-/-- Drops the final element of a list. -/
-def List.init {α : Type u} : List α → List α
-  | []     => []
-  | [_]    => []
-  | a::l => a::init l
+      (none :: bs, asPs', i ∘ subst)
 
 /-- Auxiliary data associated with a single constructor of an inductive declaration.
 -/
@@ -147,66 +145,49 @@ def constrToProp (univs : List Level) (params : List Expr) (idxs : List Expr) (c
   let type' ← Meta.forallBoundedTelescope type (params.length) fun fvars ty => do
     pure <| ty.replaceFVars fvars params.toArray
   Meta.forallTelescope type' fun fvars ty => do
-    let idxs_inst := ty.getAppArgs.toList.drop params.length
-    let (bs, eqs, subst) := compactRelation fvars.toList (idxs.zip idxs_inst)
+    let idxsInst := ty.getAppArgs.toList.drop params.length
+    let (bs, eqs, subst) := compactRelation fvars.toList (idxs.zip idxsInst)
     let eqs ← eqs.mapM (fun ⟨idx, inst⟩ => do
       let ty ← idx.fvarId!.getType
       let instTy ← inferType inst
       let u := (← inferType ty).sortLevel!
       if ← isDefEq ty instTy
-      then pure (mkApp3 (.const `Eq [u]) ty idx inst)
-      else pure (mkApp4 (.const `HEq [u]) ty idx instTy inst))
+      then pure (mkApp3 (.const ``Eq [u]) ty idx inst)
+      else pure (mkApp4 (.const ``HEq [u]) ty idx instTy inst))
     let (n, r) ← match bs.filterMap id, eqs with
     | [], [] => do
-      pure (some 0, (mkConst `True))
+      pure (some 0, (mkConst ``True))
     | bs', [] => do
       let t : Expr ← bs'.getLast!.fvarId!.getType
       let l := (← inferType t).sortLevel!
       if l == Level.zero then do
-        let r ← mkExistsList (List.init bs') t
+        let r ← mkExistsFVars bs'.dropLast.toArray t
         pure (none, subst r)
       else do
-        let r ← mkExistsList bs' (mkConst `True)
+        let r ← mkExistsFVars bs'.toArray (mkConst ``True)
         pure (some 0, subst r)
     | bs', _ => do
-      let r ← mkExistsList bs' (mkAndList eqs)
+      let r ← mkExistsFVars bs'.toArray (Lean.mkAndN eqs)
       pure (some eqs.length, subst r)
     pure (⟨bs.map Option.isSome, n⟩, r)
 
-/-- Has the effect of `refine ⟨e₁,e₂,⋯, ?_⟩`. -/
-def _root_.Lean.MVarId.existsi (mvar : MVarId) (es : List Expr) : MetaM MVarId := do
-  es.foldlM (fun mv e => do
-      let (subgoals,_) ← Term.TermElabM.run <| Tactic.run mv do
-        Tactic.evalTactic (← `(tactic| refine ⟨?_,?_⟩))
-      let [sg1, sg2] := subgoals | throwError "expected two subgoals"
-      sg1.assign e
-      pure sg2)
-    mvar
-
-/-- Splits the goal `n` times via `refine ⟨?_,?_⟩`, and then applies `constructor` to
-close the resulting subgoals.
+/-- Splits the goal `n` times via the anonymous constructor (`And.intro`), and then applies
+`constructor` to close each resulting subgoal.
 -/
-def splitThenConstructor (mvar : MVarId) (n : Nat) : MetaM Unit :=
-match n with
-| 0   => do
-  let (subgoals',_) ← Term.TermElabM.run <| Tactic.run mvar do
-    Tactic.evalTactic (← `(tactic| constructor))
-  let [] := subgoals' | throwError "expected no subgoals"
-  pure ()
-| n + 1 => do
-  let (subgoals,_) ← Term.TermElabM.run <| Tactic.run mvar do
-    Tactic.evalTactic (← `(tactic| refine ⟨?_,?_⟩))
-  let [sg1, sg2] := subgoals | throwError "expected two subgoals"
-  let (subgoals',_) ← Term.TermElabM.run <| Tactic.run sg1 do
-    Tactic.evalTactic (← `(tactic| constructor))
-  let [] := subgoals' | throwError "expected no subgoals"
-  splitThenConstructor sg2 n
+def splitThenConstructor (mvar : MVarId) (n : Nat) : MetaM Unit := do
+  match n with
+  | 0     =>
+    let [] ← mvar.constructor | throwError "expected no subgoals"
+    pure ()
+  | n + 1 =>
+    let [sg1, sg2] ← mvar.constructor | throwError "expected two subgoals"
+    let [] ← sg1.constructor | throwError "expected no subgoals"
+    splitThenConstructor sg2 n
 
 /-- Proves the left to right direction of a generated iff theorem.
 `shape` is the output of a call to `constrToProp`.
 -/
-def toCases (mvar : MVarId) (shape : List Shape) : MetaM Unit :=
-do
+def toCases (mvar : MVarId) (shape : List Shape) : MetaM Unit := do
   let ⟨h, mvar'⟩ ← mvar.intro1
   let subgoals ← mvar'.cases h
   let _ ← (shape.zip subgoals.toList).zipIdx.mapM fun ⟨⟨⟨shape, t⟩, subgoal⟩, p⟩ => do
@@ -216,10 +197,11 @@ do
     match t with
     | none => do
       let v := vars[shape.length - 1]!
-      let mv ← mvar''.existsi (List.init si)
+      -- provide a witness for every existential except the last, then close it with `v`
+      let mv ← si.dropLast.foldlM (·.existsIntro ·) mvar''
       mv.assign v
     | some n => do
-      let mv ← mvar''.existsi si
+      let mv ← si.foldlM (·.existsIntro ·) mvar''
       splitThenConstructor mv (n - 1)
   pure ()
 
@@ -274,7 +256,7 @@ def toInductive (mvar : MVarId) (cs : List Name)
                   pure ()
   | (n + 1) => do
       let subgoals ← nCasesSum n mvar h
-      let _ ← (cs.zip (subgoals.zip s)).mapM fun ⟨constr_name, ⟨h, mv⟩, bs, e⟩ => do
+      let _ ← (cs.zip (subgoals.zip s)).mapM fun ⟨constrName, ⟨h, mv⟩, bs, e⟩ => do
         let n := (bs.filter id).length
         let (mvar', _fvars) ← match e with
         | none => nCasesProd (n-1) mv h
@@ -283,8 +265,8 @@ def toInductive (mvar : MVarId) (cs : List Name)
                           pure ⟨mvar'', fvars⟩
         | some (e + 1) => do
            let (mv', fvars) ← nCasesProd n mv h
-           let lastfv := fvars.getLast!
-           let (mv2, fvars') ← nCasesProd e mv' lastfv
+           let lastFv := fvars.getLast!
+           let (mv2, fvars') ← nCasesProd e mv' lastFv
 
            /- `fvars'.foldlM subst mv2` fails when we have dependent equalities (`HEq`).
            `subst` will change the dependent hypotheses, so that the `uniq` local names
@@ -301,7 +283,7 @@ def toInductive (mvar : MVarId) (cs : List Name)
             match a with
             | some v => pure (mkFVar v)
             | none => mkFreshExprMVar none
-          let c ← mkConstWithFreshMVarLevels constr_name
+          let c ← mkConstWithFreshMVarLevels constrName
           let e := mkAppN c args.toArray
           let t ← inferType e
           let mt ← mvar'.getType
@@ -310,7 +292,8 @@ def toInductive (mvar : MVarId) (cs : List Name)
 
 /-- Implementation for both `mk_iff` and `mk_iff_of_inductive_prop`.
 -/
-def mkIffOfInductivePropImpl (ind : Name) (rel : Name) (relStx : Syntax) : MetaM Unit := do
+def mkIffOfInductivePropImpl (ind : Name) (rel : Name) (relStx : Syntax) :
+    MetaM Unit := do
   let .inductInfo inductVal ← getConstInfo ind |
     throwError "mk_iff only applies to inductive declarations"
   let constrs := inductVal.ctors
@@ -319,21 +302,18 @@ def mkIffOfInductivePropImpl (ind : Name) (rel : Name) (relStx : Syntax) : MetaM
 
   let univNames := inductVal.levelParams
   let univs := univNames.map mkLevelParam
-  /- we use these names for our universe parameters, maybe we should construct a copy of them
-  using `uniq_name` -/
-
   let (thmTy, shape) ← Meta.forallTelescope type fun fvars ty => do
     if !ty.isProp then throwError "mk_iff only applies to prop-valued declarations"
     let lhs := mkAppN (mkConst ind univs) fvars
     let fvars' := fvars.toList
-    let shape_rhss ← constrs.mapM (constrToProp univs (fvars'.take params) (fvars'.drop params))
-    let (shape, rhss) := shape_rhss.unzip
-    pure (← mkForallFVars fvars (mkApp2 (mkConst `Iff) lhs (mkOrList rhss)), shape)
+    let shapeRhss ← constrs.mapM (constrToProp univs (fvars'.take params) (fvars'.drop params))
+    let (shape, rhss) := shapeRhss.unzip
+    pure (← mkForallFVars fvars (mkIff lhs (Lean.mkOrN rhss)), shape)
 
   let mvar ← mkFreshExprMVar (some thmTy)
   let mvarId := mvar.mvarId!
   let (fvars, mvarId') ← mvarId.intros
-  let [mp, mpr] ← mvarId'.apply (mkConst `Iff.intro) | throwError "failed to split goal"
+  let [mp, mpr] ← mvarId'.apply (mkConst ``Iff.intro) | throwError "failed to split goal"
 
   toCases mp shape
 
@@ -348,6 +328,8 @@ def mkIffOfInductivePropImpl (ind : Name) (rel : Name) (relStx : Syntax) : MetaM
   }
   addDeclarationRangesFromSyntax rel (← getRef) relStx
   Term.addTermInfo' relStx (← mkConstWithLevelParams rel) (isBinder := true) |>.run'
+
+public section
 
 /--
 Applying the `mk_iff` attribute to an inductively-defined proposition `mk_iff` makes an `iff` rule
@@ -434,5 +416,7 @@ initialize Lean.registerBuiltinAttribute {
       | _ => throwError "unrecognized syntax"
     mkIffOfInductivePropImpl decl tgt idStx
 }
+
+end
 
 end Batteries.Tactic.MkIff
