@@ -11,17 +11,19 @@ public meta import Batteries.Lean.Meta.Basic
 public meta import Batteries.Lean.Name
 public meta import Lean.Meta.Tactic.Apply
 public meta import Lean.Elab.Command
+public meta import Lean.Elab.Tactic.Basic
 
 /-!
 # mk_iff_of_inductive_prop
 
 This file defines a command `mk_iff_of_inductive_prop` that generates `iff` rules for
-inductive `Prop`s. For example, when applied to `List.Chain`, it creates a declaration with
+inductive `Prop`s. For example, when applied to `List.IsChain`, it creates a declaration with
 the following type:
 
 ```lean
-∀ {α : Type*} (R : α → α → Prop) (a : α) (l : List α),
-  Chain R a l ↔ l = [] ∨ ∃ (b : α) (l' : List α), R a b ∧ Chain R b l ∧ l = b :: l'
+∀ {α : Type*} (R : α → α → Prop) (l : List α),
+  List.IsChain R l ↔ l = [] ∨ (∃ a, l = [a]) ∨
+    ∃ a b l', R a b ∧ List.IsChain R (b :: l') ∧ l = a :: b :: l'
 ```
 
 This tactic can be called using either the `mk_iff_of_inductive_prop` user command or
@@ -114,19 +116,20 @@ structure Shape : Type where
   the "params" that apply to the entire inductive type, this list contains `true`
   if that variable has been kept after `compactRelation`.
 
-  For example, `List.Chain.nil` has type
+  For example, `ReflTransGen.refl` has type
   ```lean
-    ∀ {α : Type u_1} {R : α → α → Prop} {a : α}, List.Chain R a []`
+    ∀ {α : Type u_1} {r : α → α → Prop} {a : α}, ReflTransGen r a a
   ```
-  and the first two variables `α` and `R` are "params", while the `a : α` gets
-  eliminated in a `compactRelation`, so `variablesKept = [false]`.
+  where `α`, `r` and `a` are all "params", leaving no further variables, so
+  `variablesKept = []`.
 
-  `List.Chain.cons` has type
+  `ReflTransGen.tail` has type
   ```lean
-    ∀ {α : Type u_1} {R : α → α → Prop} {a b : α} {l : List α},
-       R a b → List.Chain R b l → List.Chain R a (b :: l)
+    ∀ {α : Type u_1} {r : α → α → Prop} {a : α} {b c : α},
+       ReflTransGen r a b → r b c → ReflTransGen r a c
   ```
-  and the `a : α` gets eliminated, so `variablesKept = [false,true,true,true,true]`.
+  where `α`, `r` and `a` are "params". The index `c` gets eliminated in a
+  `compactRelation`, so `variablesKept = [true, false, true, true]`.
   -/
   variablesKept : List Bool
 
@@ -169,6 +172,16 @@ def constrToProp (univs : List Level) (params : List Expr) (idxs : List Expr) (c
       let r ← mkExistsList bs' (mkAndList eqs)
       pure (some eqs.length, subst r)
     pure (⟨bs.map Option.isSome, n⟩, r)
+
+/-- Has the effect of `refine ⟨e₁,e₂,⋯, ?_⟩`. -/
+def _root_.Lean.MVarId.existsi (mvar : MVarId) (es : List Expr) : MetaM MVarId := do
+  es.foldlM (fun mv e => do
+      let (subgoals,_) ← Term.TermElabM.run <| Tactic.run mv do
+        Tactic.evalTactic (← `(tactic| refine ⟨?_,?_⟩))
+      let [sg1, sg2] := subgoals | throwError "expected two subgoals"
+      sg1.assign e
+      pure sg2)
+    mvar
 
 /-- Splits the goal `n` times via `refine ⟨?_,?_⟩`, and then applies `constructor` to
 close the resulting subgoals.
@@ -393,11 +406,12 @@ The new rule `r` has the shape `∀ ps is, i as ↔ ⋁_j, ∃ cs, is = cs`, whe
 In each case, we remove constructor parameters (i.e. `cs`) when the corresponding equality would
 be just `c = i` for some index `i`.
 
-For example, `mk_iff_of_inductive_prop` on `List.Chain` produces:
+For example, `mk_iff_of_inductive_prop` on `List.IsChain` produces:
 
 ```lean
-∀ { α : Type*} (R : α → α → Prop) (a : α) (l : List α),
-  Chain R a l ↔ l = [] ∨ ∃ (b : α) (l' : List α), R a b ∧ Chain R b l ∧ l = b :: l'
+∀ {α : Type*} (R : α → α → Prop) (l : List α),
+  List.IsChain R l ↔ l = [] ∨ (∃ a, l = [a]) ∨
+    ∃ a b l', R a b ∧ List.IsChain R (b :: l') ∧ l = a :: b :: l'
 ```
 
 See also the `mk_iff` user attribute.

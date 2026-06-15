@@ -13,8 +13,6 @@ public import Lean.Data.Name
 
 public section
 
-open Lean Meta Elab
-
 /-- Decapitalize the last component of a name. -/
 def Lean.Name.decapitalize (n : Name) : Name :=
   n.modifyBase fun
