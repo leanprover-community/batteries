@@ -78,8 +78,7 @@ See `Lean.Environment.isAutoDecl` for an identical pure version of this function
 /--
 Returns true if `decl` is a private or automatically generated declaration.
 
-Also returns true if `decl` is an internal name or created
-during macro expansion.
+Also returns true if `decl` is an internal name or created during macro expansion.
 -/
 @[inline] def isPrivateOrAutoDecl (decl : Name) : CoreM Bool :=
   pure (isPrivateName decl) <||> isAutoDecl decl
