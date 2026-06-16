@@ -173,13 +173,11 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
             \nOne of the lemmas above could be a duplicate.\
             \nIf that's not the case try reordering lemmas or adding @[priority]."
         else if ¬ lhsInNF then
+          let (lhs, lhs') ← addPPExplicitToExposeDiff lhs lhs'
           return m!"\
-            Left-hand side simplifies from\
-            \n  {lhs}\
-            \nto\
-            \n  {lhs'}\
-            \nusing\
-            \n  {← formatLemmas prf1Stats.usedTheorems simpName higherOrder}\
+            Left-hand side simplifies from{indentD lhs}\
+            \nto{indentD lhs'}\
+            \nusing{indentD <| ← formatLemmas prf1Stats.usedTheorems simpName higherOrder}\
             \nTry to change the left-hand side to the simplified term!"
         else if lhs == lhs' then
           let lhsType ← inferType lhs
@@ -195,13 +193,12 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
                 decorateError m!"simplify fails on hypothesis ({name} : {ldecl.type}):" <|
                   simplify ldecl.type (← Simp.Context.mkDefault)
               unless ← isSimpEq hType' ldecl.type do
+                let (hType', ldecl_type) ← addPPExplicitToExposeDiff hType' ldecl.type
                 hints := hints ++ m!"\
-                  \nThe simp lemma may be invalid because hypothesis {name} simplifies from\
-                  \n  {ldecl.type}\
-                  \nto\
-                  \n  {hType'}\
-                  \nusing\
-                  \n  {← formatLemmas stats.usedTheorems simpName none}\
+                  \nThe simp lemma may be invalid because hypothesis {name} simplifies from{
+                      indentD ldecl_type}\
+                  \nto{indentD hType'}\
+                  \nusing{indentD <| ← formatLemmas stats.usedTheorems simpName none}\
                   \nTry to change the hypothesis to the simplified term!"
             else
               -- improve the error message if the argument can't be filled in by `simp`
