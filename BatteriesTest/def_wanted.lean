@@ -167,6 +167,64 @@ info: use_poly_dw : Type u_1 → {d_poly_dw : (α : Type u_1) → (poly_dw α).V
 -/
 #guard_msgs in #check @use_poly_dw
 
+/-! ## Transitive dependencies
+
+Referencing a wanted declaration that itself has a body (and hence its own `❰…❱` dependencies)
+surfaces those dependencies as binders on the *referencing* declaration, threading them through.
+Without this, the dependency would appear inside the reference's binder as an unsolvable implicit
+(the `.Val`/`.Stmt` accessor discards it, so nothing could fix its value). -/
+
+def_wanted base_dep (R : Type) : Nat
+def_wanted derived_dep (R : Type) : Nat := ❰base_dep❱ R + 1
+
+/-- Referencing `derived_dep` pulls in its dependency on `base_dep`: the reference's own binder is
+free of the chained parameter, and a sibling `d_base_dep` binder carries it instead. -/
+def_wanted use_chain : Nat := ❰derived_dep❱ Nat
+
+/--
+info: @use_chain : {d_base_dep : (R : Type) → (base_dep R).Val} →
+  {d_derived_dep : (R : Type) → (derived_dep R).Val} → DefWanted Nat
+-/
+#guard_msgs in #check @use_chain
+
+/-! A `theorem_wanted` dependency is surfaced the same way (Filippo Nuccio's reported shape): the
+referenced `def_wanted`'s proof obligation becomes an `h_…` binder on the referencing theorem. -/
+
+theorem_wanted boo_dep (R : Type) : (0 : Nat) < 5
+def_wanted foo_dep (R : Type) : Fin 5 := ⟨0, ❰boo_dep❱ R⟩
+theorem_wanted ref_with_proof_dep : (❰foo_dep❱ Nat).val = 0
+
+/--
+info: @ref_with_proof_dep : {h_boo_dep : ∀ (R : Type), (boo_dep R).Stmt} →
+  {d_foo_dep : (R : Type) → (foo_dep R).Val} → ProofWanted (↑(d_foo_dep Nat) = 0)
+-/
+#guard_msgs in #check @ref_with_proof_dep
+
+/-- A surfaced dependency is deduplicated against a direct reference to the same declaration: here
+`base_dep` is referenced both directly and transitively (via `derived_dep`), yielding one binder. -/
+def_wanted use_chain_and_base : Nat := ❰base_dep❱ Nat + ❰derived_dep❱ Nat
+
+/--
+info: @use_chain_and_base : {d_base_dep : (R : Type) → (base_dep R).Val} →
+  {d_derived_dep : (R : Type) → (derived_dep R).Val} → DefWanted Nat
+-/
+#guard_msgs in #check @use_chain_and_base
+
+/-! Dependencies flatten through several levels: each declaration already carries its transitive
+dependencies as binders, so referencing the top of a chain surfaces the whole chain at once (and a
+binder whose type refers to an earlier surfaced binder is threaded to the right one). -/
+
+def_wanted leaf_dep (R : Type) : Nat
+def_wanted mid_dep (R : Type) : Nat := ❰leaf_dep❱ R + 1
+def_wanted top_dep (R : Type) : Nat := ❰mid_dep❱ R + 1
+def_wanted use_three_levels : Nat := ❰top_dep❱ Nat
+
+/--
+info: @use_three_levels : {d_leaf_dep : (R : Type) → (leaf_dep R).Val} →
+  {d_mid_dep : (R : Type) → (mid_dep R).Val} → {d_top_dep : (R : Type) → (top_dep R).Val} → DefWanted Nat
+-/
+#guard_msgs in #check @use_three_levels
+
 /-! ## Namespacing -/
 
 namespace M

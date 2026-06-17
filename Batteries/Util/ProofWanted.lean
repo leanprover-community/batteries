@@ -24,7 +24,9 @@ Inside any of these commands, `❰foo❱` references an earlier wanted declarati
 `foo`, write `❰foo❱ x y` to apply it. The brackets desugar to fresh parameter binders, so the
 dependency appears in the recorded type. When the referenced wanted's payload is a typeclass,
 the generated parameter is an instance binder, so Lean's instance synth can pick it up at use
-sites (including via Π-instance synth when chained through another wanted).
+sites (including via Π-instance synth when chained through another wanted). If `foo` was itself
+declared with a body (and so has its own `❰…❱` dependencies), referencing it also surfaces those
+dependencies as binders on the referencing declaration, so the whole chain is recorded.
 
 `instance_wanted name : ClassT` is a variant of `def_wanted` whose payload must be a
 typeclass and whose declared name is registered file-locally: every later wanted automatically
@@ -138,6 +140,18 @@ private initialize wantedInstancesExt :
     addImportedFn := fun _ => #[]
   }
 
+/-- File-local registry recording, for each wanted declaration, how many of its trailing binders
+are auto-generated (chained `❰…❱` references and ambient `instance_wanted` includes) rather than
+user-written. A `❰foo❱` reference uses this to tell `foo`'s user binders (which it re-quantifies)
+apart from `foo`'s own dependency binders (which it surfaces onto the enclosing declaration; see
+`classifyWantedRef`). Non-persistent across imports, like `wantedInstancesExt`. -/
+private initialize wantedArityExt :
+    SimplePersistentEnvExtension (Name × Nat) (NameMap Nat) ←
+  registerSimplePersistentEnvExtension {
+    addEntryFn    := fun m (n, k) => m.insert n k
+    addImportedFn := fun _ => {}
+  }
+
 /-- Walk a syntax tree, throwing on the first `wantedRef` node found. -/
 private def rejectRefsIn (loc : String) (cmdName : String) (stx : Syntax) : CommandElabM Unit := do
   let _ ← stx.replaceM fun s => do
@@ -153,10 +167,23 @@ private def freshHypName (n : Name) (kind : WantedRefKind) : CommandElabM Name :
     | _ => kind.hypPrefix ++ "ref"
   liftCoreM <| Lean.mkFreshUserName (Name.mkSimple baseStr)
 
+/-- A non-class dependency of the referenced wanted that must be surfaced as a binder on the
+*enclosing* declaration (rather than quantified inside the reference's own binder, where it would
+be an unsolvable implicit), then threaded into the reference's application. -/
+private structure WantedDep where
+  /-- The wanted declaration this dependency stands for; used to deduplicate against other
+  references made by the enclosing declaration. -/
+  name : Name
+  /-- Fresh identifier naming the surfaced binder. Also spliced into the referenced wanted's
+  application, so the dependency is passed through. -/
+  ident : TSyntax `ident
+  /-- The surfaced binder's type (Π over the dependency's own binders, ending in its accessor). -/
+  binderType : TSyntax `term
+
 /-- Information returned by `classifyWantedRef`: the wrapper kind, the parameter-binder type
-syntax to use when referencing it (a Π-type over `nm`'s own binders, ending in the appropriate
-`.Stmt`/`.Val` accessor), and a flag saying whether the recorded payload is a typeclass — the
-generated parameter is then an instance binder. -/
+syntax to use when referencing it (a Π-type over `nm`'s user binders, ending in the appropriate
+`.Stmt`/`.Val` accessor), a flag saying whether the recorded payload is a typeclass — the
+generated parameter is then an instance binder — and the non-class dependencies to surface. -/
 private structure WantedRefInfo where
   kind : WantedRefKind
   /-- The binder type, e.g. `ProofWanted.Stmt foo` for parameterless `foo`, or
@@ -165,11 +192,24 @@ private structure WantedRefInfo where
   /-- `true` if the wanted's payload is a typeclass. The generated parameter is then an instance
   binder so Lean's instance synth can find it. -/
   isClass : Bool
+  /-- `nm`'s own non-class wanted-dependencies, to be surfaced as binders on the enclosing
+  declaration and threaded into `nm`'s application. Empty unless `nm` was itself declared with a
+  body (or other `❰…❱` references) introducing chained dependencies. -/
+  deps : Array WantedDep := #[]
 
 /-- Check that `nm` is a `theorem_wanted` or `def_wanted` declaration, and return both
 which kind it is and the parameter-binder type to use when referencing it. The binder type is
-Π-quantified over `nm`'s own binders, so parametrised wanted declarations can be referenced as
+Π-quantified over `nm`'s user binders, so parametrised wanted declarations can be referenced as
 `❰foo❱ x y` (which desugars to applying the generated parameter to `x y`).
+
+`nm`'s own auto-generated binders (chained `❰…❱` dependencies and ambient `instance_wanted`
+includes — the trailing ones, counted by `wantedArityExt`) are handled specially. Instance-valued
+ones stay quantified inside the reference's binder, so instance synth still discharges them at the
+use site.
+Non-class ones (a `def_wanted`/`theorem_wanted` `nm` referenced in its own body) would become
+*unsolvable* implicits if quantified — nothing constrains them, since the `.Val`/`.Stmt` accessor
+discards its argument — so instead they are returned as `deps`: the caller adds a matching binder
+to the enclosing declaration and threads it into `nm`'s application.
 
 We build the binder type by combining explicit syntactic construction for the Π body (so that
 `@foo` is applied to each binder's argument) with `PrettyPrinter.delab` for each binder's TYPE
@@ -181,7 +221,21 @@ elaboration, leaving lambdas in the stored env type that don't round-trip back t
 private def classifyWantedRef (nm : Name) (stx : Syntax) : CommandElabM WantedRefInfo := do
   Command.liftTermElabM <| open Lean.Meta in do
     let info ← getConstInfo nm
+    -- How many of `nm`'s trailing binders are auto-generated (vs user-written).
+    let numAuto := (wantedArityExt.getState (← getEnv)).find? nm |>.getD 0
     forallTelescope info.type fun fvars body => do
+      let userCount := fvars.size - numAuto
+      -- Recover the referenced wanted and its kind from an auto binder's type
+      -- `∀ …, ProofWanted.Stmt (@ref …)` / `… DefWanted.Val (@ref …)`.
+      -- Non-reducing telescope: the body is `ProofWanted.Stmt (@ref …)` / `DefWanted.Val (@ref …)`
+      -- with the (reducible) accessor intact, so we can read off the accessor and referenced name.
+      let classifyAutoBinder (ty : Expr) : MetaM (Name × WantedRefKind) :=
+        forallTelescope ty fun _ b => do
+          let some accName := b.getAppFn.constName?
+            | throwError "internal: malformed wanted dependency binder `{ty}`"
+          let some refName := b.appArg!.getAppFn.constName?
+            | throwError "internal: malformed wanted dependency binder `{ty}`"
+          return (refName, if accName == ``ProofWanted.Stmt then .proofWanted else .defWanted)
       -- Try to unify `body` with `wrapper ?α`; if it succeeds, return `?α` for any extra checks.
       let matchesWrapper (wrapper : Name) : MetaM (Option Expr) := do
         let u ← mkFreshLevelMVar
@@ -189,7 +243,7 @@ private def classifyWantedRef (nm : Name) (stx : Syntax) : CommandElabM WantedRe
         if ← isDefEq body (Lean.mkApp (Lean.mkConst wrapper [u]) α) then
           return some (← Lean.instantiateMVars α)
         return none
-      let mkBinderSyn (refKind : WantedRefKind) : MetaM (TSyntax `term) := do
+      let mkBinderSyn (refKind : WantedRefKind) : MetaM (TSyntax `term × Array WantedDep) := do
         let fooIdent := mkIdent nm
         -- Each universe level is a hole `_` rather than `nm`'s own level name: a named level would
         -- auto-bind to a fresh, distinct param of the enclosing declaration, leaving the hypothesis
@@ -205,14 +259,44 @@ private def classifyWantedRef (nm : Name) (stx : Syntax) : CommandElabM WantedRe
             | some (.str _ s) => s
             | _ => "arg"
           Lean.mkFreshUserName (Name.mkSimple baseStr)
+        -- A binder at index `idx` is *surfaced* (returned as a `dep`) when it is one of `nm`'s
+        -- auto-generated binders and is not instance-valued.
+        let isSurfaced (idx : Nat) : MetaM Bool := do
+          if idx < userCount then return false
+          return (← fvars[idx]!.fvarId!.getDecl).binderInfo != .instImplicit
+        -- Allocate the per-argument identifier for each binder: a fresh name for kept binders, a
+        -- fresh placeholder for surfaced ones (shared between the dep binder and `nm`'s application
+        -- argument). We do this *before* delaborating any type, because an auto binder's type may
+        -- reference an earlier surfaced binder — that reference must resolve to the placeholder we
+        -- will add to the enclosing declaration, not to `nm`'s internal name.
+        let mut appNames : Array Name := freshNames
+        let mut surfaced : Array (Nat × Name) := #[]  -- (binder index, referenced wanted)
+        for idx in [userCount:fvars.size] do
+          unless ← isSurfaced idx do continue
+          let (refName, refK) ← classifyAutoBinder (← fvars[idx]!.fvarId!.getDecl).type
+          let baseStr : String := match refName.eraseMacroScopes.componentsRev.head? with
+            | some (.str _ s) => refK.hypPrefix ++ s
+            | _ => refK.hypPrefix ++ "ref"
+          appNames := appNames.set! idx (← Lean.mkFreshUserName (Name.mkSimple baseStr))
+          surfaced := surfaced.push (idx, refName)
         let renameMap : Std.HashMap Name Name :=
-          oldNames.zip freshNames |>.foldl (fun m (o, n) => m.insert o n) {}
-        let renameInTy (ty : TSyntax `term) : MetaM (TSyntax `term) := do
-          return ⟨← ty.raw.replaceM fun s => do
+          oldNames.zip appNames |>.foldl (fun m (o, n) => m.insert o n) {}
+        let delabTy (ty : Expr) : MetaM (TSyntax `term) := do
+          let s ← withOptions (fun o =>
+              ((((o.setBool `pp.explicit true).setBool
+                  `pp.fieldNotation false).setBool
+                `pp.fieldNotation.generalized false).setBool
+                `pp.deepTerms true).setBool
+                `pp.proofs true) <|
+            PrettyPrinter.delab ty
+          return ⟨← s.raw.replaceM fun s => do
             if s.isIdent then
               if let some n := renameMap[s.getId]? then return some (mkIdent n).raw
             return none⟩
-        let argIdents : Array (TSyntax `term) ← freshNames.mapM fun n => do
+        let deps : Array WantedDep ← surfaced.mapM fun (idx, refName) => do
+          return { name := refName, ident := mkIdent appNames[idx]!,
+                   binderType := ← delabTy (← fvars[idx]!.fvarId!.getDecl).type }
+        let argIdents : Array (TSyntax `term) ← appNames.mapM fun n => do
           let id := mkIdent n
           `(@$id)
         let appliedSyn : TSyntax `term ←
@@ -221,27 +305,19 @@ private def classifyWantedRef (nm : Name) (stx : Syntax) : CommandElabM WantedRe
           else
             `(@$fooIdent:ident.{$levelStxs,*} $argIdents*)
         let accessorIdent := mkIdent refKind.accessor
-        let bodySyn ← `($accessorIdent $appliedSyn)
-        let mut binderTySyn := bodySyn
+        let mut binderTySyn ← `($accessorIdent $appliedSyn)
         for i in [0:fvars.size] do
           let idx := fvars.size - 1 - i
-          let fvar := fvars[idx]!
-          let decl ← fvar.fvarId!.getDecl
+          if ← isSurfaced idx then continue
+          let decl ← fvars[idx]!.fvarId!.getDecl
           let nameId := mkIdent freshNames[idx]!
-          let typeSyn ← withOptions (fun o =>
-              ((((o.setBool `pp.explicit true).setBool
-                  `pp.fieldNotation false).setBool
-                `pp.fieldNotation.generalized false).setBool
-                `pp.deepTerms true).setBool
-                `pp.proofs true) <|
-            PrettyPrinter.delab decl.type
-          let typeSyn ← renameInTy typeSyn
+          let typeSyn ← delabTy decl.type
           binderTySyn ← match decl.binderInfo with
             | .default        => `(($nameId : $typeSyn) → $binderTySyn)
             | .implicit       => `({$nameId : $typeSyn} → $binderTySyn)
             | .strictImplicit => `(⦃$nameId : $typeSyn⦄ → $binderTySyn)
             | .instImplicit   => `([$nameId : $typeSyn] → $binderTySyn)
-        return binderTySyn
+        return (binderTySyn, deps)
       let env ← getEnv
       let isCls (α : Expr) : Bool := match α.getAppFn with
         | .const n _ => Lean.isClass env n
@@ -250,11 +326,11 @@ private def classifyWantedRef (nm : Name) (stx : Syntax) : CommandElabM WantedRe
         unless ← isProp α do
           throwErrorAt stx
             "`{stx}` is a `ProofWanted`, but its statement is not a proposition"
-        return { kind := .proofWanted, binderType := ← mkBinderSyn .proofWanted,
-                 isClass := isCls α }
+        let (binderType, deps) ← mkBinderSyn .proofWanted
+        return { kind := .proofWanted, binderType, isClass := isCls α, deps }
       if let some β ← matchesWrapper ``DefWanted then
-        return { kind := .defWanted, binderType := ← mkBinderSyn .defWanted,
-                 isClass := isCls β }
+        let (binderType, deps) ← mkBinderSyn .defWanted
+        return { kind := .defWanted, binderType, isClass := isCls β, deps }
       throwErrorAt stx
         "`{stx}` is not a `theorem_wanted`, `proof_wanted`, or `def_wanted` declaration \
          (its type doesn't end in `ProofWanted _` or `DefWanted _`)"
@@ -284,10 +360,27 @@ private def elabWanted (kind : WantedCmdKind) (stx : Syntax)
     | some h => return some h.raw
     | none =>
       let refInfo ← classifyWantedRef nm identStx
+      -- Surface `nm`'s non-class transitive dependencies as binders on this declaration (so they
+      -- are solvable), deduplicating against references already made; `renames` maps each dep's
+      -- fresh placeholder to the existing binder it coincides with, for rewriting `nm`'s binder
+      -- type. New deps are added *before* `nm`'s own binder, which refers to them.
+      let mut renames : Std.HashMap Name Name := {}
+      for dep in refInfo.deps do
+        match (← nameToHypRef.get).find? dep.name with
+        | some existing => renames := renames.insert dep.ident.getId existing.getId
+        | none =>
+          nameToHypRef.modify (·.insert dep.name dep.ident)
+          hypOrderRef.modify (·.push (dep.ident,
+            { kind := .defWanted, binderType := dep.binderType, isClass := false }))
+      let binderType : TSyntax `term ← if renames.isEmpty then pure refInfo.binderType else
+        pure ⟨← refInfo.binderType.raw.replaceM fun s => do
+          if s.isIdent then
+            if let some r := renames[s.getId]? then return some (mkIdent r).raw
+          return none⟩
       let fresh ← freshHypName nm refInfo.kind
       let hyp : TSyntax `ident := mkIdent fresh
-      nameToHypRef.set (m.insert nm hyp)
-      hypOrderRef.modify (·.push (hyp, refInfo))
+      nameToHypRef.modify (·.insert nm hyp)
+      hypOrderRef.modify (·.push (hyp, { refInfo with binderType }))
       return some hyp.raw
   let res' : TSyntax `term := ⟨← rewriteRefs res.raw⟩
   let body'? : Option (TSyntax `term) ← body?.mapM fun b => return ⟨← rewriteRefs b.raw⟩
@@ -325,8 +418,8 @@ private def elabWanted (kind : WantedCmdKind) (stx : Syntax)
   let order ← hypOrderRef.get
   -- Class-valued wanted refs become instance binders so Lean's typeclass synth can find them
   -- (including via Π-instance synth when chained through another wanted). Non-class refs become
-  -- implicit binders, so the chained-dependency parameter is unified with the local one at use
-  -- sites.
+  -- implicit binders; their own non-class dependencies have already been surfaced as sibling
+  -- binders (see `rewriteRefs`) and threaded into the reference's application.
   let extraBinders ← order.mapM fun (hyp, refInfo) =>
     if refInfo.isClass then
       `(Parser.Term.bracketedBinderF| [$hyp : $(refInfo.binderType)])
@@ -346,6 +439,12 @@ private def elabWanted (kind : WantedCmdKind) (stx : Syntax)
     set_option linter.unusedVariables false
     private def $name $args* $extraBinders* : $wrapper $resAscribed := $rhs
     end)
+  -- Record how many of this declaration's binders are auto-generated (`extraBinders`), so a later
+  -- `❰…❱` reference can tell them apart from the user binders and surface the non-class ones.
+  let identStx : Syntax.Ident := ⟨name.raw[0]⟩
+  let declName ← Command.liftTermElabM do
+    Lean.Elab.realizeGlobalConstNoOverloadWithInfo identStx
+  modifyEnv (wantedArityExt.addEntry · (declName, order.size))
 
 /-- This proof would be a welcome contribution to the library!
 
