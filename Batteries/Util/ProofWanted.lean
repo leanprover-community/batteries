@@ -207,10 +207,18 @@ private def classifyWantedRef (nm : Name) (stx : Syntax) : CommandElabM WantedRe
           Lean.mkFreshUserName (Name.mkSimple baseStr)
         let renameMap : Std.HashMap Name Name :=
           oldNames.zip freshNames |>.foldl (fun m (o, n) => m.insert o n) {}
+        -- `nm`'s universe parameters appear inside the delaborated binder types as named level
+        -- idents (e.g. `Type u_1`). Left as-is, each auto-binds to a fresh *rigid* universe
+        -- parameter of the enclosing wanted declaration, pinning the reference to a single
+        -- universe that can never match a concrete use site (`❰foo❱ ℚ` wants `ℚ : Type u_1`).
+        -- Rewrite them to level holes `_` so they unify at the use site, mirroring the hole
+        -- treatment already applied to `nm`'s application levels (`@nm.{_}`).
+        let holeLevel : Syntax := (← `(level| _)).raw
         let renameInTy (ty : TSyntax `term) : MetaM (TSyntax `term) := do
           return ⟨← ty.raw.replaceM fun s => do
             if s.isIdent then
               if let some n := renameMap[s.getId]? then return some (mkIdent n).raw
+              if info.levelParams.contains s.getId.eraseMacroScopes then return some holeLevel
             return none⟩
         let argIdents : Array (TSyntax `term) ← freshNames.mapM fun n => do
           let id := mkIdent n

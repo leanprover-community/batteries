@@ -167,6 +167,16 @@ info: use_poly_dw : Type u_1 → {d_poly_dw : (α : Type u_1) → (poly_dw α).V
 -/
 #guard_msgs in #check @use_poly_dw
 
+/-! A universe-polymorphic wanted may equally be referenced at a *concrete* universe: the generated
+binder spells `poly_dw`'s universe as a hole, so `❰poly_dw❱ Nat` resolves at `Type` rather than
+pinning the reference to a rigid universe parameter that no concrete type could match. -/
+def_wanted use_poly_concrete : Type := ❰poly_dw❱ Nat
+
+/--
+info: @use_poly_concrete : {d_poly_dw : (α : Type) → (poly_dw α).Val} → DefWanted Type
+-/
+#guard_msgs in #check @use_poly_concrete
+
 /-! ## Namespacing -/
 
 namespace M
