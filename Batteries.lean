@@ -1,4 +1,4 @@
-module
+module -- deprecated_module: ignore
 
 public import Batteries.Classes.Cast
 public import Batteries.Classes.Deprecated
@@ -22,13 +22,14 @@ public import Batteries.Control.Nondet.Basic
 public import Batteries.Control.OptionT
 public import Batteries.Data.Array
 public import Batteries.Data.AssocList
+public import Batteries.Data.Bool
 public import Batteries.Data.BinaryHeap
 public import Batteries.Data.BinomialHeap
 public import Batteries.Data.BitVec
-public import Batteries.Data.Bool
 public import Batteries.Data.ByteArray
 public import Batteries.Data.ByteSlice
 public import Batteries.Data.Char
+public import Batteries.Data.DList
 public import Batteries.Data.Fin
 public import Batteries.Data.FloatArray
 public import Batteries.Data.HashMap

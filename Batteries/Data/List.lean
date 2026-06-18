@@ -1,4 +1,4 @@
-module
+module -- deprecated_module: ignore
 
 public import Batteries.Data.List.ArrayMap
 public import Batteries.Data.List.Basic
