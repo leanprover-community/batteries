@@ -237,7 +237,7 @@ theorem interleaves_ofFn {n : Nat} {f g : Fin n → α} :
       (∀ i, r (g i) (f i)) ∧ ∀ (i : Nat) (hi : i + 1 < n), r (f ⟨i, by lia⟩) (g ⟨i + 1, hi⟩) := by
   simp only [interleaves_iff_length_isChain_interleave, length_ofFn, Nat.succ_ne_self, or_false,
     interleave_ofFn_ofFn, isChain_ofFn, true_and]
-  refine ⟨fun h => ?_, fun h i hi => by have := h.1 ⟨i / 2, by lia⟩; grind⟩
+  refine ⟨fun h => ?_, by grind⟩
   exact ⟨fun i => by have := h (2 * i); grind, fun i hi => by have := h (2 * i + 1); grind⟩
 
 theorem interleaves_ofFn' {n : Nat} {f : Fin n → α} {g : Fin (n + 1) → α} :
