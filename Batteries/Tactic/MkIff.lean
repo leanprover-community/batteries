@@ -41,6 +41,8 @@ public def mkOrN : List Expr → Expr
   | [p]     => p
   | p :: ps => mkOr p (mkOrN ps)
 
+namespace Meta
+
 /--
 Takes an array `xs` of free variables and a body term `e`, and builds the
 existential `∃ x₁ ⋯ xₙ, e`, abstracting each `xᵢ` from `e` and from the types
@@ -52,7 +54,7 @@ built by folding `Exists` applications over `mkLambdaFVars`. Whenever a binder
 has a `Prop`-valued type and does not occur in the remaining body, the
 non-dependent `∃ _ : p, q` is emitted as `p ∧ q` instead.
 -/
-public def Meta.mkExistsFVars (xs : Array Expr) (e : Expr) : MetaM Expr :=
+public def mkExistsFVars (xs : Array Expr) (e : Expr) : MetaM Expr :=
   xs.foldrM (fun x b => do
     let t ← inferType x
     let l := (← inferType t).sortLevel!
@@ -64,12 +66,6 @@ public def Meta.mkExistsFVars (xs : Array Expr) (e : Expr) : MetaM Expr :=
     else
       pure (mkAnd t b))
     e
-
-end Lean
-
-namespace Batteries.Tactic.MkIff
-
-open Lean Meta Elab
 
 /-- `select m n` runs `right` `m` times; if `m < n`, then it also runs `left` once.
 Fails if `n < m`. -/
@@ -290,6 +286,9 @@ def toInductive (mvar : MVarId) (cs : List Name)
           let _ ← isDefEq t mt -- infer values for those mvars we just made
           mvar'.assign e
 
+
+public section
+
 /-- Implementation for both `mk_iff` and `mk_iff_of_inductive_prop`.
 -/
 def mkIffOfInductivePropImpl (ind : Name) (rel : Name) (relStx : Syntax) :
@@ -326,10 +325,9 @@ def mkIffOfInductivePropImpl (ind : Name) (rel : Name) (relStx : Syntax) :
     type := thmTy
     value := ← instantiateMVars mvar
   }
-  addDeclarationRangesFromSyntax rel (← getRef) relStx
-  Term.addTermInfo' relStx (← mkConstWithLevelParams rel) (isBinder := true) |>.run'
+  Elab.addDeclarationRangesFromSyntax rel (← getRef) relStx
+  Elab.Term.addTermInfo' relStx (← mkConstWithLevelParams rel) (isBinder := true) |>.run'
 
-public section
 
 /--
 Applying the `mk_iff` attribute to an inductively-defined proposition `mk_iff` makes an `iff` rule
@@ -402,7 +400,7 @@ syntax (name := mkIffOfInductiveProp) "mk_iff_of_inductive_prop " ident ppSpace 
 
 elab_rules : command
 | `(command| mk_iff_of_inductive_prop $i:ident $r:ident) =>
-    Command.liftCoreM <| MetaM.run' do
+    Elab.Command.liftCoreM <| MetaM.run' do
       mkIffOfInductivePropImpl i.getId r.getId r
 
 initialize Lean.registerBuiltinAttribute {
@@ -411,7 +409,7 @@ initialize Lean.registerBuiltinAttribute {
   add := fun decl stx _ => Lean.Meta.MetaM.run' do
     let (tgt, idStx) ← match stx with
       | `(attr| mk_iff $tgt:ident) =>
-        pure ((← mkDeclName (← getCurrNamespace) {} tgt.getId).1, tgt.raw)
+        pure ((← Elab.mkDeclName (← getCurrNamespace) {} tgt.getId).1, tgt.raw)
       | `(attr| mk_iff) => pure (decl.decapitalize.appendAfter "_iff", stx)
       | _ => throwError "unrecognized syntax"
     mkIffOfInductivePropImpl decl tgt idStx
@@ -419,4 +417,6 @@ initialize Lean.registerBuiltinAttribute {
 
 end
 
-end Batteries.Tactic.MkIff
+end Meta
+
+end Lean
