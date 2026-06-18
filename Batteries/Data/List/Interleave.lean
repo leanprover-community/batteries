@@ -19,24 +19,36 @@ namespace List
 variable {α : Type u} {r s : α → α → Prop} {l l₁ l₂ : List α} {a b c : α}
 
 /-- Interleaves two lists `l₁` and `l₂`, starting with an element of `l₂`.
+
 This operation is well-behaved only when the length of `l₂` is either the length of `l₁`
-or one more.
+or one more. If one of the lists is empty, return the other list.
+
 ```
+#eval interleave [1] [0, 2, 4] -- [0, 1, 2, 4]
 #eval interleave [1, 3] [0, 2, 4] -- [0, 1, 2, 3, 4]
-#eval interleave [0, 1, 2] [3, 4]
+#eval interleave [1, 3] [0, 2] -- [0, 1, 2, 3]
+#eval interleave [1, 3] [0] -- [0, 1, 3]
 ```
 -/
 @[expose]
 def interleave : List α → List α → List α
-  | _, [] => []
+  | l₁, [] => l₁
   | l₁, a :: l₂ => a :: interleave l₂ l₁
 termination_by l₁ l₂ => l₁.length + l₂.length
 
-@[simp] theorem interleave_nil (l₁ : List α) : l₁.interleave [] = [] := by rw [interleave]
+@[simp] theorem interleave_nil (l₁ : List α) : l₁.interleave [] = l₁ := by rw [interleave]
+@[simp] theorem nil_interleave (l₂ : List α) : [].interleave l₂ = l₂ := by
+  cases l₂ <;> simp [interleave]
 
 @[simp]
-theorem interleave_cons (l₁ : List α) (a : α) (l₂ : List α) :
-    l₁.interleave (a :: l₂) = a :: interleave l₂ l₁ := by rw [interleave]
+theorem interleave_cons (l₁ : List α) (b : α) (l₂ : List α) :
+    l₁.interleave (b :: l₂) = b :: interleave l₂ l₁ := by rw [interleave]
+
+@[simp] theorem length_interleaves :
+    ∀ l₁ l₂ : List α, (l₁.interleave l₂).length = l₁.length + l₂.length
+  | l₁, [] => by simp
+  | l₁, a :: l₂ => by simp [length_interleaves l₂ l₁]; lia
+termination_by l₁ l₂ => l₁.length + l₂.length
 
 @[simp]
 theorem interleave_append_append_of_length_eq_length :
@@ -170,16 +182,19 @@ theorem interleaves_iff_length_isChain_interleave :
     Interleaves r l₁ l₂ ↔
       (l₁.length = l₂.length ∨ l₁.length + 1 = l₂.length) ∧ (l₁.interleave l₂).IsChain r
   | [], [] => by simp
-  | [], b :: l₂ => by simp
+  | [], b :: l₂ => by simp +contextual
   | a :: l₁, [] => by simp
   | a :: l₁, [b] => by
     rw [interleaves_iff]
-    simp
+    simp only [reduceCtorEq, cons_ne_self, and_self, cons.injEq, and_true, false_and, exists_false,
+      nil_eq, false_or, length_cons, length_nil, Nat.zero_add, Nat.add_eq_right, length_eq_zero_iff,
+      Nat.add_eq_zero_iff, Nat.succ_ne_self, and_false, or_false, interleave_cons, interleave_nil,
+      isChain_cons_cons]
     constructor
     · rintro ⟨_, _, _, hl, _, hba, ⟨rfl, rfl⟩, rfl, rfl⟩
       simp_all
     · rintro ⟨rfl, hba⟩
-      exact ⟨_, _, _, by simp, _, hba, ⟨rfl, rfl⟩, rfl, rfl⟩
+      exact ⟨_, _, _, by simp, _, hba.1, ⟨rfl, rfl⟩, rfl, rfl⟩
   | a :: l₁, b :: l₂ => by
     rw [interleaves_iff]
     simp only [reduceCtorEq, and_self, cons.injEq, false_and, exists_false, false_or, length_cons,
