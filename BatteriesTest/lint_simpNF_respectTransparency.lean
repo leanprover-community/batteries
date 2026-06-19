@@ -43,11 +43,12 @@ SOME SIMP LEMMAS ARE NOT IN SIMP-NORMAL FORM.
 Please change the lemma to make sure their left-hand sides are in simp normal form.
 To learn about simp normal forms, see
 https://leanprover-community.github.io/extras/simp.html#simp-normal-form
-and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/. -/
+and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/.
+This linter can be disabled with `@[nolint simpNF]`. -/
 #check @Bundle.of_op /- Left-hand side simplifies from
-  MyClass.op
+  @MyClass.op (Bundle.of X).carrier (Bundle.of X).inst
 to
-  MyClass.op
+  @MyClass.op X (Bundle.of X).inst
 using
   dsimp only [*, Bundle.of_carrier]
 Try to change the left-hand side to the simplified term! -/

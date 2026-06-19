@@ -37,8 +37,8 @@ This file defines several small linters.
       | return none
     return m!"The namespace {dup} is duplicated in the name"
 
-/-- A linter for checking for unused arguments.
-We skip all declarations that contain `sorry` in their value. -/
+/-- A linter for checking for unused arguments. We skip all declarations that contain `sorry` in
+their value, and allow arguments starting with `_` to be unused. -/
 @[env_linter] def unusedArguments : Linter where
   noErrorsFound := "No unused arguments."
   errorsFound := "UNUSED ARGUMENTS."
@@ -51,17 +51,17 @@ We skip all declarations that contain `sorry` in their value. -/
     if val.hasSorry || ty.hasSorry then return none
     forallTelescope ty fun args ty => do
       let mut e := (mkAppN val args).headBeta
+      let ldecls ← args.mapM getFVarLocalDecl
       e := mkApp e ty
-      for arg in args do
-        let ldecl ← getFVarLocalDecl arg
+      for ldecl in ldecls do
         e := mkApp e ldecl.type
         if let some val := ldecl.value? then
           e := mkApp e val
-      let unused := args.zip (.range args.size) |>.filter fun (arg, _) =>
-        !e.containsFVar arg.fvarId!
+      let unused := ldecls.zipIdx.filter fun (ldecl, _) =>
+        !ldecl.userName.isInternal && !e.containsFVar ldecl.fvarId
       if unused.isEmpty then return none
-      addMessageContextFull <| .joinSep (← unused.toList.mapM fun (arg, i) =>
-          return m!"argument {i+1} {arg} : {← inferType arg}") m!", "
+      addMessageContextFull <| .joinSep (← unused.toList.mapM fun (ldecl, i) =>
+          return m!"argument {i+1}: {ldecl.toExpr} : {ldecl.type}") m!", "
 
 /-- A linter for checking definition doc strings. -/
 @[env_linter] def docBlame : Linter where
@@ -132,8 +132,14 @@ has been used. -/
     | false, true => pure "is a def, should be lemma/theorem"
     | _, _ => return none
 
-/-- A linter for checking whether statements of declarations are well-typed. -/
-@[env_linter] def checkType : Linter where
+/-- A linter for checking whether statements of declarations are well-typed.
+
+This linter is disabled by default: declarations are already type-checked when added to the
+environment, so re-checking every statement is redundant in normal use. As an alternative
+defence-in-depth measure for catching kernel/elaborator bugs, prefer running an external
+checker such as `lean4checker` or `trepplein`.
+-/
+@[env_linter disabled] def checkType : Linter where
   noErrorsFound :=
     "The statements of all declarations type-check with default reducibility settings."
   errorsFound := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS DO NOT TYPE-CHECK."
