@@ -37,8 +37,8 @@ This file defines several small linters.
       | return none
     return m!"The namespace {dup} is duplicated in the name"
 
-/-- A linter for checking for unused arguments.
-We skip all declarations that contain `sorry` in their value. -/
+/-- A linter for checking for unused arguments. We skip all declarations that contain `sorry` in
+their value, and allow arguments starting with `_` to be unused. -/
 @[env_linter] def unusedArguments : Linter where
   noErrorsFound := "No unused arguments."
   errorsFound := "UNUSED ARGUMENTS."
@@ -51,17 +51,17 @@ We skip all declarations that contain `sorry` in their value. -/
     if val.hasSorry || ty.hasSorry then return none
     forallTelescope ty fun args ty => do
       let mut e := (mkAppN val args).headBeta
+      let ldecls ← args.mapM getFVarLocalDecl
       e := mkApp e ty
-      for arg in args do
-        let ldecl ← getFVarLocalDecl arg
+      for ldecl in ldecls do
         e := mkApp e ldecl.type
         if let some val := ldecl.value? then
           e := mkApp e val
-      let unused := args.zip (.range args.size) |>.filter fun (arg, _) =>
-        !e.containsFVar arg.fvarId!
+      let unused := ldecls.zipIdx.filter fun (ldecl, _) =>
+        !ldecl.userName.isInternal && !e.containsFVar ldecl.fvarId
       if unused.isEmpty then return none
-      addMessageContextFull <| .joinSep (← unused.toList.mapM fun (arg, i) =>
-          return m!"argument {i+1} {arg} : {← inferType arg}") m!", "
+      addMessageContextFull <| .joinSep (← unused.toList.mapM fun (ldecl, i) =>
+          return m!"argument {i+1}: {ldecl.toExpr} : {ldecl.type}") m!", "
 
 /-- A linter for checking definition doc strings. -/
 @[env_linter] def docBlame : Linter where
