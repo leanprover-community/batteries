@@ -10,10 +10,6 @@ linter.missingDocs = true
 name = "Batteries"
 
 [[lean_lib]]
-name = "BatteriesRecycling"
-globs = ["BatteriesRecycling.+"]
-
-[[lean_lib]]
 name = "BatteriesTest"
 globs = ["BatteriesTest.+"]
 leanOptions = {linter.missingDocs = false}
