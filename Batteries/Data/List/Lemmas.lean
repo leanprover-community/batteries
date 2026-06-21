@@ -1310,27 +1310,14 @@ theorem map_getElem_finRange (l : List α) : (finRange l.length).map (l[·.1]) =
 @[simp]
 theorem map_coe_finRange_eq_range : (finRange n).map (↑·) = List.range n := by
   apply List.ext_getElem <;> simp
+
 /-! ### sum/prod -/
-
-@[simp, grind =]
-theorem prod_nil [Mul α] [One α] : ([] : List α).prod = 1 := rfl
-
-@[simp, grind =]
-theorem prod_cons [Mul α] [One α] {a : α} {l : List α} : (a :: l).prod = a * l.prod := rfl
 
 theorem prod_one_cons [Mul α] [One α] [Std.LawfulLeftIdentity (α := α) (· * ·) 1] {l : List α} :
     (1 :: l).prod = l.prod := by simp [Std.LawfulLeftIdentity.left_id]
 
-theorem prod_singleton [Mul α] [One α] [Std.LawfulRightIdentity (α := α) (· * ·) 1] {a : α} :
-  [a].prod = a := by simp [Std.LawfulRightIdentity.right_id]
-
 theorem prod_pair [Mul α] [One α] [Std.LawfulRightIdentity (α := α) (· * ·) 1] {a b : α} :
   [a, b].prod = a * b := by simp [Std.LawfulRightIdentity.right_id]
-
-@[simp, grind =]
-theorem prod_append [Mul α] [One α] [Std.LawfulLeftIdentity (α := α) (· * ·) 1]
-    [Std.Associative (α := α) (· * ·)] {l₁ l₂ : List α} : (l₁ ++ l₂).prod = l₁.prod * l₂.prod := by
-  induction l₁ with simp [Std.LawfulLeftIdentity.left_id, Std.Associative.assoc, *]
 
 theorem prod_concat [Mul α] [One α] [Std.LawfulIdentity (α := α) (· * ·) 1]
     [Std.Associative (α := α) (· * ·)] {l : List α} {a : α} :
@@ -1341,13 +1328,6 @@ theorem prod_flatten [Mul α] [One α] [Std.LawfulIdentity (α := α) (· * ·) 
     [Std.Associative (α := α) (· * ·)] {l : List (List α)} :
     l.flatten.prod = (l.map prod).prod := by
   induction l with simp [*]
-
-theorem prod_eq_foldr [Mul α] [One α] {l : List α} :
-    l.prod = l.foldr (· * ·) 1 := rfl
-
-theorem prod_eq_foldl [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
-    [Std.LawfulIdentity (α := α) (· * ·) 1] {l : List α} :
-    l.prod = l.foldl (· * ·) 1 := foldr_eq_foldl ..
 
 theorem sum_zero_cons [Add α] [Zero α] [Std.LawfulLeftIdentity (α := α) (· + ·) 0] {l : List α} :
     (0 :: l).sum = l.sum := by simp [Std.LawfulLeftIdentity.left_id]
@@ -1370,3 +1350,31 @@ theorem take_succ_drop {l : List α} {n stop : Nat}
     (l.drop stop |>.take (n + 1)) = (l.drop stop |>.take n) ++ [l[stop + n]'(by omega)] := by
   rw [← List.take_append_getElem (by simpa [← List.length_drop] using h)]
   simp [List.getElem_drop]
+
+/-! ### max!/min! -/
+
+@[simp, grind =]
+theorem max!_eq_max?_getD [Inhabited α] {l : List α} [Max α] :
+    l.max! = (l.max?).getD (default : α) := by rw [max!]; cases l.max? <;> rfl
+
+theorem max!_eq_max_of_ne_nil [Inhabited α] [Max α] (l : List α) (hl : l ≠ []) :
+    l.max! = l.max hl := by
+  grind [List.max?_eq_some_max]
+
+grind_pattern max!_eq_max_of_ne_nil => l.max! where
+  guard l ≠ []
+
+@[simp, grind =] theorem max!_nil [Inhabited α] [Max α] : ([] : List α).max! = default := rfl
+
+@[simp, grind =]
+theorem min!_eq_min?_getD [Inhabited α] {l : List α} [Min α] :
+    l.min! = (l.min?).getD (default : α) := by rw [min!]; cases l.min? <;> rfl
+
+theorem min!_eq_min_of_ne_nil [Inhabited α] [Min α] (l : List α) (hl : l ≠ []) :
+    l.min! = l.min hl := by
+  grind [List.min?_eq_some_min]
+
+grind_pattern min!_eq_min_of_ne_nil => l.min! where
+  guard l ≠ []
+
+@[simp, grind =] theorem min!_nil [Inhabited α] [Min α] : ([] : List α).min! = default := rfl
