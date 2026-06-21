@@ -6,8 +6,8 @@ Authors: Mario Carneiro
 module
 
 public import Batteries.Tactic.Lint.Misc
-public import Batteries.Tactic.SeqFocus
 public import Batteries.Util.Panic
+import Batteries.Tactic.SeqFocus
 
 @[expose] public section
 

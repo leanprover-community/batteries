@@ -8,6 +8,7 @@ module
 public import Batteries.Tactic.Basic
 public import Batteries.Data.List.Lemmas
 public import Batteries.Recycling.RBTree.Alter
+import Batteries.Control.ForInStep.Lemmas
 
 @[expose] public section
 

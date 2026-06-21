@@ -6,7 +6,7 @@ Authors: Johan Commelin, Damiano Testa
 module
 
 public meta import Lean.Meta.Tactic.TryThis
-public meta import Lean.Elab.Command
+import Lean.Meta.TryThis
 
 public meta section
 

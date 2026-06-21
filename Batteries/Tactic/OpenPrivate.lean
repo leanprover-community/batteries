@@ -6,8 +6,8 @@ Authors: Mario Carneiro
 module
 
 public meta import Lean.Elab.Command
-public meta import Lean.Util.FoldConsts
-public meta import Lean.Parser.Module
+import Lean.Elab.Command
+public import Lean.Elab.InfoTree.Main
 
 public meta section
 

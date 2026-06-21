@@ -5,10 +5,10 @@ Authors: Jannis Limperg, Kim Morrison
 -/
 module
 
-public import Lean.Meta.DiscrTree
 public import Batteries.Data.Array.Merge
 public import Batteries.Lean.Meta.Expr
 public import Batteries.Lean.PersistentHashMap
+public import Lean.Meta.DiscrTree.Types
 
 @[expose] public section
 

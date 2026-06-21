@@ -5,7 +5,8 @@ Authors: François G. Dorais
 -/
 module
 
-public import Batteries.Data.Nat.Lemmas
+public import Batteries.Data.Nat.Basic
+import Batteries.Data.Nat.Lemmas
 
 @[expose] public section
 

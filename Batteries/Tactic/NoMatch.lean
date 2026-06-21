@@ -7,6 +7,7 @@ module
 
 public meta import Lean.DocString
 public meta import Lean.Elab.Tactic.Basic
+import Lean.Message
 
 public meta section
 

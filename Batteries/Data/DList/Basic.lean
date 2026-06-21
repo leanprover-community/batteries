@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
 module
-import Batteries.Tactic.Lint
-public import Batteries.Tactic.Lint.Simp
+import Std.Data.DTreeMap.Internal.Operations
 
 @[expose] public section
 

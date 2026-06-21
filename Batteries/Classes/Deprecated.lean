@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 module
 
 public import Batteries.Classes.Order
+import Batteries.Tactic.SeqFocus
 
 @[expose] public section
 

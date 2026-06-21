@@ -6,10 +6,10 @@ Authors: Gabriel Ebner
 module
 
 public meta import Lean.Meta.Tactic.Simp.Main
-public meta import Batteries.Tactic.Lint.Basic
-public meta import Batteries.Tactic.OpenPrivate
-public meta import Batteries.Util.LibraryNote
 import all Lean.Meta.Tactic.Simp.SimpTheorems
+public import Batteries.Tactic.Lint.Basic
+public import Batteries.Util.LibraryNote
+import Lean.Meta.Tactic.Simp.Types
 
 public meta section
 open Lean Meta

@@ -5,8 +5,8 @@ Authors: François G. Dorais
 -/
 module
 
-public import Batteries.Data.Char.Basic
-public import Batteries.Tactic.Basic
+import Batteries.Data.Char.Basic
+import Std.Data.DTreeMap.Internal.Balancing
 
 @[expose] public section
 

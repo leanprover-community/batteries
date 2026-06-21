@@ -5,8 +5,7 @@ Authors: Mario Carneiro, Thomas R. Murrills
 -/
 module
 
-public import Lean.Syntax
-public import Lean.Data.Lsp.Utf16
+public import Lean.DeclarationRange
 
 public section
 

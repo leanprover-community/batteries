@@ -5,11 +5,10 @@ Authors: François G. Dorais
 -/
 module
 
-public import Batteries.Tactic.Alias
 public import Batteries.Data.BitVec.Basic
 public import Batteries.Data.Fin.OfBits
-public import Batteries.Data.Nat.Lemmas
 public import Batteries.Data.Int
+import Batteries.Tactic.Alias
 
 @[expose] public section
 
