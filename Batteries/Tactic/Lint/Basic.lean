@@ -119,7 +119,8 @@ initialize registerBuiltinAttribute {
       throwError
         "invalid attribute `env_linter`, linter `{shortName}` has already been declared"
     /- Just as `env_linter`s must be `global`, they also must be accessible from `#lint`, and thus
-    must be `public` and `meta`.
+    must be `public` and `meta`. `ensureAttrDeclIsMeta` checks for both of these, additionally
+    calling `ensureAttrDeclIsMeta`.
 
     `Linter.mk` is already `meta` and thus will likely cause an error anyway, but the explicit
     instruction to mark this declaration `meta` might help the user resolve that and similar
