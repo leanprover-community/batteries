@@ -1,4 +1,5 @@
 import Batteries.Tactic.Lint
+import Batteries.Linter
 
 -- should be ignored as the proof contains sorry
 /-- warning: declaration uses `sorry` -/

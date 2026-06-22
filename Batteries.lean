@@ -78,6 +78,7 @@ public import Batteries.Lean.System.IO
 public import Batteries.Lean.TagAttribute
 public import Batteries.Lean.Util.EnvSearch
 public import Batteries.Linter
+public import Batteries.Linter.Frontend
 public import Batteries.Linter.TypeClass
 public import Batteries.Linter.UnnecessarySeqFocus
 public import Batteries.Linter.UnreachableTactic
@@ -106,7 +107,6 @@ public import Batteries.Tactic.Instances
 public import Batteries.Tactic.Lemma
 public import Batteries.Tactic.Lint
 public import Batteries.Tactic.Lint.Basic
-public import Batteries.Tactic.Lint.Frontend
 public import Batteries.Tactic.Lint.Misc
 public import Batteries.Tactic.Lint.Simp
 public import Batteries.Tactic.NoMatch

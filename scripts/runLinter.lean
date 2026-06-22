@@ -1,8 +1,9 @@
 import Batteries.Tactic.Lint
+import Batteries.Linter
 import Batteries.Data.Array.Basic
 import Lake.CLI.Main
 
-open Lean Core Elab Command Batteries.Tactic.Lint
+open Lean Core Elab Command Batteries.Tactic.Lint Batteries.Linter
 open System (FilePath)
 
 /-- The list of `nolints` pulled from the `nolints.json` file -/

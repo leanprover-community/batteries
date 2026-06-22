@@ -54,8 +54,8 @@ omits it from only the specified linter checks.
 sanity check, lint, cleanup, command, tactic
 -/
 
-namespace Batteries.Tactic.Lint
-open Lean Elab Command
+namespace Batteries.Linter
+open Lean Elab Command Tactic Lint
 
 /-- Verbosity for the linter output. -/
 inductive LintVerbosity
