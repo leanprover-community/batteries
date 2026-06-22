@@ -1,6 +1,6 @@
 {"ignoreImport": ["Init", "Lean"],
  "ignore":
- {"Batteries.Tactic.Lint.Simp":
+ {"Batteries.Linter.Simp":
   ["Batteries.Tactic.OpenPrivate", "Batteries.Util.LibraryNote"],
   "Batteries.Tactic.Exact": ["Batteries.Tactic.Alias"],
   "Batteries.Logic": ["Batteries.Tactic.Alias"],

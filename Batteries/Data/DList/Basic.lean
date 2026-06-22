@@ -5,7 +5,7 @@ Authors: Leonardo de Moura
 -/
 module
 import Batteries.Tactic.Lint
-public import Batteries.Tactic.Lint.Simp
+public import Batteries.Linter.Simp
 
 @[expose] public section
 

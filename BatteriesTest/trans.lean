@@ -1,5 +1,7 @@
 import Batteries.Tactic.Trans
 
+set_option linter.defProp false
+
 -- testing that the attribute is recognized and used
 def nleq (a b : Nat) : Prop := a ≤ b
 
