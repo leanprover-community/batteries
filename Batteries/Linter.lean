@@ -1,4 +1,4 @@
-module
+module -- shake: keep-all
 
-public import Batteries.Linter.UnnecessarySeqFocus
-public import Batteries.Linter.UnreachableTactic
+public meta import Batteries.Linter.UnnecessarySeqFocus
+public meta import Batteries.Linter.UnreachableTactic

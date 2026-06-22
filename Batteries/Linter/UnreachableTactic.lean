@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 module
 
 public meta import Lean.Linter.Basic
-import Batteries.Tactic.Unreachable
+public meta import Batteries.Tactic.Unreachable -- shake: keep
 import Lean.Parser.Syntax
 public import Lean.Syntax
 
