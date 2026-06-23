@@ -149,69 +149,6 @@ checker such as `lean4checker` or `trepplein`.
     if ← isTypeCorrect (← getConstInfo declName).type then return none
     return m!"the statement doesn't type check."
 
-/--
-`univParamsGrouped e` computes for each `level` `u` of `e` the parameters that occur in `u`,
-and returns the corresponding set of lists of parameters.
-In pseudo-mathematical form, this returns `{{p : parameter | p ∈ u} | (u : level) ∈ e}`
-FIXME: We use `Array Name` instead of `HashSet Name`, since `HashSet` does not have an equality
-instance. It will ignore `nm₀.proof_i` declarations.
--/
-private def univParamsGrouped (e : Expr) (nm₀ : Name) : Std.HashSet (Array Name) :=
-  runST fun σ => do
-    let res ← ST.mkRef (σ := σ) {}
-    e.forEach fun
-      | .sort u =>
-        res.modify (·.insert (CollectLevelParams.visitLevel u {}).params)
-      | .const n us => do
-        if let .str n s .. := n then
-          if n == nm₀ && s.startsWith "proof_" then
-            return
-        res.modify <| us.foldl (·.insert <| CollectLevelParams.visitLevel · {} |>.params)
-      | _ => pure ()
-    res.get
-
-/--
-The good parameters are the parameters that occur somewhere in the set as a singleton or
-(recursively) with only other good parameters.
-All other parameters in the set are bad.
--/
-private partial def badParams (l : Array (Array Name)) : Array Name :=
-  let goodLevels := l.filterMap fun
-    | #[u] => some u
-    | _ => none
-  if goodLevels.isEmpty then
-    l.flatten.toList.eraseDups.toArray
-  else
-    badParams <| l.map (·.filter (!goodLevels.contains ·))
-
-/-- A linter for checking that there are no bad `max u v` universe levels.
-Checks whether all universe levels `u` in the type of `d` are "good".
-This means that `u` either occurs in a `level` of `d` by itself, or (recursively)
-with only other good levels.
-When this fails, usually this means that there is a level `max u v`, where neither `u` nor `v`
-occur by themselves in a level. It is ok if *one* of `u` or `v` never occurs alone. For example,
-`(α : Type u) (β : Type (max u v))` is a occasionally useful method of saying that `β` lives in
-a higher universe level than `α`.
--/
-@[env_linter] def checkUnivs : Linter where
-  noErrorsFound :=
-    "All declarations have good universe levels."
-  errorsFound := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS HAVE BAD UNIVERSE LEVELS. \
-    This usually means that there is a `max u v` in the type where neither `u` nor `v` \
-    occur by themselves. Solution: Find the type (or type bundled with data) that has this \
-    universe argument and provide the universe level explicitly. If this happens in an implicit \
-    argument of the declaration, a better solution is to move this argument to a `variables` \
-    command (then it's not necessary to provide the universe level).\n\n\
-    It is possible that this linter gives a false positive on definitions where the value of the \
-    definition has the universes occur separately, and the definition will usually be used with \
-    explicit universe arguments. In this case, feel free to add `@[nolint checkUnivs]`."
-  isFast := true
-  test declName := do
-    if ← isAutoDecl declName then return none
-    let bad := badParams (univParamsGrouped (← getConstInfo declName).type declName).toArray
-    if bad.isEmpty then return none
-    return m!"universes {bad} only occur together."
-
 /-- A linter for checking that declarations aren't syntactic tautologies.
 Checks whether a lemma is a declaration of the form `∀ a b ... z, e₁ = e₂`
 where `e₁` and `e₂` are identical exprs.
