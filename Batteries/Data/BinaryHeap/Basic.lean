@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, François G. Dorais
 -/
 module
+/-
+Broken against lean4#13283.
 
 public section
 
@@ -183,3 +185,4 @@ where
         simp; exact Nat.sub_lt (Batteries.BinaryHeap.size_pos_of_max e) Nat.zero_lt_one
       loop a.popMax (out.push x)
   termination_by a.size
+-/
