@@ -6,12 +6,12 @@ Authors: Gabriel Ebner
 module
 
 public meta import Lean.Meta.Instances
-public meta import Batteries.Tactic.Lint.Basic
+public meta import Batteries.Linter.Basic
 
 public meta section
 
 namespace Batteries.Linter
-open Lean Meta Tactic Lint
+open Lean Meta
 
 /--
 Lints for instances with arguments that cannot be filled in, like

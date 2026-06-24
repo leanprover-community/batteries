@@ -11,11 +11,11 @@ public meta import Lean.Meta.Check
 public meta import Lean.Meta.Instances
 public meta import Lean.Util.Recognizers
 public meta import Lean.DocString
-public meta import Batteries.Tactic.Lint.Basic
+public meta import Batteries.Linter.Basic
 
 public meta section
 
-open Lean Meta Std Batteries.Tactic.Lint
+open Lean Meta Std
 
 namespace Batteries.Linter
 

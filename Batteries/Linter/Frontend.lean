@@ -6,7 +6,7 @@ Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 module
 
 public meta import Lean.Elab.Command
-public meta import Batteries.Tactic.Lint.Basic
+public meta import Batteries.Linter.Basic
 
 public meta section
 
@@ -55,7 +55,7 @@ sanity check, lint, cleanup, command, tactic
 -/
 
 namespace Batteries.Linter
-open Lean Elab Command Tactic Lint
+open Lean Elab Command Tactic
 
 /-- Verbosity for the linter output. -/
 inductive LintVerbosity

@@ -6,13 +6,13 @@ Authors: Gabriel Ebner
 module
 
 public meta import Lean.Meta.Tactic.Simp.Main
-public meta import Batteries.Tactic.Lint.Basic
+public meta import Batteries.Linter.Basic
 public meta import Batteries.Tactic.OpenPrivate
 public meta import Batteries.Util.LibraryNote
 import all Lean.Meta.Tactic.Simp.SimpTheorems
 
 public meta section
-open Lean Meta Batteries.Tactic.Lint
+open Lean Meta
 
 namespace Batteries.Linter
 
@@ -126,7 +126,7 @@ def formatLemmas (usedSimps : Simp.UsedSimps) (simpName : String) (higherOrder :
   return m!"{simpName}{contextual?} only {args.toList}"
 
 /-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
-@[env_linter] def simpNF : Tactic.Lint.Linter where
+@[env_linter] def simpNF : Linter where
   noErrorsFound := "All left-hand sides of simp lemmas are in simp-normal form."
   errorsFound := "SOME SIMP LEMMAS ARE NOT IN SIMP-NORMAL FORM.
 Please change the lemma to make sure their left-hand sides are in simp normal form.
@@ -268,7 +268,7 @@ private def Expr.eqOrIff? : Expr → Option (Expr × Expr)
   | _ => none
 
 /-- A linter for commutativity lemmas that are marked simp. -/
-@[env_linter] def simpComm : Tactic.Lint.Linter where
+@[env_linter] def simpComm : Linter where
   noErrorsFound := "No commutativity lemma is marked simp."
   errorsFound := "COMMUTATIVITY LEMMA IS SIMP.
 Some commutativity lemmas are simp lemmas:"

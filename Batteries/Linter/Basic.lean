@@ -14,8 +14,7 @@ public meta section
 
 open Lean Meta
 
-namespace Batteries.Tactic.Lint
-
+namespace Batteries.Linter
 /-!
 # Basic linter types and attributes
 
@@ -76,7 +75,7 @@ See `Lean.Environment.isAutoDecl` for an identical pure version of this function
   return (← getEnv).isAutoDecl decl
 
 /-- A linting test for the `#lint` command. -/
-structure Linter where
+structure _root_.Batteries.Linter where
   /-- `test` defines a test to perform on every declaration. It should never fail. Returning `none`
   signifies a passing test. Returning `some msg` reports a failing test with error `msg`. -/
   test : Name → MetaM (Option MessageData)
