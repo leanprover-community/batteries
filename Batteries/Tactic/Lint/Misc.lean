@@ -47,7 +47,7 @@ their value, and allow arguments starting with `_` to be unused. -/
     if ← isProjectionFn declName then return none
     let info ← getConstInfo declName
     let ty := info.type
-    let some val := info.value? | return none
+    let some val := info.value? (allowOpaque := true) | return none
     if val.hasSorry || ty.hasSorry then return none
     forallTelescope ty fun args ty => do
       let mut e := (mkAppN val args).headBeta
@@ -58,7 +58,12 @@ their value, and allow arguments starting with `_` to be unused. -/
         if let some val := ldecl.value? then
           e := mkApp e val
       let unused := ldecls.zipIdx.filter fun (ldecl, _) =>
-        !ldecl.userName.isInternal && !e.containsFVar ldecl.fvarId
+        -- We allow unused names that start with `_`, similar to the syntax linter, *unless* the
+        -- name starts with `inst` and has macro scopes, because then it is an
+        -- automatically generated instance name, and we do want to check those.
+        (!ldecl.userName.isInternal ||
+          (ldecl.userName.hasMacroScopes && ldecl.userName.getRoot == `inst)) &&
+          !e.containsFVar ldecl.fvarId
       if unused.isEmpty then return none
       addMessageContextFull <| .joinSep (← unused.toList.mapM fun (ldecl, i) =>
           return m!"argument {i+1}: {ldecl.toExpr} : {ldecl.type}") m!", "
