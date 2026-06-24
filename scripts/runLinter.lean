@@ -1,4 +1,4 @@
-import Batteries.Tactic.Lint
+import Batteries.Linter
 import Batteries.Linter
 import Batteries.Data.Array.Basic
 import Lake.CLI.Main
@@ -129,7 +129,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
   buildIfNeeded module
   -- If the linter is being run on a target that doesn't import `Batteries.Tactic.List`,
   -- the linters are ineffective. So we import it here.
-  let lintModule := `Batteries.Tactic.Lint
+  let lintModule := `Batteries.Linter
   buildIfNeeded lintModule
   let nolintsFile : FilePath := "scripts/nolints.json"
   let nolints ← if ← nolintsFile.pathExists then

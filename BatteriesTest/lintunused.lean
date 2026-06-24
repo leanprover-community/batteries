@@ -1,4 +1,4 @@
-import Batteries.Tactic.Lint
+import Batteries.Linter
 import Batteries.Linter
 
 -- should be ignored as the proof contains sorry

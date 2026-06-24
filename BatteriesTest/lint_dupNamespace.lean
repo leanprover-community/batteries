@@ -1,4 +1,4 @@
-import Batteries.Tactic.Lint
+import Batteries.Linter
 import Batteries.Linter
 
 -- internal names should be ignored

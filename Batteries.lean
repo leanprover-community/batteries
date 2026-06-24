@@ -108,7 +108,7 @@ public import Batteries.Tactic.HelpCmd
 public import Batteries.Tactic.Init
 public import Batteries.Tactic.Instances
 public import Batteries.Tactic.Lemma
-public import Batteries.Tactic.Lint
+public import Batteries.Linter
 public import Batteries.Tactic.NoMatch
 public import Batteries.Tactic.OpenPrivate
 public import Batteries.Tactic.PermuteGoals
