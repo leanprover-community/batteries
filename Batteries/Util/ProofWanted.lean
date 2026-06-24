@@ -5,7 +5,7 @@ Authors: David Thrane Christiansen, Kim Morrison
 -/
 module
 
-public import Batteries.Tactic.Lint.Misc
+public import Batteries.Linter.Misc
 public meta import Lean.Elab.Command
 public meta import Lean.Elab.Term
 public meta import Lean.Meta.Tactic.TryThis

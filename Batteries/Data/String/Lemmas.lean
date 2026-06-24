@@ -6,7 +6,7 @@ Authors: Bulhwi Cha, Mario Carneiro
 module
 
 public import Batteries.Data.String.Basic
-public import Batteries.Tactic.Lint.Misc
+public import Batteries.Linter.Misc
 public import Batteries.Tactic.SeqFocus
 public import Batteries.Classes.Order
 public import Batteries.Data.List.Basic

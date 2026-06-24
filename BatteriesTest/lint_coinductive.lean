@@ -1,4 +1,5 @@
-import Batteries.Tactic.Lint
+import Batteries.Linter
+import Batteries.Linter
 
 /-! Tests that linters skip auto-generated declarations from coinductive predicates. -/
 

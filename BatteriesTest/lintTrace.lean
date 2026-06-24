@@ -1,4 +1,5 @@
-import Batteries.Tactic.Lint
+import Batteries.Linter
+import Batteries.Linter
 
 /-!
 Tests tracing in `#lint`.

@@ -9,7 +9,7 @@ public import Batteries.Data.Char
 public import Batteries.Data.Fin.Lemmas
 public import Batteries.Tactic.Basic
 public import Batteries.Tactic.Trans
-public import Batteries.Tactic.Lint
+public import Batteries.Linter
 
 @[expose] public section
 

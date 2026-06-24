@@ -78,6 +78,11 @@ public import Batteries.Lean.System.IO
 public import Batteries.Lean.TagAttribute
 public import Batteries.Lean.Util.EnvSearch
 public import Batteries.Linter
+public import Batteries.Linter.Basic
+public import Batteries.Linter.Frontend
+public import Batteries.Linter.Misc
+public import Batteries.Linter.Simp
+public import Batteries.Linter.TypeClass
 public import Batteries.Linter.UnnecessarySeqFocus
 public import Batteries.Linter.UnreachableTactic
 public import Batteries.Logic
