@@ -105,3 +105,43 @@ example {A : Type u} {B : Type v} {C : Type w} (h : A → B) (g : B → C) : A �
   · exact B
   · exact h
   · exact g
+
+inductive A (α : Type) where
+| mk : α → A α
+
+inductive r {α} : A α → A α → Prop where
+| trans {a b c} : r a b → r b c → r a c
+
+attribute [trans] r.trans
+
+example {α} {a b c : A α} (h1 : r a b) (h2 : r b c) : r a c := by
+  trans b
+  · exact h1
+  · exact h2
+
+inductive TEq : (α β : Type) → [Inhabited α] → [Inhabited β] → Prop where
+| refl [Inhabited α] : TEq α α
+
+@[trans] axiom TEq.trans {α β γ : Type} [Inhabited α] [Inhabited β] [Inhabited γ] :
+    TEq α β → TEq β γ → TEq α γ
+
+example {α β γ : Type} [Inhabited α] [Inhabited β] [Inhabited γ]
+    (h1 : TEq α β) (h2 : TEq β γ) : TEq α γ := by
+  trans β
+  · exact h1
+  · exact h2
+
+class M (k V : Type)
+class T (V : outParam Type) (P : Type)
+
+def MT.rel (k P₁ P₂) {V₁ V₂} [M k V₁] [M k V₂] [T V₁ P₁] [T V₂ P₂] := Unit
+
+@[trans]
+def MT.trans [M k V₁] [M k V₂] [M k V₃] [T V₁ P₁] [T V₂ P₂] [T V₃ P₃] :
+    rel k P₁ P₂ → rel k P₂ P₃ → rel k P₁ P₃ := fun _ _ => ()
+
+example [M k V₁] [M k V₂] [M k V₃] [T V₁ P₁] [T V₂ P₂] [T V₃ P₃]
+    (h1 : MT.rel k P₁ P₂) (h2 : MT.rel k P₂ P₃) : MT.rel k P₁ P₃ := by
+  trans P₂
+  · exact h1
+  · exact h2
