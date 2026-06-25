@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 module
 
 public import Batteries.Tactic.SeqFocus
-public import BatteriesRecycling.RBTree.Basic
+public import Batteries.Recycling.RBTree.Basic
 
 @[expose] public section
 

@@ -22,7 +22,6 @@ namespace Batteries.Tactic.Lint
 This files defines several linters that prevent common mistakes when declaring simp lemmas:
 
  * `simpNF` checks that the left-hand side of a simp lemma is not simplified by a different lemma.
- * `simpVarHead` checks that the head symbol of the left-hand side is not a variable.
  * `simpComm` checks that commutativity lemmas are not marked as simplification lemmas.
 -/
 
@@ -173,13 +172,11 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
             \nOne of the lemmas above could be a duplicate.\
             \nIf that's not the case try reordering lemmas or adding @[priority]."
         else if ¬ lhsInNF then
+          let (lhs, lhs') ← addPPExplicitToExposeDiff lhs lhs'
           return m!"\
-            Left-hand side simplifies from\
-            \n  {lhs}\
-            \nto\
-            \n  {lhs'}\
-            \nusing\
-            \n  {← formatLemmas prf1Stats.usedTheorems simpName higherOrder}\
+            Left-hand side simplifies from{indentD lhs}\
+            \nto{indentD lhs'}\
+            \nusing{indentD <| ← formatLemmas prf1Stats.usedTheorems simpName higherOrder}\
             \nTry to change the left-hand side to the simplified term!"
         else if lhs == lhs' then
           let lhsType ← inferType lhs
@@ -195,13 +192,12 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
                 decorateError m!"simplify fails on hypothesis ({name} : {ldecl.type}):" <|
                   simplify ldecl.type (← Simp.Context.mkDefault)
               unless ← isSimpEq hType' ldecl.type do
+                let (hType', ldecl_type) ← addPPExplicitToExposeDiff hType' ldecl.type
                 hints := hints ++ m!"\
-                  \nThe simp lemma may be invalid because hypothesis {name} simplifies from\
-                  \n  {ldecl.type}\
-                  \nto\
-                  \n  {hType'}\
-                  \nusing\
-                  \n  {← formatLemmas stats.usedTheorems simpName none}\
+                  \nThe simp lemma may be invalid because hypothesis {name} simplifies from{
+                      indentD ldecl_type}\
+                  \nto{indentD hType'}\
+                  \nusing{indentD <| ← formatLemmas stats.usedTheorems simpName none}\
                   \nTry to change the hypothesis to the simplified term!"
             else
               -- improve the error message if the argument can't be filled in by `simp`
@@ -264,23 +260,6 @@ Here are some tips depending on the error raised by the linter:
      then apply `try_for 10000 { simp }` to the right-hand side.  You will
      see a periodic sequence of lemma applications in the trace message.
 -/
-
-/--
-A linter for simp lemmas whose lhs has a variable as head symbol,
-and which hence never fire.
--/
-@[env_linter] def simpVarHead : Linter where
-  noErrorsFound :=
-    "No left-hand sides of a simp lemma has a variable as head symbol."
-  errorsFound := "LEFT-HAND SIDE HAS VARIABLE AS HEAD SYMBOL.
-Some simp lemmas have a variable as head symbol of the left-hand side (after whnfR):"
-  test := fun declName => do
-    unless ← isSimpTheorem declName do return none
-    checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, ..} => do
-    let lhs ← whnfR lhs
-    let headSym := lhs.getAppFn
-    unless headSym.isFVar do return none
-    return m!"Left-hand side has variable as head symbol: {headSym}"
 
 private def Expr.eqOrIff? : Expr → Option (Expr × Expr)
   | .app (.app (.app (.const ``Eq _) _) lhs) rhs

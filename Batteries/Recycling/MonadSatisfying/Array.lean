@@ -6,7 +6,7 @@ Authors: Mario Carneiro, Gabriel Ebner
 -/
 module
 
-public import BatteriesRecycling.MonadSatisfying.Basic
+public import Batteries.Recycling.MonadSatisfying.Basic
 import all Init.Data.Array.Basic  -- for unfolding `modifyM`
 
 @[expose] public section
