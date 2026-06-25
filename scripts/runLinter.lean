@@ -136,7 +136,13 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
   else
     pure #[]
   unsafe Lean.enableInitializersExecution
-  let env ← importModules #[module, lintModule] {} (trustLevel := 1024) (loadExts := true)
+  let env ←
+    try
+      importModules #[module, lintModule] {} (trustLevel := 1024) (loadExts := true)
+        (level := .server)
+    catch _ =>
+      -- For backwards compatability, we also support linting non-modules.
+      importModules #[module, lintModule] {} (trustLevel := 1024) (loadExts := true)
   let mut opts : Options := {}
   -- Propagate `trace` to `CoreM`
   if trace then
