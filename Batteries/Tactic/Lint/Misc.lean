@@ -12,7 +12,6 @@ public meta import Lean.Meta.Instances
 public meta import Lean.Util.Recognizers
 public meta import Lean.DocString
 public meta import Batteries.Tactic.Lint.Basic
-public meta import Lean.Meta.PPBinder
 
 public meta section
 
