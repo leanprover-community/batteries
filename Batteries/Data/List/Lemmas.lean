@@ -563,20 +563,24 @@ theorem findIdxs_take :
     ((xs : List α).take n).findIdxs p s = (xs.findIdxs p s).take ((xs.take n).countP p) := by
   induction xs generalizing n s <;> cases n <;> grind [countP_eq_length_filter]
 
-@[simp, grind =>]
+@[simp]
 theorem le_getElem_findIdxs (h : i < ((xs : List α).findIdxs p s).length) :
     s ≤ (xs.findIdxs p s)[i] := by grind [getElem_mem]
 
-@[simp, grind =>]
+grind_pattern le_getElem_findIdxs => (xs.findIdxs p s)[i]
+
+@[simp]
 theorem getElem_findIdxs_lt (h : i < ((xs : List α).findIdxs p s).length) :
     (xs.findIdxs p s)[i] < xs.length + s := by grind [getElem_mem]
+
+grind_pattern getElem_findIdxs_lt => (xs.findIdxs p s)[i]
 
 theorem getElem_filter_eq_getElem_getElem_findIdxs_sub (s : Nat)
     (h : i < ((xs : List α).filter p).length) :
     (xs.filter p)[i] = xs[(xs.findIdxs p s)[i]'(by grind) - s]'(by grind) := by
   induction xs generalizing i s <;> grind
 
-@[grind =>]
+@[grind =]
 theorem getElem_filter_eq_getElem_getElem_findIdxs
     (h : i < ((xs : List α).filter p).length) :
     (xs.filter p)[i] = xs[(xs.findIdxs p)[i]'(by grind)]'(by grind) :=
@@ -601,7 +605,6 @@ theorem getElem_zero_findIdxs_eq_findIdx_add (h : 0 < ((xs : List α).findIdxs p
 theorem getElem_zero_findIdxs_eq_findIdx (h : 0 < ((xs : List α).findIdxs p).length) :
     (xs.findIdxs p)[0] = xs.findIdx p := getElem_zero_findIdxs_eq_findIdx_add h
 
-@[grind =>]
 theorem findIdx_add_mem_findIdxs (s : Nat)
     (h : (xs : List α).findIdx p < xs.length) : xs.findIdx p + s ∈ xs.findIdxs p s := by
   grind [mem_iff_getElem]
@@ -671,12 +674,12 @@ grind_pattern pos_findIdxNth_getElem => xs[xs.findIdxNth p n]
 theorem findIdxNth_zero : (xs : List α).findIdxNth p 0 = xs.findIdx p := by
   induction xs <;> grind
 
-@[grind _=_]
+@[local grind =_]
 theorem findIdxNth_lt_length_iff {xs : List α} :
     xs.findIdxNth p n < xs.length ↔ n < xs.countP p := by
   induction xs generalizing n <;> grind
 
-@[grind _=_]
+@[local grind =_]
 theorem findIdxNth_eq_length_iff {xs : List α} :
     xs.findIdxNth p n = xs.length ↔ xs.countP p ≤ n := by
   induction xs generalizing n <;> grind
@@ -809,19 +812,22 @@ theorem idxsOf_take [BEq α] :
     ((xs : List α).take n).idxsOf x s = (xs.idxsOf x s).take ((xs.take n).count x) :=
   findIdxs_take
 
-@[simp, grind =>]
+@[simp]
 theorem le_getElem_idxsOf [BEq α] (h : i < ((xs : List α).idxsOf x s).length) :
     s ≤ (xs.idxsOf x s)[i] := by grind [getElem_mem]
 
-@[simp, grind =>]
+@[simp]
 theorem getElem_idxsOf_lt [BEq α] (h : i < ((xs : List α).idxsOf x s).length) :
     (xs.idxsOf x s)[i] < xs.length + s := by grind [getElem_mem]
 
-@[grind =>]
+grind_pattern getElem_idxsOf_lt => (xs.idxsOf x s)[i]
+
 theorem getElem_getElem_idxsOf_sub [BEq α] (s : Nat)
     (h : i < ((xs : List α).idxsOf x s).length) :
     haveI : (idxsOf x xs s)[i] - s < xs.length := by grind
     xs[(xs.idxsOf x s)[i] - s] == x := getElem_getElem_findIdxs_sub s h
+
+grind_pattern getElem_getElem_idxsOf_sub => xs[(xs.idxsOf x s)[i] - s]
 
 @[simp]
 theorem getElem_getElem_idxsOf_sub_of_lawful [BEq α] [LawfulBEq α] (s : Nat)
@@ -831,17 +837,18 @@ theorem getElem_getElem_idxsOf_sub_of_lawful [BEq α] [LawfulBEq α] (s : Nat)
 
 theorem getElem_getElem_idxsOf [BEq α] (h : i < ((xs : List α).idxsOf x).length) :
     haveI : (idxsOf x xs)[i] < xs.length := by grind
-    xs[(xs.idxsOf x)[i]] == x := by grind
+    xs[(xs.idxsOf x)[i]] == x := getElem_getElem_idxsOf_sub 0 h
 
 @[simp]
 theorem getElem_getElem_idxsOf_of_lawful [BEq α] [LawfulBEq α]
     (h : i < ((xs : List α).idxsOf x).length) :
     haveI : (idxsOf x xs)[i] < xs.length := by grind
-  xs[(xs.idxsOf x)[i]] = x := by grind
+  xs[(xs.idxsOf x)[i]] = x := getElem_getElem_idxsOf_sub_of_lawful 0 h
 
-@[grind =>]
 theorem mem_idxsOf_getElem [BEq α] [EquivBEq α] (h : i < (xs : List α).length) :
     i ∈ xs.idxsOf xs[i] := by grind
+
+grind_pattern mem_idxsOf_getElem => xs.idxsOf xs[i]
 
 @[grind =]
 theorem getElem_zero_idxsOf_eq_idxOf_add [BEq α] (h : 0 < ((xs : List α).idxsOf x s).length) :
@@ -851,9 +858,10 @@ theorem getElem_zero_idxsOf_eq_idxOf_add [BEq α] (h : 0 < ((xs : List α).idxsO
 theorem getElem_zero_idxsOf_eq_idxOf [BEq α] (h : 0 < ((xs : List α).idxsOf x).length) :
     (xs.idxsOf x)[0] = xs.idxOf x := getElem_zero_idxsOf_eq_idxOf_add h
 
-@[grind =>]
 theorem idxOf_add_mem_idxsOf [BEq α] (s : Nat) (h : (xs : List α).idxOf x < xs.length) :
     xs.idxOf x + s ∈ xs.idxsOf x s := findIdx_add_mem_findIdxs s h
+
+grind_pattern idxOf_add_mem_idxsOf => xs.idxOf x, xs.idxOf x + s
 
 theorem idxOf_mem_idxsOf [BEq α] (h : (xs : List α).idxOf x < xs.length) :
     xs.idxOf x ∈ xs.idxsOf x := idxOf_add_mem_idxsOf 0 h
@@ -909,17 +917,18 @@ theorem getElem_idxOfNth_eq {xs : List α} [BEq α] [LawfulBEq α] {h : xs.idxOf
 theorem idxOfNth_zero [BEq α] : (xs : List α).idxOfNth x 0 = xs.idxOf x := by
   induction xs <;> grind
 
-@[grind _=_]
+@[local grind =_]
 theorem idxOfNth_lt_length_iff [BEq α] {xs : List α} :
     xs.idxOfNth x n < xs.length ↔ n < xs.count x := findIdxNth_lt_length_iff
 
-@[grind _=_]
+@[local grind =_]
 theorem idxOfNth_eq_length_iff [BEq α] {xs : List α} :
     xs.idxOfNth x n = xs.length ↔ xs.count x ≤ n := findIdxNth_eq_length_iff
 
-@[grind .]
 theorem idxOfNth_le_length [BEq α] {xs : List α} :
     xs.idxOfNth x n ≤ xs.length := findIdxNth_le_length
+
+grind_pattern idxOfNth_le_length => xs.idxOfNth x n
 
 theorem idxOfNth_lt_length_of_lt_count {xs : List α} [BEq α] :
     n < xs.count x → xs.idxOfNth x n < xs.length := by grind
@@ -998,12 +1007,12 @@ theorem countPBefore_of_ge_length {xs : List α} (hi : xs.length ≤ i) :
 theorem countPBefore_length {xs : List α} :
     xs.countPBefore p xs.length = xs.countP p := countPBefore_of_ge_length (by grind)
 
-@[simp, grind <=]
+@[simp, grind =]
 theorem findIdxNth_countPBefore_of_lt_length_of_pos {xs : List α} {h : i < xs.length}
     (hip : p xs[i]) : xs.findIdxNth p (xs.countPBefore p i) = i := by
   induction xs generalizing i <;> grind
 
-@[simp, grind <=]
+@[simp, grind =]
 theorem countPBefore_findIdxNth_of_lt_countP {xs : List α} :
     n < xs.countP p → xs.countPBefore p (xs.findIdxNth p n) = n := by
   induction xs generalizing n <;> grind
@@ -1021,10 +1030,11 @@ theorem countPBefore_mono {xs : List α} (hij : i ≤ j) :
   simp only [countPBefore_eq_countP_take]
   exact (take_sublist_take_left hij).countP_le
 
-@[grind <=]
 theorem countPBefore_lt_countP_of_lt_length_of_pos {xs : List α} {h : i < xs.length}
     (hip : p xs[i]) : xs.countPBefore p i < xs.countP p := by
   rwa [← findIdxNth_lt_length_iff, findIdxNth_countPBefore_of_lt_length_of_pos hip]
+
+grind_pattern countPBefore_lt_countP_of_lt_length_of_pos => xs.countPBefore p i, xs.countP p
 
 /-! ### countBefore -/
 
@@ -1051,11 +1061,11 @@ theorem countBefore_eq_count_take [BEq α] :
     (xs : List α).countBefore x i = (xs.take i).count x := by
   induction xs generalizing i <;> cases i <;> grind
 
-@[grind <=]
+@[grind =]
 theorem countBefore_idxOfNth_of_lt_count [BEq α] {xs : List α} (hn : n < xs.count x) :
      xs.countBefore x (xs.idxOfNth x n) = n := countPBefore_findIdxNth_of_lt_countP hn
 
-@[grind <=]
+@[grind =]
 theorem idxOfNth_countBefore_of_lt_length_of_beq [BEq α] {xs : List α} {h : i < xs.length}
     (hip : xs[i] == x) : xs.idxOfNth x (xs.countBefore x i) = i :=
   findIdxNth_countPBefore_of_lt_length_of_pos hip
@@ -1072,15 +1082,16 @@ theorem countBefore_le_count [BEq α] {xs : List α} :
     xs.countBefore x i ≤ xs.count x := by
   induction xs generalizing i <;> cases i <;> grind
 
-@[grind <=]
 theorem countBefore_lt_count_of_lt_length_of_beq [BEq α] {xs : List α} {h : i < xs.length}
     (hip : xs[i] == x) : xs.countBefore x i < xs.count x :=
   countPBefore_lt_countP_of_lt_length_of_pos hip
 
-@[simp, grind <=]
+@[simp]
 theorem countBefore_lt_count_getElem [BEq α] [ReflBEq α] {xs : List α} {h : i < xs.length} :
     xs.countBefore xs[i] i < xs.count xs[i] :=
   countBefore_lt_count_of_lt_length_of_beq BEq.rfl
+
+grind_pattern countBefore_lt_count_getElem => xs.countBefore xs[i] i
 
 theorem countBefore_of_ge_length [BEq α] {xs : List α} (hi : xs.length ≤ i) :
     xs.countBefore x i = xs.count x := countPBefore_of_ge_length hi
