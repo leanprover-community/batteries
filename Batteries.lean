@@ -1,7 +1,6 @@
 module -- deprecated_module: ignore
 
 public import Batteries.Classes.Cast
-public import Batteries.Classes.Deprecated
 public import Batteries.Classes.Order
 public import Batteries.Classes.RatCast
 public import Batteries.Classes.SatisfiesM
@@ -83,6 +82,18 @@ public import Batteries.Linter
 public import Batteries.Linter.UnnecessarySeqFocus
 public import Batteries.Linter.UnreachableTactic
 public import Batteries.Logic
+public import Batteries.Recycling.MonadSatisfying
+public import Batteries.Recycling.MonadSatisfying.Array
+public import Batteries.Recycling.MonadSatisfying.Basic
+public import Batteries.Recycling.MonadSatisfying.Lean
+public import Batteries.Recycling.MonadSatisfying.List
+public import Batteries.Recycling.MonadSatisfying.Vector
+public import Batteries.Recycling.RBTree
+public import Batteries.Recycling.RBTree.Alter
+public import Batteries.Recycling.RBTree.Basic
+public import Batteries.Recycling.RBTree.Depth
+public import Batteries.Recycling.RBTree.Lemmas
+public import Batteries.Recycling.RBTree.WF
 public import Batteries.Tactic.Alias
 public import Batteries.Tactic.Basic
 public import Batteries.Tactic.Case

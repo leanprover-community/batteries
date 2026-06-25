@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 module
 
-public import BatteriesRecycling.RBTree.WF
+public import Batteries.Recycling.RBTree.WF
 
 @[expose] public section
 
