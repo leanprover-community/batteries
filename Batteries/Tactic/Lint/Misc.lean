@@ -133,35 +133,8 @@ their value, and allow arguments starting with `_` to be unused. -/
     let (none) ← findDocString? (← getEnv) declName | return none
     return m!"{kind} missing documentation string"
 
-/-- A linter for checking whether the correct declaration constructor (definition or theorem)
-has been used. -/
-@[env_linter] def defLemma : Linter where
-  noErrorsFound := "All declarations correctly marked as def/lemma."
-  errorsFound := "INCORRECT DEF/LEMMA:"
-  test declName := do
-    if (← isAutoDecl declName) || (← isImplicitReducible declName) then
-      return none
-    -- leanprover/lean4#2575:
-    -- projections are generated as `def`s even when they should be `theorem`s
-    if ← isProjectionFn declName then return none
-    let info ← getConstInfo declName
-    let isThm ← match info with
-      | .defnInfo .. => pure false
-      | .thmInfo .. => pure true
-      | _ => return none
-    match isThm, ← isProp info.type with
-    | true, false => pure "is a lemma/theorem, should be a def"
-    | false, true => pure "is a def, should be lemma/theorem"
-    | _, _ => return none
-
-/-- A linter for checking whether statements of declarations are well-typed.
-
-This linter is disabled by default: declarations are already type-checked when added to the
-environment, so re-checking every statement is redundant in normal use. As an alternative
-defence-in-depth measure for catching kernel/elaborator bugs, prefer running an external
-checker such as `lean4checker` or `trepplein`.
--/
-@[env_linter disabled] def checkType : Linter where
+/-- A linter for checking whether statements of declarations are well-typed. -/
+@[env_linter] def checkType : Linter where
   noErrorsFound :=
     "The statements of all declarations type-check with default reducibility settings."
   errorsFound := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS DO NOT TYPE-CHECK."
