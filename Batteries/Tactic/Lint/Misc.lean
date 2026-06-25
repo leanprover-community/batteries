@@ -91,7 +91,7 @@ their value, and allow arguments starting with `_` to be unused. -/
   errorsFound := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
     -- leanprover/lean4#12263: isGlobalInstance was removed, use isInstance instead
-    if (← isAutoDecl declName) || (← isInstance declName) then
+    if (← isPrivateOrAutoDecl declName) || (← isInstance declName) then
       return none -- FIXME: scoped/local instances should also not be linted
     if let .str p _ := declName then
       if ← isInstance p then
@@ -118,7 +118,7 @@ their value, and allow arguments starting with `_` to be unused. -/
   noErrorsFound := "No theorems are missing documentation."
   errorsFound := "THEOREMS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
-    if ← isAutoDecl declName then
+    if ← isPrivateOrAutoDecl declName then
       return none
     let kind ← match ← getConstInfo declName with
       | .thmInfo .. => pure "theorem"
