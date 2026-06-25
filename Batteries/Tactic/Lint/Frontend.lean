@@ -7,6 +7,7 @@ module
 
 public meta import Lean.Elab.Command
 public meta import Batteries.Tactic.Lint.Basic
+public import Batteries.Tactic.Lint.Basic
 
 public meta section
 

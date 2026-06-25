@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 module
 
 public meta import Lean.Server.CodeActions.Provider
+import Lean.Elab.InfoTree.Types
 
 public meta section
 

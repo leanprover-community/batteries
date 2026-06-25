@@ -6,7 +6,7 @@ Authors: Mario Carneiro, Gabriel Ebner
 -/
 module
 
-public import Batteries.Data.List.Lemmas
+import Batteries.Tactic.Alias
 
 @[expose] public section
 

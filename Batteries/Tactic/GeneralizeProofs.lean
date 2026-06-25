@@ -6,8 +6,8 @@ Authors: Alex J. Best, Kyle Miller
 module
 
 public meta import Lean.Elab.Tactic.Location
-public meta import Lean.Elab.ConfigEval
 public meta import Batteries.Lean.Expr
+public meta import Lean.Elab.ConfigEval -- shake: keep
 
 /-!
 # The `generalize_proofs` tactic

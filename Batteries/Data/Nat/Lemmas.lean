@@ -5,8 +5,8 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 module
 
-public import Batteries.Tactic.Alias
 public import Batteries.Data.Nat.Basic
+import Batteries.Tactic.Alias
 
 @[expose] public section
 

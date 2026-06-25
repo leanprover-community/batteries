@@ -5,7 +5,8 @@ Authors: Mario Carneiro
 -/
 module
 
-public meta import Batteries.Tactic.Alias
+public meta import Lean.Meta.Tactic.Util
+import Batteries.Tactic.Alias
 
 public meta section
 

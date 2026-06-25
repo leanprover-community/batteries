@@ -7,7 +7,6 @@ module
 
 public import Batteries.Data.String.Basic
 public import Batteries.Tactic.Lint.Misc
-public import Batteries.Tactic.SeqFocus
 public import Batteries.Classes.Order
 public import Batteries.Data.List.Basic
 public import Batteries.Data.String.Legacy
@@ -20,6 +19,7 @@ import all Init.Data.String.Modify  -- for unfolding `String.mapAux`
 import all Init.Data.Ord.String  -- for unfolding `String.compare`
 import all Batteries.Data.String.Legacy -- for unfolding `String.Legacy.map`
 import all Init.Data.String.Legacy -- for unfolding `String.splitOnAux`
+import Batteries.Tactic.SeqFocus
 
 @[expose] public section
 
