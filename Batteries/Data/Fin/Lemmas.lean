@@ -145,15 +145,9 @@ theorem findSome?_eq_some_iff {f : Fin n → Option α} :
 theorem isNone_findSome?_iff {f : Fin n → Option α} :
     (findSome? f).isNone ↔ ∀ i, (f i).isNone := by simp
 
-@[deprecated (since := "2025-09-28")]
-alias findSome?_isNone_iff := isNone_findSome?_iff
-
 @[simp] theorem isSome_findSome?_iff {f : Fin n → Option α} :
     (findSome? f).isSome ↔ ∃ i, (f i).isSome := by
   cases h : findSome? f <;> grind
-
-@[deprecated (since := "2025-09-28")]
-alias findSome?_isSome_iff := isSome_findSome?_iff
 
 theorem exists_minimal_of_findSome?_eq_some {f : Fin n → Option α}
     (h : findSome? f = some x) : ∃ i, f i = some x ∧ ∀ j < i, f j = none :=
@@ -161,9 +155,6 @@ theorem exists_minimal_of_findSome?_eq_some {f : Fin n → Option α}
 
 theorem exists_eq_some_of_findSome?_eq_some {f : Fin n → Option α}
     (h : findSome? f = some x) : ∃ i, f i = some x := by grind
-
-@[deprecated (since := "2025-09-28")]
-alias exists_of_findSome?_eq_some := exists_eq_some_of_findSome?_eq_some
 
 theorem eq_none_of_findSome?_eq_none {f : Fin n → Option α} (h : findSome? f = none) (i) :
     f i = none := findSome?_eq_none_iff.1 h i
@@ -294,16 +285,10 @@ theorem find?_eq_some_iff {p : Fin n → Bool} :
 theorem isSome_find?_iff {p : Fin n → Bool} :
     (find? p).isSome ↔ ∃ i, p i := by simp
 
-@[deprecated (since := "2025-09-28")]
-alias find?_isSome_iff := isSome_find?_iff
-
 @[grind =]
 theorem find?_eq_none_iff {p : Fin n → Bool} : find? p = none ↔ ∀ i, p i = false := by simp
 
 theorem isNone_find?_iff {p : Fin n → Bool} : (find? p).isNone ↔ ∀ i, p i = false := by simp
-
-@[deprecated (since := "2025-09-28")]
-alias find?_isNone_iff := isNone_find?_iff
 
 theorem eq_true_of_find?_eq_some {p : Fin n → Bool} (h : find? p = some i) : p i :=
     (find?_eq_some_iff.mp h).1
@@ -419,6 +404,25 @@ theorem find?_le_findRev? {p : Fin n → Bool} : find? p ≤ findRev? p := by
 theorem find?_eq_findRev?_iff {p : Fin n → Bool} : find? p = findRev? p ↔
     ∀ i j, p i = true → p j = true → i = j := by
   cases h : findRev? p <;> grind
+
+/-! ### any/all -/
+
+theorem any_eq_true_iff {p : Fin n → Bool} : Fin.any p = true ↔ ∃ i, p i = true := by simp
+
+theorem any_eq_false_iff {p : Fin n → Bool} : Fin.any p = false ↔ ∀ i, p i = false := by simp
+
+theorem any_eq_any_finRange {p : Fin n → Bool} : Fin.any p = (List.finRange n).any p := by
+  rw [Bool.eq_iff_iff]
+  simp only [Fin.any, find?_eq_find?_finRange, List.find?_isSome, List.any_eq, decide_eq_true_eq]
+
+theorem all_eq_true_iff {p : Fin n → Bool} : Fin.all p = true ↔ ∀ i, p i = true := by simp
+
+theorem all_eq_false_iff {p : Fin n → Bool} : Fin.all p = false ↔ ∃ i, p i = false := by simp
+
+theorem all_eq_all_finRange {p : Fin n → Bool} : Fin.all p = (List.finRange n).all p := by
+  rw [Bool.eq_iff_iff]
+  simp only [Fin.all, find?_eq_find?_finRange, Option.isNone_iff_eq_none, List.find?_eq_none,
+    Bool.not_eq_eq_eq_not, Bool.not_true, Bool.not_eq_false, List.all_eq, decide_eq_true_eq]
 
 /-! ### divNat / modNat / mkDivMod -/
 

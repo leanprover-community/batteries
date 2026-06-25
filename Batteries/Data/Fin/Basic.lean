@@ -129,6 +129,20 @@ The function `p` is not evaluated on further inputs after the first `i` is found
 @[inline] abbrev findRev? (p : Fin n → Bool) : Option (Fin n) :=
   findSomeRev? <| Option.guard p
 
+/--
+Returns true if `p i` is true for some `i`.
+
+Short-circuits upon encountering the first true.
+-/
+protected abbrev any (p : Fin n → Bool) := find? p |>.isSome
+
+/--
+Returns true if `p i` is true for every `i`.
+
+Short-circuits upon encountering the first false.
+-/
+protected abbrev all (p : Fin n → Bool) := find? (! p ·) |>.isNone
+
 /-- Compute `i / n`, where `n` is a `Nat` and inferred the type of `i`. -/
 def divNat (i : Fin (m * n)) : Fin m :=
   ⟨i / n, Nat.div_lt_of_lt_mul <| Nat.mul_comm m n ▸ i.is_lt⟩
