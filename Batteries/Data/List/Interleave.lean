@@ -132,7 +132,8 @@ theorem interleave_ofFn_ofFn' :
   | n + 1, f, g => by simp_all [interleave_ofFn_ofFn]; grind
 
 @[simp]
-theorem right_sublist_interleave : ∀ {l₁ l₂ : List α}, l₂.length ≤ l₁.length → l₂ <+ l₁.interleave l₂
+theorem right_sublist_interleave :
+    ∀ {l₁ l₂ : List α}, l₂.length ≤ l₁.length → l₂ <+ l₁.interleave l₂
   | _, [], _ => by simp
   | a :: l₁, b :: l₂, h => by
     simp only [cons_interleave]
@@ -255,7 +256,7 @@ theorem interleaves_ofFn {n : Nat} {f g : Fin n → α} :
   simp only [interleaves_iff_length_isChain_interleave, length_ofFn, Nat.succ_ne_self, or_false,
     interleave_ofFn_ofFn, isChain_ofFn, true_and]
   refine ⟨fun h => ?_, by grind⟩
-  exact ⟨fun i => by have := h (2 * i); grind, fun i hi => by grind⟩
+  exact ⟨fun i => by have := h (2 * i); grind, fun i hi => by have := h (2 * i + 1); grind⟩
 
 theorem interleaves_ofFn' {n : Nat} {f : Fin n → α} {g : Fin (n + 1) → α} :
     Interleaves r (ofFn f) (ofFn g) ↔
