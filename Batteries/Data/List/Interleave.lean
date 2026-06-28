@@ -255,7 +255,7 @@ theorem interleaves_ofFn {n : Nat} {f g : Fin n → α} :
   simp only [interleaves_iff_length_isChain_interleave, length_ofFn, Nat.succ_ne_self, or_false,
     interleave_ofFn_ofFn, isChain_ofFn, true_and]
   refine ⟨fun h => ?_, by grind⟩
-  exact ⟨fun i => by have := h (2 * i); grind, fun i hi => by have := h (2 * i + 1); grind⟩
+  exact ⟨fun i => by have := h (2 * i); grind, fun i hi => by grind⟩
 
 theorem interleaves_ofFn' {n : Nat} {f : Fin n → α} {g : Fin (n + 1) → α} :
     Interleaves r (ofFn f) (ofFn g) ↔
@@ -264,8 +264,7 @@ theorem interleaves_ofFn' {n : Nat} {f : Fin n → α} {g : Fin (n + 1) → α} 
     interleave_ofFn_ofFn', isChain_ofFn, Nat.succ_ne_self, or_true, true_and]
   -- FIXME: Why doesn't `grind unfold these?
   unfold Fin.castSucc Fin.castAdd Fin.castLE
-  refine ⟨fun h => ?_, fun h i hi => by
-    have := h.1 ⟨i / 2, by lia⟩; have := h.2 ⟨i / 2, by lia⟩; grind⟩
+  refine ⟨fun h => ?_, fun h i hi => by grind⟩
   exact ⟨fun i => by have := h (2 * i + 1); grind, fun i => by have := h (2 * i); grind⟩
 
 variable [Trans r r r]
