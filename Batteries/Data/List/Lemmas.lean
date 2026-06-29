@@ -739,14 +739,6 @@ theorem findIdxNth_eq_findIdxNth_of_ge_countP_ge_countP {xs : List α} (hn : xs.
 @[deprecated (since := "2025-11-06")]
 alias idxOf_eq_idxOf? := idxOf_eq_getD_idxOf?
 
-@[simp, grind =]
-theorem getElem_idxOf [BEq α] [LawfulBEq α] {x : α} {xs : List α} (h : idxOf x xs < xs.length) :
-    xs[xs.idxOf x] = x := by induction xs <;> grind
-
-@[simp, grind =]
-theorem Nodup.idxOf_getElem [BEq α] [LawfulBEq α] {xs : List α} (H : Nodup xs)
-    (i : Nat) (h : i < xs.length) : idxOf xs[i] xs = i := by induction xs generalizing i <;> grind
-
 /-! ### idxsOf -/
 
 @[simp, grind =] theorem idxsOf_nil [BEq α] : ([] : List α).idxsOf x s = [] := rfl
