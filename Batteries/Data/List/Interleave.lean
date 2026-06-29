@@ -51,6 +51,9 @@ theorem cons_interleave (a : α) (l₁ : List α) (l₂ : List α) :
     exact ((interleave_perm_append ..).trans perm_append_comm).cons _
 termination_by l₁ l₂ => l₁.length + l₂.length
 
+@[simp] theorem interleave_eq_nil : l₁.interleave l₂ = [] ↔ l₁ = [] ∧ l₂ = [] := by
+  simp [← isEmpty_iff, interleave_perm_append.isEmpty_eq]; simp
+
 protected theorem Perm.interleave (h₁₃ : l₁ ~ l₃) (h₂₄ : l₂ ~ l₄) :
     l₁.interleave l₂ ~ l₃.interleave l₄ :=
   interleave_perm_append.trans <| (h₁₃.append h₂₄).trans interleave_perm_append.symm
@@ -96,12 +99,13 @@ theorem interleave_append_right :
 
 theorem interleave_flatten_flatten_of_length_eq_length :
     ∀ {L₁ L₂ : List (List α)} (h₁₂ : L₁.length = L₂.length),
-      (∀ i : Fin L₁.length, length L₁[i] = length L₂[i]) →
+      (∀ i (hi : i + 1 < L₁.length), length L₁[i] = length L₂[i]) →
         L₁.flatten.interleave L₂.flatten = (zipWith interleave L₁ L₂).flatten
   | [], [], _, _ => by simp
-  | l₁ :: L₁, l₂ :: L₂, h₁₂, h₁₂' => by
-    simp only [flatten_cons, zipWith_cons_cons]
-    rw [interleave_append_append_of_length_eq_length (by simpa using h₁₂' 0),
+  | [L₁], [L₂], _, _ => by simp
+  | l₁ :: l₁' :: L₁, l₂ :: l₂' :: L₂, h₁₂, h₁₂' => by
+    rw [flatten_cons, flatten_cons (l := l₂), zipWith_cons_cons, flatten_cons (l := interleave ..),
+      interleave_append_append_of_length_eq_length (by simpa using h₁₂' 0),
       interleave_flatten_flatten_of_length_eq_length (by grind) fun i => by simpa using h₁₂' i.succ]
 
 @[simp]
