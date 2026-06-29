@@ -366,7 +366,7 @@ theorem findAux_of_valid (p) : ∀ l m r,
     · simp
 
 theorem find_of_valid (p s) : Legacy.find s p = ⟨utf8Len (s.toList.takeWhile (!p ·))⟩ := by
-  simpa using findAux_of_valid p [] s.toList []
+  simpa using! findAux_of_valid p [] s.toList []
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.revFindAux
 theorem revFindAux_of_valid (p) : ∀ l r,
@@ -386,7 +386,7 @@ theorem revFindAux_of_valid (p) : ∀ l r,
 
 theorem revFind_of_valid (p s) :
     Legacy.revFind s p = (s.toList.reverse.dropWhile (!p ·)).tail?.map (⟨utf8Len ·⟩) := by
-  simpa using revFindAux_of_valid p s.toList.reverse []
+  simpa using! revFindAux_of_valid p s.toList.reverse []
 
 theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
     (hl₁ : p = utf8Len l₁) (hl₂ : p = utf8Len l₂)
@@ -423,7 +423,7 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
 
 theorem firstDiffPos_eq (a b : String) :
     firstDiffPos a b = ⟨utf8Len (List.takeWhile₂ (· = ·) a.toList b.toList).1⟩ := by
-  simpa [firstDiffPos] using
+  simpa [firstDiffPos] using!
     firstDiffPos_loop_eq [] [] a.toList b.toList
       ((utf8Len a.toList).min (utf8Len b.toList)) 0 rfl rfl (by simp)
 
@@ -578,7 +578,7 @@ attribute [simp] toString pos
 namespace ValidFor
 
 theorem valid : ∀ {it}, ValidFor l r it → Valid it
-  | _, ⟨⟩ => by simpa [List.reverseAux_eq] using Pos.Raw.Valid.mk l.reverse r rfl
+  | _, ⟨⟩ => by simpa [List.reverseAux_eq] using! Pos.Raw.Valid.mk l.reverse r rfl
 
 theorem out : ∀ {it}, ValidFor l r it → it = ⟨String.ofList (l.reverseAux r), ⟨utf8Len l⟩⟩
   | _, ⟨⟩ => rfl
@@ -713,7 +713,7 @@ namespace Valid
 
 theorem validFor : ∀ {it}, Valid it → ∃ l r, ValidFor l r it
   | ⟨_, ⟨_⟩⟩, .mk l r rfl =>
-    ⟨l.reverse, r, by simpa [List.reverseAux_eq] using @ValidFor.mk l.reverse r⟩
+    ⟨l.reverse, r, by simpa [List.reverseAux_eq] using! @ValidFor.mk l.reverse r⟩
 
 theorem _root_.String.valid_mkIterator (s) : (mkIterator s).Valid := s.validFor_mkIterator.valid
 
@@ -769,7 +769,7 @@ theorem offsetOfPosAux_of_valid : ∀ l m r n,
 
 theorem offsetOfPos_of_valid (l r) :
     String.Pos.Raw.offsetOfPos (ofList (l ++ r)) ⟨utf8Len l⟩ = l.length := by
-  simpa using offsetOfPosAux_of_valid [] l r 0
+  simpa using! offsetOfPosAux_of_valid [] l r 0
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.Legacy.foldlAux
 theorem foldlAux_of_valid (f : α → Char → α) : ∀ l m r a,
@@ -783,7 +783,7 @@ theorem foldlAux_of_valid (f : α → Char → α) : ∀ l m r a,
     simpa [← Nat.add_assoc, Nat.add_right_comm] using foldlAux_of_valid f (l++[c]) m r (f a c)
 
 theorem foldl_eq (f : α → Char → α) (s a) : Legacy.foldl f a s = s.toList.foldl f a := by
-  simpa using foldlAux_of_valid f [] s.toList [] a
+  simpa using! foldlAux_of_valid f [] s.toList [] a
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.foldrAux
 theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
@@ -798,7 +798,7 @@ theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
     simpa using IH (c::r) (f c a)
 
 theorem foldr_eq (f : Char → α → α) (s a) : Legacy.foldr f a s = s.toList.foldr f a := by
-  simpa using foldrAux_of_valid f [] s.toList [] a
+  simpa using! foldrAux_of_valid f [] s.toList [] a
 
 @[nolint unusedHavesSuffices] -- false positive from unfolding String.anyAux
 theorem anyAux_of_valid (p : Char → Bool) : ∀ l m r,
@@ -814,7 +814,7 @@ theorem anyAux_of_valid (p : Char → Bool) : ∀ l m r,
     simpa [← Nat.add_assoc, Nat.add_right_comm] using anyAux_of_valid p (l++[c]) m r
 
 theorem any_eq (s : String) (p : Char → Bool) : Legacy.any s p = s.toList.any p := by
-  simpa using anyAux_of_valid p [] s.toList []
+  simpa using! anyAux_of_valid p [] s.toList []
 
 theorem any_iff (s : String) (p : Char → Bool) :
     Legacy.any s p ↔ ∃ c ∈ s.toList, p c := by simp [any_eq]
@@ -841,7 +841,7 @@ theorem mapAux_of_valid (f : Char → Char) :
     simpa using mapAux_of_valid f (l++[f c]) r
 
 theorem map_eq (f : Char → Char) (s) : Legacy.map f s = ofList (s.toList.map f) := by
-  simpa using mapAux_of_valid f [] s.toList
+  simpa using! mapAux_of_valid f [] s.toList
 
 -- TODO: substrEq
 -- TODO: isPrefixOf
@@ -945,7 +945,7 @@ theorem toIterator : ∀ {s}, ValidFor l m r s → s.toLegacyIterator.ValidFor l
     exact .of_eq _ (by simp [h.str, List.reverseAux_eq]) (by simp [h.startPos])
 
 theorem get : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s → s.get ⟨utf8Len m₁⟩ = c
-  | _, ⟨⟩ => by simpa using get_of_valid (l ++ m₁) (c :: m₂ ++ r)
+  | _, ⟨⟩ => by simpa using! get_of_valid (l ++ m₁) (c :: m₂ ++ r)
 
 theorem next : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
     s.next ⟨utf8Len m₁⟩ = ⟨utf8Len m₁ + c.utf8Size⟩
@@ -1101,7 +1101,7 @@ theorem validFor : ∀ {s}, Valid s → ∃ l m r, ValidFor l m r s
   | ⟨_, ⟨_⟩, ⟨_⟩⟩, ⟨.mk l mr rfl, t, h⟩ => by
     obtain ⟨lm, r, h₁, h₂⟩ := t.exists
     have e : lm ++ r = l ++ mr := by
-      simpa [← String.ofList_inj, ← String.toByteArray_inj] using h₁
+      simpa [← String.ofList_inj, ← String.toByteArray_inj] using! h₁
     obtain rfl := Pos.Raw.ext_iff.1 h₂
     simp only [Pos.Raw.mk_le_mk] at *
     have := (or_iff_right_iff_imp.2 fun h => ?x).1 (List.append_eq_append_iff.1 e)
@@ -1111,7 +1111,7 @@ theorem validFor : ∀ {s}, Valid s → ∃ l m r, ValidFor l m r s
       cases utf8Len_eq_zero.1 <| Nat.le_zero.1 (Nat.le_of_add_le_add_left (c := 0) h)
       exact ⟨[], by simp⟩
     match lm, mr, this with
-    | _, _, ⟨m, rfl, rfl⟩ => exact ⟨l, m, r, by simpa using ValidFor.mk⟩
+    | _, _, ⟨m, rfl, rfl⟩ => exact ⟨l, m, r, by simpa using! ValidFor.mk⟩
 
 theorem valid : ∀ {s}, ValidFor l m r s → Valid s
   | _, ⟨⟩ => ⟨.intro ⟨l, m ++ r, by simp, by simp⟩,
