@@ -16,12 +16,12 @@ public section
 namespace List
 variable {α : Type u} {r s : α → α → Prop} {l l₁ l₂ l₃ l₄ : List α} {a b c : α}
 
-/-- Interleaves two lists `l₁` and `l₂`, starting with an element of `l₁`.
+/-- Interleave two lists `l₁` and `l₂`, starting with an element of `l₁`.
 
-This operation fully interleaves the two lists when the length of `l₁` is either the length of `l₂`
+This operation fully interleave the two lists when the length of `l₁` is either the length of `l₂`
 or one more. If one of the lists runs out early, the remainder of the other list is kept without
 further interleaving, so that `l₁.interleave l₂` is always a permutation of `l₁ ++ l₂`.
-See `interleaves_perm_append`.
+See `interleave_perm_append`.
 
 ```
 #eval interleave [0, 2, 4] [1] -- [0, 1, 2, 4] -- The second list is too short
@@ -44,27 +44,27 @@ termination_by l₁ l₂ => l₁.length + l₂.length
 theorem cons_interleave (a : α) (l₁ : List α) (l₂ : List α) :
     (a :: l₁).interleave l₂ = a :: interleave l₂ l₁ := by rw [interleave]
 
-@[simp] theorem interleaves_perm_append : ∀ {l₁ l₂ : List α}, l₁.interleave l₂ ~ l₁ ++ l₂
+@[simp] theorem interleave_perm_append : ∀ {l₁ l₂ : List α}, l₁.interleave l₂ ~ l₁ ++ l₂
   | [], l₂ => by simp
   | a :: l₁, l₂ => by
     rw [cons_interleave]
-    exact ((interleaves_perm_append ..).trans perm_append_comm).cons _
+    exact ((interleave_perm_append ..).trans perm_append_comm).cons _
 termination_by l₁ l₂ => l₁.length + l₂.length
 
-protected theorem Perm.interleaves (h₁₃ : l₁ ~ l₃) (h₂₄ : l₂ ~ l₄) :
+protected theorem Perm.interleave (h₁₃ : l₁ ~ l₃) (h₂₄ : l₂ ~ l₄) :
     l₁.interleave l₂ ~ l₃.interleave l₄ :=
-  interleaves_perm_append.trans <| (h₁₃.append h₂₄).trans interleaves_perm_append.symm
+  interleave_perm_append.trans <| (h₁₃.append h₂₄).trans interleave_perm_append.symm
 
-@[simp] theorem length_interleaves (l₁ l₂ : List α) :
-    (l₁.interleave l₂).length = l₁.length + l₂.length := by simp [interleaves_perm_append.length_eq]
+@[simp] theorem length_interleave (l₁ l₂ : List α) :
+    (l₁.interleave l₂).length = l₁.length + l₂.length := by simp [interleave_perm_append.length_eq]
 
-@[simp] theorem countP_interleaves (l₁ l₂ : List α) (p : α → Bool) :
+@[simp] theorem countP_interleave (l₁ l₂ : List α) (p : α → Bool) :
     (l₁.interleave l₂).countP p = l₁.countP p + l₂.countP p := by
-  simp [interleaves_perm_append.countP_eq]
+  simp [interleave_perm_append.countP_eq]
 
-@[simp] theorem count_interleaves [BEq α] (l₁ l₂ : List α) (a : α) :
+@[simp] theorem count_interleave [BEq α] (l₁ l₂ : List α) (a : α) :
     (l₁.interleave l₂).count a = l₁.count a + l₂.count a := by
-  simp [interleaves_perm_append.count_eq]
+  simp [interleave_perm_append.count_eq]
 
 @[simp]
 theorem interleave_append_append_of_length_eq_length :
@@ -139,5 +139,13 @@ theorem right_sublist_interleave : ∀ {l₁ l₂ : List α}, l₂ <+ l₁.inter
 
 @[simp]
 theorem left_sublist_interleave : l₁ <+ l₁.interleave l₂ := by cases l₁ <;> simp_all
+
+@[simp]
+protected theorem IsPrefix.interleave {l₁ l₂ l₃ l₄ : List α} :
+    l₁.length = l₂.length ∨ l₁.length = l₂.length + 1 →
+    l₁ <+: l₃ → l₂ <+: l₄ → l₁.interleave l₂ <+: l₃.interleave l₄ := by
+  rintro (hl | hl) ⟨l₅, rfl⟩ ⟨l₆, rfl⟩ <;>
+    simp [interleave_append_append_of_length_eq_length,
+      interleave_append_append_of_length_eq_length_add_one, hl]
 
 end List
