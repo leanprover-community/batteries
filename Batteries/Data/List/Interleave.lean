@@ -94,6 +94,16 @@ theorem interleave_append_right :
   | [a], [], _, l₃ => by simp
   | a :: l₁, b :: l₂, _, l₃ => by simp_all [interleave_append_right]
 
+theorem interleave_flatten_flatten_of_length_eq_length :
+    ∀ {L₁ L₂ : List (List α)} (h₁₂ : L₁.length = L₂.length),
+      (∀ i : Fin L₁.length, length L₁[i] = length L₂[i]) →
+        L₁.flatten.interleave L₂.flatten = (zipWith interleave L₁ L₂).flatten
+  | [], [], _, _ => by simp
+  | l₁ :: L₁, l₂ :: L₂, h₁₂, h₁₂' => by
+    simp only [flatten_cons, zipWith_cons_cons]
+    rw [interleave_append_append_of_length_eq_length (by simpa using h₁₂' 0),
+      interleave_flatten_flatten_of_length_eq_length (by grind) fun i ↦ by simpa using h₁₂' i.succ]
+
 @[simp]
 theorem reverse_interleave_of_length_eq_length :
     ∀ {l₁ l₂ : List α}, l₁.length = l₂.length →
