@@ -14,7 +14,7 @@ This file defines interleaving of lists as an operation.
 public section
 
 namespace List
-variable {α : Type u} {r s : α → α → Prop} {l l₁ l₂ l₃ l₄ : List α} {a b c : α}
+variable {α : Type u} {l l₁ l₂ l₃ l₄ : List α} {a b c : α}
 
 /-- Interleave two lists `l₁` and `l₂`, starting with an element of `l₁`.
 
@@ -102,7 +102,7 @@ theorem interleave_flatten_flatten_of_length_eq_length :
   | l₁ :: L₁, l₂ :: L₂, h₁₂, h₁₂' => by
     simp only [flatten_cons, zipWith_cons_cons]
     rw [interleave_append_append_of_length_eq_length (by simpa using h₁₂' 0),
-      interleave_flatten_flatten_of_length_eq_length (by grind) fun i ↦ by simpa using h₁₂' i.succ]
+      interleave_flatten_flatten_of_length_eq_length (by grind) fun i => by simpa using h₁₂' i.succ]
 
 @[simp]
 theorem reverse_interleave_of_length_eq_length :
