@@ -114,20 +114,20 @@ theorem reverse_interleave_of_length_eq_length_add_one :
   | a :: l₁, b :: l₂, _ => by simp_all [reverse_interleave_of_length_eq_length_add_one]
 
 @[simp]
-theorem interleave_ofFn_ofFn :
+theorem interleave_ofFn_ofFn_even :
     ∀ {n : Nat} {f g : Fin n → α},
       interleave (ofFn f) (ofFn g) =
         ofFn (n := 2 * n) (fun i => if i.val % 2 = 0 then f ⟨i / 2, by lia⟩ else g ⟨i / 2, by lia⟩)
   | 0, f, g  => by simp
-  | n + 1, f, g => by simp_all [interleave_ofFn_ofFn]; grind
+  | n + 1, f, g => by simp_all [interleave_ofFn_ofFn_even]; grind
 
-theorem interleave_ofFn_ofFn' :
+theorem interleave_ofFn_ofFn_odd :
     ∀ {n : Nat} {f : Fin (n + 1) → α} {g : Fin n → α},
       interleave (ofFn f) (ofFn g) =
         ofFn (n := 2 * n + 1)
           (fun i => if hi : i.val % 2 = 0 then f ⟨i / 2, by lia⟩ else g ⟨i / 2, by lia⟩)
   | 0, f, g  => by simp
-  | n + 1, f, g => by simp_all [interleave_ofFn_ofFn]; grind
+  | n + 1, f, g => by simp_all [interleave_ofFn_ofFn_even]; grind
 
 @[simp]
 theorem right_sublist_interleave :
