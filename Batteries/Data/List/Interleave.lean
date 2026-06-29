@@ -74,30 +74,25 @@ theorem interleave_append_append_of_length_eq_length :
   | a :: l₁, b :: l₂, _, l₃, l₄ => by simp_all [interleave_append_append_of_length_eq_length]
 
 @[simp]
-theorem interleave_append_left_of_length_eq_length (h₁₂ : l₁.length = l₂.length) (l₃ : List α) :
-    (l₁ ++ l₃).interleave l₂ = l₁.interleave l₂ ++ l₃ := by
-  simpa using interleave_append_append_of_length_eq_length h₁₂ _ []
-
-@[simp]
-theorem interleave_append_right_of_length_eq_length (h₁₂ : l₁.length = l₂.length) (l₃ : List α) :
-    l₁.interleave (l₂ ++ l₃) = l₁.interleave l₂ ++ [].interleave l₃ := by
-  simpa using interleave_append_append_of_length_eq_length h₁₂ [] _
-
-@[simp]
 theorem interleave_append_append_of_length_eq_length_add_one :
     ∀ {l₁ l₂ : List α} (_h₁₂ : l₁.length = l₂.length + 1) (l₃ l₄ : List α),
       (l₁ ++ l₃).interleave (l₂ ++ l₄) = l₁.interleave l₂ ++ l₄.interleave l₃
   | a :: l₁, l₂, _, l₃, l₄ => by simp_all
 
 @[simp]
-theorem interleave_append_left_of_length_eq_length_add_one (h₁₂ : l₁.length = l₂.length + 1)
-    (l₃ : List α) : (l₁ ++ l₃).interleave l₂ = l₁.interleave l₂ ++ [].interleave l₃ := by
-  simpa using interleave_append_append_of_length_eq_length_add_one h₁₂ _ []
+theorem interleave_append_left :
+    ∀ {l₁ l₂ : List α} (_h₂₁ : l₂.length ≤ l₁.length) (l₃ : List α),
+      (l₁ ++ l₃).interleave l₂ = l₁.interleave l₂ ++ l₃
+  | _, [], _, l₃ => by simp
+  | a :: l₁, b :: l₂, _, l₃ => by simp_all [interleave_append_left]
 
 @[simp]
-theorem interleave_append_right_of_length_eq_length_add_one (h₁₂ : l₁.length = l₂.length + 1)
-    (l₃ : List α) : l₁.interleave (l₂ ++ l₃) = l₁.interleave l₂ ++ l₃ := by
-  simpa using interleave_append_append_of_length_eq_length_add_one h₁₂ [] _
+theorem interleave_append_right :
+    ∀ {l₁ l₂ : List α} (_h₁₂ : l₁.length ≤ l₂.length + 1) (l₃ : List α),
+    l₁.interleave (l₂ ++ l₃) = l₁.interleave l₂ ++ l₃
+  | [], _, _, l₃ => by simp
+  | [a], [], _, l₃ => by simp
+  | a :: l₁, b :: l₂, _, l₃ => by simp_all [interleave_append_right]
 
 @[simp]
 theorem reverse_interleave_of_length_eq_length :
