@@ -75,7 +75,7 @@ theorem interleave_append_append_of_length_eq_length :
 
 @[simp]
 theorem interleave_append_left_of_length_eq_length (h₁₂ : l₁.length = l₂.length) (l₃ : List α) :
-    (l₁ ++ l₃).interleave l₂ = l₁.interleave l₂ ++ l₃.interleave [] := by
+    (l₁ ++ l₃).interleave l₂ = l₁.interleave l₂ ++ l₃ := by
   simpa using interleave_append_append_of_length_eq_length h₁₂ _ []
 
 @[simp]
@@ -96,7 +96,7 @@ theorem interleave_append_left_of_length_eq_length_add_one (h₁₂ : l₁.lengt
 
 @[simp]
 theorem interleave_append_right_of_length_eq_length_add_one (h₁₂ : l₁.length = l₂.length + 1)
-    (l₃ : List α) : l₁.interleave (l₂ ++ l₃) = l₁.interleave l₂ ++ l₃.interleave [] := by
+    (l₃ : List α) : l₁.interleave (l₂ ++ l₃) = l₁.interleave l₂ ++ l₃ := by
   simpa using interleave_append_append_of_length_eq_length_add_one h₁₂ [] _
 
 @[simp]
