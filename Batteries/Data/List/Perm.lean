@@ -142,11 +142,6 @@ theorem subperm_of_subset (d : Nodup l₁) (H : l₁ ⊆ l₂) : l₁ <+~ l₂ :
     have ⟨H₁, H₂⟩ := forall_mem_cons.1 H
     exact cons_subperm_of_not_mem_of_mem (h _ · rfl) H₁ (IH H₂)
 
-theorem perm_ext_iff_of_nodup {l₁ l₂ : List α} (d₁ : Nodup l₁) (d₂ : Nodup l₂) :
-    l₁ ~ l₂ ↔ ∀ a, a ∈ l₁ ↔ a ∈ l₂ := by
-  refine ⟨fun p _ => p.mem_iff, fun H => ?_⟩
-  exact (subperm_of_subset d₁ fun a => (H a).1).antisymm <| subperm_of_subset d₂ fun a => (H a).2
-
 theorem Nodup.perm_iff_eq_of_sublist {l₁ l₂ l : List α} (d : Nodup l)
     (s₁ : l₁ <+ l) (s₂ : l₂ <+ l) : l₁ ~ l₂ ↔ l₁ = l₂ := by
   refine ⟨fun h => ?_, fun h => by rw [h]⟩
