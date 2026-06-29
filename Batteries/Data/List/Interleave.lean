@@ -130,15 +130,14 @@ theorem interleave_ofFn_ofFn_odd :
   | n + 1, f, g => by simp_all [interleave_ofFn_ofFn_even]; grind
 
 @[simp]
-theorem right_sublist_interleave :
-    ∀ {l₁ l₂ : List α}, l₂.length ≤ l₁.length → l₂ <+ l₁.interleave l₂
-  | _, [], _ => by simp
-  | a :: l₁, b :: l₂, h => by
+theorem right_sublist_interleave : ∀ {l₁ l₂ : List α}, l₂ <+ l₁.interleave l₂
+  | _, [] => by simp
+  | [], _ => by simp
+  | a :: l₁, b :: l₂ => by
     simp only [cons_interleave]
-    exact .cons _ <| .cons_cons _ <| right_sublist_interleave <| by simpa using h
+    exact .cons _ <| right_sublist_interleave.cons_cons _
 
 @[simp]
-theorem left_sublist_interleave {l₁ l₂ : List α} (hl : l₁.length ≤ l₂.length + 1) :
-    l₁ <+ l₁.interleave l₂ := by cases l₁ <;> simp_all
+theorem left_sublist_interleave : l₁ <+ l₁.interleave l₂ := by cases l₁ <;> simp_all
 
 end List
