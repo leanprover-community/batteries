@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Std.Data.String.ToInt","Std.Data.String.ToNat"],"instances":[],"name":"Std.Data.String"}
