@@ -14,7 +14,6 @@ This file defines interleaving of lists as an operation.
 public section
 
 namespace List
-variable {α : Type u} {l l₁ l₂ l₃ l₄ : List α} {a b c : α}
 
 /-- Interleave two lists `l₁` and `l₂`, starting with an element of `l₁`.
 
@@ -36,12 +35,13 @@ def interleave : List α → List α → List α
   | a :: l₁, l₂ => a :: interleave l₂ l₁
 termination_by l₁ l₂ => l₁.length + l₂.length
 
-@[simp] theorem nil_interleave (l₂ : List α) : [].interleave l₂ = l₂ := by rw [interleave]
+@[simp] theorem nil_interleave (l₂ : List α) : [].interleave l₂ = l₂ := by
+  rw [interleave]
+
 @[simp] theorem interleave_nil (l₁ : List α) : l₁.interleave [] = l₁ := by
   cases l₁ <;> simp [interleave]
 
-@[simp]
-theorem cons_interleave (a : α) (l₁ : List α) (l₂ : List α) :
+@[simp] theorem cons_interleave (a : α) (l₁ : List α) (l₂ : List α) :
     (a :: l₁).interleave l₂ = a :: interleave l₂ l₁ := by rw [interleave]
 
 @[simp] theorem interleave_perm_append : ∀ {l₁ l₂ : List α}, l₁.interleave l₂ ~ l₁ ++ l₂
@@ -69,88 +69,78 @@ protected theorem Perm.interleave (h₁₃ : l₁ ~ l₃) (h₂₄ : l₂ ~ l₄
     (l₁.interleave l₂).count a = l₁.count a + l₂.count a := by
   simp [interleave_perm_append.count_eq]
 
-@[simp]
-theorem interleave_append_append_of_length_eq_length :
+@[simp] theorem interleave_append_append_of_length_eq_length :
     ∀ {l₁ l₂ : List α} (_h₁₂ : l₁.length = l₂.length) (l₃ l₄ : List α),
       (l₁ ++ l₃).interleave (l₂ ++ l₄) = l₁.interleave l₂ ++ l₃.interleave l₄
   | [], [], _, l₃, l₄ => by simp
-  | a :: l₁, b :: l₂, _, l₃, l₄ => by simp_all [interleave_append_append_of_length_eq_length]
+  | _ :: _, _ :: _, _, _, _ => by simp_all [interleave_append_append_of_length_eq_length]
 
-@[simp]
-theorem interleave_append_append_of_length_eq_length_add_one :
+@[simp] theorem interleave_append_append_of_length_eq_length_add_one :
     ∀ {l₁ l₂ : List α} (_h₁₂ : l₁.length = l₂.length + 1) (l₃ l₄ : List α),
       (l₁ ++ l₃).interleave (l₂ ++ l₄) = l₁.interleave l₂ ++ l₄.interleave l₃
-  | a :: l₁, l₂, _, l₃, l₄ => by simp_all
+  | _ :: _, _, _, _, _ => by simp_all
 
-@[simp]
-theorem interleave_append_left :
+@[simp] theorem interleave_append_left :
     ∀ {l₁ l₂ : List α} (_h₂₁ : l₂.length ≤ l₁.length) (l₃ : List α),
       (l₁ ++ l₃).interleave l₂ = l₁.interleave l₂ ++ l₃
   | _, [], _, l₃ => by simp
-  | a :: l₁, b :: l₂, _, l₃ => by simp_all [interleave_append_left]
+  | _ :: _, _ :: _, _, _ => by simp_all [interleave_append_left]
 
-@[simp]
-theorem interleave_append_right :
+@[simp] theorem interleave_append_right :
     ∀ {l₁ l₂ : List α} (_h₁₂ : l₁.length ≤ l₂.length + 1) (l₃ : List α),
     l₁.interleave (l₂ ++ l₃) = l₁.interleave l₂ ++ l₃
   | [], _, _, l₃ => by simp
-  | [a], [], _, l₃ => by simp
-  | a :: l₁, b :: l₂, _, l₃ => by simp_all [interleave_append_right]
+  | [_], [], _, l₃ => by simp
+  | _ :: _, _ :: _, _, _ => by simp_all [interleave_append_right]
 
 theorem interleave_flatten_flatten_of_length_eq_length :
     ∀ {L₁ L₂ : List (List α)} (h₁₂ : L₁.length = L₂.length),
       (∀ i (hi : i + 1 < L₁.length), length L₁[i] = length L₂[i]) →
         L₁.flatten.interleave L₂.flatten = (zipWith interleave L₁ L₂).flatten
   | [], [], _, _ => by simp
-  | [L₁], [L₂], _, _ => by simp
-  | l₁ :: l₁' :: L₁, l₂ :: l₂' :: L₂, h₁₂, h₁₂' => by
-    rw [flatten_cons, flatten_cons (l := l₂), zipWith_cons_cons, flatten_cons (l := interleave ..),
-      interleave_append_append_of_length_eq_length (by simpa using h₁₂' 0),
-      interleave_flatten_flatten_of_length_eq_length (by grind) fun i => by simpa using h₁₂' i.succ]
+  | [_], [_], _, _ => by simp
+  | _ :: _ :: _, l :: _ :: _, _, h => by
+    rw [flatten_cons, flatten_cons (l := l), zipWith_cons_cons, flatten_cons (l := interleave ..),
+      interleave_append_append_of_length_eq_length (by simpa using h 0),
+      interleave_flatten_flatten_of_length_eq_length (by grind) fun i => by simpa using h i.succ]
 
-@[simp]
-theorem reverse_interleave_of_length_eq_length :
+@[simp] theorem reverse_interleave_of_length_eq_length :
     ∀ {l₁ l₂ : List α}, l₁.length = l₂.length →
       (l₁.interleave l₂).reverse = l₂.reverse.interleave l₁.reverse
   | [], [], _ => by simp
   | a :: l₁, b :: l₂, _ => by simp_all [reverse_interleave_of_length_eq_length]
 
-@[simp]
-theorem reverse_interleave_of_length_eq_length_add_one :
+@[simp] theorem reverse_interleave_of_length_eq_length_add_one :
     ∀ {l₁ l₂ : List α}, l₁.length = l₂.length + 1 →
       (l₁.interleave l₂).reverse = l₁.reverse.interleave l₂.reverse
-  | a :: l₁, [], _ => by simp
-  | a :: l₁, b :: l₂, _ => by simp_all [reverse_interleave_of_length_eq_length_add_one]
+  | _ :: _, [], _ => by simp
+  | _ :: _, _ :: _, _ => by simp_all [reverse_interleave_of_length_eq_length_add_one]
 
-@[simp]
-theorem interleave_ofFn_ofFn_even :
+@[simp] theorem interleave_ofFn_ofFn_even :
     ∀ {n : Nat} {f g : Fin n → α},
       interleave (ofFn f) (ofFn g) =
         ofFn (n := 2 * n) (fun i => if i.val % 2 = 0 then f ⟨i / 2, by lia⟩ else g ⟨i / 2, by lia⟩)
-  | 0, f, g  => by simp
-  | n + 1, f, g => by simp_all [interleave_ofFn_ofFn_even]; grind
+  | 0, _, _  => by simp
+  | n + 1, _, _ => by simp_all [interleave_ofFn_ofFn_even]; grind
 
 theorem interleave_ofFn_ofFn_odd :
     ∀ {n : Nat} {f : Fin (n + 1) → α} {g : Fin n → α},
       interleave (ofFn f) (ofFn g) =
         ofFn (n := 2 * n + 1)
           (fun i => if hi : i.val % 2 = 0 then f ⟨i / 2, by lia⟩ else g ⟨i / 2, by lia⟩)
-  | 0, f, g  => by simp
-  | n + 1, f, g => by simp_all [interleave_ofFn_ofFn_even]; grind
+  | 0, _, _  => by simp
+  | n + 1, _, _ => by simp_all [interleave_ofFn_ofFn_even]; grind
 
-@[simp]
-theorem right_sublist_interleave : ∀ {l₁ l₂ : List α}, l₂ <+ l₁.interleave l₂
+@[simp] theorem right_sublist_interleave : ∀ {l₁ l₂ : List α}, l₂ <+ l₁.interleave l₂
   | _, [] => by simp
   | [], _ => by simp
-  | a :: l₁, b :: l₂ => by
+  | _ :: _, _ :: _ => by
     simp only [cons_interleave]
     exact .cons _ <| right_sublist_interleave.cons_cons _
 
-@[simp]
-theorem left_sublist_interleave : l₁ <+ l₁.interleave l₂ := by cases l₁ <;> simp_all
+@[simp] theorem left_sublist_interleave : l₁ <+ l₁.interleave l₂ := by cases l₁ <;> simp_all
 
-@[simp]
-protected theorem IsPrefix.interleave {l₁ l₂ l₃ l₄ : List α} :
+@[simp] protected theorem IsPrefix.interleave  :
     l₁.length = l₂.length ∨ l₁.length = l₂.length + 1 →
     l₁ <+: l₃ → l₂ <+: l₄ → l₁.interleave l₂ <+: l₃.interleave l₄ := by
   rintro (hl | hl) ⟨l₅, rfl⟩ ⟨l₆, rfl⟩ <;>
