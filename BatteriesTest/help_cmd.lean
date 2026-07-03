@@ -218,7 +218,8 @@ error: no command declarations start with foobarbaz
 
 /--
 info: syntax "#eval"... [Lean.Parser.Command.eval]
-  `#eval e` evaluates the expression `e` by compiling and evaluating it.
+  `#eval e` evaluates the expression `e` by compiling it and running the compiled code. It then
+  prints the resulting value.
   ⏎
   * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
   * If `e` is a monadic value of type `m ty`, then the command tries to adapt the monad `m`
@@ -242,7 +243,8 @@ info: syntax "#eval"... [Lean.Parser.Command.eval]
   See also: `#reduce e` for evaluation by term reduction.
 
 syntax "#eval!"... [Lean.Parser.Command.evalBang]
-  `#eval e` evaluates the expression `e` by compiling and evaluating it.
+  `#eval e` evaluates the expression `e` by compiling it and running the compiled code. It then
+  prints the resulting value.
   ⏎
   * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
   * If `e` is a monadic value of type `m ty`, then the command tries to adapt the monad `m`
@@ -263,7 +265,9 @@ syntax "#eval!"... [Lean.Parser.Command.evalBang]
   * If `eval.derive.repr` is true (default: true) then attempts to auto-derive a `Repr` instance
     when there is no other way to print the result.
   ⏎
-  See also: `#reduce e` for evaluation by term reduction.  syntax "#exit"... [Lean.Parser.Command.exit]
+  See also: `#reduce e` for evaluation by term reduction.
+
+syntax "#exit"... [Lean.Parser.Command.exit]
 -/
 #guard_msgs in
 #help command "#e"
@@ -276,7 +280,8 @@ syntax "#eval!"... [Lean.Parser.Command.evalBang]
 
 /--
 info: syntax "#eval"... [Lean.Parser.Command.eval]
-  `#eval e` evaluates the expression `e` by compiling and evaluating it.
+  `#eval e` evaluates the expression `e` by compiling it and running the compiled code. It then
+  prints the resulting value.
   ⏎
   * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
   * If `e` is a monadic value of type `m ty`, then the command tries to adapt the monad `m`
@@ -301,7 +306,8 @@ info: syntax "#eval"... [Lean.Parser.Command.eval]
 + command elab Lean.Elab.Command.elabEval
 
 syntax "#eval!"... [Lean.Parser.Command.evalBang]
-  `#eval e` evaluates the expression `e` by compiling and evaluating it.
+  `#eval e` evaluates the expression `e` by compiling it and running the compiled code. It then
+  prints the resulting value.
   ⏎
   * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
   * If `e` is a monadic value of type `m ty`, then the command tries to adapt the monad `m`
