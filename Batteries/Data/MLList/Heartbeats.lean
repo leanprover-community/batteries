@@ -8,6 +8,8 @@ module
 public import Batteries.Data.MLList.Basic
 public import Lean.Util.Heartbeats
 
+deprecated_module "It is recommended to use `Std.IterM` instead." (since := "2026-07-06")
+
 @[expose] public section
 
 /-!

@@ -8,6 +8,8 @@ module
 public import Batteries.Lean.System.IO
 public import Batteries.Data.MLList.Basic
 
+deprecated_module "It is recommended to use `Std.IterM` instead." (since := "2026-07-06")
+
 @[expose] public section
 
 /-!
