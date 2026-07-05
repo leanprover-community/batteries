@@ -80,6 +80,8 @@ def MLList (m : Type u → Type u) (α : Type u) : Type u := (MLList.spec m).lis
 
 namespace MLList
 
+set_option linter.deprecated false
+
 /-- The empty `MLList`. -/
 @[inline] def nil : MLList m α := (MLList.spec m).nil
 
