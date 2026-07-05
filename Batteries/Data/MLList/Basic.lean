@@ -7,6 +7,8 @@ module
 
 public import Batteries.Control.AlternativeMonad
 
+set_option linter.deprecated false
+
 deprecated_module "It is recommended to use `Std.IterM` instead." (since := "2026-07-06")
 
 public section
@@ -79,8 +81,6 @@ end MLList
 def MLList (m : Type u → Type u) (α : Type u) : Type u := (MLList.spec m).listM α
 
 namespace MLList
-
-set_option linter.deprecated false
 
 /-- The empty `MLList`. -/
 @[inline] def nil : MLList m α := (MLList.spec m).nil
