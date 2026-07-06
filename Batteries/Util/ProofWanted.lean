@@ -7,9 +7,8 @@ module
 
 public import Batteries.Tactic.Lint.Misc
 public meta import Lean.Elab.Command
-public meta import Lean.Elab.Term
-public meta import Lean.Meta.Tactic.TryThis
-public meta import Batteries.Lean.Syntax
+public meta import Lean.Meta.Tactic.TryThis -- shake: keep
+import Lean.Parser.Command
 
 /-!
 # The `theorem_wanted`, `def_wanted`, and `instance_wanted` commands

@@ -5,9 +5,10 @@ Authors: Mario Carneiro, Edward van de Meent
 -/
 module
 
-public meta import Lean.Elab.Syntax
 public meta import Lean.DocString
-public meta import Batteries.Util.LibraryNote
+public meta import Lean.Elab.Syntax -- shake: keep
+public import Batteries.Util.LibraryNote
+import Lean.Exception
 
 public meta section
 

@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Floris van Doorn, Mario Carneiro
 -/
 module
 
-public import Batteries.Tactic.Alias
+import Batteries.Tactic.Alias
 
 @[expose] public section
 

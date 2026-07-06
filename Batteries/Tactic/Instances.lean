@@ -6,7 +6,7 @@ Authors: Kyle Miller
 module
 
 public meta import Lean.Elab.Command
-public meta import Lean.PrettyPrinter
+import Lean.Exception
 
 public meta section
 

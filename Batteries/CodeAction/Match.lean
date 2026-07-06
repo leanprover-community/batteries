@@ -5,8 +5,11 @@ Authors: Moritz Roos
 -/
 module
 
-public meta import Batteries.CodeAction.Misc
 public meta import Batteries.Data.List.Basic
+public import Batteries.CodeAction.Misc
+public import Lean.Elab.InfoTree.Types
+import Batteries.Data.List.Basic
+import Lean.Parser.Term
 
 @[expose] public meta section
 

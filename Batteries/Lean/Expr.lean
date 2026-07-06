@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 module
 
-public import Lean.Elab.Term
 public import Lean.Elab.Binders
 
 @[expose] public section

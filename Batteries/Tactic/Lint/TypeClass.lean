@@ -6,7 +6,7 @@ Authors: Gabriel Ebner
 module
 
 public meta import Lean.Meta.Instances
-public meta import Batteries.Tactic.Lint.Basic
+public import Batteries.Tactic.Lint.Basic
 
 public meta section
 

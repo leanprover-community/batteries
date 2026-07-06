@@ -6,6 +6,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 module
 
 public import Batteries.Data.List.Basic
+import Std.Data.DTreeMap.Internal.Operations
 
 @[expose] public section
 

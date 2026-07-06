@@ -6,6 +6,8 @@ Authors: Siddhartha Gadgil, Mario Carneiro
 module
 
 public meta import Lean.Elab.Tactic.ElabTerm
+public import Lean.Meta.Basic
+import Lean.Meta.AppBuilder
 
 public meta section
 

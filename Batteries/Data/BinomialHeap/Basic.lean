@@ -7,6 +7,7 @@ module
 
 public import Batteries.Classes.Order
 public import Batteries.Control.ForInStep.Basic
+import Std.Data.DTreeMap.Internal.Balancing
 
 @[expose] public section
 

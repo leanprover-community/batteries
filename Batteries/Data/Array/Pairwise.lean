@@ -5,7 +5,7 @@ Authors: François G. Dorais
 -/
 module
 
-public import Batteries.Tactic.Alias
+import Batteries.Tactic.Alias
 
 @[expose] public section
 

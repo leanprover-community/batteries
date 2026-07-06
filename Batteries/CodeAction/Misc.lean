@@ -8,7 +8,11 @@ module
 public meta import Lean.Elab.Tactic.Induction
 public meta import Batteries.Lean.Position
 public meta import Batteries.CodeAction.Attr
-public meta import Lean.Server.CodeActions.Provider
+public import Lean.Expr
+public meta import Lean.Server.CodeActions.Attr
+import Batteries.CodeAction.Attr
+import Lean.Elab.BuiltinNotation
+import Lean.Elab.BuiltinTerm
 
 public meta section
 

@@ -6,6 +6,7 @@ Authors: Gabriel Ebner
 module
 
 public meta import Lean.Elab.Command
+import Lean.Message
 
 public meta section
 
