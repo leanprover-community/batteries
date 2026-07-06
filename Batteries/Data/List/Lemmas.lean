@@ -1361,3 +1361,31 @@ theorem take_succ_drop {l : List α} {n stop : Nat}
     (l.drop stop |>.take (n + 1)) = (l.drop stop |>.take n) ++ [l[stop + n]'(by omega)] := by
   rw [← List.take_append_getElem (by simpa [← List.length_drop] using h)]
   simp [List.getElem_drop]
+
+/-! ### max!/min! -/
+
+@[simp, grind =]
+theorem max!_eq_max?_getD [Inhabited α] {l : List α} [Max α] :
+    l.max! = (l.max?).getD (default : α) := by rw [max!]; cases l.max? <;> rfl
+
+theorem max!_eq_max_of_ne_nil [Inhabited α] [Max α] (l : List α) (hl : l ≠ []) :
+    l.max! = l.max hl := by
+  grind [List.max?_eq_some_max]
+
+grind_pattern max!_eq_max_of_ne_nil => l.max! where
+  guard l ≠ []
+
+@[simp, grind =] theorem max!_nil [Inhabited α] [Max α] : ([] : List α).max! = default := rfl
+
+@[simp, grind =]
+theorem min!_eq_min?_getD [Inhabited α] {l : List α} [Min α] :
+    l.min! = (l.min?).getD (default : α) := by rw [min!]; cases l.min? <;> rfl
+
+theorem min!_eq_min_of_ne_nil [Inhabited α] [Min α] (l : List α) (hl : l ≠ []) :
+    l.min! = l.min hl := by
+  grind [List.min?_eq_some_min]
+
+grind_pattern min!_eq_min_of_ne_nil => l.min! where
+  guard l ≠ []
+
+@[simp, grind =] theorem min!_nil [Inhabited α] [Min α] : ([] : List α).min! = default := rfl
