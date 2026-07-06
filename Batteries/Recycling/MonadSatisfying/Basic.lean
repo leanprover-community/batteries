@@ -171,6 +171,7 @@ end SatisfiesM
   ⟨by revert x; intro | .ok _, ⟨.ok ⟨_, h⟩, rfl⟩, _, rfl => exact h,
    fun h => match x with | .ok a => ⟨.ok ⟨a, h _ rfl⟩, rfl⟩ | .error e => ⟨.error e, rfl⟩⟩
 
+set_option backward.isDefEq.respectTransparency.types false in
 theorem SatisfiesM_EStateM_eq :
     SatisfiesM (m := EStateM ε σ) p x ↔ ∀ s a s', x.run s = .ok a s' → p a := by
   constructor
@@ -283,6 +284,7 @@ instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (Except
     refine Eq.trans ?_ (MonadSatisfying.val_eq (SatisfiesM_ExceptT_eq.mp h))
     simp
 
+set_option backward.isDefEq.respectTransparency.types false in
 instance : MonadSatisfying (EStateM ε σ) where
   satisfying {α p x} h :=
     have h' := SatisfiesM_EStateM_eq.mp h
