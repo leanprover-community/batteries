@@ -90,48 +90,34 @@ their value, and allow arguments starting with `_` to be unused. -/
   noErrorsFound := "No definitions are missing documentation."
   errorsFound := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
-    -- leanprover/lean4#12263: isGlobalInstance was removed, use isInstance instead
-    if (← isAutoDecl declName) || (← isInstance declName) then
-      return none -- FIXME: scoped/local instances should also not be linted
+    if ← isAutoDecl declName <||> isInstance declName then
+      return none
     if let .str p _ := declName then
       if ← isInstance p then
-        -- auxillary functions for instances should not be linted
+        -- auxiliary functions for instances should not be linted
         return none
     if let .str _ s := declName then
       if s == "parenthesizer" || s == "formatter" || s == "delaborator" || s == "quot" then
-      return none
+        return none
     let kind ← match ← getConstInfo declName with
-      | .axiomInfo .. => pure "axiom"
-      | .opaqueInfo .. => pure "constant"
-      | .defnInfo info =>
-          -- leanprover/lean4#2575: Prop projections are generated as `def`s
-          if ← isProjectionFn declName <&&> isProp info.type then
-            return none
-          pure "definition"
+      | .axiomInfo ..  => pure "axiom"
+      | .opaqueInfo .. => pure "opaque constant"
+      | .defnInfo ..   => pure "definition"
       | .inductInfo .. => pure "inductive"
       | _ => return none
-    let (none) ← findDocString? (← getEnv) declName | return none
-    return m!"{kind} missing documentation string"
+    if (← findDocString? (← getEnv) declName).isSome then return none else
+      return m!"{kind} missing documentation string"
 
 /-- A linter for checking theorem doc strings. -/
 @[env_linter disabled] def docBlameThm : Linter where
   noErrorsFound := "No theorems are missing documentation."
   errorsFound := "THEOREMS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
-    if ← isAutoDecl declName then
+    if ← isAutoDecl declName then return none
+    unless (← getConstInfo declName) matches .thmInfo .. do
       return none
-    let kind ← match ← getConstInfo declName with
-      | .thmInfo .. => pure "theorem"
-      | .defnInfo info =>
-          -- leanprover/lean4#2575:
-          -- projections are generated as `def`s even when they should be `theorem`s
-          if ← isProjectionFn declName <&&> isProp info.type then
-            pure "Prop projection"
-          else
-            return none
-      | _ => return none
-    let (none) ← findDocString? (← getEnv) declName | return none
-    return m!"{kind} missing documentation string"
+    if (← findDocString? (← getEnv) declName).isSome then return none else
+      return m!"theorem missing documentation string"
 
 /-- A linter for checking whether statements of declarations are well-typed. -/
 @[env_linter] def checkType : Linter where
