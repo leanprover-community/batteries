@@ -11,6 +11,7 @@ public meta import Lean.Util.ForEachExpr
 public meta import Lean.Meta.Check
 public meta import Lean.Meta.Instances
 public meta import Lean.Util.Recognizers
+public meta import Lean.Linter.Deprecated
 public meta import Lean.DocString
 public meta import Batteries.Tactic.Lint.Basic
 
@@ -33,6 +34,7 @@ This file defines several small linters.
   test declName := do
     if ← isAutoDecl declName then return none
     if ← isImplicitReducible declName then return none
+    if Linter.isDeprecated (← getEnv) declName then return none
     let userName := privateToUserName declName
     let nm := userName.components
     let some (dup, _) := nm.zip nm.tail! |>.find? fun (x, y) => x == y
@@ -47,6 +49,7 @@ their value, and allow arguments starting with `_` to be unused. -/
   test declName := do
     if ← isAutoDecl declName then return none
     if ← isProjectionFn declName then return none
+    if Linter.isDeprecated (← getEnv) declName then return none
     let info ← getConstInfo declName
     let ty := info.type
     -- Don't use `value? (allowOpaque := true)`, which would include `opaque` definition values.
@@ -166,6 +169,7 @@ with rfl when elaboration results in a different term than the user intended. -/
   isFast := true
   test declName := do
     if ← isAutoDecl declName then return none
+    if Linter.isDeprecated (← getEnv) declName then return none
     forallTelescope (← getConstInfo declName).type fun _ ty => do
       let some (lhs, rhs) := ty.eq?.map (fun (_, l, r) => (l, r)) <|> ty.iff?
         | return none
@@ -228,6 +232,7 @@ variables should be implicit instead.
   errorsFound := "EXPLICIT VARIABLES ON BOTH SIDES OF IFF"
   test declName := do
     if ← isAutoDecl declName then return none
+    if Linter.isDeprecated (← getEnv) declName then return none
     forallTelescope (← getConstInfo declName).type fun args ty => do
       let some (lhs, rhs) := ty.iff? | return none
       let explicit ← args.filterM fun arg =>
