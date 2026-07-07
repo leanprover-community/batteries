@@ -284,6 +284,7 @@ protected theorem All.setRed {t : RBNode α} (h : t.All p) : (setRed t).All p :=
 protected theorem Ordered.setRed {t : RBNode α} : (setRed t).Ordered cmp ↔ t.Ordered cmp := by
   unfold setRed; split <;> simp [Ordered]
 
+set_option backward.isDefEq.respectTransparency.types false in
 @[simp] theorem reverse_balLeft (l : RBNode α) (v : α) (r : RBNode α) :
     (balLeft l v r).reverse = balRight r.reverse v l.reverse := by
   suffices ∀ r' l', r' = r.reverse → l' = l.reverse →
@@ -350,6 +351,7 @@ protected theorem Balanced.balRight (hl : l.Balanced cl (n + 1)) (hr : r.RedRed 
 
 -- note: reverse_append is false!
 
+set_option backward.isDefEq.respectTransparency.types false in
 protected theorem All.append (hl : l.All p) (hr : r.All p) : (append l r).All p := by
   unfold append; split <;> try simp [*]
   · have ⟨hx, ha, hb⟩ := hl; have ⟨hy, hc, hd⟩ := hr
