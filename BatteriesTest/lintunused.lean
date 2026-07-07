@@ -35,8 +35,8 @@ set_option linter.unusedVariables false in
 @[deprecated foo6_ok (since := "today")] theorem foo6_ok' (h : Nat) : True := trivial
 
 -- `proof_wanted`/`def_wanted` is ignored
-proof_wanted wanted : True
-def_wanted wanted' : Bool
+proof_wanted wanted (h : Bool) : True
+def_wanted wanted' (h : Bool) : Bool
 
 /--
 error: /- The `unusedArguments` linter reports:
