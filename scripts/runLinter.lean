@@ -46,6 +46,8 @@ structure LinterConfig where
   noBuild : Bool := false
   /-- Whether to enable tracing. Default is `false`; set to `true` with `--trace` or `-v`. -/
   trace := false
+  /-- Whether to report the slowest checks per linter. Default is `false`; set with `--profile`. -/
+  profile := false
 
 @[always_inline, inline]
 private def Except.consError (e : ε) : Except (List ε) α → Except (List ε) α
@@ -79,6 +81,7 @@ where
     | "--no-build" => some { parsed with noBuild := true }
     | "--trace"
     | "-v"         => some { parsed with trace := true }
+    | "--profile"  => some { parsed with profile := true }
     | _ => none
 
 /--
@@ -99,7 +102,7 @@ def determineModulesToLint (specifiedModules : List Name) : IO (Array Name) := d
 
 /-- Run the Batteries linter on a given module and update the linter if `update` is `true`. -/
 unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := do
-  let { updateNoLints, noBuild, trace } := cfg
+  let { updateNoLints, noBuild, trace, profile } := cfg
   initSearchPath (← findSysroot)
   let rec
     /-- Builds `module` if the filepath `olean` does not exist. Throws if olean is not found and
@@ -150,7 +153,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
     traceLint s!"Starting lint..." (inIO := true) (currentModule := module)
     let decls ← getDeclsInPackage module.getRoot
     let linters ← getChecks (slow := true) (runAlways := none) (runOnly := none)
-    let results ← lintCore decls linters (inIO := true) (currentModule := module)
+    let results ← lintCore decls linters (inIO := true) (currentModule := module) (profile := profile)
     if updateNoLints then
       traceLint s!"Updating nolints file at {nolintsFile}" (inIO := true) (currentModule := module)
       writeJsonFile (α := NoLints) nolintsFile <|
@@ -180,7 +183,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
       IO.println s!"-- Linting passed for {module}."
 
 /--
-Usage: `runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]...`
+Usage: `runLinter [--update] [--trace | -v] [--no-build] [--profile] [Batteries.Data.Nat.Basic]...`
 
 Runs the linters on all declarations in the given modules
 (or all root modules of Lake `lean_lib` and `lean_exe` default targets if no module is specified).
@@ -192,6 +195,8 @@ If `--trace` (or, synonymously, `-v`) is set, tracing will be enabled and logged
 
 If `--no-build` is set, `runLinter` will throw if either the oleans to be linted or the oleans
 which drive the linting itself are not present.
+
+If `--profile` is set, the slowest checks per linter are reported.
 -/
 unsafe def main (args : List String) : IO Unit := do
   let linterArgs := parseLinterArgs args
@@ -200,7 +205,7 @@ unsafe def main (args : List String) : IO Unit := do
     | Except.error msgs => do
       IO.eprintln s!"Error parsing args:\n  {"\n  ".intercalate msgs}"
       IO.eprintln "Usage: \
-        runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]..."
+        runLinter [--update] [--trace | -v] [--no-build] [--profile] [Batteries.Data.Nat.Basic]..."
       IO.Process.exit 1
 
   let modulesToLint ← determineModulesToLint mods

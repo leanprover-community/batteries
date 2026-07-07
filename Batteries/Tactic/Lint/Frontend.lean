@@ -117,29 +117,45 @@ def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Na
       {if let some l := linterName then s!"- {l}: " else ""}\
       {msg}"
 
+/-- Reports the slowest checks for a single linter. Used by the `--profile` option. -/
+def reportSlowest (currentModule : Option Name) (linterName : Name)
+    (times : Array (Name × Nat)) (inIO : Bool) : CoreM Unit := do
+  let slowest := times.qsort (fun a b => a.2 > b.2) |>.filterMap fun (declName, ns) =>
+    let ms := ns / 1_000_000
+    if ms == 0 then none else some s!"  {ms}ms  {declName}"
+  let msg := if slowest.isEmpty then "all checks under 1ms"
+    else s!"slowest checks:\n{"\n".intercalate (slowest.take 10).toList}"
+  let line := s!"{if let some m := currentModule then s!"[{m}] " else ""}- {linterName}: {msg}"
+  if inIO then IO.println line else trace[Batteries.Lint] line
+
 /--
 Runs all the specified linters on all the specified declarations in parallel,
 producing a list of results.
 -/
 def lintCore (decls : Array Name) (linters : Array NamedLinter)
     -- For tracing:
-    (currentModule : Option Name := none) (inIO : Bool := false) :
+    (currentModule : Option Name := none) (inIO : Bool := false)
+    -- Report the slowest checks per linter.
+    (profile : Bool := false) :
     CoreM (Array (NamedLinter × Std.HashMap Name MessageData)) := do
   traceLint
       s!"Running linters:\n  {"\n  ".intercalate <| linters.map (s!"{·.name}") |>.toList}"
       inIO currentModule
 
-  let tasks : Array (NamedLinter × Array (Name × Task (Except Exception <| Option MessageData))) ←
+  let tasks : Array (NamedLinter ×
+      Array (Name × Task (Except Exception <| Option MessageData × Nat))) ←
     linters.mapM fun linter => do
       traceLint "(0/2) Starting..." inIO currentModule linter.name
       let decls ← decls.filterM (shouldBeLinted linter.name)
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
-        let act : MetaM (Option MessageData) := do
+        let act : MetaM (Option MessageData × Nat) := do
+          let start ← IO.monoNanosNow
           let result ← linter.test decl
           if inIO then
             -- Ensure any trace messages are propagated to stdout
             printTraces
-          return result
+          -- Return the elapsed time alongside the result, for the profile report.
+          return (result, (← IO.monoNanosNow) - start)
         EIO.asTask <| (← Core.wrapAsync (fun _ =>
           act |>.run' mkMetaContext -- We use the context used by `Command.liftTermElabM`
         ) (cancelTk? := none)) ()
@@ -147,9 +163,12 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
   let result ← tasks.mapM fun (linter, decls) => do
     traceLint "(1/2) Getting..." inIO currentModule linter.name
     let mut msgs : Std.HashMap Name MessageData := {}
+    let mut times : Array (Name × Nat) := #[]
     for (declName, msgTask) in decls do
       let msg? ← match msgTask.get with
-      | Except.ok msg? => pure msg?
+      | Except.ok (msg?, elapsed) =>
+        if profile then times := times.push (declName, elapsed)
+        pure msg?
       | Except.error err => pure m!"LINTER FAILED:\n{err.toMessageData}"
 
       if let .some msg := msg? then
@@ -159,6 +178,8 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
         s!"Failed with {msgs.size} messages\
         {if inIO then ", but these may include declarations in `nolints.json`" else ""}."}"
       inIO currentModule linter.name
+    if profile then
+      reportSlowest currentModule linter.name times inIO
     pure (linter, msgs)
   traceLint "Completed linting!" inIO currentModule
   return result
