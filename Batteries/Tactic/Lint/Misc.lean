@@ -33,10 +33,11 @@ This file defines several small linters.
   test declName := do
     if ← isAutoDecl declName then return none
     if ← isImplicitReducible declName then return none
-    let nm := declName.components
+    let userName := privateToUserName declName
+    let nm := userName.components
     let some (dup, _) := nm.zip nm.tail! |>.find? fun (x, y) => x == y
       | return none
-    return m!"The namespace {dup} is duplicated in the name"
+    return m!"The namespace `{dup}` is duplicated in the name `{userName}`"
 
 /-- A linter for checking for unused arguments. We skip all declarations that contain `sorry` in
 their value, and allow arguments starting with `_` to be unused. -/
