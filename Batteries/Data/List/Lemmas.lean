@@ -739,14 +739,6 @@ theorem findIdxNth_eq_findIdxNth_of_ge_countP_ge_countP {xs : List α} (hn : xs.
 @[deprecated (since := "2025-11-06")]
 alias idxOf_eq_idxOf? := idxOf_eq_getD_idxOf?
 
-@[simp, grind =]
-theorem getElem_idxOf [BEq α] [LawfulBEq α] {x : α} {xs : List α} (h : idxOf x xs < xs.length) :
-    xs[xs.idxOf x] = x := by induction xs <;> grind
-
-@[simp, grind =]
-theorem Nodup.idxOf_getElem [BEq α] [LawfulBEq α] {xs : List α} (H : Nodup xs)
-    (i : Nat) (h : i < xs.length) : idxOf xs[i] xs = i := by induction xs generalizing i <;> grind
-
 /-! ### idxsOf -/
 
 @[simp, grind =] theorem idxsOf_nil [BEq α] : ([] : List α).idxsOf x s = [] := rfl
@@ -1286,18 +1278,6 @@ theorem finRange_eq_nil_iff : finRange n = [] ↔ n = 0 := by
 
 theorem finRange_eq_pmap_range : finRange n = (range n).pmap Fin.mk (by simp) := by
   apply List.ext_getElem <;> simp [finRange]
-
-theorem nodup_finRange (n) : (finRange n).Nodup := by
-  rw [finRange_eq_pmap_range]
-  exact (Pairwise.pmap nodup_range _) fun _ _ _ _ => @Fin.ne_of_val_ne _ ⟨_, _⟩ ⟨_, _⟩
-
-theorem pairwise_lt_finRange (n) : Pairwise (· < ·) (finRange n) := by
-  rw [finRange_eq_pmap_range]
-  exact List.pairwise_lt_range.pmap (by simp) (by simp)
-
-theorem pairwise_le_finRange (n) : Pairwise (· ≤ ·) (finRange n) := by
-  rw [finRange_eq_pmap_range]
-  exact List.pairwise_le_range.pmap (by simp) (by simp)
 
 @[simp]
 theorem map_get_finRange (l : List α) : (finRange l.length).map l.get = l := by
