@@ -17,7 +17,10 @@ open Lean Meta Elab Server RequestM CodeAction
 
 /-- Filter for the info-nodes to find the match-nodes. -/
 def isMatchTerm : Info → Bool
-  | .ofTermInfo i => i.stx.isOfKind ``Lean.Parser.Term.match
+  | .ofTermInfo i =>
+    i.stx.isOfKind ``Lean.Parser.Term.match
+      && i.stx.getArgs.any fun s =>
+        s.isAtom && s.getAtomVal == "match" && (s.getHeadInfo matches .original ..)
   | _ => false
 
 /-- Returns the String.range that encompasses `match e (with)`. -/
