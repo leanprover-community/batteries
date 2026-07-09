@@ -229,9 +229,12 @@ variables should be implicit instead.
     if ← isAutoDecl declName then return none
     forallTelescope (← getConstInfo declName).type fun args ty => do
       let some (lhs, rhs) := ty.iff? | return none
+      -- One `collectFVars` pass per side rather than `containsFVar` per argument, for performance.
+      let lhsFVars := (collectFVars {} lhs).fvarSet
+      let rhsFVars := (collectFVars {} rhs).fvarSet
       let explicit ← args.filterM fun arg =>
         return (← getFVarLocalDecl arg).binderInfo.isExplicit &&
-          lhs.containsFVar arg.fvarId! && rhs.containsFVar arg.fvarId!
+          lhsFVars.contains arg.fvarId! && rhsFVars.contains arg.fvarId!
       if explicit.isEmpty then return none
       addMessageContextFull m!"should be made implicit: {
         MessageData.joinSep (explicit.toList.map (m!"{·}")) ", "}"
