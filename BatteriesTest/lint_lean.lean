@@ -12,9 +12,6 @@ but it is useful to run locally to see what the linters would catch.
 -- but if we move the environment linters up to Lean,
 -- these nolints should be installed there.
 -- (And in the meantime you can "manually" ignore them!)
--- attribute [nolint dupNamespace] Lean.Elab.Tactic.Tactic
--- attribute [nolint dupNamespace] Lean.Parser.Parser Lean.Parser.Parser.rec Lean.Parser.Parser.mk
---   Lean.Parser.Parser.info Lean.Parser.Parser.fn
 -- attribute [nolint explicitVarsOfIff] Iff.refl
 
 /-! Failing lints that need work. -/
@@ -40,7 +37,7 @@ but it is useful to run locally to see what the linters would catch.
 
 /-! Lints that have succeeded in the past, and hopefully still do! -/
 
--- #lint only explicitVarsOfIff in all -- Found 1 errors, `Iff.refl`, which could be nolinted.
+#lint only explicitVarsOfIff in all -- Found 1 errors, `Iff.refl`, which could be nolinted.
 -- #lint only impossibleInstance  in all -- Found 0 errors
 -- #lint only simpVarHead in all -- Found 0 error
 -- #lint only unusedHavesSuffices in all  -- Found 0 errors
