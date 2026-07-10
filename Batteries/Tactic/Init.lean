@@ -100,11 +100,11 @@ elab "eapply " e:term : tactic =>
 /-- Deprecated variant of `trivial`. -/
 elab (name := triv) "triv" : tactic => throwError "`triv` has been removed; use `trivial` instead"
 
-/-- The `conv` tactic `exact e` closes the goal `⊢ t` by rewriting it to `t'`,
+/-- The `conv` mode tactic `exact e` closes the goal `⊢ t` by rewriting it to `t'`,
 where `e : t = t'`. -/
 macro (name := Conv.exact) "exact " t:term : conv => `(conv| tactic => exact $t)
 
-/-- The `conv` tactic `equals e` claims that the currently focused subexpression is equal
+/-- The `conv` mode tactic `equals e` claims that the currently focused subexpression is equal
 to the term `e`, and proves this claim using the given tactic.
 ```
 example (P : (Nat → Nat) → Prop) : P (fun n => n - n) := by
