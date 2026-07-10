@@ -14,7 +14,7 @@ open Lean Elab Meta Tactic
 namespace Batteries.Tactic
 
 /-- Assuming there are `n` goals, `map_tacs [t1; t2; ...; tn]` applies each `ti` to the respective
-goal and leaves the resulting subgoals. It raises an error if the number of subgoals does not match
+goal and leaves the resulting subgoals. It raises an error if the number of subgoals does not match.
 -/
 elab "map_tacs " "[" ts:sepBy(tactic, "; ") "]" : tactic => do
   let goals ← getUnsolvedGoals
