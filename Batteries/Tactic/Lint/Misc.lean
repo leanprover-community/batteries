@@ -34,9 +34,7 @@ This file defines several small linters.
   test declName := do
     if ← isAutoDecl declName then return none
     if ← isImplicitReducible declName then return none
-    if Linter.isDeprecated (← getEnv) declName then return none
-    let userName := privateToUserName declName
-    let nm := userName.components
+    let nm := declName.components
     let some (dup, _) := nm.zip nm.tail! |>.find? fun (x, y) => x == y
       | return none
     return m!"The namespace `{dup}` is duplicated in the name `{userName}`"
