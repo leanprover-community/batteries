@@ -27,18 +27,6 @@ namespace Batteries.Tactic.Lint
 This file defines several small linters.
 -/
 
-/-- A linter for checking whether a declaration has a namespace twice consecutively in its name. -/
-@[env_linter] def dupNamespace : Linter where
-  noErrorsFound := "No declarations have a duplicate namespace."
-  errorsFound := "DUPLICATED NAMESPACES IN NAME:"
-  test declName := do
-    if ← isAutoDecl declName then return none
-    if ← isImplicitReducible declName then return none
-    let nm := declName.components
-    let some (dup, _) := nm.zip nm.tail! |>.find? fun (x, y) => x == y
-      | return none
-    return m!"The namespace `{dup}` is duplicated in the name `{userName}`"
-
 /-- A linter for checking for unused arguments. We skip all declarations that contain `sorry` in
 their value, and allow arguments starting with `_` to be unused. -/
 @[env_linter] def unusedArguments : Linter where
