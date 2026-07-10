@@ -33,7 +33,6 @@ This file defines several small linters.
   test declName := do
     if ← isAutoDecl declName then return none
     if ← isImplicitReducible declName then return none
-    if Linter.isDeprecated (← getEnv) declName then return none
     let nm := declName.components
     let some (dup, _) := nm.zip nm.tail! |>.find? fun (x, y) => x == y
       | return none
