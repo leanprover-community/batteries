@@ -25,7 +25,8 @@ such as `by _` to make it syntactically correct and show the current goal.
 macro "_" : tactic => `(tactic| {})
 
 /--
-Like `exact`, but takes a list of terms and checks that all goals are discharged after the tactic.
+`exacts [e1, ..., en]` is like `exact`, using the terms `e1`, ..., `en` to close all the current
+`n` goals. It raises an error if the number of goals does not match.
 -/
 elab (name := exacts) "exacts " "[" hs:term,* "]" : tactic => do
   for stx in hs.getElems do
@@ -50,6 +51,7 @@ introducing a hypothesis `h : ¬p` and proving `False`.
 * If `p` is a negation `¬q`, `h : q` will be introduced instead of `¬¬q`.
 * If `p` is decidable, it uses `Decidable.byContradiction` instead of `Classical.byContradiction`.
 * If `h` is omitted, the introduced variable will be called `this`.
+* `h` can be any pattern supported by `rcases`/`rintro`.
 -/
 syntax (name := byContra) "by_contra" (ppSpace colGt rcasesPatMed)? (" : " term)? : tactic
 
@@ -69,7 +71,7 @@ macro "absurd " h:term : tactic =>
     | refine @absurd _ _ ?_ $h
     | refine @absurd _ _ $h ?_)
 
-/-- `split_ands` applies `And.intro` until it does not make progress. -/
+/-- `split_ands` applies `And.intro` on all goals until it does not make progress. -/
 syntax "split_ands" : tactic
 macro_rules | `(tactic| split_ands) => `(tactic| repeat' refine And.intro ?_ ?_)
 
@@ -98,11 +100,12 @@ elab "eapply " e:term : tactic =>
 /-- Deprecated variant of `trivial`. -/
 elab (name := triv) "triv" : tactic => throwError "`triv` has been removed; use `trivial` instead"
 
-/-- `conv` tactic to close a goal using an equality theorem. -/
+/-- The `conv` tactic `exact e` closes the goal `⊢ t` by rewriting it to `t'`,
+where `e : t = t'`. -/
 macro (name := Conv.exact) "exact " t:term : conv => `(conv| tactic => exact $t)
 
-/-- The `conv` tactic `equals` claims that the currently focused subexpression is equal
- to the given expression, and proves this claim using the given tactic.
+/-- The `conv` tactic `equals e` claims that the currently focused subexpression is equal
+to the term `e`, and proves this claim using the given tactic.
 ```
 example (P : (Nat → Nat) → Prop) : P (fun n => n - n) := by
   conv in (_ - _) => equals 0 =>
