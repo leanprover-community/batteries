@@ -11,6 +11,8 @@ public import Lean.Util.Trace
 
 open Lean
 
+deriving instance DecidableEq for Except
+
 namespace Except
 
 /-- Visualize an `Except` using a checkmark or a cross. -/
@@ -52,7 +54,6 @@ namespace ExceptT
 -- This will be redundant after nightly-2024-11-08.
 attribute [ext] ExceptT.ext
 
-@[simp] theorem run_mk {m : Type u → Type v} (x : m (Except ε α)) : (ExceptT.mk x).run = x := rfl
 @[simp] theorem mk_run (x : ExceptT ε m α) : ExceptT.mk (ExceptT.run x) = x := rfl
 
 @[simp]

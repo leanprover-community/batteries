@@ -6,6 +6,8 @@ Authors: Alex J. Best, Kyle Miller
 module
 
 public meta import Lean.Elab.Tactic.Location
+public meta import Lean.Elab.Tactic.Config
+public meta import Lean.Elab.ConfigEval
 public meta import Batteries.Lean.Expr
 
 /-!

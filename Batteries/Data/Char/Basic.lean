@@ -6,6 +6,7 @@ Authors: Jannis Limperg, François G. Dorais
 module
 
 public import Batteries.Classes.Order
+public import Batteries.Data.List.Lemmas
 
 @[expose] public section
 
@@ -18,8 +19,6 @@ instance : Std.LawfulOrd Char :=
   .compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
     (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt Char.le_antisymm
 
-@[simp] theorem toNat_val (c : Char) : c.val.toNat = c.toNat := rfl
-
 @[simp] theorem toNat_ofNatAux {n : Nat} (h : n.isValidChar) : toNat (ofNatAux n h) = n := by
   simp [ofNatAux, toNat]
 
@@ -27,6 +26,14 @@ theorem toNat_ofNat (n : Nat) : toNat (ofNat n) = if n.isValidChar then n else 0
   split
   · simp [ofNat, *]
   · simp [ofNat, toNat, *]
+
+@[simp]
+theorem val_ofNat (hn : Nat.isValidChar n) : (ofNat n).val = UInt32.ofNat n := by
+  simp [ofNat, hn, ofNatAux, UInt32.ofNatLT_eq_ofNat]
+
+@[simp]
+theorem ofNat_toNat_eq_val {c : Char} : UInt32.ofNat c.toNat = c.val := by
+  rw [← toNat_val, UInt32.ofNat_toNat]
 
 /--
 Maximum character code point.
@@ -77,8 +84,7 @@ private theorem of_all_eq_true_aux (h : Char.all p) (n : Nat) (hn : n.isValidCha
     have := h.1 ⟨n, by grind⟩
     grind
   | .inr ⟨hn, hn'⟩ =>
-    -- https://github.com/leanprover/lean4/issues/11059
-    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; omega ⟩
+    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; grind⟩
     grind
 
 theorem eq_true_of_all_eq_true (h : Char.all p) (c : Char) : p c := by
@@ -123,8 +129,7 @@ private theorem of_any_eq_false_aux (h : Char.any p = false) (n : Nat) (hn : n.i
     have := h.1 ⟨n, hn⟩ (List.mem_finRange _)
     grind
   | .inr ⟨hn, hn'⟩ =>
-    -- https://github.com/leanprover/lean4/issues/11059
-    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; omega⟩
+    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; grind⟩
       (List.mem_finRange _)
     grind
 

@@ -1,7 +1,6 @@
-module
+module -- deprecated_module: ignore
 
 public import Batteries.Classes.Cast
-public import Batteries.Classes.Deprecated
 public import Batteries.Classes.Order
 public import Batteries.Classes.RatCast
 public import Batteries.Classes.SatisfiesM
@@ -25,6 +24,7 @@ public import Batteries.Data.AssocList
 public import Batteries.Data.BinaryHeap
 public import Batteries.Data.BinomialHeap
 public import Batteries.Data.BitVec
+public import Batteries.Data.Bool
 public import Batteries.Data.ByteArray
 public import Batteries.Data.ByteSlice
 public import Batteries.Data.Char
@@ -42,6 +42,7 @@ public import Batteries.Data.RBMap
 public import Batteries.Data.Random
 public import Batteries.Data.Range
 public import Batteries.Data.Rat
+public import Batteries.Data.RunningStats
 public import Batteries.Data.Stream
 public import Batteries.Data.String
 public import Batteries.Data.UInt
@@ -80,6 +81,18 @@ public import Batteries.Linter
 public import Batteries.Linter.UnnecessarySeqFocus
 public import Batteries.Linter.UnreachableTactic
 public import Batteries.Logic
+public import Batteries.Recycling.MonadSatisfying
+public import Batteries.Recycling.MonadSatisfying.Array
+public import Batteries.Recycling.MonadSatisfying.Basic
+public import Batteries.Recycling.MonadSatisfying.Lean
+public import Batteries.Recycling.MonadSatisfying.List
+public import Batteries.Recycling.MonadSatisfying.Vector
+public import Batteries.Recycling.RBTree
+public import Batteries.Recycling.RBTree.Alter
+public import Batteries.Recycling.RBTree.Basic
+public import Batteries.Recycling.RBTree.Depth
+public import Batteries.Recycling.RBTree.Lemmas
+public import Batteries.Recycling.RBTree.WF
 public import Batteries.Tactic.Alias
 public import Batteries.Tactic.Basic
 public import Batteries.Tactic.Case
@@ -113,4 +126,3 @@ public import Batteries.Util.LibraryNote
 public import Batteries.Util.Panic
 public import Batteries.Util.Pickle
 public import Batteries.Util.ProofWanted
-public import Batteries.WF

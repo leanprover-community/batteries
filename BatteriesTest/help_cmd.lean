@@ -95,10 +95,10 @@ info:
 syntax "("... [«prec(_)»]
   Parentheses are used for grouping precedence expressions.
 
-syntax "+"... [Lean.Parser.Syntax.addPrec]
+syntax ..."+"... [Lean.Parser.Syntax.addPrec]
   Addition of precedences. This is normally used only for offsetting, e.g. `max + 1`.
 
-syntax "-"... [Lean.Parser.Syntax.subPrec]
+syntax ..."-"... [Lean.Parser.Syntax.subPrec]
   Subtraction of precedences. This is normally used only for offsetting, e.g. `max - 1`.
 
 syntax "arg"... [precArg]
@@ -117,7 +117,7 @@ syntax "min"... [precMin]
 syntax "min1"... [precMin1]
   `(min+1)` (we can only write `min+1` after `Meta.lean`)
 
-syntax ... [Lean.Parser.Syntax.numPrec]
+syntax "num"... [Lean.Parser.Syntax.numPrec]
 -/
 #guard_msgs in
 #help cat prec
@@ -129,11 +129,11 @@ syntax "("... [«prec(_)»]
 + macro «_aux_Init_Notation___macroRules_prec(_)_1»
   Parentheses are used for grouping precedence expressions.
 
-syntax "+"... [Lean.Parser.Syntax.addPrec]
+syntax ..."+"... [Lean.Parser.Syntax.addPrec]
   Addition of precedences. This is normally used only for offsetting, e.g. `max + 1`.
 + macro Lean._aux_Init_Meta___macroRules_Lean_Parser_Syntax_addPrec_1
 
-syntax "-"... [Lean.Parser.Syntax.subPrec]
+syntax ..."-"... [Lean.Parser.Syntax.subPrec]
   Subtraction of precedences. This is normally used only for offsetting, e.g. `max - 1`.
 + macro Lean._aux_Init_Meta___macroRules_Lean_Parser_Syntax_subPrec_1
 
@@ -164,7 +164,7 @@ syntax "min1"... [precMin1]
 + macro _aux_Init_Notation___macroRules_precMin1_1
   `(min+1)` (we can only write `min+1` after `Meta.lean`)
 
-syntax ... [Lean.Parser.Syntax.numPrec]
+syntax "num"... [Lean.Parser.Syntax.numPrec]
 -/
 #guard_msgs in
 #help cat+ prec
@@ -218,7 +218,8 @@ error: no command declarations start with foobarbaz
 
 /--
 info: syntax "#eval"... [Lean.Parser.Command.eval]
-  `#eval e` evaluates the expression `e` by compiling and evaluating it.
+  `#eval e` evaluates the expression `e` by compiling it and running the compiled code. It then
+  prints the resulting value.
   ⏎
   * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
   * If `e` is a monadic value of type `m ty`, then the command tries to adapt the monad `m`
@@ -242,7 +243,8 @@ info: syntax "#eval"... [Lean.Parser.Command.eval]
   See also: `#reduce e` for evaluation by term reduction.
 
 syntax "#eval!"... [Lean.Parser.Command.evalBang]
-  `#eval e` evaluates the expression `e` by compiling and evaluating it.
+  `#eval e` evaluates the expression `e` by compiling it and running the compiled code. It then
+  prints the resulting value.
   ⏎
   * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
   * If `e` is a monadic value of type `m ty`, then the command tries to adapt the monad `m`
@@ -263,14 +265,23 @@ syntax "#eval!"... [Lean.Parser.Command.evalBang]
   * If `eval.derive.repr` is true (default: true) then attempts to auto-derive a `Repr` instance
     when there is no other way to print the result.
   ⏎
-  See also: `#reduce e` for evaluation by term reduction.  syntax "#exit"... [Lean.Parser.Command.exit]
+  See also: `#reduce e` for evaluation by term reduction.
+
+syntax "#exit"... [Lean.Parser.Command.exit]
 -/
 #guard_msgs in
 #help command "#e"
 
+-- Notably, we don't show a generic `"/--"` in the following test:
+
+/-- info: syntax "abbrev"... [Lean.Parser.Command.declaration] -/
+#guard_msgs in
+#help command def
+
 /--
 info: syntax "#eval"... [Lean.Parser.Command.eval]
-  `#eval e` evaluates the expression `e` by compiling and evaluating it.
+  `#eval e` evaluates the expression `e` by compiling it and running the compiled code. It then
+  prints the resulting value.
   ⏎
   * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
   * If `e` is a monadic value of type `m ty`, then the command tries to adapt the monad `m`
@@ -295,7 +306,8 @@ info: syntax "#eval"... [Lean.Parser.Command.eval]
 + command elab Lean.Elab.Command.elabEval
 
 syntax "#eval!"... [Lean.Parser.Command.evalBang]
-  `#eval e` evaluates the expression `e` by compiling and evaluating it.
+  `#eval e` evaluates the expression `e` by compiling it and running the compiled code. It then
+  prints the resulting value.
   ⏎
   * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
   * If `e` is a monadic value of type `m ty`, then the command tries to adapt the monad `m`
