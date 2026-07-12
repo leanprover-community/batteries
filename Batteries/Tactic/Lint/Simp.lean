@@ -22,7 +22,6 @@ namespace Batteries.Tactic.Lint
 This files defines several linters that prevent common mistakes when declaring simp lemmas:
 
  * `simpNF` checks that the left-hand side of a simp lemma is not simplified by a different lemma.
- * `simpVarHead` checks that the head symbol of the left-hand side is not a variable.
  * `simpComm` checks that commutativity lemmas are not marked as simplification lemmas.
 -/
 
@@ -51,13 +50,41 @@ def withSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM α) : MetaM 
         let some (_, lhs, rhs) := eq.eq? | throwError "not an equality {eq}"
         k { hyps, lhs, rhs }
 
+/-- When true, the `simpNF` linter sets `backward.isDefEq.respectTransparency true` when
+comparing expressions in `isSimpEq`. This is stricter and will flag more simp lemmas as
+not in simp-normal form, in particular those where the left-hand side is not in normal form
+up to reducible defeq (e.g. lemmas involving type synonyms or bundled carrier types).
+
+Defaults to `false` to preserve the historical linter behavior, which uses
+`backward.isDefEq.respectTransparency false` to avoid false positives when `simp`/`dsimp`
+changes implicit arguments by unfolding carrier types in bundled structures.
+
+To find simp lemmas that fail with the stricter check, use:
+```
+set_option linter.simpNF.respectTransparency true in
+#lint only simpNF
+```
+-/
+register_option linter.simpNF.respectTransparency : Bool := {
+  defValue := false
+  descr := "if true, the simpNF linter uses backward.isDefEq.respectTransparency when \
+    comparing expressions (catches more defeq abuse, but may produce false positives)"
+}
+
 /-- Checks whether two expressions are equal for the simplifier. That is,
 they are reducibly-definitional equal, and they have the same head symbol. -/
 def isSimpEq (a b : Expr) (whnfFirst := true) : MetaM Bool := withReducible do
   let a ← if whnfFirst then whnf a else pure a
   let b ← if whnfFirst then whnf b else pure b
   if a.getAppFn.constName? != b.getAppFn.constName? then return false
-  isDefEq a b
+  -- By default we use the old `isDefEq` behavior that does not respect transparency when
+  -- checking implicit arguments. Without this, `simp`/`dsimp` changes to implicit arguments
+  -- (e.g. unfolding carrier types) would cause false positives.
+  -- Set `linter.simpNF.respectTransparency` to `true` to use the stricter behavior,
+  -- which catches simp lemmas that rely on defeq abuse through type synonyms.
+  let rt := linter.simpNF.respectTransparency.get (← getOptions)
+  withOptions (fun opts => opts.setBool `backward.isDefEq.respectTransparency rt) do
+    isDefEq a b
 
 /-- Constructs a message from all the simp theorems encoded in the given type. -/
 def checkAllSimpTheoremInfos (ty : Expr) (k : SimpTheoremInfo → MetaM (Option MessageData)) :
@@ -145,13 +172,11 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
             \nOne of the lemmas above could be a duplicate.\
             \nIf that's not the case try reordering lemmas or adding @[priority]."
         else if ¬ lhsInNF then
+          let (lhs, lhs') ← addPPExplicitToExposeDiff lhs lhs'
           return m!"\
-            Left-hand side simplifies from\
-            \n  {lhs}\
-            \nto\
-            \n  {lhs'}\
-            \nusing\
-            \n  {← formatLemmas prf1Stats.usedTheorems simpName higherOrder}\
+            Left-hand side simplifies from{indentD lhs}\
+            \nto{indentD lhs'}\
+            \nusing{indentD <| ← formatLemmas prf1Stats.usedTheorems simpName higherOrder}\
             \nTry to change the left-hand side to the simplified term!"
         else if lhs == lhs' then
           let lhsType ← inferType lhs
@@ -167,13 +192,12 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
                 decorateError m!"simplify fails on hypothesis ({name} : {ldecl.type}):" <|
                   simplify ldecl.type (← Simp.Context.mkDefault)
               unless ← isSimpEq hType' ldecl.type do
+                let (hType', ldecl_type) ← addPPExplicitToExposeDiff hType' ldecl.type
                 hints := hints ++ m!"\
-                  \nThe simp lemma may be invalid because hypothesis {name} simplifies from\
-                  \n  {ldecl.type}\
-                  \nto\
-                  \n  {hType'}\
-                  \nusing\
-                  \n  {← formatLemmas stats.usedTheorems simpName none}\
+                  \nThe simp lemma may be invalid because hypothesis {name} simplifies from{
+                      indentD ldecl_type}\
+                  \nto{indentD hType'}\
+                  \nusing{indentD <| ← formatLemmas stats.usedTheorems simpName none}\
                   \nTry to change the hypothesis to the simplified term!"
             else
               -- improve the error message if the argument can't be filled in by `simp`
@@ -189,7 +213,7 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
         else
           return none
 
-library_note "simp-normal form" /--
+library_note «simp-normal form» /--
 This note gives you some tips to debug any errors that the simp-normal form linter raises.
 
 The reason that a lemma was considered faulty is because its left-hand side is not in simp-normal
@@ -236,23 +260,6 @@ Here are some tips depending on the error raised by the linter:
      then apply `try_for 10000 { simp }` to the right-hand side.  You will
      see a periodic sequence of lemma applications in the trace message.
 -/
-
-/--
-A linter for simp lemmas whose lhs has a variable as head symbol,
-and which hence never fire.
--/
-@[env_linter] def simpVarHead : Linter where
-  noErrorsFound :=
-    "No left-hand sides of a simp lemma has a variable as head symbol."
-  errorsFound := "LEFT-HAND SIDE HAS VARIABLE AS HEAD SYMBOL.
-Some simp lemmas have a variable as head symbol of the left-hand side (after whnfR):"
-  test := fun declName => do
-    unless ← isSimpTheorem declName do return none
-    checkAllSimpTheoremInfos (← getConstInfo declName).type fun {lhs, ..} => do
-    let lhs ← whnfR lhs
-    let headSym := lhs.getAppFn
-    unless headSym.isFVar do return none
-    return m!"Left-hand side has variable as head symbol: {headSym}"
 
 private def Expr.eqOrIff? : Expr → Option (Expr × Expr)
   | .app (.app (.app (.const ``Eq _) _) lhs) rhs
