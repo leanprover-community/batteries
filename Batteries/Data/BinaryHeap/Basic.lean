@@ -118,10 +118,10 @@ def popMax (self : BinaryHeap α lt) : BinaryHeap α lt :=
 
 @[simp] theorem size_popMax (self : BinaryHeap α lt) :
     self.popMax.size = self.size - 1 := by
-  simp only [popMax, size]
+  simp only [popMax, Vector.toArray_pop, Vector.toArray_swap]
   split
-  · simp +arith [*]
-  · split <;> simp +arith
+  · simp [*]
+  · split <;> simp [size]
 
 /-- `O(log n)`. Return and remove the maximum element from a `BinaryHeap`. -/
 def extractMax (self : BinaryHeap α lt) : Option α × BinaryHeap α lt :=
