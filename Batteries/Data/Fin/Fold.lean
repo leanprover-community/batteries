@@ -57,6 +57,7 @@ theorem dfoldr_eq_dfoldrM (f : (i : Fin n) → α i.succ → α i.castSucc) (x) 
 theorem dfoldr_succ (f : (i : Fin (n+1)) → α i.succ → α i.castSucc) (x) :
     dfoldr (n+1) α f x = f 0 (dfoldr n (α ∘ succ) (f ·.succ) x) := dfoldrM_succ ..
 
+set_option backward.isDefEq.respectTransparency false in
 theorem dfoldr_succ_last {n : Nat} {α : Fin (n+2) → Sort _}
     (f : (i : Fin (n+1)) → α i.succ → α i.castSucc) (x : α (last (n+1))) :
       dfoldr (n+1) α f x = dfoldr n (α ∘ castSucc) (f ·.castSucc) (f (last n) x) := by
@@ -81,6 +82,7 @@ theorem dfoldlM_loop_eq [Monad m] (f : ∀ (i : Fin n), α i.castSucc → m (α 
     dfoldlM.loop n α f n (Nat.le_refl _) x = pure x := by
   rw [dfoldlM.loop, dif_neg (Nat.lt_irrefl _)]; rfl
 
+set_option backward.isDefEq.respectTransparency false in
 @[simp] theorem dfoldlM_zero [Monad m] (f : (i : Fin 0) → α i.castSucc → m (α i.succ)) (x) :
     dfoldlM 0 α f x = pure x := by simp [dfoldlM, dfoldlM.loop]
 
@@ -95,7 +97,7 @@ theorem dfoldlM_loop [Monad m] (f : (i : Fin (n+1)) → α i.castSucc → m (α 
     cases Nat.le_antisymm (Nat.le_of_lt_succ h) (Nat.not_lt.1 h')
     rw [dfoldlM_loop_lt _ h]
     congr; funext
-    rw [dfoldlM_loop_eq, dfoldlM_loop_eq]; rfl
+    rw [dfoldlM_loop_eq, dfoldlM_loop_eq]
 
 theorem dfoldlM_succ [Monad m] (f : (i : Fin (n+1)) → α i.castSucc → m (α i.succ)) (x) :
     dfoldlM (n+1) α f x = f 0 x >>= (dfoldlM n (α ∘ succ) (f ·.succ ·) .) :=
@@ -117,11 +119,12 @@ theorem dfoldlM_eq_foldlM [Monad m] (f : (i : Fin n) → α → m α) (x : α) :
 theorem dfoldl_succ (f : (i : Fin (n+1)) → α i.castSucc → α i.succ) (x) :
     dfoldl (n+1) α f x = dfoldl n (α ∘ succ) (f ·.succ ·) (f 0 x) := dfoldlM_succ ..
 
+set_option backward.isDefEq.respectTransparency false in
 theorem dfoldl_succ_last (f : (i : Fin (n+1)) → α i.castSucc → α i.succ) (x) :
     dfoldl (n+1) α f x = f (last n) (dfoldl n (α ∘ castSucc) (f ·.castSucc ·) x) := by
   rw [dfoldl_succ]
   induction n with
-  | zero => simp [last]
+  | zero => simp
   | succ n ih => rw [dfoldl_succ, @ih (α ∘ succ) (f ·.succ ·), dfoldl_succ]; congr
 
 theorem dfoldl_eq_dfoldlM (f : (i : Fin n) → α i.castSucc → α i.succ) (x) :
