@@ -14,7 +14,7 @@ open Lean
 
 namespace Lean
 
-open Std
+open _root_.Std
 
 /--
 `TagAttributeExtra` works around a limitation of `TagAttribute`, which is that definitions
