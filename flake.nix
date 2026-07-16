@@ -1,25 +1,31 @@
-# Cheap packaging — copies pre-built .olean files from .lake/build/
-# No rebuild, no lean4-nix. Use with nix build --impure.
 {
-  description = "batteries — lean-toolchain=leanprover/lean4:v4.29.1, 175 .olean files (pre-built)";
+  description = "batteries — lean-toolchain=leanprover/lean4:v4.29.1, 175 .olean files";
 
   inputs = {
-    nixpkgs.url = "git+file:///mnt/data1/git/github.com/NixOS/nixpkgs.git?ref=master";
+    nixpkgs.follows = "lean4-nix/nixpkgs";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    lean4-nix.url = "github:lenianiva/lean4-nix";
   };
 
-  outputs = { self, nixpkgs }:
-    let
-      system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; };
-    in {
-      packages.${system}.default = pkgs.stdenv.mkDerivation {
-        name = "batteries-olean-17d08b05";
-        src = builtins.path {
-          path = /mnt/data1/time-2026/07-july/15/lean-deps/batteries/.lake/build/lib/lean;
-          name = "batteries-olean";
+  outputs = inputs @ { nixpkgs, flake-parts, lean4-nix, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = [ "x86_64-linux" ];
+
+      perSystem = { system, pkgs, ... }: {
+        _module.args.pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ (lean4-nix.readToolchainFile ./lean-toolchain) ];
         };
-        buildPhase = "true";
-        installPhase = "cp -r $src $out";
+
+        packages.default = (pkgs.lean.buildLeanPackage {
+          name = "batteries";
+          roots = [ "Batteries" ];
+          src = pkgs.lib.cleanSource ./.;
+        }).modRoot;
+
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs.lean; [ lean-all ];
+        };
       };
     };
 }
