@@ -64,12 +64,25 @@ example : True := Foo.barbaz
 noncomputable def foobaz : Nat → Nat := id
 alias foobaz1 := foobaz
 
-/-- error: Failed to find LCNF signature for A.foobaz1 -/
+/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'foobaz1', which is 'noncomputable' -/
 #guard_msgs in def foobaz2 (n : Nat) := foobaz1 n
 
 noncomputable alias foobaz3 := id
-/-- error: Failed to find LCNF signature for A.foobaz3 -/
+/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'foobaz3', which is 'noncomputable' -/
 #guard_msgs in def foobaz4 (n : Nat) := foobaz3 n
+
+/- Test noncomputable section (#1097) -/
+noncomputable section
+def bazSec : Nat := Classical.choice ⟨0⟩
+alias quuxSec := bazSec
+end
+/-- error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'quuxSec', which is 'noncomputable' -/
+#guard_msgs in def quuxSecBad (n : Nat) := quuxSec + n
+
+/- Test namespaced alias target resolution (#810) -/
+def Foo.barNS : Nat := 0
+alias Foo.bazNS := barNS
+example : Foo.bazNS = 0 := rfl
 
 /- Test unsafe -/
 
