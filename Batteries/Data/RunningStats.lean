@@ -64,7 +64,12 @@ public def variance (s : RunningStats) : Float :=
 public def sampleVariance (s : RunningStats) : Float :=
   if s.count ≤ 2 then 0.0 else s.var / (s.count - 1).toFloat
 
-/-- Standard deviation of running data stream. -/
+/-- Standard deviation of running data stream (population). -/
 @[inline]
 public def standardDeviation (s : RunningStats) : Float :=
+  Float.sqrt s.variance
+
+/-- Sample standard deviation of running data stream. -/
+@[inline]
+public def sampleStandardDeviation (s : RunningStats) : Float :=
   Float.sqrt s.sampleVariance
