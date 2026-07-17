@@ -62,7 +62,7 @@ public def variance (s : RunningStats) : Float :=
 /-- Unbiased variance of running data stream. -/
 @[inline]
 public def sampleVariance (s : RunningStats) : Float :=
-  if s.count ≤ 2 then 0.0 else s.var / (s.count - 1).toFloat
+  if s.count ≤ 1 then 0.0 else s.var / (s.count - 1).toFloat
 
 /-- Standard deviation of running data stream. -/
 @[inline]
