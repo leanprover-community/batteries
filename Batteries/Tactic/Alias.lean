@@ -124,18 +124,17 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
 
 /-- Resolve `nameStx` for an alias, opening the alias name's namespace prefix (like `def`). -/
 private def resolveAliasTarget (aliasId : Name) (nameStx : Ident) : TermElabM Name := do
-  withoutExporting do
-    let ns ←
-      if (`_root_).isPrefixOf aliasId then
-        pure (aliasId.replacePrefix `_root_ .anonymous).getPrefix
-      else
-        pure <| (← getCurrNamespace) ++ aliasId.getPrefix
-    if ns.isAnonymous then
-      realizeGlobalConstNoOverloadWithInfo nameStx
+  let ns ←
+    if (`_root_).isPrefixOf aliasId then
+      pure (aliasId.replacePrefix `_root_ .anonymous).getPrefix
     else
-      withTheReader Core.Context (fun ctx =>
-          { ctx with openDecls := .simple ns [] :: ctx.openDecls }) do
-        realizeGlobalConstNoOverloadWithInfo nameStx
+      pure <| (← getCurrNamespace) ++ aliasId.getPrefix
+  if ns.isAnonymous then
+    realizeGlobalConstNoOverloadWithInfo nameStx
+  else
+    withTheReader Core.Context (fun ctx =>
+        { ctx with openDecls := .simple ns [] :: ctx.openDecls }) do
+      realizeGlobalConstNoOverloadWithInfo nameStx
 
 /--
   The command `alias name := target` creates a synonym of `target` with the given name.
@@ -152,7 +151,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:iden
   Command.liftTermElabM do
     -- Whether we may access private `name`s here depends on whether it is a theorem, so first
     -- resolve in private scope always (also open alias namespace prefix, matching `def`)
-    let name ← resolveAliasTarget alias.getId nameStx
+    let name ← withoutExporting <| resolveAliasTarget alias.getId nameStx
     let cinfo ← withoutExporting <| getConstInfo name
     let declMods ← elabModifiers mods
     Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
