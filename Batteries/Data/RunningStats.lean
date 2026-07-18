@@ -57,7 +57,7 @@ public def push (data : Float) (s : RunningStats) : RunningStats :=
 /-- Variance of running data stream. -/
 @[inline]
 public def variance (s : RunningStats) : Float :=
-  if s.count ≤ 1 then 0.0 else s.var / s.count.toFloat
+  if s.count = 0 then 0.0 else s.var / s.count.toFloat
 
 /-- Unbiased variance of running data stream. -/
 @[inline]
