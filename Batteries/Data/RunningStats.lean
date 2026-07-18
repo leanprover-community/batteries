@@ -13,8 +13,8 @@ section
 
 This module implements Welford's one-pass algorithm for calculating the mean and
 standard deviation of a sample or a population. The advantage of this algorithm is
-This module implements Welford's one-pass algorithm for calculating the mean, 
-variance and standard deviation of a sample or a population. The advantage of 
+This module implements Welford's one-pass algorithm for calculating the mean,
+variance and standard deviation of a sample or a population. The advantage of
 this algorithm is that it is not necessary to store the data.
 
 The algorithm uses the recurrence formulas for the mean `μ`, variance `σ²`
