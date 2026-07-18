@@ -13,7 +13,9 @@ section
 
 This module implements Welford's one-pass algorithm for calculating the mean and
 standard deviation of a sample or a population. The advantage of this algorithm is
-that it is not necessary to store the data.
+This module implements Welford's one-pass algorithm for calculating the mean,
+variance and standard deviation of a sample or a population. The advantage of
+this algorithm is that it is not necessary to store the data.
 
 The algorithm uses the recurrence formulas for the mean `μ`, variance `σ²`
 and the sample variance `s²`:
@@ -54,17 +56,22 @@ public def push (data : Float) (s : RunningStats) : RunningStats :=
   let var := s.var + (data - s.mean) * (data - mean)
   {count, mean, var}
 
-/-- Variance of running data stream. -/
+/-- Variance of running data stream (population variance). -/
 @[inline]
 public def variance (s : RunningStats) : Float :=
   if s.count = 0 then 0.0 else s.var / s.count.toFloat
 
-/-- Unbiased variance of running data stream. -/
+/-- Unbiased variance of running data stream (sample variance). -/
 @[inline]
 public def sampleVariance (s : RunningStats) : Float :=
   if s.count ≤ 1 then 0.0 else s.var / (s.count - 1).toFloat
 
-/-- Standard deviation of running data stream. -/
+/-- Standard deviation of running data stream (square-root of population variance). -/
 @[inline]
 public def standardDeviation (s : RunningStats) : Float :=
+  Float.sqrt s.variance
+
+/-- Sample standard deviation of running data stream (square root of sample variance). -/
+@[inline]
+public def sampleStandardDeviation (s : RunningStats) : Float :=
   Float.sqrt s.sampleVariance
