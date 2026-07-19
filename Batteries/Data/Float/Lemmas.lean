@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robin Arnez
 -/
 module
+
 public import Batteries.Data.Float.Basic
-import all Init.Data.OfScientific
+import all Init.Data.OfScientific -- remove when Float.ofNat is exposed
 
 @[expose] public section
 
