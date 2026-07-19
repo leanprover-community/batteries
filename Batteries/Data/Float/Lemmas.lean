@@ -69,7 +69,8 @@ theorem unpackSign_packComponents {spec : Format} (s e m) :
 
 theorem packComponents_unpackSign_unpackExponent_unpackMantissa
     {spec : Format} (b : BitVec spec.numBits) :
-    packComponents spec (Sign.ofBitVec (unpackSign b)) (unpackExponent b) (unpackMantissa b) = b := by
+    packComponents spec
+      (Sign.ofBitVec (unpackSign b)) (unpackExponent b) (unpackMantissa b) = b := by
   simp [packComponents]
   rw [unpackSign_def, unpackExponent_def, unpackMantissa_def]
   rw [BitVec.extractLsb'_append_extractLsb'_eq_extractLsb',
@@ -164,7 +165,8 @@ theorem unpack_packedNaN {spec : Format} : unpack spec (packedNaN spec) = notANu
   simp [unpack, this]
 
 @[simp]
-theorem unpack_packedZero {spec : Format} {sign : Sign} : unpack spec (packedZero spec sign) = .zero sign := by
+theorem unpack_packedZero {spec : Format} {sign : Sign} :
+    unpack spec (packedZero spec sign) = .zero sign := by
   simp [unpack, packedZero, Nat.ne_of_gt spec.he]
 
 @[simp]
