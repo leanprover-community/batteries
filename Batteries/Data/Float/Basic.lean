@@ -22,6 +22,11 @@ involving `nan` return `false`, including in particular `nan == nan`.
 -/
 def nan : Float := 0/0
 
+/--
+The floating point value closest to the mathematical constant `π`.
+-/
+def pi : Float := 3.141592653589793
+
 /-- Returns `v, exp` integers such that `f = v * 2^exp`.
 (`e` is not minimal, but `v.abs` will be at most `2^53 - 1`.)
 Returns `none` when `f` is not finite (i.e. `inf`, `-inf` or a `nan`). -/
@@ -76,6 +81,83 @@ def toStringFull (f : Float) : String :=
   else f.toString -- inf, -inf, nan
 
 end Float
+
+namespace Float32
+
+/--
+The floating point value "positive infinity", also used to represent numerical computations
+which produce finite values outside of the representable range of `Float32`.
+-/
+def inf : Float32 := 1/0
+
+/--
+The floating point value "not a number", used to represent erroneous numerical computations
+such as `0 / 0`. Using `nan` in any float operation will return `nan`, and all comparisons
+involving `nan` return `false`, including in particular `nan == nan`.
+-/
+def nan : Float32 := 0/0
+
+/--
+The floating point value closest to the mathematical constant `π`.
+-/
+def pi : Float32 := 3.141592653589793
+
+/-- Returns `v, exp` integers such that `f = v * 2^exp`.
+(`e` is not minimal, but `v.abs` will be at most `2^53 - 1`.)
+Returns `none` when `f` is not finite (i.e. `inf`, `-inf` or a `nan`). -/
+def toRatParts (f : Float32) : Option (Int × Int) :=
+  if f.isFinite then
+    let (f', exp) := f.frExp
+    let x := (2^24:Nat).toFloat32 * f'
+    let v := if x < 0 then
+      (-(-x).floor.toUInt32.toNat : Int)
+    else
+      (x.floor.toUInt32.toNat : Int)
+    some (v, exp - 24)
+  else none
+
+/-- Returns `v, exp` integers such that `f = v * 2^exp`.
+Like `toRatParts`, but `e` is guaranteed to be minimal (`n` is always odd), unless `n = 0`.
+`n.abs` will be at most `2^53 - 1` because `Float` has 53 bits of precision.
+Returns `none` when `f` is not finite (i.e. `inf`, `-inf` or a `nan`). -/
+partial def toRatParts' (f : Float) : Option (Int × Int) :=
+  f.toRatParts.map fun (n, e) =>
+    if n == 0 then (0, 0) else
+      let neg : Bool := n < 0
+      let v := n.natAbs.toUInt64
+      let c := trailingZeros v 0
+      let v := (v >>> c.toUInt64).toNat
+      (if neg then -v else v, e + c.toNat)
+where
+  /-- Calculates the number of trailing bits in a `UInt64`. Requires `v ≠ 0`. -/
+  -- Note: it's a bit dumb to be using a loop here, but it is hopefully written
+  -- such that LLVM can tell we are computing trailing bits and do good things to it
+  -- TODO: prove termination under suitable assumptions (only relevant if `Float` is not opaque)
+  trailingZeros (v : UInt64) (c : UInt8) :=
+    if v &&& 1 == 0 then trailingZeros (v >>> 1) (c + 1) else c
+
+/-- Converts `f` to a string, including all decimal digits. -/
+def toStringFull (f : Float32) : String :=
+  if let some (v, exp) := toRatParts f then
+    let v' := v.natAbs
+    let s := if exp ≥ 0 then
+      Nat.repr (v' * (2^exp.toNat:Nat))
+    else
+      let e := (-exp).toNat
+      let intPart := v' / 2^e
+      let rem := v' % 2^e
+      if rem == 0 then
+        Nat.repr intPart
+      else
+        let rem := Nat.repr ((2^e + v' % 2^e) * 5^e)
+        let rem := rem.dropEndWhile (· == '0')
+        s!"{intPart}.{rem.drop 1}"
+    if v < 0 then s!"-{s}" else s
+  else f.toString -- inf, -inf, nan
+
+end Float32
+
+-- TODO: the following definitions don't produce correctly rounded results for subnormals
 
 /--
 Divide two natural numbers, to produce a correctly rounded (nearest-ties-to-even) `Float` result.
