@@ -36,32 +36,50 @@ syntax casePattExpr := " := " colGt term
 syntax casePattBody := casePattTac <|> casePattExpr
 
 /--
-* `case _ : t => tac` finds the first goal that unifies with `t` and then solves it
-  using `tac` or else fails. Like `show`, it changes the type of the goal to `t`.
-  The `_` can optionally be a case tag, in which case it only looks at goals
-  whose tag would be considered by `case` (goals with an exact tag match,
-  followed by goals with the tag as a suffix, followed by goals with the tag as a prefix).
-
-* `case _ n₁ ... nₘ : t => tac` additionally names the `m` most recent hypotheses with
-  inaccessible names to the given names. The names are renamed before matching against `t`.
-  The `_` can optionally be a case tag.
-
-* `case _ : t := e` is short for `case _ : t => exact e`.
-
-* `case _ : t₁ | _ : t₂ | ... => tac`
-  is equivalent to `(case _ : t₁ => tac); (case _ : t₂ => tac); ...`
-  but with all matching done on the original list of goals --
-  each goal is consumed as they are matched, so patterns may repeat or overlap.
-
-* `case _ : t` will make the matched goal be the first goal.
-  `case _ : t₁ | _ : t₂ | ...` makes the matched goals be the first goals in the given order.
-
-* `case _ : t := _` and `case _ : t := ?m` are the same as `case _ : t` but in the `?m` case the
-  goal tag is changed to `m`.
-  In particular, the goal becomes metavariable `?m`.
+`case _ : t => tac` finds the first goal that unifies with `t` and then solves it
+using `tac` or else fails. Like `show`, it changes the type of the goal to `t`.
+The `_` can optionally be a case tag, in which case it only looks at goals
+whose tag would be considered by `case` (goals with an exact tag match,
+followed by goals with the tag as a suffix, followed by goals with the tag as a prefix).
 -/
+tactic_extension Lean.Parser.Tactic.case
+
+/--
+`case _ n₁ ... nₘ : t => tac` additionally names the `m` most recent hypotheses with
+inaccessible names to the given names. The names are renamed before matching against `t`.
+The `_` can optionally be a case tag.
+-/
+tactic_extension Lean.Parser.Tactic.case
+
+/--
+`case _ : t := e` is short for `case _ : t => exact e`.
+-/
+tactic_extension Lean.Parser.Tactic.case
+
+/--
+`case _ : t₁ | _ : t₂ | ... => tac`
+is equivalent to `(case _ : t₁ => tac); (case _ : t₂ => tac); ...`
+but with all matching done on the original list of goals --
+each goal is consumed as they are matched, so patterns may repeat or overlap.
+-/
+tactic_extension Lean.Parser.Tactic.case
+
+/--
+`case _ : t` will make the matched goal be the first goal.
+`case _ : t₁ | _ : t₂ | ...` makes the matched goals be the first goals in the given order.
+-/
+tactic_extension Lean.Parser.Tactic.case
+
+/--
+`case _ : t := _` and `case _ : t := ?m` are the same as `case _ : t` but in the `?m` case the
+goal tag is changed to `m`.
+In particular, the goal becomes metavariable `?m`.
+-/
+tactic_extension Lean.Parser.Tactic.case
+
 -- Low priority so that type-free `case` doesn't conflict with core `case`,
 -- though it should be a drop-in replacement.
+@[tactic_alt Lean.Parser.Tactic.case]
 syntax (name := casePatt) (priority := low)
   "case " sepBy1(casePattArg, " | ") (casePattBody)? : tactic
 
@@ -69,11 +87,10 @@ macro_rules
   | `(tactic| case $[$ps:casePattArg]|* := $t) => `(tactic| case $[$ps:casePattArg]|* => exact $t)
   | `(tactic| case $[$ps:casePattArg]|*) => `(tactic| case $[$ps:casePattArg]|* => ?_)
 
-/-- `case' _ : t => tac` is similar to the `case _ : t => tac` tactic,
-but it does not ensure the goal has been solved after applying `tac`,
-nor does it admit the goal if `tac` failed.
-Recall that `case` closes the goal using `sorry` when `tac` fails,
-and the tactic execution is not interrupted. -/
+/-- `case' _ : t => tac` is analogous to the `case _ : t => tac` variant. -/
+tactic_extension Lean.Parser.Tactic.case'
+
+@[tactic_alt Lean.Parser.Tactic.case']
 syntax (name := casePatt') (priority := low)
   "case' " sepBy1(casePattArg, " | ") casePattTac : tactic
 
