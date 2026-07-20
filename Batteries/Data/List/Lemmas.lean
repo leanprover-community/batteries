@@ -390,9 +390,6 @@ alias IsChain.of_cons := isChain_of_isChain_cons
 theorem isChain_cons_of_isChain_cons_cons : IsChain R (a :: b :: l) →
     IsChain R (b :: l) := IsChain.of_cons
 
-@[deprecated (since := "2025-09-19")]
-alias chain_of_chain_cons := isChain_cons_of_isChain_cons_cons
-
 @[deprecated IsChain.of_cons (since := "2026-02-10")]
 theorem isChain_of_isChain_cons_cons : IsChain R (a :: b :: l) →
     IsChain R l := IsChain.of_cons ∘ IsChain.of_cons
