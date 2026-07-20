@@ -224,7 +224,39 @@ The indices are computed as:
 - `j` is one less than where the cumulative sum first exceeds `i`
 - `k` is `i` minus the total length of the first `j` sublists
 -/
-proof_wanted take_flatten (L : List (List α)) (i : Nat) :
+theorem take_flatten (L : List (List α)) (i : Nat) :
     let j := (L.map length).partialSums.findIdx (· > i) - 1
     let k := i - (L.take j).flatten.length
-    L.flatten.take i = (L.take j).flatten ++ (L[j]?.getD []).take k
+    L.flatten.take i = (L.take j).flatten ++ (L[j]?.getD []).take k := by
+  induction L generalizing i with
+  | nil => simp
+  | cons l L ih =>
+    simp only [flatten_cons, map_cons, partialSums_cons]
+    by_cases h' : i < l.length
+    · have hfind : findIdx (fun x => decide (x > i))
+          (0 :: (map length L).partialSums.map (l.length + ·)) = 1 := by
+        rw [findIdx_eq] <;> grind
+      simp only [hfind, Nat.sub_self, take_zero, flatten_nil, nil_append,
+        getElem?_cons_zero, Option.getD_some]
+      exact take_append_of_le_length (Nat.le_of_lt h')
+    · have hle : l.length ≤ i := Nat.le_of_not_lt h'
+      have hfind : findIdx (fun x => decide (x > i))
+          (0 :: (map length L).partialSums.map (l.length + ·)) =
+          findIdx (fun x => decide (x > i - l.length)) (map length L).partialSums + 1 := by
+        simp [findIdx_cons, Function.comp_def]
+        congr
+        funext x
+        grind
+      have hFpos : 0 < findIdx (fun x => decide (x > i - l.length)) (map length L).partialSums := by
+        by_contra w
+        simp at w
+      have hFeq : findIdx (fun x => decide (x > i - l.length)) (map length L).partialSums
+          = findIdx (fun x => decide (x > i - l.length)) (map length L).partialSums - 1 + 1 :=
+        (Nat.succ_pred_eq_of_pos hFpos).symm
+      have htake : l.take i = l := take_of_length_le hle
+      simp only [hfind, Nat.add_sub_cancel]
+      rw [take_append, htake, hFeq]
+      simp only [take_succ_cons, flatten_cons, getElem?_cons_succ, append_assoc]
+      have hi := ih (i := i - l.length)
+      rw [hi]
+      simp only [length_append, ← Nat.sub_sub]
