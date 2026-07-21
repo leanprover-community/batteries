@@ -42,7 +42,7 @@ def toRatParts (f : Float) : Option (Int × Int) :=
   else none
 
 /-- Returns `v, exp` integers such that `f = v * 2^exp`.
-Like `toRatParts`, but `e` is guaranteed to be minimal (`n` is always odd), unless `n = 0`.
+Like `toRatParts`, but `e` is guaranteed to be minimal (`v` is always odd), unless `v = 0`.
 `n.abs` will be at most `2^53 - 1` because `Float` has 53 bits of precision.
 Returns `none` when `f` is not finite (i.e. `inf`, `-inf` or a `nan`). -/
 partial def toRatParts' (f : Float) : Option (Int × Int) :=
@@ -117,7 +117,7 @@ def toRatParts (f : Float32) : Option (Int × Int) :=
   else none
 
 /-- Returns `v, exp` integers such that `f = v * 2^exp`.
-Like `toRatParts`, but `e` is guaranteed to be minimal (`n` is always odd), unless `n = 0`.
+Like `toRatParts`, but `e` is guaranteed to be minimal (`v` is always odd), unless `v = 0`.
 `n.abs` will be at most `2^53 - 1` because `Float` has 53 bits of precision.
 Returns `none` when `f` is not finite (i.e. `inf`, `-inf` or a `nan`). -/
 partial def toRatParts' (f : Float) : Option (Int × Int) :=

@@ -37,15 +37,7 @@ protected theorem forall_iff {p : Sign → Prop} :
 instance {p : Sign → Prop} [∀ s, Decidable (p s)] : Decidable (∀ s : Sign, p s) :=
   decidable_of_decidable_of_iff Sign.forall_iff.symm
 
-deriving instance DecidableEq for Sign
-
-instance : Std.LawfulEqOrd Sign where
-  compare_self := by decide
-  eq_of_compare := by decide
-
-instance : Std.TransOrd Sign where
-  eq_swap := by decide
-  isLE_trans := by decide
+deriving instance ReflBEq, LawfulBEq for Sign
 
 end Sign
 
@@ -193,8 +185,9 @@ theorem beq_iff_ne_notANumber_and_eq (a b : UnpackedFloat) :
       (a = b ∨ (a = .zero .positive ∧ b = .zero .negative) ∨
         (a = .zero .negative ∧ b = .zero .positive)) := by
   simp only [UnpackedFloat.beq, beq_iff_eq, ne_eq]
-  fun_cases UnpackedFloat.compare a b <;> simp_all [eq_comm (α := UnpackedFloat), and_comm]
-  decide +revert -- inf/inf
+  let := instDecidableEqOfLawfulBEq (α := Sign)
+  fun_cases UnpackedFloat.compare a b <;> simp_all [eq_comm (α := UnpackedFloat), and_comm] <;>
+    rename_i s₁ s₂ <;> revert s₁ s₂ <;> decide
 
 theorem unpack_beq_unpack_iff {spec : Format} {b b' : BitVec spec.numBits}
     (hb : spec.Valid b) (hb' : spec.Valid b') (hspec : 2 ≤ spec.exponentBits := by decide) :
@@ -275,32 +268,29 @@ theorem Float32.beq_self_eq_false_iff {f : Float32} : (f == f) = false ↔ f = n
   grind [beq_self_iff]
 
 /--
-This theorem is true in general but most other types have `LawfulBEq` where
+This theorem is true for all types but most other types have `LawfulBEq` where
 `bne_self_eq_false` or `bne_iff_ne` apply.
 -/
 @[simp] theorem Float.bne_eq {f : Float} : (f != f) = (!f == f) := (rfl)
 
 /--
-This theorem is true in general but most other types have `LawfulBEq` where
+This theorem is true for all types but most other types have `LawfulBEq` where
 `bne_self_eq_false` or `bne_iff_ne` apply.
 -/
 @[simp] theorem Float32.bne_eq {f : Float32} : (f != f) = (!f == f) := (rfl)
 
+/--
+Boolean equality on `Float`s is symmetric and transitive, but not reflexive, as demonstrated
+by `nan != nan`.
+-/
 instance : PartialEquivBEq Float where
   symm := by grind [Float.beq_iff_ne_nan_and_eq]
   trans := by grind [Float.beq_iff_ne_nan_and_eq]
 
+/--
+Boolean equality on `Float32`s is symmetric and transitive, but not reflexive, as demonstrated
+by `nan != nan`.
+-/
 instance : PartialEquivBEq Float32 where
   symm := by grind [Float32.beq_iff_ne_nan_and_eq]
   trans := by grind [Float32.beq_iff_ne_nan_and_eq]
-
--- but!
-example : ¬ EquivBEq Float := by
-  intro h
-  have : Float.nan == Float.nan := BEq.rfl
-  contradiction
-
-example : ¬ EquivBEq Float32 := by
-  intro h
-  have : Float32.nan == Float32.nan := BEq.rfl
-  contradiction
