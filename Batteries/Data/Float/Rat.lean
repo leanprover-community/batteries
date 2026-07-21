@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 module
 
-public import Batteries.Lean.Float
+public import Batteries.Data.Float.Basic
 
 @[expose] public section
 
