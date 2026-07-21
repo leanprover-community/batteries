@@ -3,7 +3,7 @@ import Batteries.Tactic.Trans
 -- testing that the attribute is recognized and used
 def nleq (a b : Nat) : Prop := a ≤ b
 
-@[trans] def nleq_trans : nleq a b → nleq b c → nleq a c := Nat.le_trans
+@[trans] theorem nleq_trans : nleq a b → nleq b c → nleq a c := Nat.le_trans
 
 example (a b c : Nat) : nleq a b → nleq b c → nleq a c := by
   intro h₁ h₂
@@ -14,7 +14,7 @@ example (a b c : Nat) : nleq a b → nleq b c → nleq a c := by
 example (a b c : Nat) : nleq a b → nleq b c → nleq a c := by intros; trans <;> assumption
 
 -- using `Trans` typeclass
-@[trans] def eq_trans {a b c : α} : a = b → b = c → a = c := by
+@[trans] theorem eq_trans {a b c : α} : a = b → b = c → a = c := by
   intro h₁ h₂
   apply Eq.trans h₁ h₂
 
