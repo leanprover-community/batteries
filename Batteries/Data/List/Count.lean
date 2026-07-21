@@ -33,6 +33,11 @@ theorem count_concat [BEq α] [LawfulBEq α] (a : α) (l : List α) :
 
 /-! ### idxToSigmaCount, sigmaCountToIdx -/
 
+section
+
+attribute [local grind =_] idxOfNth_lt_length_iff
+attribute [local grind =_] idxOfNth_eq_length_iff
+
 /-- `idxToSigmaCount` is essentially a `Fin`-to-`Fin` wrapper for `countBefore` that also
 includes the corresponding element.
 
@@ -102,3 +107,5 @@ theorem injective_sigmaCountToIdx [BEq α] [LawfulBEq α] {xs : List α} :
 
 theorem surjective_idxToSigmaCount [BEq α] [LawfulBEq α] {xs : List α} :
     xs.idxToSigmaCount.Surjective := rightInverse_sigmaCountToIdx_idxToSigmaCount.surjective
+
+end
