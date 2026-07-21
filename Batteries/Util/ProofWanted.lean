@@ -81,13 +81,15 @@ public def DefWanted.Val {α : Sort u} (_ : DefWanted α) : Sort u := α
 
 /-- Wrapper carrying the body of a *transparent* `def_wanted` (one given a `:= body`). Unlike the
 empty `DefWanted`, it stores the value, so `❰foo❱` projects it back out and downstream definitional
-equalities go through; but the placeholder still has type `DerivedWanted T`, not `T`, so it cannot be
-used directly as an inhabitant of `T` — the intended access is via the `❰…❱` syntax, which projects
+equalities go through; but the placeholder still has type `DerivedWanted T`, not `T`, so it
+cannot be used directly as an inhabitant of `T` — the intended access is via the `❰…❱` syntax,
+which projects
 the value back out. (`val` is `public`, so direct projection is possible, but `❰…❱` is what callers
 should use.) -/
 public structure DerivedWanted (α : Sort u) : Sort (max 1 u) where
   ofVal ::
-  /-- The carried value. Reference the declaration via `❰…❱` rather than projecting this directly. -/
+  /-- The carried value. Reference the declaration via `❰…❱` rather than projecting this
+  directly. -/
   val : α
 
 public meta section
@@ -292,8 +294,9 @@ private def classifyWantedRef (nm : Name) (stx : Syntax) : CommandElabM WantedRe
       -- Shared builder for both reference flavours. The opaque path (`mkBinderSyn`) produces a *Π*
       -- binder type `∀ userargs, accessor (@nm args)`; the transparent path (`mkTransparentRef`)
       -- produces a *λ* term `fun userargs => (@nm args).val`. Everything else is identical, so they
-      -- differ only in `mkHead` (how the applied `@nm` is turned into the reference's core) and `pi`
-      -- (whether the user binders are quantified as a Π or abstracted as a λ). Keeping this in one
+      -- differ only in `mkHead` (how the applied `@nm` is turned into the reference's core)
+      -- and `pi` (whether the user binders are quantified as a Π or abstracted as a λ). Keeping
+      -- this in one
       -- place is what guarantees both flavours get the same `delabTy` — in particular the universe
       -- rewrite below, whose omission from a duplicated transparent copy was a real bug.
       let buildRef (mkHead : TSyntax `term → MetaM (TSyntax `term)) (pi : Bool) :
@@ -319,8 +322,9 @@ private def classifyWantedRef (nm : Name) (stx : Syntax) : CommandElabM WantedRe
         -- leaving the class ones quantified inside the reference. Quantifying them nests `nm`'s
         -- transitive instance binders into the generated type, which compounds super-exponentially
         -- across a chain of `instance_wanted`s (each includes all earlier ones); surfacing + dedup
-        -- keeps the binders flat and linear. We allocate the per-argument identifier for every binder
-        -- *before* delaborating any type, because an auto binder's type may reference an earlier
+        -- keeps the binders flat and linear. We allocate the per-argument identifier for every
+        -- binder *before* delaborating any type, because an auto binder's type may reference an
+        -- earlier
         -- surfaced binder — that reference must resolve to the placeholder we add to the enclosing
         -- declaration, not to `nm`'s internal name.
         let mut appNames : Array Name := freshNames
@@ -384,8 +388,8 @@ private def classifyWantedRef (nm : Name) (stx : Syntax) : CommandElabM WantedRe
       -- Opaque reference: a `d_nm`/`h_nm` hypothesis of Π type `∀ userargs, accessor (@nm args)`.
       let mkBinderSyn (refKind : WantedRefKind) : MetaM (TSyntax `term × Array WantedDep) :=
         buildRef (fun core => `($(mkIdent refKind.accessor) $core)) (pi := true)
-      -- Transparent reference (`def_wanted` with a body): inline `nm` itself, projecting the carried
-      -- value out of the `DerivedWanted` wrapper with `.val`. With `nm` `@[reducible]`,
+      -- Transparent reference (`def_wanted` with a body): inline `nm` itself, projecting the
+      -- carried value out of the `DerivedWanted` wrapper with `.val`. With `nm` `@[reducible]`,
       -- `(@nm … leafholes).val` βιδ-reduces to `nm`'s body, so `❰nm❱` is definitionally that body.
       -- No `d_nm` binder is introduced — `nm` is not a hole; only its surfaced leaf holes are.
       let mkTransparentRef : MetaM (TSyntax `term × Array WantedDep) :=
@@ -432,9 +436,10 @@ private def elabWanted (kind : WantedCmdKind) (stx : Syntax)
   let transparentCache : IO.Ref (NameMap (TSyntax `term)) ← IO.mkRef {}
   -- Surface a reference's transitive leaf-hole dependencies as binders on this declaration (so they
   -- are solvable), deduplicating against binders already added; returns a renaming to apply to the
-  -- reference's own binder type / inlined term, mapping each dep's fresh placeholder to the existing
-  -- binder it coincides with. New deps are added *before* the reference's own binder, which refers to
-  -- them. Used both for explicit `❰…❱` references and for ambient `instance_wanted` auto-includes —
+  -- reference's own binder type / inlined term, mapping each dep's fresh placeholder to the
+  -- existing binder it coincides with. New deps are added *before* the reference's own binder,
+  -- which refers to them. Used both for explicit `❰…❱` references and for ambient
+  -- `instance_wanted` auto-includes —
   -- the latter previously skipped this, leaving an included instance's own deps (e.g. a shared
   -- `❰J❱`) referenced but unbound.
   let surfaceDeps (deps : Array WantedDep) :
@@ -507,7 +512,8 @@ private def elabWanted (kind : WantedCmdKind) (stx : Syntax)
     if (← nameToHypRef.get).contains instName then continue
     let refInfo ← classifyWantedRef instName stx
     -- Surface the ambient instance's *own* transitive deps too (deduped), so a dependency shared
-    -- between several `instance_wanted`s (e.g. a common `❰J❱`) is bound once rather than left dangling.
+    -- between several `instance_wanted`s (e.g. a common `❰J❱`) is bound once rather than left
+    -- dangling.
     let applyRenames ← surfaceDeps refInfo.deps
     let binderType ← applyRenames refInfo.binderType
     let fresh ← freshHypName instName refInfo.kind
@@ -532,8 +538,8 @@ private def elabWanted (kind : WantedCmdKind) (stx : Syntax)
   let wrapper : TSyntax `ident := mkIdent kind.wrapper
   let resAscribed : TSyntax `term ← if kind.requireProp then `(($res' : Prop)) else `($res')
   -- Emit the placeholder declaration with the given generated binders. A `def_wanted` *with a body*
-  -- becomes a transparent `@[reducible]` def wrapped in `DerivedWanted`, so `❰foo❱` βι-reduces to its
-  -- body and downstream definitional equalities go through; otherwise it is an opaque
+  -- becomes a transparent `@[reducible]` def wrapped in `DerivedWanted`, so `❰foo❱` βι-reduces
+  -- to its body and downstream definitional equalities go through; otherwise it is an opaque
   -- `DefWanted`/`ProofWanted` placeholder. The leaves it abstracts over remain opaque placeholders,
   -- so no `axiom`/`sorry` is introduced. (See the module docstring.)
   let emitDecl : Array (TSyntax ``Lean.Parser.Term.bracketedBinder) → CommandElabM Unit :=
@@ -541,8 +547,8 @@ private def elabWanted (kind : WantedCmdKind) (stx : Syntax)
       if body'?.isSome && !kind.requireProp && !kind.isInstance then
         let body' := body'?.get!
         -- `noncomputable`: a transparent placeholder may derive from noncomputable data (it is a
-        -- blueprint, never compiled); the `@[reducible]` + `DerivedWanted` projection still unfold for
-        -- definitional equality regardless.
+        -- blueprint, never compiled); the `@[reducible]` + `DerivedWanted` projection still
+        -- unfold for definitional equality regardless.
         elabCommand <| ← `(
           section
           set_option linter.unusedVariables false
@@ -558,13 +564,16 @@ private def elabWanted (kind : WantedCmdKind) (stx : Syntax)
           set_option linter.unusedVariables false
           private def $name $args* $binders* : $wrapper $resAscribed := $rhs
           end)
-  -- Include-on-use: an ambient `instance_wanted` is otherwise bolted onto *every* later wanted, but a
-  -- declaration should only carry the holes it actually needs (cf. `variable [inst]`). We emit with
-  -- *all* generated binders, inspect the genuine elaborated declaration for the binders actually used
-  -- (in its value or type, transitively through binders' own types), roll the emission back, and
+  -- Include-on-use: an ambient `instance_wanted` is otherwise bolted onto *every* later wanted,
+  -- but a declaration should only carry the holes it actually needs (cf. `variable [inst]`). We
+  -- emit with
+  -- *all* generated binders, inspect the genuine elaborated declaration for the binders
+  -- actually used (in its value or type, transitively through binders' own types), roll the
+  -- emission back, and
   -- re-emit keeping only those. Using the real declaration elaboration — rather than a hand-rolled
-  -- one — gets section variables, instance arguments, autobound implicits and universes right. Unused
-  -- ambient instances (and any deps orphaned by their removal) are dropped, removing noise and the
+  -- one — gets section variables, instance arguments, autobound implicits and universes right.
+  -- Unused ambient instances (and any deps orphaned by their removal) are dropped, removing
+  -- noise and the
   -- quadratic binder growth a chain of `instance_wanted`s used to cause. It is best effort: if the
   -- full emission fails (e.g. an intentional error-case test) we keep every binder so the final
   -- emission reports the canonical error.
@@ -576,8 +585,9 @@ private def elabWanted (kind : WantedCmdKind) (stx : Syntax)
     let saved ← get
     let errsBefore := errCount saved
     -- Emit with *all* generated binders. `elabCommand` *logs* elaboration errors rather than
-    -- throwing; if emitting with all binders errored (e.g. an intentional error-case test, or a body
-    -- that genuinely fails to type-check), keep every binder and let the final emission report the
+    -- throwing; if emitting with all binders errored (e.g. an intentional error-case test, or a
+    -- body that genuinely fails to type-check), keep every binder and let the final emission
+    -- report the
     -- canonical error. Otherwise the usage analysis below *must* succeed — a failure there is an
     -- internal bug and should surface, not silently degrade to "keep all" (which would mask exactly
     -- the regression include-on-use prevents).
@@ -593,7 +603,8 @@ private def elabWanted (kind : WantedCmdKind) (stx : Syntax)
           let lctx ← getLCtx
           let collect (s : Std.HashSet FVarId) (e : Expr) : Std.HashSet FVarId :=
             (Lean.collectFVars {} e).fvarIds.foldl (·.insert ·) s
-          let mut used : Std.HashSet FVarId := collect (collect {} vbody) (← Lean.Meta.inferType vbody)
+          let mut used : Std.HashSet FVarId :=
+            collect (collect {} vbody) (← Lean.Meta.inferType vbody)
           let mut changed := true
           while changed do
             changed := false
@@ -692,8 +703,8 @@ A **bodyless** `def_wanted` records an opaque placeholder of type `... → DefWa
 `def_wanted` **with a body** is instead emitted as a genuine `@[reducible]` definition of type
 `... → DerivedWanted type` (carrying the body), so `❰foo❱` inlines it and is definitionally equal to
 its body — letting you derive honest accessors and data on top of opaque holes. The `DerivedWanted`
-wrapper keeps it from being used directly as a value of `type`; only `❰…❱` accesses it. Either way no
-`axiom`/`sorry` is introduced (see the module docstring).
+wrapper keeps it from being used directly as a value of `type`; only `❰…❱` accesses it. Either
+way no `axiom`/`sorry` is introduced (see the module docstring).
 
 Modifiers (such as `@[simp]`) are accepted for syntactic compatibility with `def` but are
 currently ignored.
@@ -741,11 +752,13 @@ def elabDefWanted : CommandElab := fun stx => do
 The syntax mirrors `instance` (the name is optional, auto-generated from the class head if
 absent) and the payload must be a typeclass. The placeholder is recorded as
 `DefWanted (TheClass …)` like `def_wanted`, but additionally the declared name is registered so a
-subsequent `theorem_wanted` / `def_wanted` / `instance_wanted` can use it via typeclass synth without
-an explicit `❰…❱` reference — matching the auto-availability of regular `instance` declarations.
+subsequent `theorem_wanted` / `def_wanted` / `instance_wanted` can use it via typeclass synth
+without an explicit `❰…❱` reference — matching the auto-availability of regular `instance`
+declarations.
 
-Inclusion is **on use** (like `variable [inst]`): a later declaration carries a `[d_…]` binder for an
-earlier `instance_wanted` only when its statement or body actually uses it. A declaration that does
+Inclusion is **on use** (like `variable [inst]`): a later declaration carries a `[d_…]` binder
+for an earlier `instance_wanted` only when its statement or body actually uses it. A declaration
+that does
 not need the instance does not carry it, so unrelated instances do not accumulate as a file grows.
 The registration is **module-scoped and order-sensitive**: only `instance_wanted`s declared earlier
 in the current file are candidates. Registrations persist across `section` / `namespace` boundaries
