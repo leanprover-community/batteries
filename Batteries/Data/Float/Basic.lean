@@ -43,7 +43,7 @@ def toRatParts (f : Float) : Option (Int × Int) :=
 
 /-- Returns `v, exp` integers such that `f = v * 2^exp`.
 Like `toRatParts`, but `e` is guaranteed to be minimal (`v` is always odd), unless `v = 0`.
-`n.abs` will be at most `2^53 - 1` because `Float` has 53 bits of precision.
+`v.abs` will be at most `2^53 - 1` because `Float` has 53 bits of precision.
 Returns `none` when `f` is not finite (i.e. `inf`, `-inf` or a `nan`). -/
 partial def toRatParts' (f : Float) : Option (Int × Int) :=
   f.toRatParts.map fun (n, e) =>
@@ -103,7 +103,7 @@ The floating point value closest to the mathematical constant `π`.
 def pi : Float32 := 3.141592653589793
 
 /-- Returns `v, exp` integers such that `f = v * 2^exp`.
-(`e` is not minimal, but `v.abs` will be at most `2^53 - 1`.)
+(`e` is not minimal, but `v.abs` will be at most `2^24 - 1`.)
 Returns `none` when `f` is not finite (i.e. `inf`, `-inf` or a `nan`). -/
 def toRatParts (f : Float32) : Option (Int × Int) :=
   if f.isFinite then
@@ -118,7 +118,7 @@ def toRatParts (f : Float32) : Option (Int × Int) :=
 
 /-- Returns `v, exp` integers such that `f = v * 2^exp`.
 Like `toRatParts`, but `e` is guaranteed to be minimal (`v` is always odd), unless `v = 0`.
-`n.abs` will be at most `2^53 - 1` because `Float` has 53 bits of precision.
+`v.abs` will be at most `2^24 - 1` because `Float` has 24 bits of precision.
 Returns `none` when `f` is not finite (i.e. `inf`, `-inf` or a `nan`). -/
 partial def toRatParts' (f : Float) : Option (Int × Int) :=
   f.toRatParts.map fun (n, e) =>
