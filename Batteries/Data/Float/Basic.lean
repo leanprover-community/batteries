@@ -130,9 +130,7 @@ partial def toRatParts' (f : Float) : Option (Int × Int) :=
       (if neg then -v else v, e + c.toNat)
 where
   /-- Calculates the number of trailing bits in a `UInt64`. Requires `v ≠ 0`. -/
-  -- Note: it's a bit dumb to be using a loop here, but it is hopefully written
-  -- such that LLVM can tell we are computing trailing bits and do good things to it
-  -- TODO: prove termination under suitable assumptions (only relevant if `Float` is not opaque)
+  -- TODO: optimize and make total
   trailingZeros (v : UInt64) (c : UInt8) :=
     if v &&& 1 == 0 then trailingZeros (v >>> 1) (c + 1) else c
 
