@@ -28,7 +28,7 @@ example (f g : Nat → Prop) : (∃ k : Nat, f k) ∨ (∃ k : Nat, g k) ↔ ∃
   fconstructor
   rintro (⟨n, fn⟩ | ⟨n, gn⟩)
   on_goal 3 => rintro ⟨n, hf | hg⟩
-  solve_by_elim* (config := {maxDepth := 13}) [Or.inl, Or.inr, Exists.intro]
+  solve_by_elim* (maxDepth := 13) [Or.inl, Or.inr, Exists.intro]
 
 section «using»
 

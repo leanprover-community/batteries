@@ -26,6 +26,7 @@ theorem not_isUpper_of_isLower {c : Char} : c.isLower → ¬ c.isUpper := by
   simp [isUpper, UInt32.le_iff_toNat_le, isLower]
   omega
 
+
 theorem toLower_eq_of_not_isUpper {c : Char} (h : ¬ c.isUpper) : c.toLower = c := by
   simp_all [isUpper, UInt32.le_iff_toNat_le, toLower]
   omega
@@ -159,6 +160,7 @@ theorem beqCaseInsensitiveAsciiOnly.eqv : Equivalence (beqCaseInsensitiveAsciiOn
 /--
 Setoid structure on `Char` using `beqCaseInsensitiveAsciiOnly`
 -/
+@[implicit_reducible]
 def beqCaseInsensitiveAsciiOnly.isSetoid : Setoid Char:=
   ⟨(beqCaseInsensitiveAsciiOnly · ·), beqCaseInsensitiveAsciiOnly.eqv⟩
 
