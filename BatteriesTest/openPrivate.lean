@@ -36,7 +36,7 @@ open /- Being sneaky! -/ private secretNumber from BatteriesTest.OpenPrivateDefs
 #eval secretNumber
 
 /--
-info: @[defeq] private theorem secretNumber.eq_def : secretNumber✝ = 2 :=
+info: @[backward_defeq] private theorem secretNumber.eq_def : secretNumber✝ = 2 :=
 Eq.refl secretNumber✝
 -/
 #guard_msgs in

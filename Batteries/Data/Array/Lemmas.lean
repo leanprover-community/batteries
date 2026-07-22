@@ -47,8 +47,6 @@ theorem toList_drop (as: Array α) (n : Nat) :
 
 /-! ### set -/
 
-theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
-
 /-! ### map -/
 
 /-! ### mem -/
