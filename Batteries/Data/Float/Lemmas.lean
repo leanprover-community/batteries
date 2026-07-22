@@ -166,7 +166,6 @@ theorem beq_iff_ne_notANumber_and_eq (a b : UnpackedFloat) :
       (a = b ∨ (a = .zero .positive ∧ b = .zero .negative) ∨
         (a = .zero .negative ∧ b = .zero .positive)) := by
   simp only [UnpackedFloat.beq, beq_iff_eq, ne_eq]
-  let := instDecidableEqOfLawfulBEq (α := Sign)
   fun_cases UnpackedFloat.compare a b <;> simp_all [eq_comm (α := UnpackedFloat), and_comm] <;>
     rename_i s₁ s₂ <;> revert s₁ s₂ <;> decide
 
