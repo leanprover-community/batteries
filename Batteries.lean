@@ -42,6 +42,7 @@ public import Batteries.Data.PairingHeap
 public import Batteries.Data.RBMap
 public import Batteries.Data.Random
 public import Batteries.Data.Range
+public import Batteries.Data.Rat.Float
 public import Batteries.Data.RunningStats
 public import Batteries.Data.Stream
 public import Batteries.Data.String
@@ -52,6 +53,7 @@ public import Batteries.Lean.AttributeExtra
 public import Batteries.Lean.EStateM
 public import Batteries.Lean.Except
 public import Batteries.Lean.Expr
+public import Batteries.Lean.Float
 public import Batteries.Lean.HashMap
 public import Batteries.Lean.HashSet
 public import Batteries.Lean.IO.Process
