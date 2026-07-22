@@ -42,7 +42,7 @@ public import Batteries.Data.PairingHeap
 public import Batteries.Data.RBMap
 public import Batteries.Data.Random
 public import Batteries.Data.Range
-public import Batteries.Data.Rat.Float
+public import Batteries.Data.Rat
 public import Batteries.Data.RunningStats
 public import Batteries.Data.Stream
 public import Batteries.Data.String
