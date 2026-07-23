@@ -85,13 +85,14 @@ theorem eqRec_heq_self {α : Sort _} {a : α} {motive : (a' : α) → a = a' →
     (x : motive a rfl) {a' : α} (e : a = a') : @Eq.rec α a motive x a' e ≍ x := by
   subst e; rfl
 
-@[simp]
+@[deprecated eqRec_heq_iff (since := "12-07-2026")]
 theorem eqRec_heq_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
     {x : motive a rfl} {a' : α} {e : a = a'} {β : Sort _} {y : β} :
     @Eq.rec α a motive x a' e ≍ y ↔ x ≍ y := by
   subst e; rfl
 
-@[simp]
+
+@[deprecated heq_eqRec_iff (since := "12-07-2026")]
 theorem heq_eqRec_iff_heq {α : Sort _} {a : α} {motive : (a' : α) → a = a' → Sort _}
     {x : motive a rfl} {a' : α} {e : a = a'} {β : Sort _} {y : β} :
     y ≍ @Eq.rec α a motive x a' e ↔ y ≍ x := by
