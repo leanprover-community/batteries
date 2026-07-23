@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, François G. Dorais
 -/
 module
+/-
+Broken against lean4#13283.
 
 public section
 
@@ -116,10 +118,10 @@ def popMax (self : BinaryHeap α lt) : BinaryHeap α lt :=
 
 @[simp] theorem size_popMax (self : BinaryHeap α lt) :
     self.popMax.size = self.size - 1 := by
-  simp only [popMax, size]
+  simp only [popMax, Vector.toArray_pop, Vector.toArray_swap]
   split
-  · simp +arith [*]
-  · split <;> simp +arith
+  · simp [*]
+  · split <;> simp [size]
 
 /-- `O(log n)`. Return and remove the maximum element from a `BinaryHeap`. -/
 def extractMax (self : BinaryHeap α lt) : Option α × BinaryHeap α lt :=
@@ -183,3 +185,4 @@ where
         simp; exact Nat.sub_lt (Batteries.BinaryHeap.size_pos_of_max e) Nat.zero_lt_one
       loop a.popMax (out.push x)
   termination_by a.size
+-/
