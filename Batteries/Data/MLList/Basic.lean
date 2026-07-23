@@ -7,6 +7,10 @@ module
 
 public import Batteries.Control.AlternativeMonad
 
+set_option linter.deprecated false
+
+deprecated_module "It is recommended to use `Std.IterM` instead." (since := "2026-07-06")
+
 public section
 
 /-! # Monadic lazy lists.
@@ -73,6 +77,7 @@ private opaque spec (m) : MLList.Spec m
 end MLList
 
 /-- A monadic lazy list, controlled by an arbitrary monad. -/
+@[deprecated "It is recommended to use `Std.IterM` instead." (since := "2026-07-06")]
 def MLList (m : Type u → Type u) (α : Type u) : Type u := (MLList.spec m).listM α
 
 namespace MLList
