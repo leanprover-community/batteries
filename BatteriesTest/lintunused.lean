@@ -1,4 +1,5 @@
 import Batteries.Tactic.Lint
+import Batteries.Util.ProofWanted
 
 -- should be ignored as the proof contains sorry
 /-- warning: declaration uses `sorry` -/
@@ -32,6 +33,10 @@ theorem foo7_bad [Mul Nat] [inst : Add Nat] {h : 1 = 1} ⦃h' : 0 = 0⦄ : True 
 -- deprecated names are ignored
 set_option linter.unusedVariables false in
 @[deprecated foo6_ok (since := "today")] theorem foo6_ok' (h : Nat) : True := trivial
+
+-- `proof_wanted`/`def_wanted` is ignored
+proof_wanted wanted (h : Bool) : True
+def_wanted wanted' (h : Bool) : Bool
 
 /--
 error: /- The `unusedArguments` linter reports:

@@ -44,6 +44,7 @@ their value, and allow arguments starting with `_` to be unused. -/
       | _ => return none
     if val.hasSorry || ty.hasSorry then return none
     forallTelescope ty fun args ty => do
+      if ty.isAppOfArity' `ProofWanted 1 || ty.isAppOfArity' `DefWanted 1 then return none
       let mut e := (mkAppN val args).headBeta
       let ldecls ← args.mapM getFVarLocalDecl
       e := mkApp e ty
