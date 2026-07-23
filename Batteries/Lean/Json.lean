@@ -5,22 +5,12 @@
 -/
 module
 
-public import Batteries.Lean.Float
+public import Batteries.Data.Float.Basic
 public import Lean.Data.Json.FromToJson.Basic
 
 @[expose] public section
 
 open Lean
-
-instance : OfScientific JsonNumber where
-  ofScientific mantissa exponentSign decimalExponent :=
-    if exponentSign then
-      { mantissa := mantissa, exponent := decimalExponent }
-    else
-      { mantissa := (mantissa * 10 ^ decimalExponent : Nat), exponent := 0 }
-
-instance : Neg JsonNumber where
-  neg jn := ⟨-jn.mantissa, jn.exponent⟩
 
 instance : ToJson Float where
   toJson x :=
