@@ -132,7 +132,6 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
   let tasks : Array (NamedLinter × Array (Name × Task (Except Exception <| Option MessageData))) ←
     linters.mapM fun linter => do
       traceLint "(0/2) Starting..." inIO currentModule linter.name
-      let decls ← decls.filterM (shouldBeLinted linter.name)
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
         let act : MetaM (Option MessageData) := do
           let result ← linter.test decl
