@@ -38,17 +38,6 @@ set_option linter.unusedVariables false in
 proof_wanted wanted (h : Bool) : True
 def_wanted wanted' (h : Bool) : Bool
 
--- deprecated names are ignored
-set_option linter.unusedVariables false in
-@[deprecated foo6_ok (since := "today")] theorem foo6_ok' (h : Nat) : True := trivial
-
-<<<<<<< HEAD
--- `proof_wanted`/`def_wanted` is ignored
-proof_wanted wanted (h : Bool) : True
-def_wanted wanted' (h : Bool) : Bool
-
-=======
->>>>>>> upstream/main
 /--
 error: /- The `unusedArguments` linter reports:
 UNUSED ARGUMENTS.
