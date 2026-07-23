@@ -13,6 +13,7 @@ public meta import Lean.Meta.Instances
 public meta import Lean.Util.Recognizers
 public meta import Lean.Linter.Deprecated
 public meta import Lean.DocString
+public meta import Lean.OriginalConstKind
 public meta import Batteries.Tactic.Lint.Basic
 
 public meta section
@@ -93,15 +94,11 @@ their value, and allow arguments starting with `_` to be unused. -/
     if let .str _ s := declName then
       if s == "parenthesizer" || s == "formatter" || s == "delaborator" || s == "quot" then
       return none
-    let kind ← match ← getConstInfo declName with
-      | .axiomInfo .. => pure "axiom"
-      | .opaqueInfo .. => pure "constant"
-      | .defnInfo info =>
-          -- leanprover/lean4#2575: Prop projections are generated as `def`s
-          if ← isProjectionFn declName <&&> isProp info.type then
-            return none
-          pure "definition"
-      | .inductInfo .. => pure "inductive"
+    let kind ← match getOriginalConstKind? (← getEnv) declName with
+      | some .axiom => pure "axiom"
+      | some .opaque => pure "constant"
+      | some .defn => pure "definition"
+      | some .induct => pure "inductive"
       | _ => return none
     let (none) ← findDocString? (← getEnv) declName | return none
     return m!"{kind} missing documentation string"
