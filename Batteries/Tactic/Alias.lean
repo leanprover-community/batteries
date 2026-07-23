@@ -122,6 +122,20 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
         else pure s
       else pure s
 
+/-- Resolve `nameStx` for an alias, opening the alias name's namespace prefix (like `def`). -/
+private def resolveAliasTarget (aliasId : Name) (nameStx : Ident) : TermElabM Name := do
+  let ns ←
+    if (`_root_).isPrefixOf aliasId then
+      pure (aliasId.replacePrefix `_root_ .anonymous).getPrefix
+    else
+      pure <| (← getCurrNamespace) ++ aliasId.getPrefix
+  if ns.isAnonymous then
+    realizeGlobalConstNoOverloadWithInfo nameStx
+  else
+    withTheReader Core.Context (fun ctx =>
+        { ctx with openDecls := .simple ns [] :: ctx.openDecls }) do
+      realizeGlobalConstNoOverloadWithInfo nameStx
+
 /--
   The command `alias name := target` creates a synonym of `target` with the given name.
 
@@ -131,23 +145,25 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
   These commands accept all modifiers and attributes that `def` and `theorem` do.
  -/
 elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:ident : command => do
+  let scopeNoncomputable := (← Command.getScope).isNoncomputable
+  let scopeMeta := (← Command.getScope).isMeta
   Lean.withExporting (isExporting := (← Command.getScope).isPublic) do
   Command.liftTermElabM do
     -- Whether we may access private `name`s here depends on whether it is a theorem, so first
-    -- resolve in private scope always
-    let name ← withoutExporting <| realizeGlobalConstNoOverloadWithInfo nameStx
+    -- resolve in private scope always (also open alias namespace prefix, matching `def`)
+    let name ← withoutExporting <| resolveAliasTarget alias.getId nameStx
     let cinfo ← withoutExporting <| getConstInfo name
     let declMods ← elabModifiers mods
     Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
     unless wasOriginallyTheorem (← getEnv) name do
       -- Now check again in correct scope for defs
-      discard <| realizeGlobalConstNoOverloadWithInfo nameStx
+      discard <| resolveAliasTarget alias.getId nameStx
     let (attrs, machineApplicable) := setDeprecatedTarget name declMods.attrs
     let env ← getEnv
     let declMods := { declMods with
       computeKind :=
-        if isNoncomputable env name then .noncomputable
-        else if isMarkedMeta env name then .meta
+        if isNoncomputable env name || scopeNoncomputable then .noncomputable
+        else if isMarkedMeta env name || scopeMeta then .meta
         else declMods.computeKind
       isUnsafe := declMods.isUnsafe || cinfo.isUnsafe
       attrs
@@ -167,7 +183,9 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:iden
       }
     checkNotAlreadyDeclared declName
     addDecl decl
-    if !declMods.isNoncomputable then
+    if declMods.isNoncomputable then
+      modifyEnv (addNoncomputable · declName)
+    else
       if declMods.isMeta then
         modifyEnv (markMeta · declName)
       compileDecl decl
