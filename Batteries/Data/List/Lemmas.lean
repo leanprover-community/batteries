@@ -576,11 +576,12 @@ theorem getElem_filter_eq_getElem_getElem_findIdxs_sub (s : Nat)
     (xs.filter p)[i] = xs[(xs.findIdxs p s)[i]'(by grind) - s]'(by grind) := by
   induction xs generalizing i s <;> grind
 
-@[grind =>]
 theorem getElem_filter_eq_getElem_getElem_findIdxs
     (h : i < ((xs : List α).filter p).length) :
     (xs.filter p)[i] = xs[(xs.findIdxs p)[i]'(by grind)]'(by grind) :=
   getElem_filter_eq_getElem_getElem_findIdxs_sub 0 h
+
+grind_pattern getElem_filter_eq_getElem_getElem_findIdxs => (xs.filter p)[i]'h, (xs.findIdxs p)[i]
 
 theorem getElem_getElem_findIdxs_sub (s : Nat)
     (h : i < ((xs : List α).findIdxs p s).length) :
