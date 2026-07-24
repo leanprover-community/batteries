@@ -37,42 +37,27 @@ protected theorem forall_iff {p : Sign → Prop} :
 instance {p : Sign → Prop} [∀ s, Decidable (p s)] : Decidable (∀ s : Sign, p s) :=
   decidable_of_decidable_of_iff Sign.forall_iff.symm
 
-deriving instance ReflBEq, LawfulBEq for Sign
-
 end Sign
-
-theorem unpackMantissa_def {spec : Format} (b : BitVec spec.numBits) :
-    unpackMantissa b = b.extractLsb' 0 spec.mantissaBitsWithoutImplicit := by
-  ext; simp [unpackMantissa, BitVec.extractLsb]
-
-theorem unpackExponent_def {spec : Format} (b : BitVec spec.numBits) :
-    unpackExponent b = b.extractLsb' spec.mantissaBitsWithoutImplicit spec.exponentBits := by
-  ext; simp [unpackExponent, BitVec.extractLsb]
-
-theorem unpackSign_def {spec : Format} (b : BitVec spec.numBits) :
-    unpackSign b = b.extractLsb' (spec.mantissaBitsWithoutImplicit + spec.exponentBits) 1 := by
-  ext; simp [unpackSign, BitVec.extractLsb]
 
 @[simp]
 theorem unpackSign_packComponents {spec : Format} (s e m) :
     unpackSign (packComponents spec s e m) = s.toBitVec := by
   ext i (_ | ⟨⟨⟩⟩)
-  simp +arith [unpackSign_def, packComponents, BitVec.getElem_append]
+  simp +arith [unpackSign, packComponents, BitVec.getElem_append]
 
 theorem packComponents_unpackSign_unpackExponent_unpackMantissa
     {spec : Format} (b : BitVec spec.numBits) :
     packComponents spec
       (Sign.ofBitVec (unpackSign b)) (unpackExponent b) (unpackMantissa b) = b := by
   simp [packComponents]
-  rw [unpackSign_def, unpackExponent_def, unpackMantissa_def]
+  rw [unpackSign, unpackExponent, unpackMantissa]
   rw [BitVec.extractLsb'_append_extractLsb'_eq_extractLsb',
     BitVec.extractLsb'_append_extractLsb'_eq_extractLsb']
   · exact BitVec.extractLsb'_eq_self
   · simp
   · simp
 
-theorem pack_unpack {spec : Format} (b : BitVec spec.numBits)
-    (hspec : 2 ≤ spec.exponentBits := by decide) :
+theorem pack_unpack {spec : Format} (b : BitVec spec.numBits) :
     (unpack spec b).pack spec = if isNaNBits b then packedNaN spec else b := by
   conv => rhs; rw [← packComponents_unpackSign_unpackExponent_unpackMantissa b]
   unfold isNaNBits
@@ -89,7 +74,7 @@ theorem pack_unpack {spec : Format} (b : BitVec spec.numBits)
   | case4 mvec evec e svec s _ hevec hmvec =>
     -- subnormal
     simp only [hevec, unpackExponent_packComponents, BitVec.zero_eq_neg_one_iff,
-      Nat.ne_of_gt spec.he, unpackMantissa_packComponents, ne_eq, false_and, decide_false,
+      Nat.ne_zero_of_lt spec.he, unpackMantissa_packComponents, ne_eq, false_and, decide_false,
       Bool.false_eq_true, ↓reduceIte, evec]
     unfold pack
     extract_lets mantbits biasedexp
@@ -102,7 +87,7 @@ theorem pack_unpack {spec : Format} (b : BitVec spec.numBits)
       simp only [ne_eq, this, not_false_eq_true, Nat.log2_lt, gt_iff_lt, mantbits]
       exact BitVec.isLt _
     · simp +arith [biasedexp, e, hevec]
-      have := Nat.pow_le_pow_right (n := 2) (by decide) hspec
+      have := Nat.pow_le_pow_right (n := 2) (by decide) spec.he
       lia
   | case5 mvec evec e svec s hevec hevec' =>
     -- normal
@@ -111,7 +96,7 @@ theorem pack_unpack {spec : Format} (b : BitVec spec.numBits)
     unfold pack
     extract_lets mantbits biasedexp
     rw [if_neg, if_pos]
-    · congr
+    · congr 1
       · simp +arith [biasedexp, e, evec]
       · rw [BitVec.ofNat_toNat, BitVec.setWidth_append]
         simp [mvec]
@@ -129,18 +114,17 @@ theorem pack_unpack {spec : Format} (b : BitVec spec.numBits)
       lia
 
 theorem pack_unpack_of_valid {spec : Format} {b : BitVec spec.numBits}
-    (hvalid : spec.Valid b) (hspec : 2 ≤ spec.exponentBits := by decide) :
-    (unpack spec b).pack spec = b := by
-  rw [pack_unpack b hspec]
+    (hvalid : spec.Valid b) : (unpack spec b).pack spec = b := by
+  rw [pack_unpack b]
   simp +contextual [isNaNBits, ← hvalid.eq_packedNaN]
 
 theorem unpack_inj_of_valid {spec : Format} {b b' : BitVec spec.numBits}
-    (hb : spec.Valid b) (hb' : spec.Valid b') (hspec : 2 ≤ spec.exponentBits := by decide) :
+    (hb : spec.Valid b) (hb' : spec.Valid b') :
     unpack spec b = unpack spec b' ↔ b = b' := by
   constructor
   · intro h
     replace h := congrArg (pack spec) h
-    rwa [pack_unpack_of_valid hb hspec, pack_unpack_of_valid hb' hspec] at h
+    rwa [pack_unpack_of_valid hb, pack_unpack_of_valid hb'] at h
   · rintro rfl; rfl
 
 theorem isNaNBits_packedNaN {spec : Format} : isNaNBits (packedNaN spec) := by
@@ -159,38 +143,34 @@ theorem unpack_packedNaN {spec : Format} : unpack spec (packedNaN spec) = notANu
 @[simp]
 theorem unpack_packedZero {spec : Format} {sign : Sign} :
     unpack spec (packedZero spec sign) = .zero sign := by
-  simp [unpack, packedZero, Nat.ne_of_gt spec.he]
+  simp [unpack, packedZero, Nat.ne_zero_of_lt spec.he]
 
 @[simp]
 theorem isNaN_iff : isNaN x ↔ x = notANumber := by
   cases x <;> simp [isNaN]
 
 theorem unpack_eq_notANumber_iff_of_valid {spec : Format} {b : BitVec spec.numBits}
-    (hvalid : spec.Valid b) (hspec : 2 ≤ spec.exponentBits := by decide) :
-    unpack spec b = notANumber ↔ b = packedNaN spec := by
-  rw [← @unpack_packedNaN spec, unpack_inj_of_valid hvalid ⟨fun _ _ => rfl⟩ hspec]
+    (hvalid : spec.Valid b) : unpack spec b = notANumber ↔ b = packedNaN spec := by
+  rw [← @unpack_packedNaN spec, unpack_inj_of_valid hvalid ⟨fun _ _ => rfl⟩]
 
 theorem unpack_eq_zero_iff_of_valid {spec : Format} {sign : Sign} {b : BitVec spec.numBits}
-    (hvalid : spec.Valid b) (hspec : 2 ≤ spec.exponentBits := by decide) :
-    unpack spec b = zero sign ↔ b = packedZero spec sign := by
-  rw [← @unpack_packedZero spec, unpack_inj_of_valid hvalid ⟨by simp [packedZero]⟩ hspec]
+    (hvalid : spec.Valid b) : unpack spec b = zero sign ↔ b = packedZero spec sign := by
+  rw [← @unpack_packedZero spec, unpack_inj_of_valid hvalid ⟨by simp [packedZero]⟩]
 
 theorem isNaN_unpack_iff_of_valid {spec : Format} {b : BitVec spec.numBits}
-    (hvalid : spec.Valid b) (hspec : 2 ≤ spec.exponentBits := by decide) :
-    (unpack spec b).isNaN ↔ b = packedNaN spec := by
-  rw [isNaN_iff, unpack_eq_notANumber_iff_of_valid hvalid hspec]
+    (hvalid : spec.Valid b) : (unpack spec b).isNaN ↔ b = packedNaN spec := by
+  rw [isNaN_iff, unpack_eq_notANumber_iff_of_valid hvalid]
 
 theorem beq_iff_ne_notANumber_and_eq (a b : UnpackedFloat) :
     a.beq b ↔ a ≠ notANumber ∧ b ≠ notANumber ∧
       (a = b ∨ (a = .zero .positive ∧ b = .zero .negative) ∨
         (a = .zero .negative ∧ b = .zero .positive)) := by
   simp only [UnpackedFloat.beq, beq_iff_eq, ne_eq]
-  let := instDecidableEqOfLawfulBEq (α := Sign)
   fun_cases UnpackedFloat.compare a b <;> simp_all [eq_comm (α := UnpackedFloat), and_comm] <;>
     rename_i s₁ s₂ <;> revert s₁ s₂ <;> decide
 
 theorem unpack_beq_unpack_iff {spec : Format} {b b' : BitVec spec.numBits}
-    (hb : spec.Valid b) (hb' : spec.Valid b') (hspec : 2 ≤ spec.exponentBits := by decide) :
+    (hb : spec.Valid b) (hb' : spec.Valid b') :
     (unpack spec b).beq (unpack spec b') ↔ b ≠ packedNaN spec ∧ b' ≠ packedNaN spec ∧
         (b = b' ∨ (b = packedZero spec .positive ∧ b' = packedZero spec .negative) ∨
           (b = packedZero spec .negative ∧ b' = packedZero spec .positive)) := by

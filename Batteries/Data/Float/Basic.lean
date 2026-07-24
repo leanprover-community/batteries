@@ -10,19 +10,6 @@ module
 namespace Float
 
 /--
-The floating point value "positive infinity", also used to represent numerical computations
-which produce finite values outside of the representable range of `Float`.
--/
-def inf : Float := 1/0
-
-/--
-The floating point value "not a number", used to represent erroneous numerical computations
-such as `0 / 0`. Using `nan` in any float operation will return `nan`, and all comparisons
-involving `nan` return `false`, including in particular `nan == nan`.
--/
-def nan : Float := 0/0
-
-/--
 The floating point value closest to the mathematical constant `π`.
 -/
 def pi : Float := 3.141592653589793
@@ -83,19 +70,6 @@ def toStringFull (f : Float) : String :=
 end Float
 
 namespace Float32
-
-/--
-The floating point value "positive infinity", also used to represent numerical computations
-which produce finite values outside of the representable range of `Float32`.
--/
-def inf : Float32 := 1/0
-
-/--
-The floating point value "not a number", used to represent erroneous numerical computations
-such as `0 / 0`. Using `nan` in any float operation will return `nan`, and all comparisons
-involving `nan` return `false`, including in particular `nan == nan`.
--/
-def nan : Float32 := 0/0
 
 /--
 The floating point value closest to the mathematical constant `π`.
