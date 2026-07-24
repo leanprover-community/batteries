@@ -1,0 +1,46 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../.././style.css"></link><link rel="icon" href="../.././favicon.svg"></link><link rel="mask-icon" href="../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../.././/declarations/declaration-data.bmp" as="image"></link><title>Lean.Elab.ConfigEval</title><script defer="true" src="../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../.././";</script><script>const MODULE_NAME="Lean.Elab.ConfigEval";</script><script type="module" src="../.././jump-src.js"></script><script type="module" src="../.././search.js"></script><script type="module" src="../.././expand-nav.js"></script><script type="module" src="../.././how-about.js"></script><script type="module" src="../.././instances.js"></script><script type="module" src="../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Lean</span>.<span class="name">Elab</span>.<span class="name">ConfigEval</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/62eed1db4d67327ec8120be05f1a1b0847d74561/src/Lean/Elab/ConfigEval.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../.././Lean/Elab/ConfigEval/Basic.html">Lean.Elab.ConfigEval.Basic</a></li><li><a href="../.././Lean/Elab/ConfigEval/Commands.html">Lean.Elab.ConfigEval.Commands</a></li><li><a href="../.././Lean/Elab/ConfigEval/DeriveEvalConfigItem.html">Lean.Elab.ConfigEval.DeriveEvalConfigItem</a></li><li><a href="../.././Lean/Elab/ConfigEval/DeriveEvalExpr.html">Lean.Elab.ConfigEval.DeriveEvalExpr</a></li><li><a href="../.././Lean/Elab/ConfigEval/DeriveEvalTerm.html">Lean.Elab.ConfigEval.DeriveEvalTerm</a></li><li><a href="../.././Lean/Elab/ConfigEval/Extra.html">Lean.Elab.ConfigEval.Extra</a></li><li><a href="../.././Lean/Elab/ConfigEval/Instances.html">Lean.Elab.ConfigEval.Instances</a></li><li><a href="../.././Lean/Elab/ConfigEval/MetaInstances.html">Lean.Elab.ConfigEval.MetaInstances</a></li><li><a href="../.././Lean/Elab/ConfigEval/Types.html">Lean.Elab.ConfigEval.Types</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Lean.Elab.ConfigEval" class="imported-by-list"></ul></details></div></nav><main>
+<div class="mod_doc"><h1 id="Configuration-evaluation" class="markdown-heading">Configuration evaluation <a class="hover-link" href="#Configuration-evaluation">#</a></h1><p>This module provides a system for constructing efficient elaborators for
+evaluating configuration syntaxes.</p><p>Users should import this module to ensure they have all elaborators and
+instances in scope.</p><p>The main interfaces are the <code>declare_core_config_elab</code>, <code>declare_term_config_elab</code>,
+<code>declare_config_elab</code> and <code>declare_command_config_elab</code> commands. These are
+macros that construct configuration elaborators from lower-level components.
+Metaprogram authors may choose to directly interface with the lower-level components instead.</p><p>These commands handle the common cases where</p><ol><li>your configuration type is a <code>structure</code> with no parameters, indices, or universes
+(only <code>Type</code> is supported);</li><li>default values are self-contained and not dependent on other fields; and</li><li>all fields have types that are composed from <code><a href="../.././Init/Prelude.html#Option">Option</a></code>, <code><a href="../.././Init/Prelude.html#List">List</a></code>, <code><a href="../.././Init/Prelude.html#Array">Array</a></code>, <code><a href="../.././Init/Prelude.html#String">String</a></code>,
+and inductive types in <code>Type</code> with no parameters or indices, whose
+constructor fields are similarly composed.</li></ol><p>The macros synthesize a self-contained configuration elaboration procedure, analyzing
+the <code>EvalTerm</code> and <code>EvalExpr</code> instances that are currently available or automatically
+derivable. These are the components of the system:</p><ul><li><code>EvalTerm</code> instances provide <code>Term → TermElabM α</code> functions for evaluation of raw syntax;
+these handle the common cases where an option value is a identifier, application, or other
+simple expression. They are responsible for adding TermInfo when info is enabled, to support
+hovers. One can invoke derivation of a <code>EvalTerm T</code> instance with the
+<code>ensure_eval_term_instance T</code> command (after <code>open scoped <a href="../.././Lean/Elab/ConfigEval.html">Lean.Elab.ConfigEval</a></code>).</li><li><code>EvalExpr</code> instances provide <code>Expr → TermElabM α</code> functions for evaluation of elaborated
+expressions; these handle cases where an option value may require reduction to evaluate.
+Similarly, one can invoke derivation of an <code>EvalExpr T</code> instance with the
+<code>ensure_eval_expr_instance T</code> command. If needed, there's also
+<code>derive_eval_expr_instance_using_meta_eval T</code> for creating a <code>Meta.evalExpr'</code>-based evaluator.</li><li>Functions like <code>ConfigEval.evalExprWithElab</code> compose <code>EvalTerm</code> and <code>EvalExpr</code> instances
+into a single procedure that first attempts <code>EvalTerm</code>, and, if that fails, applies the
+standard term elaborator and then attempts <code>EvalExpr</code>. This way term elaboration can be
+skipped in all but uncommon cases.</li><li>Configuration item interpretation is through <code>ConfigEval.foldConfigM</code>, which is a
+procedure with a lax specification for what counts as a configuration item. The idea is:<ul><li>Null nodes are lists of configurations</li><li>One-argument nodes wrapping null nodes are considered to be wrappers like <code>optConfig</code> or <code>configItem</code></li><li>Two-argument nodes of the form <code>(&quot;+&quot;&lt;|&gt;&quot;-&quot;) (atom&lt;|&gt;ident)</code> are considered to be
+boolean options</li><li>Five-argument nodes of the form <code>&quot;(&quot; (atom&lt;|&gt;ident) &quot;:=&quot; syntax &quot;)&quot;</code> are considered
+to be general configuration items. (It only checks for the presence of <code>(</code> and that
+there are two-to-five arguments.)</li><li>Bare atoms are considered to be positive boolean options</li></ul></li><li>Configuration evaluation then uses <code>EvalConfigItem.set</code> on each item produced by the
+fold, for an <code>EvalConfigItem</code> structure defined for the given configuration type.
+The <code>def_eval_config_item</code> command can be used to derive this structure. It
+analyzes which <code>EvalTerm</code> and <code>EvalExpr</code> instances exist and derives missing ones,
+then builds an efficient procedure to process configuration items and apply evaluators.</li><li>Lastly, there are the <code>declare_core_config_elab</code>, <code>declare_term_config_elab</code>,
+<code>declare_config_elab</code>, and <code>declare_command_config_elab</code> macros for conveniently
+running the <code>def_eval_config_item</code> command and constructing a self-contained
+elaboration function.</li></ul><p>The derivation procedures analyze which <code>EvalTerm</code>/<code>EvalExpr</code> instances already exist
+and only derive the &quot;leaf&quot; instances that are necessary to construct <code>EvalTerm</code> and
+<code>EvalExpr</code> instances. The derived instances are made <code>private local</code> — since
+configuration elaborators are meant to be self-contained, we decided not to let
+the additional instances be a side effect of the macros, except in the current section.
+The instances can be added globally by manually using the <code>ensure_*</code> commands.</p><h2 id="Notes-for-core-Lean" class="markdown-heading">Notes for core Lean <a class="hover-link" href="#Notes-for-core-Lean">#</a></h2><p>Builtin elaborators should put their configuration types in, for example,
+<code><a href="../.././Init/MetaTypes.html">Init.MetaTypes</a></code> or <code><a href="../.././Init/Meta/Defs.html">Init.Meta.Defs</a></code> so that hovers can function when
+nothing is imported.</p><p>Due to the flexibility of <code>ConfigEval.foldConfigM</code>, changing the syntax
+definitions for custom configurations doesn't generally lead to bootstrapping
+issues. Custom configuration options with a non-<code>Term</code> values are fine with the caveat
+that their use ought to be avoided in the prelude, to avoid bootstrapping issues when their
+syntax changes or the custom configuration elaborator changes.</p></div></main>
+<nav class="nav"><iframe src="../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

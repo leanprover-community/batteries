@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Batteries.Recycling.MonadSatisfying.List","Init"],"instances":[],"name":"Batteries.Data.List.Monadic"}

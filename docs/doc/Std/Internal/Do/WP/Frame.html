@@ -1,0 +1,187 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../../.././style.css"></link><link rel="icon" href="../../../.././favicon.svg"></link><link rel="mask-icon" href="../../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../../.././/declarations/declaration-data.bmp" as="image"></link><title>Std.Internal.Do.WP.Frame</title><script defer="true" src="../../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../../.././";</script><script>const MODULE_NAME="Std.Internal.Do.WP.Frame";</script><script type="module" src="../../../.././jump-src.js"></script><script type="module" src="../../../.././search.js"></script><script type="module" src="../../../.././expand-nav.js"></script><script type="module" src="../../../.././how-about.js"></script><script type="module" src="../../../.././instances.js"></script><script type="module" src="../../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">Do</span>.<span class="name">WP</span>.<span class="name">Frame</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/62eed1db4d67327ec8120be05f1a1b0847d74561/src/Std/Internal/Do/WP/Frame.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../../.././Std/Internal/Do/Order/Instances.html">Std.Internal.Do.Order.Instances</a></li><li><a href="../../../.././Std/Internal/Do/WP/Basic.html">Std.Internal.Do.WP.Basic</a></li><li><a href="../../../.././Std/Internal/Do/WP/Conjunctive.html">Std.Internal.Do.WP.Conjunctive</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Std.Internal.Do.WP.Frame" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Std.Internal.Do.WP.Frames"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">Do</span>.<span class="name">WP</span>.<span class="name">Frames</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.Do.WP.Frames.op_wp_upperAdjoint_le_wp"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">Do</span>.<span class="name">WP</span>.<span class="name">Frames</span>.<span class="name">op_wp_upperAdjoint_le_wp</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.Do.WP.Frames.le_frameClosure"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">Do</span>.<span class="name">WP</span>.<span class="name">Frames</span>.<span class="name">le_frameClosure</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.Do.WP.Frames.of_frameClosure"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">Do</span>.<span class="name">WP</span>.<span class="name">Frames</span>.<span class="name">of_frameClosure</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.Do.WP.Frames.of_wp_conjunctive"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">Do</span>.<span class="name">WP</span>.<span class="name">Frames</span>.<span class="name">of_wp_conjunctive</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.Do.WPMonad.of_frameClosure"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">Do</span>.<span class="name">WPMonad</span>.<span class="name">of_frameClosure</span></a></div></nav><main>
+<div class="decl" id="Std.Internal.Do.WP.Frames"><div class="structure"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/62eed1db4d67327ec8120be05f1a1b0847d74561/src/Std/Internal/Do/WP/Frame.lean#L24-L34">source</a></div><div class="decl_header"><span class="decl_kind">structure</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Internal/Do/WP/Frame.html#Std.Internal.Do.WP.Frames"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">Do</span>.<span class="name">WP</span>.<span class="name">Frames</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Prog</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Value</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Pred</span> : <a href="../../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">EPred</span> : <a href="../../../.././foundational_types.html">Type</a> z}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/Assertion.html#Std.Internal.Do.Assertion">Assertion</a> <span class="fn">Pred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/Assertion.html#Std.Internal.Do.Assertion">Assertion</a> <span class="fn">EPred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WP">WP</a> <span class="fn">Prog</span> <span class="fn">Value</span> <span class="fn">Pred</span> <span class="fn">EPred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../../.././foundational_types.html">Type</a> t}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">op</span> : <span class="fn"><span class="fn">R</span> → <span class="fn"><span class="fn">Pred</span> → <span class="fn">Pred</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">x</span> : <span class="fn">Prog</span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">F</span> : <span class="fn">R</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><a href="../../../.././foundational_types.html">Prop</a></div></div><p><code>x</code> frames the resource <code>F</code> with respect to the operator <code>op : R → Pred → Pred</code>: <code>op F ·</code> commutes
+into the postcondition of <code>wp x</code> for every postcondition.</p><p>For the meet <code>op = (· ⊓ ·)</code> with <code>R = Pred</code> and stateful <code>Pred</code>, this means running <code>x</code> preserves the
+state identified by <code>F</code>. Other operators take a simpler resource, e.g. a cost counter <code>R = <a href="../../../.././Init/Prelude.html#Nat">Nat</a></code>.</p><ul class="structure_fields" id="Std.Internal.Do.WP.Frames.mk"><li id="Std.Internal.Do.WP.Frames.conj_wp_le_wp_conj" class="structure_field"><div class="structure_field_info">conj_wp_le_wp_conj<span class="decl_args">
+<span class="fn">(<span class="fn">Q</span> : <span class="fn"><span class="fn">Value</span> → <span class="fn">Pred</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">E</span> : <span class="fn">EPred</span>)</span></span>
+ : <span class="fn"><a href="../../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder.rel">Lean.Order.PartialOrder.rel</a> <span class="fn">(<span class="fn">op</span> <span class="fn">F</span> <span class="fn">(<a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WP.wp">wp</a> <span class="fn">x</span> <span class="fn">Q</span> <span class="fn">E</span>)</span>)</span> <span class="fn">(<a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WP.wp">wp</a> <span class="fn">x</span> <span class="fn">(fun (<span class="fn">a</span> : <span class="fn">Value</span>) =&gt; <span class="fn"><span class="fn">op</span> <span class="fn">F</span> <span class="fn">(<span class="fn">Q</span> <span class="fn">a</span>)</span></span>)</span> <span class="fn">E</span>)</span></span></div><div class="structure_field_doc"><p>When <code>x</code> frames <code>(op F ·)</code>, <code>(op F ·)</code> commutes into the postcondition of <code>wp x</code>.</p></div></li></ul><details id="instances-for-list-Std.Internal.Do.WP.Frames" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div><div class="decl" id="Std.Internal.Do.WP.Frames.op_wp_upperAdjoint_le_wp"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/62eed1db4d67327ec8120be05f1a1b0847d74561/src/Std/Internal/Do/WP/Frame.lean#L36-L46">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Internal/Do/WP/Frame.html#Std.Internal.Do.WP.Frames.op_wp_upperAdjoint_le_wp"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">Do</span>.<span class="name">WP</span>.<span class="name">Frames</span>.<span class="name">op_wp_upperAdjoint_le_wp</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Prog</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Value</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Pred</span> : <a href="../../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">EPred</span> : <a href="../../../.././foundational_types.html">Type</a> z}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/Assertion.html#Std.Internal.Do.Assertion">Assertion</a> <span class="fn">Pred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/Assertion.html#Std.Internal.Do.Assertion">Assertion</a> <span class="fn">EPred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WP">WP</a> <span class="fn">Prog</span> <span class="fn">Value</span> <span class="fn">Pred</span> <span class="fn">EPred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../../.././foundational_types.html">Type</a> t}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">op</span> : <span class="fn"><span class="fn">R</span> → <span class="fn"><span class="fn">Pred</span> → <span class="fn">Pred</span></span></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">∀ (<span class="fn">r</span> : <span class="fn">R</span>), <span class="fn"><a href="../../../.././Std/Internal/Do/Order/PreservesSup.html#Lean.Order.PreservesSup">Lean.Order.PreservesSup</a> <span class="fn">(<span class="fn">op</span> <span class="fn">r</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x</span> : <span class="fn">Prog</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">F</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">hframes</span> : <span class="fn"><a href="../../../.././Std/Internal/Do/WP/Frame.html#Std.Internal.Do.WP.Frames">Frames</a> <span class="fn">op</span> <span class="fn">x</span> <span class="fn">F</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">Q</span> : <span class="fn"><span class="fn">Value</span> → <span class="fn">Pred</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">E</span> : <span class="fn">EPred</span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder.rel">Lean.Order.PartialOrder.rel</a> <span class="fn">(<span class="fn">op</span> <span class="fn">F</span> <span class="fn">(<a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WP.wp">wp</a> <span class="fn">x</span> <span class="fn">(fun (<span class="fn">a</span> : <span class="fn">Value</span>) =&gt; <span class="fn"><a href="../../../.././Std/Internal/Do/Order/PreservesSup.html#Lean.Order.PreservesSup.upperAdjoint">Lean.Order.PreservesSup.upperAdjoint</a> <span class="fn">(<span class="fn">op</span> <span class="fn">F</span>)</span> <span class="fn">(<span class="fn">Q</span> <span class="fn">a</span>)</span></span>)</span> <span class="fn">E</span>)</span>)</span>
+  <span class="fn">(<a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WP.wp">wp</a> <span class="fn">x</span> <span class="fn">Q</span> <span class="fn">E</span>)</span></span></div></div><p>The framed spec <code>vcgen</code> applies for <code>x</code>, when each <code>op r</code> preserves <code>Sup</code>: framing <code>x</code> by <code>F</code>
+makes <code>op F (wp x (fun a =&gt; PreservesSup.upperAdjoint (op F) (Q a)))</code> a precondition for <code>wp x Q</code>.</p></div></div><div class="decl" id="Std.Internal.Do.WP.Frames.le_frameClosure"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/62eed1db4d67327ec8120be05f1a1b0847d74561/src/Std/Internal/Do/WP/Frame.lean#L48-L55">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Internal/Do/WP/Frame.html#Std.Internal.Do.WP.Frames.le_frameClosure"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">Do</span>.<span class="name">WP</span>.<span class="name">Frames</span>.<span class="name">le_frameClosure</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Prog</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Value</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Pred</span> : <a href="../../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">EPred</span> : <a href="../../../.././foundational_types.html">Type</a> z}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/Assertion.html#Std.Internal.Do.Assertion">Assertion</a> <span class="fn">Pred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/Assertion.html#Std.Internal.Do.Assertion">Assertion</a> <span class="fn">EPred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WP">WP</a> <span class="fn">Prog</span> <span class="fn">Value</span> <span class="fn">Pred</span> <span class="fn">EPred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../../.././foundational_types.html">Type</a> t}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">op</span> : <span class="fn"><span class="fn">R</span> → <span class="fn"><span class="fn">Pred</span> → <span class="fn">Pred</span></span></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">∀ (<span class="fn">r</span> : <span class="fn">R</span>), <span class="fn"><a href="../../../.././Std/Internal/Do/Order/PreservesSup.html#Lean.Order.PreservesSup">Lean.Order.PreservesSup</a> <span class="fn">(<span class="fn">op</span> <span class="fn">r</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x</span> : <span class="fn">Prog</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">hframes</span> : <span class="fn">∀ (<span class="fn">r</span> : <span class="fn">R</span>), <span class="fn"><a href="../../../.././Std/Internal/Do/WP/Frame.html#Std.Internal.Do.WP.Frames">Frames</a> <span class="fn">op</span> <span class="fn">x</span> <span class="fn">r</span></span></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Q</span> : <span class="fn"><span class="fn">Value</span> → <span class="fn">Pred</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">E</span> : <span class="fn">EPred</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">pre</span> : <span class="fn">Pred</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">hpre</span> : <span class="fn"><a href="../../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder.rel">Lean.Order.PartialOrder.rel</a> <span class="fn">pre</span> <span class="fn">(<a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WP.wp">wp</a> <span class="fn">x</span> <span class="fn">Q</span> <span class="fn">E</span>)</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder.rel">Lean.Order.PartialOrder.rel</a> <span class="fn">pre</span> <span class="fn">(<a href="../../../.././Std/Internal/Do/Order/PreservesSup.html#Lean.Order.PreservesSup.frameClosure">Lean.Order.PreservesSup.frameClosure</a> <span class="fn">op</span> <span class="fn">(fun (<span class="fn">Q</span> : <span class="fn"><span class="fn">Value</span> → <span class="fn">Pred</span></span>) =&gt; <span class="fn"><a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WP.wp">wp</a> <span class="fn">x</span> <span class="fn">Q</span> <span class="fn">E</span></span>)</span> <span class="fn">Q</span>)</span></span></div></div><p><code>PreservesSup.<a href="../../../.././Std/Internal/Do/WP/Frame.html#Std.Internal.Do.WP.Frames.le_frameClosure">le_frameClosure</a></code> at the <code>wp</code> layer: when <code>x</code> frames every resource <code>r</code>, landing
+below <code>wp x Q E</code> suffices to land below the frame closure of <code>wp x · E</code>.</p></div></div><div class="decl" id="Std.Internal.Do.WP.Frames.of_frameClosure"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/62eed1db4d67327ec8120be05f1a1b0847d74561/src/Std/Internal/Do/WP/Frame.lean#L57-L70">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Internal/Do/WP/Frame.html#Std.Internal.Do.WP.Frames.of_frameClosure"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">Do</span>.<span class="name">WP</span>.<span class="name">Frames</span>.<span class="name">of_frameClosure</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Prog</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Value</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Pred</span> : <a href="../../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">EPred</span> : <a href="../../../.././foundational_types.html">Type</a> z}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/Assertion.html#Std.Internal.Do.Assertion">Assertion</a> <span class="fn">Pred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/Assertion.html#Std.Internal.Do.Assertion">Assertion</a> <span class="fn">EPred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WP">WP</a> <span class="fn">Prog</span> <span class="fn">Value</span> <span class="fn">Pred</span> <span class="fn">EPred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../../.././foundational_types.html">Type</a> t}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">op</span> : <span class="fn"><span class="fn">R</span> → <span class="fn"><span class="fn">Pred</span> → <span class="fn">Pred</span></span></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">∀ (<span class="fn">r</span> : <span class="fn">R</span>), <span class="fn"><a href="../../../.././Std/Internal/Do/Order/PreservesSup.html#Lean.Order.PreservesSup">Lean.Order.PreservesSup</a> <span class="fn">(<span class="fn">op</span> <span class="fn">r</span>)</span></span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">comp</span> : <span class="fn"><span class="fn">R</span> → <span class="fn">R</span> → <span class="fn">R</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hact</span> : <span class="fn">∀ (<span class="fn">r </span><span class="fn">r'</span> : <span class="fn">R</span>) (<span class="fn">a</span> : <span class="fn">Pred</span>), <span class="fn"><span class="fn">op</span> <span class="fn">(<span class="fn">comp</span> <span class="fn">r</span> <span class="fn">r'</span>)</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">op</span> <span class="fn">r</span> <span class="fn">(<span class="fn">op</span> <span class="fn">r'</span> <span class="fn">a</span>)</span></span></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x</span> : <span class="fn">Prog</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">F</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> :
+  <a href="../../../.././Init/Core.html#Exists">∃</a> <a href="../../../.././Init/Core.html#Exists">(</a><span class="fn">f</span> <a href="../../../.././Init/Core.html#Exists">:</a> <span class="fn"><span class="fn">Prog</span> → <span class="fn"><span class="fn">EPred</span> → <span class="fn"><span class="fn">(<span class="fn">Value</span> → <span class="fn">Pred</span>)</span> → <span class="fn">Pred</span></span></span></span><a href="../../../.././Init/Core.html#Exists">)</a><a href="../../../.././Init/Core.html#Exists">,</a>     <span class="fn">∀ (<span class="fn">x</span> : <span class="fn">Prog</span>) (<span class="fn">Q</span> : <span class="fn"><span class="fn">Value</span> → <span class="fn">Pred</span></span>) (<span class="fn">E</span> : <span class="fn">EPred</span>), <span class="fn"><a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WP.wp">wp</a> <span class="fn">x</span> <span class="fn">Q</span> <span class="fn">E</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../../.././Std/Internal/Do/Order/PreservesSup.html#Lean.Order.PreservesSup.frameClosure">Lean.Order.PreservesSup.frameClosure</a> <span class="fn">op</span> <span class="fn">(<span class="fn">f</span> <span class="fn">x</span> <span class="fn">E</span>)</span> <span class="fn">Q</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../../.././Std/Internal/Do/WP/Frame.html#Std.Internal.Do.WP.Frames">Frames</a> <span class="fn">op</span> <span class="fn">x</span> <span class="fn">F</span></span></div></div><p>If <code>wp</code> is built as <code>PreservesSup.frameClosure op</code> over a base post-transformer <code>f x E</code> (the frame
+rule internalized into <code>wp</code>), then every program frames every resource <code>F</code> with respect to <code>op</code>.</p></div></div><div class="decl" id="Std.Internal.Do.WP.Frames.of_wp_conjunctive"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/62eed1db4d67327ec8120be05f1a1b0847d74561/src/Std/Internal/Do/WP/Frame.lean#L72-L85">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Internal/Do/WP/Frame.html#Std.Internal.Do.WP.Frames.of_wp_conjunctive"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">Do</span>.<span class="name">WP</span>.<span class="name">Frames</span>.<span class="name">of_wp_conjunctive</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Prog</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Value</span> : <a href="../../../.././foundational_types.html">Type</a> v}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">Pred</span> : <a href="../../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">EPred</span> : <a href="../../../.././foundational_types.html">Type</a> z}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/Assertion.html#Std.Internal.Do.Assertion">Assertion</a> <span class="fn">Pred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/Assertion.html#Std.Internal.Do.Assertion">Assertion</a> <span class="fn">EPred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WP">WP</a> <span class="fn">Prog</span> <span class="fn">Value</span> <span class="fn">Pred</span> <span class="fn">EPred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/WP/Conjunctive.html#Std.Internal.Do.WPConjunctive">WPConjunctive</a> <span class="fn">Prog</span> <span class="fn">Value</span> <span class="fn">Pred</span> <span class="fn">EPred</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">x</span> : <span class="fn">Prog</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">F</span> : <span class="fn">Pred</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">h</span> : <span class="fn">∀ (<span class="fn">E</span> : <span class="fn">EPred</span>), <span class="fn"><a href="../../../.././Init/Internal/Order/Basic.html#Lean.Order.PartialOrder.rel">Lean.Order.PartialOrder.rel</a> <span class="fn">F</span> <span class="fn">(<a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WP.wp">wp</a> <span class="fn">x</span> <span class="fn">(fun (<span class="fn">x</span> : <span class="fn">Value</span>) =&gt; <span class="fn">F</span>)</span> <span class="fn">E</span>)</span></span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../../.././Std/Internal/Do/WP/Frame.html#Std.Internal.Do.WP.Frames">Frames</a> <span class="fn">(fun (<span class="fn">x1</span> <span class="fn">x2</span> : <span class="fn">Pred</span>) =&gt; <span class="fn"><a href="../../../.././Std/Internal/Do/Order/Basic.html#Lean.Order.meet">Lean.Order.meet</a> <span class="fn">x1</span> <span class="fn">x2</span></span>)</span> <span class="fn">x</span> <span class="fn">F</span></span></div></div><p>If <code>wp x</code> is conjunctive, then <code>x</code> frames <code>(F ⊓ ·)</code> when <code>F</code> holds before and after running <code>x</code>.</p></div></div><div class="decl" id="Std.Internal.Do.WPMonad.of_frameClosure"><div class="def"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/62eed1db4d67327ec8120be05f1a1b0847d74561/src/Std/Internal/Do/WP/Frame.lean#L87-L117">source</a></div><div class="attributes">@[instance_reducible]</div>
+<div class="decl_header"><span class="decl_kind">noncomputable def</span>
+<span class="decl_name"><a class="break_within" href="../../../.././Std/Internal/Do/WP/Frame.html#Std.Internal.Do.WPMonad.of_frameClosure"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">Do</span>.<span class="name">WPMonad</span>.<span class="name">of_frameClosure</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../../.././foundational_types.html">Type</a> → <a href="../../../.././foundational_types.html">Type</a></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">P</span> : <a href="../../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">E</span> : <a href="../../../.././foundational_types.html">Type</a> z}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/Assertion.html#Std.Internal.Do.Assertion">Assertion</a> <span class="fn">P</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../../.././Std/Internal/Do/Assertion.html#Std.Internal.Do.Assertion">Assertion</a> <span class="fn">E</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">R</span> : <a href="../../../.././foundational_types.html">Type</a>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">op</span> : <span class="fn"><span class="fn">R</span> → <span class="fn"><span class="fn">P</span> → <span class="fn">P</span></span></span>)</span></span>
+<span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn">∀ (<span class="fn">r</span> : <span class="fn">R</span>), <span class="fn"><a href="../../../.././Std/Internal/Do/Order/PreservesSup.html#Lean.Order.PreservesSup">Lean.Order.PreservesSup</a> <span class="fn">(<span class="fn">op</span> <span class="fn">r</span>)</span></span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">comp</span> : <span class="fn"><span class="fn">R</span> → <span class="fn">R</span> → <span class="fn">R</span></span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">e</span> : <span class="fn">R</span>}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">hact</span> : <span class="fn">∀ (<span class="fn">r </span><span class="fn">r'</span> : <span class="fn">R</span>) (<span class="fn">a</span> : <span class="fn">P</span>), <span class="fn"><span class="fn">op</span> <span class="fn">(<span class="fn">comp</span> <span class="fn">r</span> <span class="fn">r'</span>)</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">op</span> <span class="fn">r</span> <span class="fn">(<span class="fn">op</span> <span class="fn">r'</span> <span class="fn">a</span>)</span></span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">hunit</span> : <span class="fn">∀ (<span class="fn">a</span> : <span class="fn">P</span>), <span class="fn"><span class="fn">op</span> <span class="fn">e</span> <span class="fn">a</span></span> <a href="../../../.././Init/Prelude.html#Eq">=</a> <span class="fn">a</span></span>)</span></span>
+<span class="decl_args">
+<span class="fn">(<span class="fn">base</span> : <span class="fn"><a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WPMonad">WPMonad</a> <span class="fn">m</span> <span class="fn">P</span> <span class="fn">E</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../../.././Std/Internal/Do/WP/Basic.html#Std.Internal.Do.WPMonad">WPMonad</a> <span class="fn">m</span> <span class="fn">P</span> <span class="fn">E</span></span></div></div><p>Reinterpret a <code>WPMonad m</code> so its weakest precondition is the <code>PreservesSup.frameClosure</code> of the
+base wp over a family of <code>Sup</code>-preserving resource operators <code>op r</code> that act by <code>comp</code> with unit <code>e</code>.
+The resource frame rule then holds by construction (<code><a href="../../../.././Std/Internal/Do/WP/Frame.html#Std.Internal.Do.WP.Frames.of_frameClosure">WP.Frames.of_frameClosure</a></code>).</p><details><summary>Equations</summary><ul class="equations"><li class="equation">One or more equations did not get rendered due to their size.</li></ul></details><details id="instances-for-list-Std.Internal.Do.WPMonad.of_frameClosure" class="instances-for-list"><summary>Instances For</summary><ul class="instances-for-enum"></ul></details></div></div></main>
+<nav class="nav"><iframe src="../../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

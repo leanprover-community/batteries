@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Linter.Extra.DupNamespace","Lean.Linter.Extra.UnnecessarySeqFocus","Lean.Linter.Extra.UnreachableTactic","Lean.Linter.Extra.UnusedDecidableInType"],"instances":[],"name":"Lean.Linter.Extra"}

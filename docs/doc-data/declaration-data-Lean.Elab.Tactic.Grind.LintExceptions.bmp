@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init","Lean.Elab.Tactic.Grind.Lint","Std"],"instances":[],"name":"Lean.Elab.Tactic.Grind.LintExceptions"}

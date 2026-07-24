@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Batteries.Recycling.MonadSatisfying.Array","Batteries.Recycling.MonadSatisfying.Basic","Batteries.Recycling.MonadSatisfying.Lean","Batteries.Recycling.MonadSatisfying.List","Batteries.Recycling.MonadSatisfying.Vector","Init"],"instances":[],"name":"Batteries.Recycling.MonadSatisfying"}
