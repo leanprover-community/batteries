@@ -267,6 +267,18 @@ theorem_wanted exists_ulift_two.{u, v} :
   obtain ⟨y, hy⟩ := hv
   exact ⟨x, y, hx.trans hy.symm⟩
 
+/-! Binder types from a universe-polymorphic wanted must not leak the referenced declaration's
+level parameter names into the use site (#1911). -/
+section UniverseBinderLeak
+set_option autoImplicit false
+universe v
+theorem_wanted univ_poly_eq (a : Type v) : a = a
+end UniverseBinderLeak
+
+def_wanted univ_poly_use : Nat :=
+  have _ := ❰univ_poly_eq❱ Nat
+  0
+
 /-! ## Namespacing -/
 
 namespace N
