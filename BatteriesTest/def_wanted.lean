@@ -29,7 +29,7 @@ def_wanted other_nat : Nat
 def_wanted vec_of_some : Vector Nat (❰some_nat❱) := Vector.replicate _ 0
 
 /--
-info: @vec_of_some : {d_some_nat : some_nat.Val} → DefWanted (Vector Nat d_some_nat)
+info: @vec_of_some : {d_some_nat : some_nat.Val} → DerivedWanted (Vector Nat d_some_nat)
 -/
 #guard_msgs in #check @vec_of_some
 
@@ -38,7 +38,7 @@ def_wanted vec_double :
     Vector Nat (❰some_nat❱ + ❰some_nat❱) := Vector.replicate _ 0
 
 /--
-info: @vec_double : {d_some_nat : some_nat.Val} → DefWanted (Vector Nat (d_some_nat + d_some_nat))
+info: @vec_double : {d_some_nat : some_nat.Val} → DerivedWanted (Vector Nat (d_some_nat + d_some_nat))
 -/
 #guard_msgs in #check @vec_double
 
@@ -48,7 +48,7 @@ def_wanted vec_two_lengths :
 
 /--
 info: @vec_two_lengths : {d_some_nat : some_nat.Val} →
-  {d_other_nat : other_nat.Val} → DefWanted (Vector Nat (d_some_nat + d_other_nat))
+  {d_other_nat : other_nat.Val} → DerivedWanted (Vector Nat (d_some_nat + d_other_nat))
 -/
 #guard_msgs in #check @vec_two_lengths
 
@@ -70,7 +70,7 @@ info: @any_nat_eq_self : {d_any_nat : any_nat.Val} → ProofWanted (d_any_nat = 
 def_wanted one_fin : Fin 50 := ⟨0, by rw [show (0 : Nat) = 1 from ❰zero_eq_one❱]; decide⟩
 
 /--
-info: @one_fin : {h_zero_eq_one : zero_eq_one.Stmt} → DefWanted (Fin 50)
+info: @one_fin : {h_zero_eq_one : zero_eq_one.Stmt} → DerivedWanted (Fin 50)
 -/
 #guard_msgs in #check @one_fin
 
@@ -101,23 +101,30 @@ and also allows `Prop` statements (any `Sort` is fine). -/
 #guard_msgs in def_wanted is_prop : True
 #guard_msgs in def_wanted is_type : Nat
 
-/-! ## Bodies -/
+/-! ## Bodies
+
+A `def_wanted` *with* a body is **transparent**: it is emitted as a genuine `@[reducible]` definition
+(wrapped in `DerivedWanted` so it cannot be used directly as a value of its type), and `❰foo❱`
+*inlines* it. So `foo`'s own `❰…❱` references do not become `d_foo` binders on the referrer; only the
+opaque *leaf* holes survive. A bodyless `def_wanted` stays an opaque `DefWanted` hole. -/
 
 def_wanted any_nat_plus_one : Nat := ❰any_nat❱ + 1
 
 /--
-info: @any_nat_plus_one : {d_any_nat : any_nat.Val} → DefWanted Nat
+info: @any_nat_plus_one : {d_any_nat : any_nat.Val} → DerivedWanted Nat
 -/
 #guard_msgs in #check @any_nat_plus_one
 
 /-! A body that doesn't type-check is rejected. -/
 /--
-error: Type mismatch
+error: Application type mismatch: The argument
   d_any_nat✝
 has type
   any_nat.Val
 but is expected to have type
   Bool
+in the application
+  { val := d_any_nat✝ }
 -/
 #guard_msgs in def_wanted bad_body_dw : Bool := ❰any_nat❱
 
@@ -141,7 +148,7 @@ def_wanted param_dw (n : Nat) : Fin (n + 1)
 def_wanted use_param_dw : Fin 4 := ❰param_dw❱ 3
 
 /--
-info: @use_param_dw : {d_param_dw : (n : Nat) → (param_dw n).Val} → DefWanted (Fin 4)
+info: @use_param_dw : {d_param_dw : (n : Nat) → (param_dw n).Val} → DerivedWanted (Fin 4)
 -/
 #guard_msgs in #check @use_param_dw
 
@@ -152,7 +159,7 @@ def_wanted use_param_many : Option Nat := ❰param_many❱ [1, 2, 3] 0
 
 /--
 info: @use_param_many : {d_param_many : {α : Type} → (xs : List α) → (n : Nat) → (param_many xs n).Val} →
-  DefWanted (Option Nat)
+  DerivedWanted (Option Nat)
 -/
 #guard_msgs in #check @use_param_many
 
@@ -163,9 +170,72 @@ def_wanted poly_dw (α : Type u) : Type u
 def_wanted use_poly_dw (α : Type u) : Type u := ❰poly_dw❱ α
 
 /--
-info: use_poly_dw : Type u_1 → {d_poly_dw : (α : Type u_1) → (poly_dw α).Val} → DefWanted (Type u_1)
+info: use_poly_dw : Type u_1 → {d_poly_dw : (α : Type u_1) → (poly_dw α).Val} → DerivedWanted (Type u_1)
 -/
 #guard_msgs in #check @use_poly_dw
+
+/-! A universe-polymorphic `def_wanted` may equally be referenced at a *concrete* universe: the
+generated binder spells `poly_dw`'s universe as a hole, so `❰poly_dw❱ Nat` resolves at `Type` rather
+than pinning the reference to a rigid universe parameter that no concrete type could match. -/
+def_wanted use_poly_concrete : Type := ❰poly_dw❱ Nat
+
+/--
+info: @use_poly_concrete : {d_poly_dw : (α : Type) → (poly_dw α).Val} → DerivedWanted Type
+-/
+#guard_msgs in #check @use_poly_concrete
+
+/-! ## Transitive dependencies
+
+A transparent (body-ful) wanted is inlined at each reference, so referencing it surfaces only the
+opaque *leaf* holes it ultimately depends on — never the transparent intermediates. Class-valued and
+proof leaves are surfaced too. -/
+
+def_wanted base_dep (R : Type) : Nat
+def_wanted derived_dep (R : Type) : Nat := ❰base_dep❱ R + 1
+
+/-- `derived_dep` is transparent, so referencing it inlines its body; only its leaf hole `base_dep`
+surfaces as a `d_base_dep` binder (there is no `d_derived_dep`). -/
+def_wanted use_chain : Nat := ❰derived_dep❱ Nat
+
+/--
+info: @use_chain : {d_base_dep : (R : Type) → (base_dep R).Val} → DerivedWanted Nat
+-/
+#guard_msgs in #check @use_chain
+
+/-! A transparent `def_wanted` (`foo_dep`) referencing a `theorem_wanted` (`boo_dep`) inlines,
+leaving only the proof leaf hole `h_boo_dep` (Filippo Nuccio's reported shape). The inlined `foo_dep`
+shows as an η-expanded projection in the recorded statement. -/
+
+theorem_wanted boo_dep (R : Type) : (0 : Nat) < 5
+def_wanted foo_dep (R : Type) : Fin 5 := ⟨0, ❰boo_dep❱ R⟩
+theorem_wanted ref_with_proof_dep : (❰foo_dep❱ Nat).val = 0
+
+/--
+info: @ref_with_proof_dep : {h_boo_dep : ∀ (R : Type), (boo_dep R).Stmt} → ProofWanted (↑((fun R => (foo_dep R).val) Nat) = 0)
+-/
+#guard_msgs in #check @ref_with_proof_dep
+
+/-- Deduplication still applies: `base_dep` referenced both directly and (transitively, via the
+inlined `derived_dep`) yields a single `d_base_dep` binder. -/
+def_wanted use_chain_and_base : Nat := ❰base_dep❱ Nat + ❰derived_dep❱ Nat
+
+/--
+info: @use_chain_and_base : {d_base_dep : (R : Type) → (base_dep R).Val} → DerivedWanted Nat
+-/
+#guard_msgs in #check @use_chain_and_base
+
+/-! A chain of transparent defs inlines all the way down: referencing the top surfaces only the
+single opaque leaf hole. -/
+
+def_wanted leaf_dep (R : Type) : Nat
+def_wanted mid_dep (R : Type) : Nat := ❰leaf_dep❱ R + 1
+def_wanted top_dep (R : Type) : Nat := ❰mid_dep❱ R + 1
+def_wanted use_three_levels : Nat := ❰top_dep❱ Nat
+
+/--
+info: @use_three_levels : {d_leaf_dep : (R : Type) → (leaf_dep R).Val} → DerivedWanted Nat
+-/
+#guard_msgs in #check @use_three_levels
 
 /-! ## Namespacing -/
 
@@ -195,8 +265,9 @@ but is expected to have type
 
 /-! ## `instance_wanted`
 
-A wanted typeclass instance: registered like `instance` so Lean's typeclass synth picks it up
-automatically in every subsequent wanted declaration, with no explicit `❰…❱` reference. -/
+A wanted typeclass instance is registered like `instance`, so Lean's typeclass synth can find it in
+later wanted declarations with no explicit `❰…❱`. This is *include-on-use* (like `variable [inst]`):
+a later declaration carries the instance binder only when its statement or body actually needs it. -/
 
 namespace InstWantedTests
 private class MyClass (α : Type) where val : α
@@ -204,15 +275,23 @@ private def use_val {α} [MyClass α] : α := MyClass.val
 
 instance_wanted myInst : MyClass Nat
 
-/-! Subsequent wanted decls auto-include `myInst` as an instance binder, so typeclass synth
-finds it (`needsInstance` has no body so the rule "a body must reference a `❰…❱`" doesn't
-apply; the auto-include alone makes the signature carry `[myInst.Val]`). -/
-def_wanted needsInstance : Nat
+/-! A declaration that *uses* the instance picks it up automatically: `use_val` needs `[MyClass Nat]`,
+discharged by `myInst`, so the binder appears. -/
+def_wanted usesInstance : (use_val : Nat) = use_val
 
 /--
-info: @needsInstance : [myInst.Val] → DefWanted Nat
+info: @usesInstance : [d_myInst : myInst.Val] → DefWanted (use_val = use_val)
 -/
-#guard_msgs in #check @needsInstance
+#guard_msgs in #check @usesInstance
+
+/-! A declaration that does *not* use it does not carry it (include-on-use): `Nat` needs no
+`MyClass`, so no binder appears. -/
+def_wanted needsNoInstance : Nat
+
+/--
+info: needsNoInstance : DefWanted Nat
+-/
+#guard_msgs in #check @needsNoInstance
 
 /-! The "body needs a `❰…❱`" rule looks only at *user-written* refs: an ambient
 `instance_wanted` registration does not stand in for an explicit bracket. -/
@@ -225,32 +304,28 @@ error: `def_wanted` with a body but no `❰…❱` reference is just a `def`; ei
 -/
 #guard_msgs in def_wanted body_with_only_auto_include : Nat := use_val
 
-/-! Anonymous instances get a non-hygienic, user-resolvable name from the class head. (The
-signature also picks up `[myInst.Val]` because `myInst` is itself an `instance_wanted`
-declared earlier.) -/
+/-! Anonymous instances get a non-hygienic, user-resolvable name from the class head. `MyClass Bool`
+does not need the earlier `myInst : MyClass Nat`, so (by include-on-use) it carries no binder. -/
 instance_wanted : MyClass Bool
 
 /--
-info: @instMyClass : [myInst.Val] → DefWanted (MyClass Bool)
+info: instMyClass : DefWanted (MyClass Bool)
 -/
 #guard_msgs in #check @instMyClass
 
 /-! A second anonymous instance of the same class head gets a `_1` suffix to avoid colliding
-with the first. -/
+with the first. Neither uses the earlier instances, so neither carries their binders. -/
 private class OtherClass (α : Type) where val : α
 instance_wanted : OtherClass Nat
 instance_wanted : OtherClass Bool
 
 /--
-info: @instOtherClass : [myInst.Val] → [[d_myInst : myInst.Val] → instMyClass.Val] → DefWanted (OtherClass Nat)
+info: instOtherClass : DefWanted (OtherClass Nat)
 -/
 #guard_msgs in #check @instOtherClass
 
 /--
-info: @instOtherClass_1 : [myInst.Val] →
-  [[d_myInst : myInst.Val] → instMyClass.Val] →
-    [[d_myInst : myInst.Val] → [d_instMyClass : [d_myInst : myInst.Val] → instMyClass.Val] → instOtherClass.Val] →
-      DefWanted (OtherClass Bool)
+info: instOtherClass_1 : DefWanted (OtherClass Bool)
 -/
 #guard_msgs in #check @instOtherClass_1
 
