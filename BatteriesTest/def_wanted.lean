@@ -335,4 +335,20 @@ error: `instance_wanted` requires a typeclass payload; use `def_wanted` for non-
 -/
 #guard_msgs in instance_wanted bad : 5 = 7
 
+/-! Chained `instance_wanted`s that depend on earlier ones must still be findable by typeclass
+synth after a later wanted auto-includes them (#1910). -/
+private class Pointed (a : Type) where point : a
+private class DoublePointed (a : Type) [Pointed a] where second : a
+private class Stupid (a : Type) [Pointed a] : Prop where stupid : True
+
+def_wanted W : Type
+
+instance_wanted : Pointed (❰W❱)
+instance_wanted : DoublePointed (❰W❱)
+instance_wanted : Stupid (❰W❱)
+
+theorem_wanted chained_instances_synth : True := by
+  have : Stupid (❰W❱) := inferInstance
+  trivial
+
 end InstWantedTests
