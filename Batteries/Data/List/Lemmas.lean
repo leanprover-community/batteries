@@ -302,10 +302,10 @@ theorem cons_diff (a : α) (l₁ l₂ : List α) :
       simp[*]
 
 theorem cons_diff_of_mem {a : α} {l₂ : List α} (h : a ∈ l₂) (l₁ : List α) :
-    (a :: l₁).diff l₂ = l₁.diff (l₂.erase a) := by rw [cons_diff, if_pos h]
+    (a :: l₁).diff l₂ = l₁.diff (l₂.erase a) := by rw [cons_diff, ite_eq_left h]
 
 theorem cons_diff_of_not_mem {a : α} {l₂ : List α} (h : a ∉ l₂) (l₁ : List α) :
-    (a :: l₁).diff l₂ = a :: l₁.diff l₂ := by rw [cons_diff, if_neg h]
+    (a :: l₁).diff l₂ = a :: l₁.diff l₂ := by rw [cons_diff, ite_eq_right h]
 
 theorem diff_eq_foldl : ∀ l₁ l₂ : List α, l₁.diff l₂ = foldl List.erase l₁ l₂
   | _, [] => rfl
