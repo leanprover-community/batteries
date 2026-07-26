@@ -79,7 +79,7 @@ theorem pack_unpack {spec : Format} (b : BitVec spec.numBits) :
     unfold pack
     extract_lets mantbits biasedexp
     simp only [BitVec.ofNat_toNat, BitVec.setWidth_eq, mvec]
-    rw [if_neg, if_neg]
+    rw [ite_eq_right, ite_eq_right]
     · rw [Format.mantissaBits, Nat.add_comm, Nat.add_left_cancel_iff]
       apply Nat.ne_of_lt
       have := mt BitVec.toNat_inj.mp hmvec
@@ -95,7 +95,7 @@ theorem pack_unpack {spec : Format} (b : BitVec spec.numBits) :
       false_and, decide_false, Bool.false_eq_true, ↓reduceIte, evec]
     unfold pack
     extract_lets mantbits biasedexp
-    rw [if_neg, if_pos]
+    rw [ite_eq_right, ite_eq_left]
     · congr 1
       · simp +arith [biasedexp, e, evec]
       · rw [BitVec.ofNat_toNat, BitVec.setWidth_append]
