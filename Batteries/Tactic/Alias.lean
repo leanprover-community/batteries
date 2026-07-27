@@ -122,19 +122,33 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
         else pure s
       else pure s
 
-/-- Resolve `nameStx` for an alias, opening the alias name's namespace prefix (like `def`). -/
+/--
+Resolve `nameStx` for an alias.
+
+Prefer resolving in the ambient scope first (so e.g.
+`alias Std.Refl.reflexive := refl` keeps working when `refl` is already
+unambiguous). If that fails and the alias name has a namespace prefix, open
+that prefix like `def`/`abbrev` and retry — this is the `#810` case
+`alias Foo.baz := bar` where `bar` means `Foo.bar`.
+-/
 private def resolveAliasTarget (aliasId : Name) (nameStx : Ident) : TermElabM Name := do
-  let ns ←
-    if (`_root_).isPrefixOf aliasId then
-      pure (aliasId.replacePrefix `_root_ .anonymous).getPrefix
-    else
-      pure <| (← getCurrNamespace) ++ aliasId.getPrefix
-  if ns.isAnonymous then
+  try
     realizeGlobalConstNoOverloadWithInfo nameStx
-  else
-    withTheReader Core.Context (fun ctx =>
-        { ctx with openDecls := .simple ns [] :: ctx.openDecls }) do
-      realizeGlobalConstNoOverloadWithInfo nameStx
+  catch e =>
+    let ns ←
+      if (`_root_).isPrefixOf aliasId then
+        pure (aliasId.replacePrefix `_root_ .anonymous).getPrefix
+      else
+        pure <| (← getCurrNamespace) ++ aliasId.getPrefix
+    if ns.isAnonymous then
+      throw e
+    else
+      try
+        withTheReader Core.Context (fun ctx =>
+            { ctx with openDecls := .simple ns [] :: ctx.openDecls }) do
+          realizeGlobalConstNoOverloadWithInfo nameStx
+      catch _ =>
+        throw e
 
 /--
   The command `alias name := target` creates a synonym of `target` with the given name.
@@ -150,7 +164,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:iden
   Lean.withExporting (isExporting := (← Command.getScope).isPublic) do
   Command.liftTermElabM do
     -- Whether we may access private `name`s here depends on whether it is a theorem, so first
-    -- resolve in private scope always (also open alias namespace prefix, matching `def`)
+    -- resolve in private scope always (namespace open is a fallback inside resolveAliasTarget)
     let name ← withoutExporting <| resolveAliasTarget alias.getId nameStx
     let cinfo ← withoutExporting <| getConstInfo name
     let declMods ← elabModifiers mods

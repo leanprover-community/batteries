@@ -84,6 +84,16 @@ def Foo.barNS : Nat := 0
 alias Foo.bazNS := barNS
 example : Foo.bazNS = 0 := rfl
 
+/- Prefer ambient resolution when the short name is already unambiguous
+   (Mathlib's `alias Std.Refl.reflexive := refl` pattern; opening the
+   namespace would make `refl` ambiguous). -/
+namespace NS.Refl
+theorem refl : True := trivial
+end NS.Refl
+theorem refl : True := trivial
+alias NS.Refl.reflexive := refl
+example : NS.Refl.reflexive = refl := rfl
+
 /- Test unsafe -/
 
 /-- doc string for barbaz -/
