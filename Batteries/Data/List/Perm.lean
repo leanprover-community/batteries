@@ -110,7 +110,8 @@ theorem cons_subperm_of_not_mem_of_mem {a : α} {l₁ l₂ : List α} (h₁ : a 
     obtain ⟨t₁, t₂, rfl⟩ := append_of_mem bm
     have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp
     obtain ⟨t, p', s'⟩ := ih (mt (st.subset ·) h₁) am (.cons_inv <| p.trans perm_middle)
-    exact ⟨b :: t, (p'.cons b).trans <| (Perm.swap ..).trans (perm_middle.symm.cons a), s'.cons_cons _⟩
+    exact ⟨b :: t, (p'.cons b).trans <|
+    (Perm.swap ..).trans (perm_middle.symm.cons a), s'.cons_cons _⟩
 
 theorem subperm_append_left {l₁ l₂ : List α} : ∀ l, l ++ l₁ <+~ l ++ l₂ ↔ l₁ <+~ l₂
   | [] => .rfl
@@ -327,8 +328,8 @@ theorem cons_uncurry_swapAt_perm_cons : ∀ (xs : List α) (i : Nat) (v : α),
     List.cons.uncurry (swapAt xs i v) ~ v :: xs := getD_set_perm_cons
 
 @[simp] theorem swap_perm : ∀ (xs : List α) (i j : Nat), xs.swap i j ~ xs
-  | [], _, _ => .refl _
-  | _ :: _, 0, 0 => .refl _
+  | [], _, _ => .refl []
+  | _ :: _, 0, 0 => .refl (_ :: _)
   | a :: xs, 0, j+1 => getD_set_perm_cons xs j a
   | a :: xs, i+1, 0 => getD_set_perm_cons xs i a
   | a :: xs, i+1, j+1 => (swap_perm xs i j).cons a
