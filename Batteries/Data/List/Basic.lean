@@ -1135,8 +1135,7 @@ def swapAtTR (l : List α) (i : Nat) (v : α) : α × List α := go l i #[] wher
 /-- `l.swap i j` exchanges the elements at positions `i` and `j` of `l`.
 If either index is out of bounds, `l` is returned unchanged. -/
 def swap : List α → Nat → Nat → List α
-  | [], _, _ => []
-  | a :: xs, 0, 0 => a :: xs
+  | [], _, _ => [] | a :: xs, 0, 0 => a :: xs
   | a :: xs, 0, i + 1 | a :: xs, i + 1, 0 => xs[i]?.getD a :: xs.set i a
   | a :: xs, i + 1, j + 1 => a :: swap xs i j
 
