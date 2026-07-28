@@ -321,10 +321,10 @@ theorem getD_set_perm_cons : ∀ (xs : List α) (i : Nat) (v : α),
   | [], _, _ => .refl _
   | a :: xs, 0, v => Perm.swap v a xs
   | a :: xs, i+1, v =>
-    (Perm.swap a _ _).trans (((xs.getD_set_perm_cons i v).cons a).trans (Perm.swap v a xs))
+    (Perm.swap a _ _).trans <| ((xs.getD_set_perm_cons i v).cons a).trans <| Perm.swap v a xs
 
-theorem swapAt_perm_cons : ∀ (xs : List α) (i : Nat) (v : α),
-    (swapAt xs i v).1 :: (swapAt xs i v).2 ~ v :: xs := getD_set_perm_cons
+theorem cons_uncurry_swapAt_perm_cons : ∀ (xs : List α) (i : Nat) (v : α),
+    List.cons.uncurry (swapAt xs i v) ~ v :: xs := getD_set_perm_cons
 
 @[simp] theorem swap_perm : ∀ (xs : List α) (i j : Nat), xs.swap i j ~ xs
   | [], _, _ => .refl _
