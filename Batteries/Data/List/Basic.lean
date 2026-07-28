@@ -1111,3 +1111,49 @@ Examples:
 -/
 def partialProds [Mul α] [One α] (l : List α) : List α :=
   l.scanl (· * ·) 1
+
+/-- `swapAt xs i v` sets position `i` of `xs` to `v` and returns the displaced
+element, or `v` itself (with `xs` unchanged) if `i` is out of bounds. -/
+def swapAt (xs : List α) (i : Nat) (v : α) : α × List α := (xs[i]?.getD v, xs.set i v)
+
+/-- Tail-recursive version of `swapAt`. -/
+def swapAtTR (l : List α) (i : Nat) (v : α) : α × List α := go l i #[] where
+  @[specialize] go : List α → Nat → Array α → α × List α
+  | [], _, _ => (v, l)
+  | a :: xs, 0, acc => (a, acc.toListAppend (v :: xs))
+  | a :: xs, i + 1, acc => go xs i (acc.push a)
+
+@[csimp] theorem swapAt_eq_swapAtTR : @swapAt = @swapAtTR := by
+  funext α xs i v
+  let rec go : ∀ xs i (acc : Array α), swapAtTR.go (acc.toList ++ xs) v xs i acc =
+        (xs[i]?.getD v, acc.toList ++ xs.set i v)
+  | [], _, _ | _::_, 0, _ => by simp [swapAtTR.go]
+  | a::xs, i+1, acc => by simpa [swapAtTR.go] using go xs i (acc.push a)
+  exact (go xs i #[]).symm
+
+/-- `l.swap i j` exchanges the elements at positions `i` and `j` of `l`.
+If either index is out of bounds, `l` is returned unchanged. -/
+def swap : List α → Nat → Nat → List α
+  | [], _, _ => []
+  | a :: xs, 0, 0 => a :: xs
+  | a :: xs, 0, j + 1 => xs[j]?.getD a :: xs.set j a
+  | a :: xs, i + 1, 0 => xs[i]?.getD a :: xs.set i a
+  | a :: xs, i + 1, j + 1 => a :: swap xs i j
+
+/-- Tail-recursive version of `swap`. -/
+def swapTR (l : List α) (i j : Nat) : List α := go l i j #[] where
+  @[specialize] go : List α → Nat → Nat → Array α → List α
+  | [], _, _, _ => l
+  | _ :: _, 0, 0, _ => l
+  | a :: xs, 0, j + 1, acc => acc.toListAppend (List.cons.uncurry (swapAt xs j a))
+  | a :: xs, i + 1, 0, acc => acc.toListAppend (List.cons.uncurry (swapAt xs i a))
+  | a :: xs, i + 1, j + 1, acc => go xs i j (acc.push a)
+
+@[csimp] theorem swap_eq_swapTR : @swap = @swapTR := by
+  funext α l i j
+  let rec go : ∀ xs i j (acc : Array α),
+      swapTR.go (acc.toList ++ xs) xs i j acc = acc.toList ++ swap xs i j
+  | [], _, _, _ | _::_, 0, 0, _ | _::_, 0, _+1, _ | _::_, _+1, 0, _ => by
+    simp [swapTR.go, swap, swapAt]
+  | x::xs, i+1, j+1, acc => by simpa [swapTR.go, swap] using go xs i j (acc.push x)
+  exact (go l i j #[]).symm
