@@ -819,7 +819,7 @@ theorem mem_insert [Std.TransCmp (α := α) cmp] {t : RBNode α}
       simp [← mem_toList, h₂] at h; simp [← mem_toList, h₁]; rw [or_left_comm] at h ⊢
       rcases h with _|h <;> simp [*]
       refine .inl fun h => ?_
-      rw [find?_eq_zoom, e] at h; cases h
+      rw [find?_eq_zoom Path.root, e] at h; cases h
       suffices cmpLT cmp v' v' by cases Std.ReflCmp.compare_self.symm.trans this.1
       have := ht₂.toList_sorted; simp [h₁, List.pairwise_append] at this
       exact h.elim (this.2.2 _ · |>.1) (this.2.1.1 _)
