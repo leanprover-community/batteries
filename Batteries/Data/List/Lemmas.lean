@@ -1395,7 +1395,7 @@ grind_pattern min!_eq_min_of_ne_nil => l.min! where
 @[simp, grind =] theorem swap_self {xs : List α} {i : Nat} : xs.swap i i = xs := by
   induction xs generalizing i <;> cases i <;> simp_all [swap]
 
-@[simp] theorem swap_eq_of_ge_or_ge {xs : List α} (h : xs.length ≤ i ∨ xs.length ≤ j) :
+theorem swap_eq_of_ge_or_ge {xs : List α} (h : xs.length ≤ i ∨ xs.length ≤ j) :
     xs.swap i j = xs := by
   induction xs generalizing i j <;> cases i <;> cases j <;> simp_all [set_eq_of_length_le]
 
