@@ -1117,7 +1117,7 @@ element, or `v` itself (with `xs` unchanged) if `i` is out of bounds. -/
 def swapAt (xs : List α) (i : Nat) (v : α) : α × List α := (xs[i]?.getD v, xs.set i v)
 
 /-- Tail-recursive version of `swapAt`. -/
-def swapAtTR (l : List α) (i : Nat) (v : α) : α × List α := go l i #[] where
+@[inline] def swapAtTR (l : List α) (i : Nat) (v : α) : α × List α := go l i #[] where
   /-- Inner loop for `swapAtTR`. -/
   @[specialize] go : List α → Nat → Array α → α × List α
   | [], _, _ => (v, l)
@@ -1140,7 +1140,7 @@ def swap : List α → Nat → Nat → List α
   | a :: xs, i + 1, j + 1 => a :: swap xs i j
 
 /-- Tail-recursive version of `swap`. -/
-def swapTR (l : List α) (i j : Nat) : List α := go l i j #[] where
+@[inline] def swapTR (l : List α) (i j : Nat) : List α := go l i j #[] where
   /-- Inner loop for `swapTR`. -/
   @[specialize] go : List α → Nat → Nat → Array α → List α
   | [], _, _, _ | _ :: _, 0, 0, _ => l

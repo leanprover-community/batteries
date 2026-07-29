@@ -1386,9 +1386,10 @@ grind_pattern min!_eq_min_of_ne_nil => l.min! where
 @[simp] theorem swap_cons_succ_succ :
     (a :: xs).swap (i + 1) (j + 1) = a :: xs.swap i j := rfl
 
-@[grind =] theorem swap_eq : ∀ (xs : List α) (i j : Nat),
+@[grind =] theorem swap_eq (xs : List α) (i j : Nat) :
     xs.swap i j = if hi : i < xs.length ∧ j < xs.length then
-    (xs.set i xs[j]).set j xs[i] else xs
+    (xs.set i xs[j]).set j xs[i] else xs :=
+  match xs, i, j with
   | [], _, _ | _ :: _, 0, 0 | a :: xs, 0, j+1 | a :: xs, i+1, 0 => by
     simp [getElem?_getD_cons_set, swap]
   | a :: xs, i+1, j+1 => by simp [swap_eq xs i j, apply_dite (a :: ·)]
