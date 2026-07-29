@@ -74,4 +74,4 @@ theorem extract_eq_of_size_le_stop {a : Array α} (h : a.size ≤ j) :
 
 /-! ### swapIfInBounds -/
 @[simp, grind =] theorem toList_swapIfInBounds {a : Array α} :
-    (a.swapIfInBounds i j).toList = a.toList.swap i j := by grind [Array.toList_swap]
+    (a.swapIfInBounds i j).toList = a.toList.swap i j := List.ext_getElem (by simp) (by grind)
