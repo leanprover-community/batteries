@@ -159,14 +159,21 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:iden
         value := mkConst name (cinfo.toConstantVal.levelParams.map mkLevelParam)
       }
     else
+      -- Preserve reducibility (e.g. `abbrev` targets) instead of forcing `.regular 0`.
+      let hints := match cinfo with
+        | .defnInfo info => info.hints
+        | _ => .regular 0
       .defnDecl { cinfo.toConstantVal with
         name := declName
         value := mkConst name (cinfo.levelParams.map mkLevelParam)
-        hints := .regular 0 -- FIXME
+        hints := hints
         safety := if declMods.isUnsafe then .unsafe else .safe
       }
     checkNotAlreadyDeclared declName
     addDecl decl
+    -- `abbrev` (and `@[reducible]` / `@[irreducible]`) store status separately from
+    -- `ReducibilityHints`; copy it so aliases of abbrevs stay reducible.
+    setReducibilityStatus declName (← getReducibilityStatus name)
     if !declMods.isNoncomputable then
       if declMods.isMeta then
         modifyEnv (markMeta · declName)

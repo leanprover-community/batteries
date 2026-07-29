@@ -71,6 +71,13 @@ noncomputable alias foobaz3 := id
 /-- error: Failed to find LCNF signature for A.foobaz3 -/
 #guard_msgs in def foobaz4 (n : Nat) := foobaz3 n
 
+/- Test that aliasing an `abbrev` preserves reducibility hints -/
+
+abbrev reducibleAdd (n : Nat) : Nat := n + 1
+alias reducibleAddAlias := reducibleAdd
+-- Fails if the alias is registered as `.regular` instead of `.abbrev`.
+example : reducibleAddAlias 0 = 1 := by with_reducible rfl
+
 /- Test unsafe -/
 
 /-- doc string for barbaz -/
