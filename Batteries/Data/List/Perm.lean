@@ -335,7 +335,7 @@ theorem cons_uncurry_swapAt_perm_cons : ∀ (xs : List α) (i : Nat) (v : α),
   | a :: xs, i+1, j+1 => (swap_perm xs i j).cons a
 
 @[simp, grind =]
-theorem mem_swap {xs : List α} (i j : Nat} {a : α} : a ∈ xs.swap i j ↔ a ∈ xs :=
+theorem mem_swap {xs : List α} (i j : Nat) {a : α} : a ∈ xs.swap i j ↔ a ∈ xs :=
   (swap_perm xs i j).mem_iff
 
 /-! ### idxInj  -/
