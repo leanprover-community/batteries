@@ -92,20 +92,20 @@ def toRatParts (f : Float32) : Option (Int × Int) :=
 
 /-- Returns `v, exp` integers such that `f = v * 2^exp`.
 Like `toRatParts`, but `e` is guaranteed to be minimal (`v` is always odd), unless `v = 0`.
-`v.abs` will be at most `2^24 - 1` because `Float` has 24 bits of precision.
+`v.abs` will be at most `2^24 - 1` because `Float32` has 24 bits of precision.
 Returns `none` when `f` is not finite (i.e. `inf`, `-inf` or a `nan`). -/
-partial def toRatParts' (f : Float) : Option (Int × Int) :=
+partial def toRatParts' (f : Float32) : Option (Int × Int) :=
   f.toRatParts.map fun (n, e) =>
     if n == 0 then (0, 0) else
       let neg : Bool := n < 0
-      let v := n.natAbs.toUInt64
+      let v := n.natAbs.toUInt32
       let c := trailingZeros v 0
-      let v := (v >>> c.toUInt64).toNat
+      let v := (v >>> c.toUInt32).toNat
       (if neg then -v else v, e + c.toNat)
 where
-  /-- Calculates the number of trailing bits in a `UInt64`. Requires `v ≠ 0`. -/
+  /-- Calculates the number of trailing bits in a `UInt32`. Requires `v ≠ 0`. -/
   -- TODO: optimize and make total
-  trailingZeros (v : UInt64) (c : UInt8) :=
+  trailingZeros (v : UInt32) (c : UInt8) :=
     if v &&& 1 == 0 then trailingZeros (v >>> 1) (c + 1) else c
 
 /-- Converts `f` to a string, including all decimal digits. -/
