@@ -1396,14 +1396,14 @@ theorem swap_eq {xs : List α}  :
     split <;> simp_all [set_eq_of_length_le, Nat.not_lt]
 
 @[simp] theorem swap_eq_of_ge_left {xs : List α} (h : xs.length ≤ i) : xs.swap i j = xs := by
-  rw [swap_eq, dif_neg (not_and_of_not_left (j < xs.length) (Nat.not_lt_of_ge h))]
+  rw [swap_eq, dite_eq_right (not_and_of_not_left (j < xs.length) (Nat.not_lt_of_ge h))]
 
 @[simp] theorem swap_eq_of_ge_right {xs : List α} (h : xs.length ≤ j) : xs.swap i j = xs := by
-  rw [swap_eq, dif_neg (not_and_of_not_right (i < xs.length) (Nat.not_lt_of_ge h))]
+  rw [swap_eq, dite_eq_right (not_and_of_not_right (i < xs.length) (Nat.not_lt_of_ge h))]
 
 theorem swap_eq_of_lt {xs : List α} (hi :  i < xs.length) (hj : j < xs.length) :
     xs.swap i j = (xs.set i xs[j]).set j xs[i] := by
-  rw [swap_eq, dif_pos (And.intro hi hj)]
+  rw [swap_eq, dite_eq_left (And.intro hi hj)]
 
 @[simp, grind =] theorem swap_self {xs : List α} {i : Nat} : xs.swap i i = xs := by
   obtain (hi | hi) := Nat.lt_or_ge i (xs.length)
@@ -1442,17 +1442,17 @@ theorem getElem_swap_right {xs : List α} {i j : Nat} (hj : j < (xs.swap i j).le
     (hk : k < (xs.swap i j).length) : (xs.swap i j)[k] = xs[k]'(length_swap ▸ hk) := by
   obtain (hi | hi) := Nat.lt_or_ge i (xs.length)
   · obtain (hj | hj) := Nat.lt_or_ge j (xs.length)
-    · simp only [swap_eq_of_lt hi hj, getElem_set, hik.symm, hjk.symm, if_false]
+    · simp only [swap_eq_of_lt hi hj, getElem_set, hik.symm, hjk.symm, ite_false]
     · exact getElem_congr_coll (swap_eq_of_ge_right hj)
   · exact getElem_congr_coll (swap_eq_of_ge_left hi)
 
 @[simp] theorem getElem_swap_left_of_lt {xs : List α} {i j : Nat} (hj : j < xs.length)
     (hi : i < (xs.swap i j).length) : (xs.swap i j)[i] = xs[j] := by
-  rw [getElem_swap_left, dif_pos hj]
+  rw [getElem_swap_left, dite_eq_left hj]
 
 @[simp] theorem getElem_swap_right_of_lt {xs : List α} {i j : Nat} (hi : i < xs.length)
     (hj : j < (xs.swap i j).length) : (xs.swap i j)[j] = xs[i] := by
-  rw [getElem_swap_right, dif_pos hi]
+  rw [getElem_swap_right, dite_eq_left hi]
 
 @[grind =]
 theorem getElem_swap {xs : List α} {i j k : Nat}
