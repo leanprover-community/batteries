@@ -1,4 +1,4 @@
-import Batteries.Lean.Float
+import Batteries.Data.Float.Basic
 
 #guard 0.0.toRatParts == some (0, -53)
 #guard (2^(-1000):Float).toRatParts == some (4503599627370496, -1052)
