@@ -76,11 +76,11 @@ theorem dfoldr_eq_foldr (f : (i : Fin n) → α → α) (x) :
 theorem dfoldlM_loop_lt [Monad m] (f : ∀ (i : Fin n), α i.castSucc → m (α i.succ)) (h : i < n) (x) :
     dfoldlM.loop n α f i (Nat.lt_add_right 1 h) x =
       (f ⟨i, h⟩ x) >>= (dfoldlM.loop n α f (i+1) (Nat.add_lt_add_right h 1)) := by
-  rw [dfoldlM.loop, dif_pos h]
+  rw [dfoldlM.loop, dite_eq_left h]
 
 theorem dfoldlM_loop_eq [Monad m] (f : ∀ (i : Fin n), α i.castSucc → m (α i.succ)) (x) :
     dfoldlM.loop n α f n (Nat.le_refl _) x = pure x := by
-  rw [dfoldlM.loop, dif_neg (Nat.lt_irrefl _)]; rfl
+  rw [dfoldlM.loop, dite_eq_right (Nat.lt_irrefl _)]; rfl
 
 set_option backward.isDefEq.respectTransparency false in
 @[simp] theorem dfoldlM_zero [Monad m] (f : (i : Fin 0) → α i.castSucc → m (α i.succ)) (x) :
