@@ -6,7 +6,7 @@ buildDir = "."
 [[require]]
 scope = "leanprover"
 name = "doc-gen4"
-rev = "main"
+rev = "v4.32.1"
 
 [[require]]
 name = "batteries"
