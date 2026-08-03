@@ -29,6 +29,10 @@ theorem foo6_ok (_ : Nat) : True := trivial
 set_option linter.unusedVariables false in
 theorem foo7_bad [Mul Nat] [inst : Add Nat] {h : 1 = 1} ⦃h' : 0 = 0⦄ : True := trivial
 
+-- deprecated names are ignored
+set_option linter.unusedVariables false in
+@[deprecated foo6_ok (since := "today")] theorem foo6_ok' (h : Nat) : True := trivial
+
 /--
 error: /- The `unusedArguments` linter reports:
 UNUSED ARGUMENTS.
