@@ -394,6 +394,16 @@ error: no options start with foobarbaz
 
 /--
 info:
+option pp.instances : Bool := true (currently: false)
+  (pretty printer) if set to false, replace inst-implicit arguments to explicit applications with
+placeholders
+-/
+#guard_msgs in
+set_option pp.instances false in
+#help option pp.instances
+
+/--
+info:
 option pp.instanceTypes : Bool := false
   (pretty printer) when printing explicit applications, show the types of inst-implicit arguments
 
