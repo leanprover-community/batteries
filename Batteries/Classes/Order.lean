@@ -164,7 +164,7 @@ theorem LawfulLTCmp.eq_compareOfLessAndEq
 theorem ReflCmp.compareOfLessAndEq_of_lt_irrefl [LT α] [DecidableLT α] [DecidableEq α]
     (lt_irrefl : ∀ x : α, ¬ x < x) :
     ReflCmp (α := α) (compareOfLessAndEq · ·) where
-  compare_self {x} := by simp [compareOfLessAndEq, if_neg (lt_irrefl x)]
+  compare_self {x} := by simp [compareOfLessAndEq, ite_eq_right (lt_irrefl x)]
 
 theorem LawfulBEqCmp.compareOfLessAndEq_of_lt_irrefl
     [LT α] [DecidableLT α] [DecidableEq α] [BEq α] [LawfulBEq α]

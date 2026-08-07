@@ -285,7 +285,7 @@ theorem find?_one {p : Fin 1 → Bool} : find? p = if p 0 then some 0 else none 
 theorem find?_succ {p : Fin (n+1) → Bool} :
     find? p = if p 0 then some 0 else (find? (p ·.succ)).map Fin.succ := by
   simp only [findSome?_succ, Option.guard, fun a => apply_ite (Option.or · a),
-    Option.some_or, Option.none_or, map_findSome?, Option.map_if]
+    Option.some_or, Option.none_or, map_findSome?, Option.map_ite]
 
 @[grind =]
 theorem find?_eq_some_iff {p : Fin n → Bool} :
@@ -356,7 +356,7 @@ theorem findRev?_succ {p : Fin (n+1) → Bool} :
     findRev? p = if p (last n) then some (last n)
     else (findRev? fun i => p i.castSucc).map Fin.castSucc := by
   simp only [findSomeRev?_succ, Option.guard, fun a => apply_ite (Option.or · a),
-    Option.some_or, Option.none_or, map_findSomeRev?, Option.map_if]
+    Option.some_or, Option.none_or, map_findSomeRev?, Option.map_ite]
 
 theorem findRev?_one {p : Fin 1 → Bool} : findRev? p = if p 0 then some 0 else none := by
   grind [findRev?_succ]

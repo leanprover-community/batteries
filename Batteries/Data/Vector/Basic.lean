@@ -100,7 +100,7 @@ where
       let pred := i - 1
       have h_pred : pred.toNat = i.toNat - 1 := USize.pred_toNat h_gt
       let next ← f (as.uget pred (by omega)) cur
-      loop next pred n_usize h_n (by omega) (acc.uset pred cur (by omega))
+      loop next pred n_usize h_n (by omega) (acc.uset pred next (by omega))
     else
       return acc
   termination_by i.toNat
