@@ -1337,6 +1337,20 @@ theorem sum_flatten [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 
     l.flatten.sum = (l.map sum).sum := by
   induction l with simp [*]
 
+@[simp, grind =]
+theorem sum_take_add_sum_drop [Add α] [Zero α]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] [Std.Associative (α := α) (· + ·)]
+    (l : List α) (n : Nat) :
+    (l.take n).sum + (l.drop n).sum = l.sum := by
+  rw [← sum_append, take_append_drop]
+
+@[simp, grind =]
+theorem prod_take_mul_prod_drop [Mul α] [One α]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] [Std.Associative (α := α) (· * ·)]
+    (l : List α) (n : Nat) :
+    (l.take n).prod * (l.drop n).prod = l.prod := by
+  rw [← prod_append, take_append_drop]
+
 theorem take_succ_drop {l : List α} {n stop : Nat}
     (h : n < l.length - stop) :
     (l.drop stop |>.take (n + 1)) = (l.drop stop |>.take n) ++ [l[stop + n]'(by omega)] := by
