@@ -3,10 +3,14 @@ Copyright (c) 2023 Kim Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kim Morrison
 -/
-module
+module -- deprecated_module: ignore
 
 public import Batteries.Data.MLList.Basic
 public import Lean.Util.Heartbeats
+
+set_option linter.deprecated false
+
+deprecated_module "It is recommended to use `Std.IterM` instead." (since := "2026-07-06")
 
 @[expose] public section
 
