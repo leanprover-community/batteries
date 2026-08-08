@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Std.Async","Std.Http","Std.Internal.Do","Std.Internal.Parsec","Std.Internal.UV"],"instances":[],"name":"Std.Internal"}

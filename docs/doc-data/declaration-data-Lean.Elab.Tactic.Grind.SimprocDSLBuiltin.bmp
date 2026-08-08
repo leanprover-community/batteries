@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Sym.Simp.SimprocDSL","Lean.Elab.Tactic.Grind.SimprocDSL","Lean.Meta.Sym.Simp.ControlFlow","Lean.Meta.Sym.Simp.EvalGround","Lean.Meta.Sym.Simp.Forall","Lean.Meta.Sym.Simp.Rewrite","Lean.Meta.Sym.Simp.Telescope"],"instances":[],"name":"Lean.Elab.Tactic.Grind.SimprocDSLBuiltin"}

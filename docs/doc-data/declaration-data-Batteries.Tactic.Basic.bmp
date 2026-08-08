@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Batteries.Linter","Batteries.Tactic.Init","Batteries.Tactic.SeqFocus","Batteries.Util.ProofWanted","Init","Lean.Elab.Tactic.ElabTerm"],"instances":[],"name":"Batteries.Tactic.Basic"}

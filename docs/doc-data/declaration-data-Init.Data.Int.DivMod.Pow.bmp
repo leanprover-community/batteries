@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.ByCases","Init.Data.Int.DivMod.Bootstrap","Init.Data.Int.DivMod.Lemmas","Init.Data.Int.Lemmas","Init.Data.Int.Pow","Init.RCases"],"instances":[],"name":"Init.Data.Int.DivMod.Pow"}
