@@ -11,6 +11,7 @@ import all Init.Control.Option
 import all Init.Control.State
 import all Init.Control.Reader
 import all Init.Control.StateRef
+public import Lean.Meta.Basic
 
 @[expose] public section
 
@@ -203,3 +204,5 @@ instance [AlternativeMonad m] : LawfulAlternativeLift m (StateRefT' ω σ m) :=
   inferInstanceAs (LawfulAlternativeLift m (ReaderT (ST.Ref ω σ) m))
 
 end StateRefT'
+
+instance : AlternativeMonad Lean.Meta.MetaM where
