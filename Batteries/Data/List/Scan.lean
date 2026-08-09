@@ -134,17 +134,53 @@ theorem length_flatten_mem_partialSums_map_length (L : List (List α)) :
     right
     simpa using ih
 
+/-!
+The next three lemmas are the index bookkeeping shared by `getElem_flatten` and `take_flatten`.
+In both, `(L.map length).partialSums.findIdx (· > i) - 1` is the index of the sublist of `L`
+that contains flat position `i`; these compute that `findIdx` for a `cons`.
+-/
+
+/--
+`(L.map length).partialSums` begins with `0`, which is never `> i`, so `findIdx (· > i)` is never
+`0`. No bound on `i` is needed: if no partial sum exceeds `i` then `findIdx` returns the length of
+the list, which is positive too.
+-/
+theorem findIdx_partialSums_map_length_pos (L : List (List α)) (i : Nat) :
+    0 < (L.map length).partialSums.findIdx (· > i) := by
+  by_contra w
+  simp at w
+
+/--
+If `i` indexes into the first sublist, the partial sums of the lengths of `l :: L` first exceed
+`i` at index `1`.
+-/
+theorem findIdx_partialSums_map_length_cons_of_lt_length {l : List α} {L : List (List α)}
+    {i : Nat} (h : i < l.length) :
+    ((l :: L).map length).partialSums.findIdx (· > i) = 1 := by
+  simp [partialSums_cons, findIdx_cons]
+  rw [findIdx_eq] <;> grind
+
+/--
+If `i` is not an index into the first sublist `l`, the partial sums of the lengths of `l :: L`
+first exceed `i` exactly one index after those of `L` first exceed `i - l.length`.
+-/
+theorem findIdx_partialSums_map_length_cons_of_length_le {l : List α} {L : List (List α)}
+    {i : Nat} (h : l.length ≤ i) :
+    ((l :: L).map length).partialSums.findIdx (· > i) =
+      (L.map length).partialSums.findIdx (· > i - l.length) + 1 := by
+  simp [partialSums_cons, findIdx_cons, Function.comp_def]
+  congr
+  funext x
+  grind
+
 theorem getElem_flatten_aux₁ (L : List (List α)) (i : Nat) (h : i < L.flatten.length) :
     (L.map length).partialSums.findIdx (· > i) - 1 < L.length := by
-  have := findIdx_lt_length_of_exists
+  have hlt := findIdx_lt_length_of_exists
     (xs := (L.map length).partialSums) (p := fun x => decide (x > i))
-  specialize this ⟨L.flatten.length,
+  specialize hlt ⟨L.flatten.length,
     length_flatten_mem_partialSums_map_length L, by grind⟩
-  simp at this
-  simp
-  have : 0 < findIdx (fun x => decide (i < x)) (map length L).partialSums := by
-    by_contra w
-    simp at w
+  have hpos := findIdx_partialSums_map_length_pos L i
+  simp only [length_partialSums, length_map] at hlt
   omega
 
 theorem getElem_flatten_aux₂ (L : List (List α)) (i : Nat) (h : i < L.flatten.length) :
@@ -193,19 +229,10 @@ theorem getElem_flatten (L : List (List α)) (i : Nat) (h : i < L.flatten.length
   | cons l L ih =>
     simp only [flatten_cons, getElem_append]
     split <;> rename_i h'
-    · have : findIdx (fun x => decide (x > i)) (map length (l :: L)).partialSums = 1 := by
-        simp [partialSums_cons, findIdx_cons]
-        rw [findIdx_eq] <;> grind
-      simp only [this]
+    · simp only [findIdx_partialSums_map_length_cons_of_lt_length h']
       simp
     · rw [ih]
-      have : findIdx (fun x => decide (x > i)) (map length (l :: L)).partialSums =
-          findIdx (fun x => decide (x > i - l.length)) (map length L).partialSums + 1 := by
-        simp [partialSums_cons, findIdx_cons, Function.comp_def]
-        congr
-        funext x
-        grind
-      simp only [this]
+      simp only [findIdx_partialSums_map_length_cons_of_length_le (Nat.le_of_not_lt h')]
       simp only [getElem_cons]
       split <;> rename_i h''
       · simp [findIdx_eq] at h''
@@ -231,30 +258,17 @@ theorem take_flatten (L : List (List α)) (i : Nat) :
   induction L generalizing i with
   | nil => simp
   | cons l L ih =>
-    simp only [flatten_cons, map_cons, partialSums_cons]
+    simp only [flatten_cons]
     by_cases h' : i < l.length
-    · have hfind : findIdx (fun x => decide (x > i))
-          (0 :: (map length L).partialSums.map (l.length + ·)) = 1 := by
-        rw [findIdx_eq] <;> grind
-      simp only [hfind, Nat.sub_self, take_zero, flatten_nil, nil_append,
-        getElem?_cons_zero, Option.getD_some]
+    · simp only [findIdx_partialSums_map_length_cons_of_lt_length h', Nat.sub_self, take_zero,
+        flatten_nil, nil_append, getElem?_cons_zero, Option.getD_some]
       exact take_append_of_le_length (Nat.le_of_lt h')
     · have hle : l.length ≤ i := Nat.le_of_not_lt h'
-      have hfind : findIdx (fun x => decide (x > i))
-          (0 :: (map length L).partialSums.map (l.length + ·)) =
-          findIdx (fun x => decide (x > i - l.length)) (map length L).partialSums + 1 := by
-        simp [findIdx_cons, Function.comp_def]
-        congr
-        funext x
-        grind
-      have hFpos : 0 < findIdx (fun x => decide (x > i - l.length)) (map length L).partialSums := by
-        by_contra w
-        simp at w
-      have hFeq : findIdx (fun x => decide (x > i - l.length)) (map length L).partialSums
-          = findIdx (fun x => decide (x > i - l.length)) (map length L).partialSums - 1 + 1 :=
-        (Nat.succ_pred_eq_of_pos hFpos).symm
+      have hFeq : (L.map length).partialSums.findIdx (· > i - l.length)
+          = (L.map length).partialSums.findIdx (· > i - l.length) - 1 + 1 :=
+        (Nat.succ_pred_eq_of_pos (findIdx_partialSums_map_length_pos L (i - l.length))).symm
       have htake : l.take i = l := take_of_length_le hle
-      simp only [hfind, Nat.add_sub_cancel]
+      simp only [findIdx_partialSums_map_length_cons_of_length_le hle, Nat.add_sub_cancel]
       rw [take_append, htake, hFeq]
       simp only [take_succ_cons, flatten_cons, getElem?_cons_succ, append_assoc]
       have hi := ih (i := i - l.length)
