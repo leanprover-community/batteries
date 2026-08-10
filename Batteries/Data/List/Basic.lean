@@ -574,7 +574,7 @@ where
   let rec go (as bs acca accb) : takeWhile₂TR.go R as bs acca accb =
       (acca.reverse ++ (as.takeWhile₂ R bs).1, accb.reverse ++ (as.takeWhile₂ R bs).2) := by
     unfold takeWhile₂TR.go takeWhile₂; split <;> simp
-    rename_i a as b bs; unfold cond; cases R a b <;> simp [go as bs]
+    rename_i a as b bs; cases R a b <;> simp [go as bs]
   exact (go as bs [] []).symm
 
 /--
