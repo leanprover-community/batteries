@@ -66,3 +66,23 @@ import Batteries.Data.Float.Basic
 #guard (Int.divFloat 0 0).isNaN
 #guard (Int.divFloat 0 1).toString == "0.000000"
 #guard (Int.divFloat 0 (-1)).toString == "-0.000000"
+
+-- Float32: toRatParts / toRatParts' (24-bit mantissa)
+#guard (0.0 : Float32).toRatParts == some (0, -24)
+#guard ((2^(-100) : Float32)).toRatParts == some (8388608, -123)
+#guard ((2^(-10) : Float32)).toRatParts == some (8388608, -33)
+#guard ((0.5 : Float32)).toRatParts == some (8388608, -24)
+#guard ((5.0 : Float32)).toRatParts == some (10485760, -21)
+#guard ((-5.0 : Float32)).toRatParts == some (-10485760, -21)
+#guard ((1e40 : Float32)).toRatParts == none
+#guard ((-0/0 : Float32)).toRatParts == none
+
+#guard (0.0 : Float32).toRatParts' == some (0, 0)
+#guard ((2^(-100) : Float32)).toRatParts' == some (1, -100)
+#guard ((2^(-10) : Float32)).toRatParts' == some (1, -10)
+#guard ((0.5 : Float32)).toRatParts' == some (1, -1)
+#guard ((5.0 : Float32)).toRatParts' == some (5, 0)
+#guard ((-5.0 : Float32)).toRatParts' == some (-5, 0)
+#guard ((5.5 : Float32)).toRatParts' == some (11, -1)
+#guard ((1e40 : Float32)).toRatParts' == none
+#guard ((-0/0 : Float32)).toRatParts' == none

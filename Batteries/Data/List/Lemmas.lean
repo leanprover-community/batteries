@@ -302,10 +302,10 @@ theorem cons_diff (a : α) (l₁ l₂ : List α) :
       simp[*]
 
 theorem cons_diff_of_mem {a : α} {l₂ : List α} (h : a ∈ l₂) (l₁ : List α) :
-    (a :: l₁).diff l₂ = l₁.diff (l₂.erase a) := by rw [cons_diff, if_pos h]
+    (a :: l₁).diff l₂ = l₁.diff (l₂.erase a) := by rw [cons_diff, ite_eq_left h]
 
 theorem cons_diff_of_not_mem {a : α} {l₂ : List α} (h : a ∉ l₂) (l₁ : List α) :
-    (a :: l₁).diff l₂ = a :: l₁.diff l₂ := by rw [cons_diff, if_neg h]
+    (a :: l₁).diff l₂ = a :: l₁.diff l₂ := by rw [cons_diff, ite_eq_right h]
 
 theorem diff_eq_foldl : ∀ l₁ l₂ : List α, l₁.diff l₂ = foldl List.erase l₁ l₂
   | _, [] => rfl
@@ -1370,3 +1370,104 @@ grind_pattern min!_eq_min_of_ne_nil => l.min! where
   guard l ≠ []
 
 @[simp, grind =] theorem min!_nil [Inhabited α] [Min α] : ([] : List α).min! = default := rfl
+
+/-! ### swapAt -/
+
+@[simp, grind =] theorem swapAt_def : swapAt xs i v = (xs[i]?.getD v, xs.set i v) := rfl
+
+/-! ### swap -/
+
+@[simp] theorem swap_nil : ([] : List α).swap i j = [] := rfl
+
+@[simp] theorem swap_cons :
+    (a :: xs).swap (i + 1) (j + 1) = a :: xs.swap i j := rfl
+
+@[simp] theorem swap_cons_zero_left :
+    (a :: xs).swap 0 (j + 1) = xs[j]?.getD a :: xs.set j a := rfl
+
+@[simp] theorem swap_cons_zero_right :
+    (a :: xs).swap (i + 1) 0 = xs[i]?.getD a :: xs.set i a := rfl
+
+theorem swap_eq {xs : List α}  :
+    xs.swap i j = if h : i < xs.length ∧ j < xs.length then
+    (xs.set i xs[j]).set j xs[i] else xs := by induction xs generalizing i j with
+  | nil => simp | cons a xs ih => cases i <;> cases j <;>
+    simp only [swap, ih, length_cons, Nat.add_lt_add_iff_right] <;>
+    split <;> simp_all [set_eq_of_length_le, Nat.not_lt]
+
+@[simp] theorem swap_eq_of_ge_left {xs : List α} (h : xs.length ≤ i) : xs.swap i j = xs := by
+  rw [swap_eq, dite_eq_right (not_and_of_not_left (j < xs.length) (Nat.not_lt_of_ge h))]
+
+@[simp] theorem swap_eq_of_ge_right {xs : List α} (h : xs.length ≤ j) : xs.swap i j = xs := by
+  rw [swap_eq, dite_eq_right (not_and_of_not_right (i < xs.length) (Nat.not_lt_of_ge h))]
+
+theorem swap_eq_of_lt {xs : List α} (hi :  i < xs.length) (hj : j < xs.length) :
+    xs.swap i j = (xs.set i xs[j]).set j xs[i] := by
+  rw [swap_eq, dite_eq_left (And.intro hi hj)]
+
+@[simp, grind =] theorem swap_self {xs : List α} {i : Nat} : xs.swap i i = xs := by
+  obtain (hi | hi) := Nat.lt_or_ge i (xs.length)
+  · rw [swap_eq_of_lt hi hi, set_getElem_self, set_getElem_self]
+  · rw [swap_eq_of_ge_left hi]
+
+@[grind =] theorem swap_comm {xs : List α} {i j : Nat} : xs.swap i j = xs.swap j i := by
+  obtain (hi | hi) := Nat.lt_or_ge i (xs.length)
+  · obtain (hj | hj) := Nat.lt_or_ge j (xs.length)
+    · rw [swap_eq_of_lt hi hj, swap_eq_of_lt hj hi]
+      obtain (rfl | hij) := Decidable.em (i = j)
+      · rfl
+      · exact List.set_comm _ _ hij
+    · rw [swap_eq_of_ge_right hj, swap_eq_of_ge_left hj]
+  · rw [swap_eq_of_ge_left hi, swap_eq_of_ge_right hi]
+
+@[simp, grind =] theorem length_swap {xs : List α} : (xs.swap i j).length = xs.length := by
+  obtain (hi | hi) := Nat.lt_or_ge i (xs.length)
+  · obtain (hj | hj) := Nat.lt_or_ge j (xs.length)
+    · rw [swap_eq_of_lt hi hj, length_set, length_set]
+    · rw [swap_eq_of_ge_right hj]
+  · rw [swap_eq_of_ge_left hi]
+
+theorem getElem_swap_left {xs : List α} {i j : Nat} (hi : i < (xs.swap i j).length) :
+    (xs.swap i j)[i] = if hj : j < xs.length then xs[j] else xs[i]'(length_swap ▸ hi) := by
+  obtain (hj | hj) := Nat.lt_or_ge j xs.length
+  · simp only [swap_eq_of_lt (length_swap ▸ hi) hj, hj, getElem_set, dite_true]
+    split <;> simp_all
+  · simp [swap_eq_of_ge_right hj, Nat.not_lt_of_ge hj]
+
+theorem getElem_swap_right {xs : List α} {i j : Nat} (hj : j < (xs.swap i j).length) :
+    (xs.swap i j)[j] = if hi : i < xs.length then xs[i] else xs[j]'(length_swap ▸ hj) := by
+  simp [swap_comm (i := i), getElem_swap_left]
+
+@[simp] theorem getElem_swap_of_ne {xs : List α} {i j k : Nat} (hik : k ≠ i) (hjk : k ≠ j)
+    (hk : k < (xs.swap i j).length) : (xs.swap i j)[k] = xs[k]'(length_swap ▸ hk) := by
+  obtain (hi | hi) := Nat.lt_or_ge i (xs.length)
+  · obtain (hj | hj) := Nat.lt_or_ge j (xs.length)
+    · simp only [swap_eq_of_lt hi hj, getElem_set, hik.symm, hjk.symm, ite_false]
+    · exact getElem_congr_coll (swap_eq_of_ge_right hj)
+  · exact getElem_congr_coll (swap_eq_of_ge_left hi)
+
+@[simp] theorem getElem_swap_left_of_lt {xs : List α} {i j : Nat} (hj : j < xs.length)
+    (hi : i < (xs.swap i j).length) : (xs.swap i j)[i] = xs[j] := by
+  rw [getElem_swap_left, dite_eq_left hj]
+
+@[simp] theorem getElem_swap_right_of_lt {xs : List α} {i j : Nat} (hi : i < xs.length)
+    (hj : j < (xs.swap i j).length) : (xs.swap i j)[j] = xs[i] := by
+  rw [getElem_swap_right, dite_eq_left hi]
+
+@[grind =]
+theorem getElem_swap {xs : List α} {i j k : Nat}
+    (hk : k < (xs.swap i j).length) : (xs.swap i j)[k] =
+    if h₁ : k = i ∧ j < xs.length then xs[j] else if h₂ : k = j ∧ i < xs.length then xs[i]
+    else xs[k]'(length_swap ▸ hk) := by
+  obtain (rfl | hi) := Decidable.em (k = i)
+  · simp only [getElem_swap_left, true_and]
+    exact dite_congr rfl (fun _ => rfl) (by simp)
+  · obtain (rfl | hj) := Decidable.em (k = j)
+    · simp [getElem_swap_right, hi]
+    · simp [getElem_swap_of_ne, hi, hj]
+
+@[simp, grind =] theorem swap_swap {xs : List α} {i j : Nat} : (xs.swap i j).swap i j = xs :=
+  ext_getElem (by simp) (by grind)
+
+@[simp, grind =] theorem swap_swap_flip {xs : List α} {i j : Nat} :
+    (xs.swap i j).swap j i = xs := swap_comm.trans swap_swap
