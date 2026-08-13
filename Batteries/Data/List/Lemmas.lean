@@ -36,7 +36,7 @@ attribute [grind =] zipIdx_nil zipIdx_cons
 
 /-! ### toArray-/
 
-@[deprecated List.getElem_toArray (since := "2025-09-11")]
+@[deprecated List.getElem_toArray +typeChanged (since := "2025-09-11")]
 theorem getElem_mk {xs : List α} {i : Nat} (h : i < xs.length) :
     (Array.mk xs)[i] = xs[i] := List.getElem_toArray h
 
@@ -113,7 +113,7 @@ theorem erase_eq_self_iff_forall_bne [BEq α] (a : α) (xs : List α) :
 
 /-! ### findIdx? -/
 
-@[deprecated findIdx_eq_getD_findIdx? (since := "2025-11-06")]
+@[deprecated findIdx_eq_getD_findIdx? +typeChanged (since := "2025-11-06")]
 theorem findIdx_eq_findIdx? (p : α → Bool) (l : List α) :
     l.findIdx p = (match l.findIdx? p with | some i => i | none => l.length) := by
   rw [findIdx_eq_getD_findIdx?]
@@ -386,14 +386,14 @@ theorem isChain_of_isChain_cons (p : IsChain R (b :: l)) : IsChain R l := by gri
 
 alias IsChain.of_cons := isChain_of_isChain_cons
 
-@[deprecated IsChain.of_cons (since := "2026-02-10")]
+@[deprecated IsChain.of_cons +typeChanged (since := "2026-02-10")]
 theorem isChain_cons_of_isChain_cons_cons : IsChain R (a :: b :: l) →
     IsChain R (b :: l) := IsChain.of_cons
 
 @[deprecated (since := "2025-09-19")]
 alias chain_of_chain_cons := isChain_cons_of_isChain_cons_cons
 
-@[deprecated IsChain.of_cons (since := "2026-02-10")]
+@[deprecated IsChain.of_cons +typeChanged (since := "2026-02-10")]
 theorem isChain_of_isChain_cons_cons : IsChain R (a :: b :: l) →
     IsChain R l := IsChain.of_cons ∘ IsChain.of_cons
 
@@ -445,7 +445,7 @@ theorem isChain_range' (s : Nat) : ∀ n step : Nat,
   | 1, _ => .singleton _
   | n + 2, step => (isChain_range' (s + step) (n + 1) step).cons_cons rfl
 
-@[deprecated isChain_range' (since := "2025-09-19")]
+@[deprecated isChain_range' +typeChanged (since := "2025-09-19")]
 theorem chain_succ_range' (s n step : Nat) :
     IsChain (fun a b => b = a + step) (s :: range' (s + step) n step) := isChain_range'  _ (n + 1) _
 
@@ -453,7 +453,7 @@ theorem isChain_lt_range' (s n : Nat) (h : 0 < step) :
     IsChain (· < ·) (range' s n step) :=
   (isChain_range' s n step).imp fun | _, _, rfl => Nat.lt_add_of_pos_right h
 
-@[deprecated isChain_lt_range' (since := "2025-09-19")]
+@[deprecated isChain_lt_range' +typeChanged (since := "2025-09-19")]
 theorem chain_lt_range' (s n : Nat) (h : 0 < step) :
     IsChain (· < ·) (s :: range' (s + step) n step) := isChain_lt_range' _ (n + 1) h
 
