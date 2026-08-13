@@ -620,7 +620,7 @@ where
 ```
 Chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d
 ``` -/
-@[deprecated IsChain (since := "2025-09-19")]
+@[deprecated IsChain +typeChanged (since := "2025-09-19")]
 def Chain : (α → α → Prop) → α → List α → Prop := (IsChain · <| · :: ·)
 
 set_option linter.deprecated false in
