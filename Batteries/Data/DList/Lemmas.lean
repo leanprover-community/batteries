@@ -3,7 +3,11 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-import Batteries.Data.DList.Basic
+module
+
+public import Batteries.Data.DList.Basic
+
+@[expose] public section
 
 /-!
 # Difference list
@@ -31,12 +35,14 @@ theorem ofList_toList (l : DList α) : DList.ofList (DList.toList l) = l := by
    funext x
    rw [(inv x)]
 
+set_option backward.isDefEq.respectTransparency.types false in
 theorem toList_empty : toList (@empty α) = [] := by simp [empty]
 
+set_option backward.isDefEq.respectTransparency.types false in
 theorem toList_singleton (x : α) : toList (singleton x) = [x] := by simp [singleton]
 
 theorem toList_append (l₁ l₂ : DList α) : toList (l₁ ++ l₂) = toList l₁ ++ toList l₂ := by
-  simp only [toList, append, Function.comp]; rw [invariant]
+  simp only [toList, HAppend.hAppend, Append.append, append, Function.comp]; exact invariant ..
 
 theorem toList_cons (x : α) (l : DList α) : toList (cons x l) = x :: toList l := by
   cases l; simp [cons]

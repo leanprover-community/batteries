@@ -3,8 +3,12 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Jannis Limperg
 -/
-import Lean.Meta.Tactic.Intro
-import Batteries.Control.AlternativeMonad
+module
+
+public import Lean.Meta.Tactic.Intro
+import Lean.Meta.SynthInstance
+
+public section
 
 open Lean Lean.Meta
 
@@ -18,8 +22,6 @@ result is unspecified.
 def Meta.sortFVarsByContextOrder [Monad m] [MonadLCtx m]
     (hyps : Array FVarId) : m (Array FVarId) :=
   return (← getLCtx).sortFVarsByContextOrder hyps
-
-instance : AlternativeMonad Lean.Meta.MetaM where
 
 namespace MetavarContext
 

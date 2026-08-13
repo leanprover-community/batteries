@@ -3,6 +3,9 @@ Copyright (c) 2024 François G. Dorais. All rights reserved.
 Released under Apache 2. license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
+module
+
+@[expose] public section
 
 namespace Std.Stream
 
@@ -81,7 +84,7 @@ end Stream
   | succ n ih =>
     match l with
     | [] => rfl
-    | _::_ => simp [Stream.drop, List.drop_succ_cons, ih]
+    | _::_ => simp [Stream.drop, Stream.next?, List.drop_succ_cons, ih]
 
 @[simp] theorem List.stream_take_eq_take_drop (l : List α) :
     Stream.take l n = (l.take n, l.drop n) := by
@@ -90,4 +93,4 @@ end Stream
   | succ n ih =>
     match l with
     | [] => rfl
-    | _::_ => simp [Stream.take, ih]
+    | _::_ => simp [Stream.take, Stream.next?, ih]

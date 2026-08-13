@@ -3,12 +3,12 @@ Copyright (c) 2022 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg, François G. Dorais
 -/
-import Batteries.Classes.Order
+module
 
--- Forward port of lean4#9515
-@[grind ←]
-theorem List.mem_finRange (x : Fin n) : x ∈ finRange n := by
-  simp [finRange]
+public import Batteries.Classes.Order
+public import Batteries.Data.List.Lemmas
+
+@[expose] public section
 
 namespace Char
 
@@ -19,8 +19,6 @@ instance : Std.LawfulOrd Char :=
   .compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
     (fun _ => Nat.lt_irrefl _) Nat.lt_trans Nat.not_lt Char.le_antisymm
 
-@[simp] theorem toNat_val (c : Char) : c.val.toNat = c.toNat := rfl
-
 @[simp] theorem toNat_ofNatAux {n : Nat} (h : n.isValidChar) : toNat (ofNatAux n h) = n := by
   simp [ofNatAux, toNat]
 
@@ -28,6 +26,14 @@ theorem toNat_ofNat (n : Nat) : toNat (ofNat n) = if n.isValidChar then n else 0
   split
   · simp [ofNat, *]
   · simp [ofNat, toNat, *]
+
+@[simp]
+theorem val_ofNat (hn : Nat.isValidChar n) : (ofNat n).val = UInt32.ofNat n := by
+  simp [ofNat, hn, ofNatAux, UInt32.ofNatLT_eq_ofNat]
+
+@[simp]
+theorem ofNat_toNat_eq_val {c : Char} : UInt32.ofNat c.toNat = c.val := by
+  rw [← toNat_val, UInt32.ofNat_toNat]
 
 /--
 Maximum character code point.
@@ -78,12 +84,12 @@ private theorem of_all_eq_true_aux (h : Char.all p) (n : Nat) (hn : n.isValidCha
     have := h.1 ⟨n, by grind⟩
     grind
   | .inr ⟨hn, hn'⟩ =>
-    have := h.2 ⟨n - (Char.maxSurrogate + 1), by grind⟩
+    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; grind⟩
     grind
 
 theorem eq_true_of_all_eq_true (h : Char.all p) (c : Char) : p c := by
   have : c.toNat.isValidChar := c.valid
-  rw [← c.ofNat_toNat, ofNat, dif_pos this]
+  rw [← c.ofNat_toNat, ofNat, dite_eq_left this]
   exact of_all_eq_true_aux h c.toNat this
 
 theorem exists_eq_false_of_all_eq_false (h : Char.all p = false) :
@@ -123,12 +129,13 @@ private theorem of_any_eq_false_aux (h : Char.any p = false) (n : Nat) (hn : n.i
     have := h.1 ⟨n, hn⟩ (List.mem_finRange _)
     grind
   | .inr ⟨hn, hn'⟩ =>
-    have := h.2 ⟨n - (Char.maxSurrogate + 1), by grind⟩ (List.mem_finRange _)
+    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; grind⟩
+      (List.mem_finRange _)
     grind
 
 theorem eq_false_of_any_eq_false (h : Char.any p = false) (c : Char) : p c = false := by
   have : c.toNat.isValidChar := c.valid
-  rw [← c.ofNat_toNat, ofNat, dif_pos this]
+  rw [← c.ofNat_toNat, ofNat, dite_eq_left this]
   exact of_any_eq_false_aux h c.toNat this
 
 theorem any_eq_true_iff_exists_eq_true : Char.any p = true ↔ ∃ c, p c = true := by

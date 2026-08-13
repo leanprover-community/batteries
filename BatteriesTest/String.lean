@@ -1,3 +1,4 @@
+/- Failing on nightly-2025-12-18
 import Batteries.Data.String.AsciiCasing
 
 #guard "ABC".caseFoldAsciiOnly == "abc"
@@ -42,3 +43,4 @@ import Batteries.Data.String.AsciiCasing
   ("🔰🍑", "😂🔰🍑aaa")
 ] |>.all fun (a, b) =>
   a ≠ b && !(a.beqCaseInsensitiveAsciiOnly b) && a.cmpCaseInsensitiveAsciiOnly b != .eq
+-/

@@ -3,10 +3,14 @@ Copyright (c) 2023 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Lean.Elab.Tactic.Induction
-import Batteries.Lean.Position
-import Batteries.CodeAction.Attr
-import Lean.Server.CodeActions.Provider
+module
+
+public meta import Lean.Elab.Tactic.Induction
+public meta import Batteries.Lean.Position
+public meta import Batteries.CodeAction.Attr
+public meta import Lean.Server.CodeActions.Provider
+
+public meta section
 
 /-!
 # Miscellaneous code actions
@@ -122,10 +126,18 @@ where
           fields.push (field, isAutofillable env fieldInfo stack)
       else fields
 
-/-- Returns the explicit arguments given a type. -/
+/-- Returns the explicit arguments given a type. The second argument of this
+    function is an accumulator. -/
 def getExplicitArgs : Expr → Array Name → Array Name
   | .forallE n _ body bi, args =>
     getExplicitArgs body <| if bi.isExplicit then args.push n else args
+  | _, args => args
+
+/-- Returns all of the arguments given a type. The second argument of this
+    function is an accumulator. -/
+def getAllArgs : Expr → Array Name → Array Name
+  | .forallE n _ body _, args =>
+    getAllArgs body <| args.push n
   | _, args => args
 
 /--
@@ -266,6 +278,30 @@ def findTermInfo? (node : InfoTree) (stx : Term) : Option TermInfo :=
   with
   | some (.ofTermInfo info) => pure info
   | _ => none
+
+/-- `findTermInfoWithCtx?` finds the `TermInfo` for an elaborated term `stx`
+    and also updates the inputted `ContextInfo` using all the
+    `PartialContextInfo` on the path to the returned `TermInfo`. -/
+partial def findTermInfoWithCtx? (t : InfoTree) (stx : Term) (ctx : ContextInfo)
+    : Option (TermInfo × ContextInfo) :=
+  match t with
+  | .context partialCtx t' =>
+    -- Merge partial context with outer, fall back to outer if merge fails
+    let ctx' := partialCtx.mergeIntoOuter? ctx |>.getD ctx
+    findTermInfoWithCtx? t' stx ctx'
+  | .node info children =>
+    let optResult : Option (TermInfo × ContextInfo) :=
+      match info with
+      | .ofTermInfo i =>
+        if i.stx.getKind == stx.raw.getKind && i.stx.getRange? == stx.raw.getRange? then
+          some (i, ctx)
+        else none
+      | _ => none
+    if let some res := optResult then
+      return res
+    else
+      children.findSome? (findTermInfoWithCtx? · stx ctx)
+  | .hole _ => none
 
 /--
 Invoking tactic code action "Generate an explicit pattern match for 'induction'" in the

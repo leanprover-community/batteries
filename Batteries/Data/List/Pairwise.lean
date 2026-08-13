@@ -3,7 +3,11 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, James Gallicchio
 -/
-import Batteries.Data.List.Basic
+module
+
+public import Batteries.Data.List.Basic
+
+@[expose] public section
 
 /-!
 # Pairwise relations on a list
@@ -42,10 +46,10 @@ theorem pairwise_iff_get : Pairwise R l ↔ ∀ (i j) (_hij : i < j), R (get l i
 @[simp] theorem pwFilter_nil [DecidableRel R] : pwFilter R [] = [] := rfl
 
 @[simp] theorem pwFilter_cons_of_pos [DecidableRel (α := α) R] {a : α} {l : List α}
-    (h : ∀ b ∈ pwFilter R l, R a b) : pwFilter R (a :: l) = a :: pwFilter R l := if_pos h
+    (h : ∀ b ∈ pwFilter R l, R a b) : pwFilter R (a :: l) = a :: pwFilter R l := ite_eq_left h
 
 @[simp] theorem pwFilter_cons_of_neg [DecidableRel (α := α) R] {a : α} {l : List α}
-    (h : ¬∀ b ∈ pwFilter R l, R a b) : pwFilter R (a :: l) = pwFilter R l := if_neg h
+    (h : ¬∀ b ∈ pwFilter R l, R a b) : pwFilter R (a :: l) = pwFilter R l := ite_eq_right h
 
 theorem pwFilter_map [DecidableRel (α := α) R] (f : β → α) :
     ∀ l : List β, pwFilter R (map f l) = map f (pwFilter (fun x y => R (f x) (f y)) l)
@@ -65,7 +69,7 @@ theorem pwFilter_sublist [DecidableRel (α := α) R] : ∀ l : List α, pwFilter
   | [] => nil_sublist _
   | x :: l =>
     if h : ∀ y ∈ pwFilter R l, R x y then
-      pwFilter_cons_of_pos h ▸ (pwFilter_sublist l).cons₂ _
+      pwFilter_cons_of_pos h ▸ (pwFilter_sublist l).cons_cons _
     else
       pwFilter_cons_of_neg h ▸ Sublist.cons _ (pwFilter_sublist l)
 

@@ -3,6 +3,9 @@ Copyright (c) 2023 François G. Dorais. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François G. Dorais
 -/
+module
+
+@[expose] public section
 
 namespace ByteArray
 
@@ -23,9 +26,6 @@ theorem getElem_eq_data_getElem (a : ByteArray) (h : i < a.size) : a[i] = a.data
 @[simp] theorem data_mkEmpty (cap) : (emptyWithCapacity cap).data = #[] := rfl
 
 /-! ### push -/
-
-@[simp] theorem size_push (a : ByteArray) (b : UInt8) : (a.push b).size = a.size + 1 :=
-  Array.size_push ..
 
 @[simp] theorem get_push_eq (a : ByteArray) (x : UInt8) : (a.push x)[a.size] = x :=
   Array.getElem_push_eq ..

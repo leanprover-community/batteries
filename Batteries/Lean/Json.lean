@@ -3,20 +3,14 @@
  Released under Apache 2.0 license as described in the file LICENSE.
  Authors: E.W.Ayers, Mario Carneiro
 -/
-import Batteries.Lean.Float
-import Lean.Data.Json.FromToJson.Basic
+module
+
+public import Batteries.Data.Float.Basic
+public import Lean.Data.Json.FromToJson.Basic
+
+@[expose] public section
 
 open Lean
-
-instance : OfScientific JsonNumber where
-  ofScientific mantissa exponentSign decimalExponent :=
-    if exponentSign then
-      { mantissa := mantissa, exponent := decimalExponent }
-    else
-      { mantissa := (mantissa * 10 ^ decimalExponent : Nat), exponent := 0 }
-
-instance : Neg JsonNumber where
-  neg jn := ⟨-jn.mantissa, jn.exponent⟩
 
 instance : ToJson Float where
   toJson x :=

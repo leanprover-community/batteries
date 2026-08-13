@@ -3,6 +3,9 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro, Gabriel Ebner
 -/
+module
+
+@[expose] public section
 
 /-- Type class for the canonical homomorphism `Rat → K`. -/
 class RatCast (K : Type u) where

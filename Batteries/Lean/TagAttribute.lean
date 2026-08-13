@@ -3,7 +3,11 @@ Copyright (c) 2022 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Gabriel Ebner
 -/
-import Lean.Attributes
+module
+
+public import Lean.Attributes
+
+@[expose] public section
 
 /-- Get the list of declarations tagged with the tag attribute `attr`. -/
 def Lean.TagAttribute.getDecls (attr : TagAttribute) (env : Environment) : Array Name :=

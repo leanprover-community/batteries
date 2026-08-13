@@ -1,5 +1,9 @@
-import Batteries.Data.RBMap.Alter
-import Batteries.Data.RBMap.Basic
-import Batteries.Data.RBMap.Depth
-import Batteries.Data.RBMap.Lemmas
-import Batteries.Data.RBMap.WF
+module -- deprecated_module: ignore
+
+public import Batteries.Data.RBMap.Basic
+public import Batteries.Data.RBMap.Depth
+public import Batteries.Data.RBMap.Lemmas
+public import Batteries.Data.RBMap.Alter
+public import Batteries.Data.RBMap.WF
+
+deprecated_module "it is recommended to use Std.TreeMap instead" (since := "2026-05-14")

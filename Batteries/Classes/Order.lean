@@ -3,8 +3,12 @@ Copyright (c) 2022 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import Batteries.Tactic.Basic
-import Batteries.Tactic.SeqFocus
+module
+
+public import Batteries.Tactic.Basic
+public import Batteries.Tactic.SeqFocus
+
+@[expose] public section
 
 theorem lexOrd_def [Ord α] [Ord β] :
     (lexOrd : Ord (α × β)).compare = compareLex (compareOn (·.1)) (compareOn (·.2)) := rfl
@@ -160,7 +164,7 @@ theorem LawfulLTCmp.eq_compareOfLessAndEq
 theorem ReflCmp.compareOfLessAndEq_of_lt_irrefl [LT α] [DecidableLT α] [DecidableEq α]
     (lt_irrefl : ∀ x : α, ¬ x < x) :
     ReflCmp (α := α) (compareOfLessAndEq · ·) where
-  compare_self {x} := by simp [compareOfLessAndEq, if_neg (lt_irrefl x)]
+  compare_self {x} := by simp [compareOfLessAndEq, ite_eq_right (lt_irrefl x)]
 
 theorem LawfulBEqCmp.compareOfLessAndEq_of_lt_irrefl
     [LT α] [DecidableLT α] [DecidableEq α] [BEq α] [LawfulBEq α]
