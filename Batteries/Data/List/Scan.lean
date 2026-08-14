@@ -172,8 +172,8 @@ theorem getElem_flatten_aux₂ (L : List (List α)) (i : Nat) (h : i < L.flatten
   | nil => simp at h
   | cons l L ih =>
     simp only [map_cons, partialSums_cons, findIdx_cons, Nat.not_lt_zero, decide_false,
-      findIdx_map, Function.comp_def, cond_false, Nat.add_one_sub_one, length_flatten, map_take,
-      getElem_cons]
+      findIdx_map, Function.comp_def, Bool.false_eq_true, ite_false, Nat.add_one_sub_one,
+      length_flatten, map_take, getElem_cons]
     split <;> rename_i h'
     · simp only [h', take_zero, sum_nil, Nat.sub_zero]
       rw [findIdx_eq (by simp)] at h'
