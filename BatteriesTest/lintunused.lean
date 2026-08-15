@@ -1,4 +1,9 @@
+module
+
 import Batteries.Tactic.Lint
+import Batteries.Util.ProofWanted
+
+public section
 
 -- should be ignored as the proof contains sorry
 /-- warning: declaration uses `sorry` -/
@@ -33,6 +38,13 @@ theorem foo7_bad [Mul Nat] [inst : Add Nat] {h : 1 = 1} ⦃h' : 0 = 0⦄ : True 
 set_option linter.unusedVariables false in
 @[deprecated foo6_ok (since := "today")] theorem foo6_ok' (h : Nat) : True := trivial
 
+-- private theorems are still linted
+private theorem foo8_bad [Mul Nat] : True := trivial
+
+-- `proof_wanted`/`def_wanted` is ignored
+proof_wanted wanted (h : Bool) : True
+def_wanted wanted' (h : Bool) : Bool
+
 /--
 error: /- The `unusedArguments` linter reports:
 UNUSED ARGUMENTS.
@@ -50,6 +62,8 @@ This linter can be disabled with `@[nolint unusedArguments]`. -/
   argument 2: [inst : Add Nat]
   argument 3: {h : 1 = 1}
   argument 4: ⦃h' : 0 = 0⦄ -/
+#check @foo8_bad /- 1 unused argument:
+  argument 1: [Mul Nat] -/
 -/
 #guard_msgs in
 #lint- only unusedArguments
