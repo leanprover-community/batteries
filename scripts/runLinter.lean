@@ -54,7 +54,7 @@ def parseLinterArgs (args : List String) :
   go {} [] args
 where
   /-- Traverses the list, handling the non-flag elements as modules and erroring if parsing fails. -/
-  go (parsed : LinterConfig) (specs: List String) : List String → Except (List String) (LinterConfig × List String)
+  go (parsed : LinterConfig) (specs : List String) : List String → Except (List String) (LinterConfig × List String)
     | arg :: rest =>
       if let some parsed := parseArg parsed arg then
         go parsed specs rest
