@@ -10,10 +10,6 @@ linter.missingDocs = true
 name = "Batteries"
 
 [[lean_lib]]
-name = "BatteriesRecycling"
-globs = ["BatteriesRecycling.+"]
-
-[[lean_lib]]
 name = "BatteriesTest"
 globs = ["BatteriesTest.+"]
 leanOptions = {linter.missingDocs = false}
@@ -26,9 +22,3 @@ supportInterpreter = true
 [[lean_exe]]
 name = "test"
 srcDir = "scripts"
-
-# `lake exe shake` checks files for unnecessary imports.
-[[lean_exe]]
-name = "shake"
-root = "Shake.Main"
-supportInterpreter = true

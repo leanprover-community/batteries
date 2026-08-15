@@ -173,8 +173,8 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:iden
       compileDecl decl
     addDeclarationRangesFromSyntax declName (← getRef) alias
     Term.addTermInfo' alias (← mkConstWithLevelParams declName) (isBinder := true)
-    if let some (doc, isVerso) := declMods.docString? then
-      addDocStringOf isVerso declName (mkNullNode #[]) doc
+    if let some doc := declMods.docString? then
+      addDocString declName (mkNullNode #[]) doc
     enableRealizationsForConst declName
     let info := AliasInfo.plain name
     setAliasInfo info declName
@@ -205,8 +205,8 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
     type := type
     levelParams := thm.levelParams
   }
-  if let some (doc, isVerso) := declMods.docString? then
-    addDocStringOf isVerso declName (mkNullNode #[]) doc
+  if let some doc := declMods.docString? then
+    addDocString declName (mkNullNode #[]) doc
   let info := if mp then AliasInfo.forward thm.name else AliasInfo.reverse thm.name
   setAliasInfo info declName
   Term.applyAttributes declName declMods.attrs

@@ -5,7 +5,7 @@ Authors: Kim Morrison
 -/
 module
 
-public import BatteriesRecycling.MonadSatisfying.Basic
+public import Batteries.Recycling.MonadSatisfying.Basic
 public import Batteries.Lean.LawfulMonad
 public import Lean.Elab.Command
 import all Init.System.ST

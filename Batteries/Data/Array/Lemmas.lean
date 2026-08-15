@@ -47,8 +47,6 @@ theorem toList_drop (as: Array α) (n : Nat) :
 
 /-! ### set -/
 
-theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
-
 /-! ### map -/
 
 /-! ### mem -/
@@ -73,3 +71,7 @@ theorem extract_append_of_size_left_le_start {a b : Array α} (h : a.size ≤ i)
 
 theorem extract_eq_of_size_le_stop {a : Array α} (h : a.size ≤ j) :
     a.extract i j = a.extract i := by grind
+
+/-! ### swapIfInBounds -/
+@[simp, grind =] theorem toList_swapIfInBounds {a : Array α} :
+    (a.swapIfInBounds i j).toList = a.toList.swap i j := List.ext_getElem (by simp) (by grind)

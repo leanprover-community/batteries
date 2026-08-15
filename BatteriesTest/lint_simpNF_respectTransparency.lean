@@ -36,7 +36,7 @@ private theorem Bundle.of_op {X : Type} [MyClass X] :
     @MyClass.op (Bundle.of X).carrier (Bundle.of X).inst = @MyClass.op X _ := rfl
 
 /--
-error: -- Found 1 error in 0 declarations (plus 31 automatically generated ones) in the current file with 1 linters
+error: -- Found 1 error in 12 declarations (plus 19 automatically generated ones) in the current file with 1 linters
 
 /- The `simpNF` linter reports:
 SOME SIMP LEMMAS ARE NOT IN SIMP-NORMAL FORM.
@@ -46,9 +46,9 @@ https://leanprover-community.github.io/extras/simp.html#simp-normal-form
 and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/.
 This linter can be disabled with `@[nolint simpNF]`. -/
 #check @Bundle.of_op /- Left-hand side simplifies from
-  MyClass.op
+  @MyClass.op (Bundle.of X).carrier (Bundle.of X).inst
 to
-  MyClass.op
+  @MyClass.op X (Bundle.of X).inst
 using
   dsimp only [*, Bundle.of_carrier]
 Try to change the left-hand side to the simplified term! -/

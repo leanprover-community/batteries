@@ -80,29 +80,3 @@ elab "library_note " name:ident ppSpace dc:docComment : command => do
     meta def $(mkIdent (`_root_.LibraryNote ++ safeName)) : LibraryNote :=
       default)
   elabCommandTopLevel stx
-
-open Elab Command in
-/-- Support the old `library_note "foo"` syntax, with a deprecation warning. -/
-elab "library_note " name:str ppSpace dc:docComment : command => do
-  let name' := Name.mkSimple name.getString
-  let stx ← `(library_note $(mkIdent name'):ident $dc:docComment)
-  elabCommandTopLevel stx
-  logWarningAt name <|
-    "deprecation warning: library_note now takes an identifier instead of a string.\n" ++
-    "Hint: replace the double quotes with «french quotes»."
-
-open Elab Command in
-/-- Support the old `library_note2 «foo»` syntax, with a deprecation warning. -/
-elab "library_note2 " name:ident ppSpace dc:docComment : command => do
-  let stx ← `(library_note $name:ident $dc:docComment)
-  elabCommandTopLevel stx
-  logWarningAt name <|
-    "deprecation warning: library_note2 has been replaced with library_note."
-
-open Elab Command in
-/-- Support the old `library_note2 "foo"` syntax, with a deprecation warning. -/
-elab "library_note2 " name:str ppSpace dc:docComment : command => do
-  let stx ← `(library_note name $dc:docComment)
-  elabCommandTopLevel stx
-  logWarningAt name <|
-    "deprecation warning: library_note2 has been replaced with library_note."
