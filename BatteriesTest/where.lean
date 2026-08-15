@@ -67,7 +67,7 @@ open Lean.Elab hiding TermElabM
 #guard_msgs in #where
 
 open Command Batteries
-open Array renaming map -> listMap
+open _root_.Array renaming map -> listMap
 
 /--
 info: open Lean Lean.Meta

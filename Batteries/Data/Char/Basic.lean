@@ -84,13 +84,12 @@ private theorem of_all_eq_true_aux (h : Char.all p) (n : Nat) (hn : n.isValidCha
     have := h.1 ⟨n, by grind⟩
     grind
   | .inr ⟨hn, hn'⟩ =>
-    -- https://github.com/leanprover/lean4/issues/11059
-    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; omega ⟩
+    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; grind⟩
     grind
 
 theorem eq_true_of_all_eq_true (h : Char.all p) (c : Char) : p c := by
   have : c.toNat.isValidChar := c.valid
-  rw [← c.ofNat_toNat, ofNat, dif_pos this]
+  rw [← c.ofNat_toNat, ofNat, dite_eq_left this]
   exact of_all_eq_true_aux h c.toNat this
 
 theorem exists_eq_false_of_all_eq_false (h : Char.all p = false) :
@@ -130,14 +129,13 @@ private theorem of_any_eq_false_aux (h : Char.any p = false) (n : Nat) (hn : n.i
     have := h.1 ⟨n, hn⟩ (List.mem_finRange _)
     grind
   | .inr ⟨hn, hn'⟩ =>
-    -- https://github.com/leanprover/lean4/issues/11059
-    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; omega⟩
+    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; grind⟩
       (List.mem_finRange _)
     grind
 
 theorem eq_false_of_any_eq_false (h : Char.any p = false) (c : Char) : p c = false := by
   have : c.toNat.isValidChar := c.valid
-  rw [← c.ofNat_toNat, ofNat, dif_pos this]
+  rw [← c.ofNat_toNat, ofNat, dite_eq_left this]
   exact of_any_eq_false_aux h c.toNat this
 
 theorem any_eq_true_iff_exists_eq_true : Char.any p = true ↔ ∃ c, p c = true := by
