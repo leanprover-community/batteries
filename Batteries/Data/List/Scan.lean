@@ -134,36 +134,19 @@ theorem length_flatten_mem_partialSums_map_length (L : List (List α)) :
     right
     simpa using ih
 
-/-!
-The next three lemmas are the index bookkeeping shared by `getElem_flatten` and `take_flatten`.
-In both, `(L.map length).partialSums.findIdx (· > i) - 1` is the index of the sublist of `L`
-that contains flat position `i`; these compute that `findIdx` for a `cons`.
--/
+-- `(L.map length).partialSums.findIdx (· > i) - 1` is the index of the sublist of `L` containing
+-- flat position `i`; the next three lemmas compute that `findIdx`.
 
-/--
-`(L.map length).partialSums` begins with `0`, which is never `> i`, so `findIdx (· > i)` is never
-`0`. No bound on `i` is needed: if no partial sum exceeds `i` then `findIdx` returns the length of
-the list, which is positive too.
--/
 theorem findIdx_partialSums_map_length_pos (L : List (List α)) (i : Nat) :
     0 < (L.map length).partialSums.findIdx (· > i) := by
-  by_contra w
-  simp at w
+  simp
 
-/--
-If `i` indexes into the first sublist, the partial sums of the lengths of `l :: L` first exceed
-`i` at index `1`.
--/
 theorem findIdx_partialSums_map_length_cons_of_lt_length {l : List α} {L : List (List α)}
     {i : Nat} (h : i < l.length) :
     ((l :: L).map length).partialSums.findIdx (· > i) = 1 := by
   simp [partialSums_cons, findIdx_cons]
   rw [findIdx_eq] <;> grind
 
-/--
-If `i` is not an index into the first sublist `l`, the partial sums of the lengths of `l :: L`
-first exceed `i` exactly one index after those of `L` first exceed `i - l.length`.
--/
 theorem findIdx_partialSums_map_length_cons_of_length_le {l : List α} {L : List (List α)}
     {i : Nat} (h : l.length ≤ i) :
     ((l :: L).map length).partialSums.findIdx (· > i) =
