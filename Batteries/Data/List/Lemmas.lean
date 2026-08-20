@@ -70,8 +70,6 @@ theorem modify_eq_set_getElem? (f : α → α) :
   | n+1, b :: l =>
     (congrArg (cons _) (modify_eq_set_getElem? ..)).trans <| by cases h : l[n]? <;> simp [h]
 
-@[deprecated (since := "2025-02-15")] alias modify_eq_set_get? := modify_eq_set_getElem?
-
 theorem modify_eq_set_get (f : α → α) {n} {l : List α} (h) :
     l.modify n f = l.set n (f (l.get ⟨n, h⟩)) := by
   rw [modify_eq_set_getElem?, getElem?_eq_getElem h]; rfl
@@ -83,13 +81,9 @@ theorem getElem?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
     (set l m a)[n]? = if m = n then some a else l[n]? := by
   simp [getElem?_set', getElem?_eq_getElem h]
 
-@[deprecated (since := "2025-02-15")] alias get?_set_of_lt := getElem?_set_of_lt
-
 theorem getElem?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
     (set l m a)[n]? = if m = n then some a else l[n]? := by
   simp [getElem?_set]; split <;> subst_vars <;> simp [*]
-
-@[deprecated (since := "2025-02-15")] alias get?_set_of_lt' := getElem?_set_of_lt'
 
 /-! ### tail -/
 
@@ -371,16 +365,10 @@ attribute [simp, grind ←] Pairwise.nil
 
 /-! ### IsChain -/
 
-@[deprecated (since := "2025-09-19")]
-alias chain_cons := isChain_cons_cons
-
 theorem rel_of_isChain_cons_cons (p : IsChain R (a :: b :: l)) : R a b :=
   (isChain_cons_cons.1 p).1
 
 alias IsChain.rel := rel_of_isChain_cons_cons
-
-@[deprecated (since := "2025-09-19")]
-alias rel_of_chain_cons := rel_of_isChain_cons_cons
 
 theorem isChain_of_isChain_cons (p : IsChain R (b :: l)) : IsChain R l := by grind [cases List]
 
@@ -401,9 +389,6 @@ theorem isChain_of_isChain_cons_cons : IsChain R (a :: b :: l) →
 theorem IsChain.imp (H : ∀ ⦃a b : α⦄, R a b → S a b)
     (p : IsChain R l) : IsChain S l := by induction p with grind
 
-@[deprecated (since := "2025-09-19")]
-alias Chain.imp := IsChain.imp
-
 theorem IsChain.cons_of_imp (h : ∀ c, R a c → R b c) :
     IsChain R (a :: l) → IsChain R (b :: l) := by grind [cases List]
 
@@ -413,12 +398,6 @@ alias IsChain.cons_of_imp_of_cons := IsChain.cons_of_imp
 theorem IsChain.cons_of_imp_of_imp (HRS : ∀ ⦃a b : α⦄, R a b → S a b)
     (Hab : ∀ ⦃c⦄, R a c → S b c) (h : IsChain R (a :: l)) : IsChain S (b :: l) := by
   grind [cases List]
-
-@[deprecated (since := "2025-09-19")]
-alias Chain.imp' := IsChain.cons_of_imp_of_imp
-
-@[deprecated (since := "2025-09-19")]
-protected alias Pairwise.chain := Pairwise.isChain
 
 theorem isChain_iff_pairwise [Trans R R R] : IsChain R l ↔ Pairwise R l := by
   induction l with | nil => grind | cons a l IH => cases l with | nil => grind | cons b l =>
@@ -739,9 +718,6 @@ theorem findIdxNth_eq_findIdxNth_of_ge_countP_ge_countP {xs : List α} (hn : xs.
 @[grind =] theorem idxOf_eq_getD_idxOf? [BEq α] (a : α) (l : List α) :
     l.idxOf a = (l.idxOf? a).getD l.length := by
   simp [idxOf, idxOf?, findIdx_eq_getD_findIdx?]
-
-@[deprecated (since := "2025-11-06")]
-alias idxOf_eq_idxOf? := idxOf_eq_getD_idxOf?
 
 /-! ### idxsOf -/
 
