@@ -6,6 +6,7 @@ Authors: Gabriel Ebner
 module
 
 public meta import Lean.Meta.Instances
+public meta import Lean.Util.CollectFVars
 public meta import Batteries.Tactic.Lint.Basic
 
 public meta section
@@ -28,11 +29,15 @@ another instance-implicit argument or the return type."
     unless ← isInstance declName do return none
     forallTelescopeReducing (← inferType (← mkConstWithLevelParams declName)) fun args ty => do
     let argTys ← args.mapM inferType
+    -- One `collectFVars` pass per type rather than `containsFVar` per argument pair,
+    -- for performance.
+    let tyFVars := (collectFVars {} ty).fvarSet
+    let argTyFVars := argTys.map fun argTy => (collectFVars {} argTy).fvarSet
     let impossibleArgs ← args.zipIdx.filterMapM fun (arg, i) => do
       let fv := arg.fvarId!
       if (← fv.getDecl).binderInfo.isInstImplicit then return none
-      if ty.containsFVar fv then return none
-      if argTys[i+1:].any (·.containsFVar fv) then return none
+      if tyFVars.contains fv then return none
+      if argTyFVars[i+1:].any (·.contains fv) then return none
       return some m!"argument {i+1} {arg} : {← inferType arg}"
     if impossibleArgs.isEmpty then return none
     addMessageContextFull <| .joinSep impossibleArgs.toList ", "
