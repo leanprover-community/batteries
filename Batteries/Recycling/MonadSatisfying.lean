@@ -1,7 +1,4 @@
 module
 
-public import Batteries.Recycling.MonadSatisfying.Array
-public import Batteries.Recycling.MonadSatisfying.Basic
-public import Batteries.Recycling.MonadSatisfying.Lean
-public import Batteries.Recycling.MonadSatisfying.List
-public import Batteries.Recycling.MonadSatisfying.Vector
+deprecated_module "this module is obsolete and has been moved to batteries-recycling"
+  (since := "2026-05-10")
