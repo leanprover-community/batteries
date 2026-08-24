@@ -1,5 +1,4 @@
 module
 
-public import Batteries.Recycling.RBTree.WF
-
-deprecated_module "it is recommended to use Std.TreeMap instead" (since := "2026-05-14")
+deprecated_module "this module is obsolete and has been moved to batteries-recycling"
+  (since := "2026-05-10")
