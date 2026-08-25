@@ -38,10 +38,6 @@ instance : Std.LawfulLTOrd String :=
   .compareOfLessAndEq_of_irrefl_of_trans_of_antisymm
     String.lt_irrefl String.lt_trans String.lt_antisymm
 
-@[deprecated length_ofList (since := "2025-10-31")]
-theorem mk_length (s : List Char) : (String.ofList s).length = s.length :=
-  length_ofList
-
 theorem Pos.Raw.offsetBy_eq {p q : Pos.Raw} : p.offsetBy q = ⟨q.byteIdx + p.byteIdx⟩ := by
   ext
   simp
@@ -69,10 +65,6 @@ theorem utf8ByteSize_ofList (cs) : utf8ByteSize (String.ofList cs) = utf8Len cs 
     congr
     rw [← size_toByteArray, String.toByteArray_ofList, List.utf8Encode_singleton,
       List.size_toByteArray, length_utf8EncodeChar]
-
-@[deprecated utf8ByteSize_ofList (since := "2025-10-31")]
-theorem utf8ByteSize_mk (cs) : utf8ByteSize (ofList cs) = utf8Len cs :=
-  utf8ByteSize_ofList cs
 
 @[simp] theorem utf8Len_nil : utf8Len [] = 0 := rfl
 
@@ -111,29 +103,9 @@ end
   apply Pos.Raw.ext
   simp [String.rawEndPos, utf8ByteSize_ofList]
 
-@[deprecated rawEndPos_ofList (since := "2025-10-31")]
-theorem rawEndPos_asString (cs : List Char) : rawEndPos (ofList cs) = ⟨utf8Len cs⟩ :=
-  rawEndPos_ofList cs
-
-@[deprecated rawEndPos_ofList (since := "2025-10-21")]
-theorem endPos_asString (cs : List Char) : rawEndPos (ofList cs) = ⟨utf8Len cs⟩ :=
-  rawEndPos_ofList cs
-
-@[deprecated rawEndPos_ofList (since := "2025-10-21")]
-theorem rawEndPos_mk (cs : List Char) : rawEndPos (ofList cs) = ⟨utf8Len cs⟩ :=
-  rawEndPos_ofList cs
-
-@[deprecated rawEndPos_ofList (since := "2025-10-21")]
-theorem endPos_mk (cs : List Char) : rawEndPos (ofList cs) = ⟨utf8Len cs⟩ :=
-  rawEndPos_ofList cs
-
 @[simp]
 theorem utf8Len_toList (s : String) : utf8Len s.toList = s.utf8ByteSize := by
   rw [← utf8ByteSize_ofList, ofList_toList]
-
-@[deprecated utf8Len_toList (since := "2025-10-21")]
-theorem utf8Len_data (s : String) : utf8Len s.toList = s.utf8ByteSize :=
-  utf8Len_toList s
 
 namespace Pos.Raw
 
@@ -168,22 +140,10 @@ theorem Valid.exists : {s : String} → {p : Pos.Raw} → Valid s p →
 @[simp] theorem valid_rawEndPos : Valid s (rawEndPos s) :=
   .intro ⟨s.toList, [], by simp, by simp⟩
 
-@[deprecated valid_rawEndPos (since := "2025-10-21")]
-theorem valid_endPos : Valid s (rawEndPos s) :=
-  valid_rawEndPos
-
 theorem Valid.le_rawEndPos : ∀ {s p}, Valid s p → p ≤ rawEndPos s
   | _, ⟨_⟩, .mk cs cs' rfl => by simp [rawEndPos, le_iff,  utf8ByteSize_ofList]
 
-@[deprecated le_rawEndPos (since := "2025-10-21")]
-theorem Valid.le_endPos : ∀ {s p}, Valid s p → p ≤ rawEndPos s :=
-  le_rawEndPos
-
 end Pos.Raw
-
-@[deprecated rawEndPos_eq_zero_iff (since := "2025-10-21")]
-theorem endPos_eq_zero (s : String) : rawEndPos s = 0 ↔ s = "" :=
-  rawEndPos_eq_zero_iff
 
 /--
 Induction along the valid positions in a list of characters.
@@ -225,7 +185,7 @@ theorem utf8GetAux_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len c
   | [], c::cs' => simp [← hp, Pos.Raw.utf8GetAux]
   | c::cs, cs' =>
     simp only [List.cons_append, Pos.Raw.utf8GetAux, Char.reduceDefault]
-    rw [if_neg]
+    rw [ite_eq_right]
     case hnc => simp only [← hp, utf8Len_cons, Pos.Raw.ext_iff]; exact ne_self_add_add_utf8Size
     refine utf8GetAux_of_valid cs cs' ?_
     simpa [Nat.add_assoc, Nat.add_comm] using hp
@@ -246,7 +206,7 @@ theorem utf8GetAux?_of_valid (cs cs' : List Char) {i p : Nat} (hp : i + utf8Len 
   | [], c::cs' => simp [← hp, Pos.Raw.utf8GetAux?]
   | c::cs, cs' =>
     simp only [List.cons_append, Pos.Raw.utf8GetAux?]
-    rw [if_neg]
+    rw [ite_eq_right]
     case hnc => simp only [← hp, Pos.Raw.ext_iff]; exact ne_self_add_add_utf8Size
     refine utf8GetAux?_of_valid cs cs' ?_
     simpa [Nat.add_assoc, Nat.add_comm] using hp
@@ -263,7 +223,7 @@ theorem utf8SetAux_of_valid (c' : Char) (cs cs' : List Char) {i p : Nat} (hp : i
   | [], c::cs' => simp [← hp, Pos.Raw.utf8SetAux]
   | c::cs, cs' =>
     simp only [Pos.Raw.utf8SetAux, List.cons_append]
-    rw [if_neg]
+    rw [ite_eq_right]
     case hnc => simp only [← hp, Pos.Raw.ext_iff]; exact ne_self_add_add_utf8Size
     refine congrArg (c::·) (utf8SetAux_of_valid c' cs cs' ?_)
     simpa [Nat.add_assoc, Nat.add_comm] using hp
@@ -307,7 +267,7 @@ theorem utf8PrevAux_of_valid {cs cs' : List Char} {c : Char} {i p : Nat}
   | [] => simp [Pos.Raw.utf8PrevAux, ← hp, Pos.Raw.add_char_eq]
   | c'::cs =>
     simp only [Pos.Raw.utf8PrevAux, List.cons_append, utf8Len_cons, ← hp]
-    rw [if_neg]
+    rw [ite_eq_right]
     case hnc =>
       simp only [Pos.Raw.le_iff, Pos.Raw.byteIdx_add_char]
       grind [!Char.utf8Size_pos]
@@ -352,7 +312,7 @@ theorem findAux_of_valid (p) : ∀ l m r,
   | l, [], r => by unfold Legacy.findAux List.takeWhile; simp
   | l, c::m, r => by
     unfold Legacy.findAux List.takeWhile
-    rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
+    rw [dite_eq_left (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     have h1 := get_of_valid l (c::m++r); have h2 := next_of_valid l c (m++r)
     simp only [List.cons_append, Char.reduceDefault, List.headD_cons] at h1 h2
     simp only [List.append_assoc, List.cons_append, h1, utf8Len_cons, h2]
@@ -375,7 +335,7 @@ theorem revFindAux_of_valid (p) : ∀ l r,
   | [], r => by unfold Legacy.revFindAux List.dropWhile; simp
   | c::l, r => by
     unfold Legacy.revFindAux List.dropWhile
-    rw [dif_neg (by exact Pos.Raw.ne_of_gt add_utf8Size_pos)]
+    rw [dite_eq_right (by exact Pos.Raw.ne_of_gt add_utf8Size_pos)]
     have h1 := get_of_valid l.reverse (c::r); have h2 := prev_of_valid l.reverse c r
     simp only [utf8Len_reverse, Char.reduceDefault, List.headD_cons] at h1 h2
     simp only [List.reverse_cons, List.append_assoc, List.singleton_append,
@@ -396,7 +356,7 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
   unfold List.takeWhile₂; split <;> unfold firstDiffPos.loop
   · next a r₁ b r₂ =>
     rw [
-      dif_pos <| by
+      dite_eq_left <| by
         rw [hstop, ← hl₁, ← hl₂]
         refine Nat.lt_min.2 ⟨?_, ?_⟩ <;> exact Nat.lt_add_of_pos_right add_utf8Size_pos,
       show Pos.Raw.get (ofList (l₁ ++ a :: r₁)) ⟨p⟩ = a by
@@ -414,7 +374,7 @@ theorem firstDiffPos_loop_eq (l₁ l₂ r₁ r₂ stop p)
           (by simp [hl₁]) (by simp [hl₂]) (by simp [hstop, ← Nat.add_assoc, Nat.add_right_comm])
     · simp
   · next h =>
-    rw [dif_neg] <;> simp [hstop, ← hl₁, ← hl₂, -Nat.not_lt, Nat.lt_min]
+    rw [dite_eq_right] <;> simp [hstop, ← hl₁, ← hl₂, -Nat.not_lt, Nat.lt_min]
     intro h₁ h₂
     have : ∀ {cs}, 0 < utf8Len cs → cs ≠ [] := by rintro _ h rfl; simp at h
     obtain ⟨a, as, e₁⟩ := List.exists_cons_of_ne_nil (this h₁)
@@ -492,10 +452,6 @@ theorem extract_zero_rawEndPos (s : String) : Pos.Raw.extract s 0 (rawEndPos s) 
     congr
     apply Pos.Raw.extract.go₁_zero_utf8Len
 
-@[deprecated extract_zero_rawEndPos (since := "2025-10-21")]
-theorem extract_zero_endPos (s : String) : Pos.Raw.extract s 0 (rawEndPos s) = s :=
-  extract_zero_rawEndPos s
-
 theorem extract_of_valid (l m r : List Char) :
     Pos.Raw.extract (ofList (l ++ m ++ r)) ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ = ofList m := by
   simp only [Pos.Raw.extract]
@@ -531,10 +487,6 @@ theorem splitAux_of_valid (p l m r acc) :
 theorem splitToList_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList).map ofList := by
   simpa [splitToList] using splitAux_of_valid p [] [] s.toList []
 
-@[deprecated splitToList_of_valid (since := "2025-10-18")]
-theorem split_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList).map ofList :=
-  splitToList_of_valid s p
-
 -- TODO: splitOn
 
 @[simp] theorem toString_toSubstring (s : String) : s.toRawSubstring.toString = s :=
@@ -550,10 +502,6 @@ theorem join_eq (ss : List String) : join ss = ofList (ss.map toList).flatten :=
   induction ss generalizing t with
   | nil => simp
   | cons s ss ih => simp [ih]
-
-@[deprecated toList_join (since := "2025-10-31")]
-theorem data_join (ss : List String) : (join ss).toList = (ss.map toList).flatten :=
-  toList_join
 
 namespace Legacy.Iterator
 
@@ -614,10 +562,6 @@ theorem pos_eq_zero {l r it} (h : ValidFor l r it) : it.2 = 0 ↔ l = [] := by
 theorem pos_eq_rawEndPos {l r it} (h : ValidFor l r it) : it.2 = it.1.rawEndPos ↔ r = [] := by
   simp only [h.pos, h.toString, rawEndPos_ofList, utf8Len_reverseAux, Pos.Raw.ext_iff]
   exact (Nat.add_left_cancel_iff (m := 0)).trans <| eq_comm.trans utf8Len_eq_zero
-
-@[deprecated pos_eq_rawEndPos (since := "2025-10-21")]
-theorem pos_eq_endPos {l r it} (h : ValidFor l r it) : it.2 = it.1.rawEndPos ↔ r = [] :=
-  pos_eq_rawEndPos h
 
 theorem curr : ∀ {it}, ValidFor l r it → it.curr = r.headD default
   | it, h => by cases h.out'; apply get_of_valid
@@ -761,7 +705,7 @@ theorem offsetOfPosAux_of_valid : ∀ l m r n,
   | l, [], r, n => by unfold String.Pos.Raw.offsetOfPosAux; simp
   | l, c::m, r, n => by
     unfold String.Pos.Raw.offsetOfPosAux
-    rw [if_neg (by exact Nat.not_le.2 (Nat.lt_add_of_pos_right add_utf8Size_pos))]
+    rw [ite_eq_right (by exact Nat.not_le.2 (Nat.lt_add_of_pos_right add_utf8Size_pos))]
     simp only [List.append_assoc, atEnd_of_valid l (c::m++r)]
     simp only [List.cons_append, utf8Len_cons, next_of_valid l c (m ++ r)]
     simpa [← Nat.add_assoc, Nat.add_right_comm] using
@@ -777,7 +721,7 @@ theorem foldlAux_of_valid (f : α → Char → α) : ∀ l m r a,
   | l, [], r, a => by unfold Legacy.foldlAux; simp
   | l, c::m, r, a => by
     unfold Legacy.foldlAux
-    rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
+    rw [dite_eq_left (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     simp only [List.append_assoc, List.cons_append, utf8Len_cons, next_of_valid l c (m ++ r),
       get_of_valid l (c :: (m ++ r)), Char.reduceDefault, List.headD_cons, List.foldl_cons]
     simpa [← Nat.add_assoc, Nat.add_right_comm] using foldlAux_of_valid f (l++[c]) m r (f a c)
@@ -792,7 +736,7 @@ theorem foldrAux_of_valid (f : Char → α → α) (l m r a) :
   rw [← m.reverse_reverse]
   induction m.reverse generalizing r a with (unfold Legacy.foldrAux; simp)
   | cons c m IH =>
-    rw [if_pos add_utf8Size_pos]
+    rw [ite_eq_left add_utf8Size_pos]
     simp only [← Nat.add_assoc, by simpa using prev_of_valid (l ++ m.reverse) c r]
     simp only [by simpa using get_of_valid (l ++ m.reverse) (c :: r)]
     simpa using IH (c::r) (f c a)
@@ -806,7 +750,7 @@ theorem anyAux_of_valid (p : Char → Bool) : ∀ l m r,
   | l, [], r => by unfold Legacy.anyAux; simp
   | l, c::m, r => by
     unfold Legacy.anyAux
-    rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
+    rw [dite_eq_left (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     simp only [List.append_assoc, List.cons_append, get_of_valid l (c :: (m ++ r)),
       Char.reduceDefault, List.headD_cons, utf8Len_cons, next_of_valid l c (m ++ r),
       Bool.if_true_left, Bool.decide_eq_true, List.any_cons]
@@ -834,7 +778,7 @@ theorem mapAux_of_valid (f : Char → Char) :
   | l, [] => by unfold Legacy.mapAux; simp
   | l, c::r => by
     unfold Legacy.mapAux
-    rw [dif_neg (by rw [atEnd_of_valid]; simp)]
+    rw [dite_eq_right (by rw [atEnd_of_valid]; simp)]
     simp only [get_of_valid l (c :: r), Char.reduceDefault,
       List.headD_cons, set_of_valid l (c :: r), List.modifyHead_cons, next_of_valid l (f c) r,
       List.map_cons]
@@ -854,7 +798,7 @@ theorem takeWhileAux_of_valid (p : Char → Bool) : ∀ l m r,
   | l, [], r => by unfold Substring.Raw.takeWhileAux List.takeWhile; simp
   | l, c::m, r => by
     unfold Substring.Raw.takeWhileAux List.takeWhile
-    rw [dif_pos (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
+    rw [dite_eq_left (by exact Nat.lt_add_of_pos_right add_utf8Size_pos)]
     simp only [List.append_assoc, List.cons_append, get_of_valid l (c :: (m ++ r)),
       Char.reduceDefault, List.headD_cons, utf8Len_cons, next_of_valid l c (m ++ r)]
     cases p c <;> simp
@@ -952,7 +896,7 @@ theorem next : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
   | _, ⟨⟩ => by
     simp only [Substring.Raw.next, utf8Len_append, utf8Len_cons, List.append_assoc,
       List.cons_append]
-    rw [if_neg (mt Pos.Raw.ext_iff.1 ?a)]
+    rw [ite_eq_right (mt Pos.Raw.ext_iff.1 ?a)]
     case a =>
       simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
         @ne_add_utf8Size_add_self (utf8Len l + utf8Len m₁) (utf8Len m₂) c
@@ -967,7 +911,7 @@ theorem prev : ∀ {s}, ValidFor l (m₁ ++ c :: m₂) r s →
     s.prev ⟨utf8Len m₁ + c.utf8Size⟩ = ⟨utf8Len m₁⟩
   | _, ⟨⟩ => by
     simp only [Substring.Raw.prev, List.append_assoc, List.cons_append]
-    rw [if_neg (mt Pos.Raw.ext_iff.1 <| Ne.symm ?a)]
+    rw [ite_eq_right (mt Pos.Raw.ext_iff.1 <| Ne.symm ?a)]
     case a => simpa [Nat.add_comm] using @ne_add_utf8Size_add_self (utf8Len l) (utf8Len m₁) c
     have := prev_of_valid (l ++ m₁) c (m₂ ++ r)
     simp only [List.append_assoc, utf8Len_append, Nat.add_assoc,
