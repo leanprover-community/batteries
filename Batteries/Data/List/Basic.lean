@@ -13,6 +13,20 @@ namespace List
 
 /-! ## New definitions -/
 
+/-- Get the maximum element of a list.
+If the given list is empty, returns `(default : α)` and produces a panic error message. -/
+def max! {α} [Inhabited α] [Max α] (xs : List α) : α :=
+  match xs.max? with
+  | none => panic! "List.max! called on empty list"
+  | some x => x
+
+/-- Get the minimum element of a list.
+If the given list is empty, returns `(default : α)` and produces a panic error message. -/
+def min! {α} [Inhabited α] [Min α] (xs : List α) : α :=
+  match xs.min? with
+  | none => panic! "List.min! called on empty list"
+  | some x => x
+
 /--
 Computes the "bag intersection" of `l₁` and `l₂`, that is,
 the collection of elements of `l₁` which are also in `l₂`. As each element
@@ -203,9 +217,6 @@ We have `l.findIdxsValues p s = (l.findIdxs p s).zip (l.filter p)`.
 @[inline] def findIdxsValues (p : α → Bool) (l : List α) (start : Nat := 0) : List (Nat × α) :=
   foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l start
 
-@[deprecated (since := "2025-11-06")]
-alias indexsValues := findIdxsValues
-
 /-- `findIdxNth p xs n` returns the index of the `n`th element for which `p` returns `true`.
 For example:
 ```
@@ -229,9 +240,6 @@ idxsOf a [a, b, a, a] 5 = [5, 7, 8]
 -/
 @[inline] def idxsOf [BEq α] (a : α) (xs : List α) (start : Nat := 0) : List Nat :=
   xs.findIdxs (· == a) start
-
-@[deprecated (since := "2025-11-06")]
-alias indexesOf := idxsOf
 
 /-- `idxOfNth a xs n` returns the index of the `n`th instance of `a` in `xs`, counting from `0`.
 
@@ -560,7 +568,7 @@ where
   let rec go (as bs acca accb) : takeWhile₂TR.go R as bs acca accb =
       (acca.reverse ++ (as.takeWhile₂ R bs).1, accb.reverse ++ (as.takeWhile₂ R bs).2) := by
     unfold takeWhile₂TR.go takeWhile₂; split <;> simp
-    rename_i a as b bs; unfold cond; cases R a b <;> simp [go as bs]
+    rename_i a as b bs; cases R a b <;> simp [go as bs]
   exact (go as bs [] []).symm
 
 /--
@@ -601,30 +609,6 @@ where
     match l with
     | [] => isTrue <| .singleton a
     | b :: l => haveI := (go b l); decidable_of_iff' _ isChain_cons_cons
-
-/-- `Chain R a l` means that `R` holds between adjacent elements of `a::l`.
-```
-Chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d
-``` -/
-@[deprecated IsChain (since := "2025-09-19")]
-def Chain : (α → α → Prop) → α → List α → Prop := (IsChain · <| · :: ·)
-
-set_option linter.deprecated false in
-/-- A list of length 1 is a chain. -/
-@[deprecated IsChain.singleton (since := "2025-09-19")]
-theorem Chain.nil {a : α} : Chain R a [] := IsChain.singleton a
-
-set_option linter.deprecated false in
-/-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
-@[deprecated IsChain.cons_cons (since := "2025-09-19")]
-theorem Chain.cons : R a b → Chain R b l → Chain R a (b :: l)  := IsChain.cons_cons
-
-/-- `Chain' R l` means that `R` holds between adjacent elements of `l`.
-```
-Chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
-``` -/
-@[deprecated IsChain (since := "2025-09-19")]
-def Chain' : (α → α → Prop) → List α → Prop := (IsChain · ·)
 
 /-- **Deprecated:** Use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups` instead. -/
 @[deprecated "use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups`" (since := "2026-01-03")]
@@ -867,21 +851,6 @@ allSome [some 1, none  ] = none
 @[inline] def allSome (l : List (Option α)) : Option (List α) := l.mapM id
 
 /--
-`fillNones xs ys` replaces the `none`s in `xs` with elements of `ys`. If there
-are not enough `ys` to replace all the `none`s, the remaining `none`s are
-dropped from `xs`.
-```
-fillNones [none, some 1, none, none] [2, 3] = [2, 1, 3]
-```
--/
-@[simp, deprecated "Deprecated without replacement." (since := "2025-08-07")]
-def fillNones {α} : List (Option α) → List α → List α
-  | [], _ => []
-  | some a :: as, as' => a :: fillNones as as'
-  | none :: as, [] => as.reduceOption
-  | none :: as, a :: as' => a :: fillNones as as'
-
-/--
 `takeList as ns` extracts successive sublists from `as`. For `ns = n₁ ... nₘ`,
 it first takes the `n₁` initial elements from `as`, then the next `n₂` ones,
 etc. It returns the sublists of `as` -- one for each `nᵢ` -- and the remaining
@@ -1077,17 +1046,6 @@ where
     | some s => (acc.reverse, s)
 
 /--
-Computes the product of the elements of a list.
-
-Examples:
-
-[a, b, c].prod = a * (b * (c * 1))
-[2, 3, 5].prod = 30
--/
-@[expose] def prod [Mul α] [One α] (xs : List α) : α :=
-  xs.foldr (· * ·) 1
-
-/--
 Computes the partial sums of the elements of a list.
 
 Examples:
@@ -1108,3 +1066,48 @@ Examples:
 -/
 def partialProds [Mul α] [One α] (l : List α) : List α :=
   l.scanl (· * ·) 1
+
+/-- `swapAt xs i v` sets position `i` of `xs` to `v` and returns the displaced
+element, or `v` itself (with `xs` unchanged) if `i` is out of bounds. -/
+def swapAt (xs : List α) (i : Nat) (v : α) : α × List α := (xs[i]?.getD v, xs.set i v)
+
+/-- Tail-recursive version of `swapAt`. -/
+@[inline] def swapAtTR (l : List α) (i : Nat) (v : α) : α × List α := go l i #[] where
+  /-- Inner loop for `swapAtTR`. -/
+  @[specialize] go : List α → Nat → Array α → α × List α
+  | [], _, _ => (v, l)
+  | a :: xs, 0, acc => (a, acc.toListAppend (v :: xs))
+  | a :: xs, i + 1, acc => go xs i (acc.push a)
+
+@[csimp] theorem swapAt_eq_swapAtTR : @swapAt = @swapAtTR := by
+  funext α xs i v
+  let rec go : ∀ xs i (acc : Array α), swapAtTR.go (acc.toList ++ xs) v xs i acc =
+        (xs[i]?.getD v, acc.toList ++ xs.set i v)
+  | [], _, _ | _::_, 0, _ => by simp [swapAtTR.go]
+  | a::xs, i+1, acc => by simpa [swapAtTR.go] using go xs i (acc.push a)
+  exact (go xs i #[]).symm
+
+/-- `l.swap i j` exchanges the elements at positions `i` and `j` of `l`.
+If either index is out of bounds, `l` is returned unchanged. -/
+def swap : List α → Nat → Nat → List α
+  | [], _, _ => [] | a :: xs, 0, 0 => a :: xs
+  | a :: xs, 0, i + 1 | a :: xs, i + 1, 0 => xs[i]?.getD a :: xs.set i a
+  | a :: xs, i + 1, j + 1 => a :: swap xs i j
+
+/-- Tail-recursive version of `swap`. -/
+@[inline] def swapTR (l : List α) (i j : Nat) : List α := go l i j #[] where
+  /-- Inner loop for `swapTR`. -/
+  @[specialize] go : List α → Nat → Nat → Array α → List α
+  | [], _, _, _ | _ :: _, 0, 0, _ => l
+  | a :: xs, 0, i + 1, acc | a :: xs, i + 1, 0, acc =>
+    acc.toListAppend (List.cons.uncurry (swapAt xs i a))
+  | a :: xs, i + 1, j + 1, acc => go xs i j (acc.push a)
+
+@[csimp] theorem swap_eq_swapTR : @swap = @swapTR := by
+  funext α l i j
+  let rec go : ∀ xs i j (acc : Array α),
+      swapTR.go (acc.toList ++ xs) xs i j acc = acc.toList ++ swap xs i j
+  | [], _, _, _ | _::_, 0, 0, _ | _::_, 0, _+1, _ | _::_, _+1, 0, _ => by
+    simp [swapTR.go, swap, swapAt]
+  | x::xs, i+1, j+1, acc => by simpa [swapTR.go, swap] using go xs i j (acc.push x)
+  exact (go l i j #[]).symm

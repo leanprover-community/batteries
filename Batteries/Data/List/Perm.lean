@@ -110,7 +110,8 @@ theorem cons_subperm_of_not_mem_of_mem {a : α} {l₁ l₂ : List α} (h₁ : a 
     obtain ⟨t₁, t₂, rfl⟩ := append_of_mem bm
     have st : t₁ ++ t₂ <+ t₁ ++ b :: t₂ := by simp
     obtain ⟨t, p', s'⟩ := ih (mt (st.subset ·) h₁) am (.cons_inv <| p.trans perm_middle)
-    exact ⟨b :: t, (p'.cons b).trans <| (swap ..).trans (perm_middle.symm.cons a), s'.cons_cons _⟩
+    exact ⟨b :: t, (p'.cons b).trans <|
+    (Perm.swap ..).trans (perm_middle.symm.cons a), s'.cons_cons _⟩
 
 theorem subperm_append_left {l₁ l₂ : List α} : ∀ l, l ++ l₁ <+~ l ++ l₂ ↔ l₁ <+~ l₂
   | [] => .rfl
@@ -133,7 +134,7 @@ theorem Subperm.exists_of_length_lt {l₁ l₂ : List α} (s : l₁ <+~ l₂) (h
     | .inr h => exact ⟨a, s.eq_of_length h ▸ .refl _⟩
   | cons_cons b _ IH =>
     exact (IH <| Nat.lt_of_succ_lt_succ h).imp fun a s =>
-      (swap ..).subperm_right.1 <| (subperm_cons _).2 s
+      (Perm.swap ..).subperm_right.1 <| (subperm_cons _).2 s
 
 theorem subperm_of_subset (d : Nodup l₁) (H : l₁ ⊆ l₂) : l₁ <+~ l₂ := by
   induction d with
@@ -141,11 +142,6 @@ theorem subperm_of_subset (d : Nodup l₁) (H : l₁ ⊆ l₂) : l₁ <+~ l₂ :
   | cons h _ IH =>
     have ⟨H₁, H₂⟩ := forall_mem_cons.1 H
     exact cons_subperm_of_not_mem_of_mem (h _ · rfl) H₁ (IH H₂)
-
-theorem perm_ext_iff_of_nodup {l₁ l₂ : List α} (d₁ : Nodup l₁) (d₂ : Nodup l₂) :
-    l₁ ~ l₂ ↔ ∀ a, a ∈ l₁ ↔ a ∈ l₂ := by
-  refine ⟨fun p _ => p.mem_iff, fun H => ?_⟩
-  exact (subperm_of_subset d₁ fun a => (H a).1).antisymm <| subperm_of_subset d₂ fun a => (H a).2
 
 theorem Nodup.perm_iff_eq_of_sublist {l₁ l₂ l : List α} (d : Nodup l)
     (s₁ : l₁ <+ l) (s₂ : l₂ <+ l) : l₁ ~ l₂ ↔ l₁ = l₂ := by
@@ -322,6 +318,27 @@ theorem perm_insertP (p : α → Bool) (a l) : insertP p a l ~ a :: l := by
 theorem Perm.insertP (p : α → Bool) (a) (h : l₁ ~ l₂) : insertP p a l₁ ~ insertP p a l₂ :=
   Perm.trans (perm_insertP ..) <| Perm.trans (Perm.cons _ h) <| Perm.symm (perm_insertP ..)
 
+theorem getD_set_perm_cons : ∀ (xs : List α) (i : Nat) (v : α),
+    xs[i]?.getD v :: xs.set i v ~ v :: xs
+  | [], _, _ => .refl _
+  | a :: xs, 0, v => Perm.swap v a xs
+  | a :: xs, i+1, v =>
+    (Perm.swap a _ _).trans <| ((xs.getD_set_perm_cons i v).cons a).trans <| Perm.swap v a xs
+
+theorem cons_uncurry_swapAt_perm_cons : ∀ (xs : List α) (i : Nat) (v : α),
+    List.cons.uncurry (swapAt xs i v) ~ v :: xs := getD_set_perm_cons
+
+@[simp] theorem swap_perm : ∀ (xs : List α) (i j : Nat), xs.swap i j ~ xs
+  | [], _, _ => .refl []
+  | _ :: _, 0, 0 => .refl (_ :: _)
+  | a :: xs, 0, j+1 => getD_set_perm_cons xs j a
+  | a :: xs, i+1, 0 => getD_set_perm_cons xs i a
+  | a :: xs, i+1, j+1 => (swap_perm xs i j).cons a
+
+@[simp, grind =]
+theorem mem_swap {xs : List α} (i j : Nat) {a : α} : a ∈ xs.swap i j ↔ a ∈ xs :=
+  (swap_perm xs i j).mem_iff
+
 /-! ### idxInj  -/
 
 /-- `Subperm.idxInj` is an injective map from `Fin xs.length` to `Fin ys.length`
@@ -348,7 +365,7 @@ theorem Subperm.getElem_idxInj_eq_getElem [BEq α] [LawfulBEq α] {xs ys : List 
 theorem Subperm.idxInj_injective [BEq α] [LawfulBEq α] {xs ys : List α}
     (h : xs <+~ ys) : h.idxInj.Injective := fun _ _ hij => by
   have H := congrArg (fun i : Fin ys.length => xs.idxOfNth ys[i] (ys.countBefore ys[i] i)) hij
-  grind
+  grind [idxOfNth_lt_length_iff]
 
 @[simp]
 theorem Subperm.idxInj_inj [BEq α] [LawfulBEq α] {xs ys : List α}
@@ -384,10 +401,10 @@ theorem Perm.getElem_idxBij_symm_eq_getElem [BEq α] [LawfulBEq α] {xs ys : Lis
   getElem_idxOfNth_eq
 
 theorem Perm.idxBij_leftInverse_idxBij_symm [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys) :
-    h.idxBij.LeftInverse h.symm.idxBij := by grind
+    h.idxBij.LeftInverse h.symm.idxBij := by grind (ematch := 6)
 
 theorem Perm.idxBij_rightInverse_idxBij_symm [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys) :
-    h.idxBij.RightInverse h.symm.idxBij := by grind
+    h.idxBij.RightInverse h.symm.idxBij := by grind [idxOfNth_lt_length_iff]
 
 theorem Perm.idxBij_symm_rightInverse_idxBij [BEq α] [LawfulBEq α] {xs ys : List α} (h : xs ~ ys) :
     h.symm.idxBij.RightInverse h.idxBij := h.idxBij_leftInverse_idxBij_symm

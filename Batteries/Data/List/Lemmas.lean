@@ -34,12 +34,6 @@ attribute [grind =] zip_nil_left zip_nil_right zip_cons_cons
 
 attribute [grind =] zipIdx_nil zipIdx_cons
 
-/-! ### toArray-/
-
-@[deprecated List.getElem_toArray (since := "2025-09-11")]
-theorem getElem_mk {xs : List α} {i : Nat} (h : i < xs.length) :
-    (Array.mk xs)[i] = xs[i] := List.getElem_toArray h
-
 /-! ### next? -/
 
 @[simp, grind =] theorem next?_nil : @next? α [] = none := rfl
@@ -70,8 +64,6 @@ theorem modify_eq_set_getElem? (f : α → α) :
   | n+1, b :: l =>
     (congrArg (cons _) (modify_eq_set_getElem? ..)).trans <| by cases h : l[n]? <;> simp [h]
 
-@[deprecated (since := "2025-02-15")] alias modify_eq_set_get? := modify_eq_set_getElem?
-
 theorem modify_eq_set_get (f : α → α) {n} {l : List α} (h) :
     l.modify n f = l.set n (f (l.get ⟨n, h⟩)) := by
   rw [modify_eq_set_getElem?, getElem?_eq_getElem h]; rfl
@@ -83,13 +75,9 @@ theorem getElem?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
     (set l m a)[n]? = if m = n then some a else l[n]? := by
   simp [getElem?_set', getElem?_eq_getElem h]
 
-@[deprecated (since := "2025-02-15")] alias get?_set_of_lt := getElem?_set_of_lt
-
 theorem getElem?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
     (set l m a)[n]? = if m = n then some a else l[n]? := by
   simp [getElem?_set]; split <;> subst_vars <;> simp [*]
-
-@[deprecated (since := "2025-02-15")] alias get?_set_of_lt' := getElem?_set_of_lt'
 
 /-! ### tail -/
 
@@ -110,14 +98,6 @@ theorem length_tail_add_one (l : List α) (h : 0 < length l) :
 theorem erase_eq_self_iff_forall_bne [BEq α] (a : α) (xs : List α) :
     xs.erase a = xs ↔ ∀ (x : α), x ∈ xs → ¬x == a := by
   rw [erase_eq_eraseP', eraseP_eq_self_iff]
-
-/-! ### findIdx? -/
-
-@[deprecated findIdx_eq_getD_findIdx? (since := "2025-11-06")]
-theorem findIdx_eq_findIdx? (p : α → Bool) (l : List α) :
-    l.findIdx p = (match l.findIdx? p with | some i => i | none => l.length) := by
-  rw [findIdx_eq_getD_findIdx?]
-  cases findIdx? p l <;> rfl
 
 /-! ### replaceF -/
 
@@ -302,10 +282,10 @@ theorem cons_diff (a : α) (l₁ l₂ : List α) :
       simp[*]
 
 theorem cons_diff_of_mem {a : α} {l₂ : List α} (h : a ∈ l₂) (l₁ : List α) :
-    (a :: l₁).diff l₂ = l₁.diff (l₂.erase a) := by rw [cons_diff, if_pos h]
+    (a :: l₁).diff l₂ = l₁.diff (l₂.erase a) := by rw [cons_diff, ite_eq_left h]
 
 theorem cons_diff_of_not_mem {a : α} {l₂ : List α} (h : a ∉ l₂) (l₁ : List α) :
-    (a :: l₁).diff l₂ = a :: l₁.diff l₂ := by rw [cons_diff, if_neg h]
+    (a :: l₁).diff l₂ = a :: l₁.diff l₂ := by rw [cons_diff, ite_eq_right h]
 
 theorem diff_eq_foldl : ∀ l₁ l₂ : List α, l₁.diff l₂ = foldl List.erase l₁ l₂
   | _, [] => rfl
@@ -371,16 +351,10 @@ attribute [simp, grind ←] Pairwise.nil
 
 /-! ### IsChain -/
 
-@[deprecated (since := "2025-09-19")]
-alias chain_cons := isChain_cons_cons
-
 theorem rel_of_isChain_cons_cons (p : IsChain R (a :: b :: l)) : R a b :=
   (isChain_cons_cons.1 p).1
 
 alias IsChain.rel := rel_of_isChain_cons_cons
-
-@[deprecated (since := "2025-09-19")]
-alias rel_of_chain_cons := rel_of_isChain_cons_cons
 
 theorem isChain_of_isChain_cons (p : IsChain R (b :: l)) : IsChain R l := by grind [cases List]
 
@@ -390,9 +364,6 @@ alias IsChain.of_cons := isChain_of_isChain_cons
 theorem isChain_cons_of_isChain_cons_cons : IsChain R (a :: b :: l) →
     IsChain R (b :: l) := IsChain.of_cons
 
-@[deprecated (since := "2025-09-19")]
-alias chain_of_chain_cons := isChain_cons_of_isChain_cons_cons
-
 @[deprecated IsChain.of_cons (since := "2026-02-10")]
 theorem isChain_of_isChain_cons_cons : IsChain R (a :: b :: l) →
     IsChain R l := IsChain.of_cons ∘ IsChain.of_cons
@@ -400,9 +371,6 @@ theorem isChain_of_isChain_cons_cons : IsChain R (a :: b :: l) →
 @[grind =>]
 theorem IsChain.imp (H : ∀ ⦃a b : α⦄, R a b → S a b)
     (p : IsChain R l) : IsChain S l := by induction p with grind
-
-@[deprecated (since := "2025-09-19")]
-alias Chain.imp := IsChain.imp
 
 theorem IsChain.cons_of_imp (h : ∀ c, R a c → R b c) :
     IsChain R (a :: l) → IsChain R (b :: l) := by grind [cases List]
@@ -413,12 +381,6 @@ alias IsChain.cons_of_imp_of_cons := IsChain.cons_of_imp
 theorem IsChain.cons_of_imp_of_imp (HRS : ∀ ⦃a b : α⦄, R a b → S a b)
     (Hab : ∀ ⦃c⦄, R a c → S b c) (h : IsChain R (a :: l)) : IsChain S (b :: l) := by
   grind [cases List]
-
-@[deprecated (since := "2025-09-19")]
-alias Chain.imp' := IsChain.cons_of_imp_of_imp
-
-@[deprecated (since := "2025-09-19")]
-protected alias Pairwise.chain := Pairwise.isChain
 
 theorem isChain_iff_pairwise [Trans R R R] : IsChain R l ↔ Pairwise R l := by
   induction l with | nil => grind | cons a l IH => cases l with | nil => grind | cons b l =>
@@ -445,17 +407,9 @@ theorem isChain_range' (s : Nat) : ∀ n step : Nat,
   | 1, _ => .singleton _
   | n + 2, step => (isChain_range' (s + step) (n + 1) step).cons_cons rfl
 
-@[deprecated isChain_range' (since := "2025-09-19")]
-theorem chain_succ_range' (s n step : Nat) :
-    IsChain (fun a b => b = a + step) (s :: range' (s + step) n step) := isChain_range'  _ (n + 1) _
-
 theorem isChain_lt_range' (s n : Nat) (h : 0 < step) :
     IsChain (· < ·) (range' s n step) :=
   (isChain_range' s n step).imp fun | _, _, rfl => Nat.lt_add_of_pos_right h
-
-@[deprecated isChain_lt_range' (since := "2025-09-19")]
-theorem chain_lt_range' (s n : Nat) (h : 0 < step) :
-    IsChain (· < ·) (s :: range' (s + step) n step) := isChain_lt_range' _ (n + 1) h
 
 /-! ### foldrIdx -/
 
@@ -563,24 +517,29 @@ theorem findIdxs_take :
     ((xs : List α).take n).findIdxs p s = (xs.findIdxs p s).take ((xs.take n).countP p) := by
   induction xs generalizing n s <;> cases n <;> grind [countP_eq_length_filter]
 
-@[simp, grind =>]
+@[simp]
 theorem le_getElem_findIdxs (h : i < ((xs : List α).findIdxs p s).length) :
     s ≤ (xs.findIdxs p s)[i] := by grind [getElem_mem]
 
-@[simp, grind =>]
+grind_pattern le_getElem_findIdxs => (xs.findIdxs p s)[i]
+
+@[simp]
 theorem getElem_findIdxs_lt (h : i < ((xs : List α).findIdxs p s).length) :
     (xs.findIdxs p s)[i] < xs.length + s := by grind [getElem_mem]
+
+grind_pattern getElem_findIdxs_lt => (xs.findIdxs p s)[i]
 
 theorem getElem_filter_eq_getElem_getElem_findIdxs_sub (s : Nat)
     (h : i < ((xs : List α).filter p).length) :
     (xs.filter p)[i] = xs[(xs.findIdxs p s)[i]'(by grind) - s]'(by grind) := by
   induction xs generalizing i s <;> grind
 
-@[grind =>]
 theorem getElem_filter_eq_getElem_getElem_findIdxs
     (h : i < ((xs : List α).filter p).length) :
     (xs.filter p)[i] = xs[(xs.findIdxs p)[i]'(by grind)]'(by grind) :=
   getElem_filter_eq_getElem_getElem_findIdxs_sub 0 h
+
+grind_pattern getElem_filter_eq_getElem_getElem_findIdxs => (xs.filter p)[i]'h, (xs.findIdxs p)[i]
 
 theorem getElem_getElem_findIdxs_sub (s : Nat)
     (h : i < ((xs : List α).findIdxs p s).length) :
@@ -601,7 +560,6 @@ theorem getElem_zero_findIdxs_eq_findIdx_add (h : 0 < ((xs : List α).findIdxs p
 theorem getElem_zero_findIdxs_eq_findIdx (h : 0 < ((xs : List α).findIdxs p).length) :
     (xs.findIdxs p)[0] = xs.findIdx p := getElem_zero_findIdxs_eq_findIdx_add h
 
-@[grind =>]
 theorem findIdx_add_mem_findIdxs (s : Nat)
     (h : (xs : List α).findIdx p < xs.length) : xs.findIdx p + s ∈ xs.findIdxs p s := by
   grind [mem_iff_getElem]
@@ -671,12 +629,12 @@ grind_pattern pos_findIdxNth_getElem => xs[xs.findIdxNth p n]
 theorem findIdxNth_zero : (xs : List α).findIdxNth p 0 = xs.findIdx p := by
   induction xs <;> grind
 
-@[grind _=_]
+@[local grind =_]
 theorem findIdxNth_lt_length_iff {xs : List α} :
     xs.findIdxNth p n < xs.length ↔ n < xs.countP p := by
   induction xs generalizing n <;> grind
 
-@[grind _=_]
+@[local grind =_]
 theorem findIdxNth_eq_length_iff {xs : List α} :
     xs.findIdxNth p n = xs.length ↔ xs.countP p ≤ n := by
   induction xs generalizing n <;> grind
@@ -735,17 +693,6 @@ theorem findIdxNth_eq_findIdxNth_of_ge_countP_ge_countP {xs : List α} (hn : xs.
 @[grind =] theorem idxOf_eq_getD_idxOf? [BEq α] (a : α) (l : List α) :
     l.idxOf a = (l.idxOf? a).getD l.length := by
   simp [idxOf, idxOf?, findIdx_eq_getD_findIdx?]
-
-@[deprecated (since := "2025-11-06")]
-alias idxOf_eq_idxOf? := idxOf_eq_getD_idxOf?
-
-@[simp, grind =]
-theorem getElem_idxOf [BEq α] [LawfulBEq α] {x : α} {xs : List α} (h : idxOf x xs < xs.length) :
-    xs[xs.idxOf x] = x := by induction xs <;> grind
-
-@[simp, grind =]
-theorem Nodup.idxOf_getElem [BEq α] [LawfulBEq α] {xs : List α} (H : Nodup xs)
-    (i : Nat) (h : i < xs.length) : idxOf xs[i] xs = i := by induction xs generalizing i <;> grind
 
 /-! ### idxsOf -/
 
@@ -809,19 +756,22 @@ theorem idxsOf_take [BEq α] :
     ((xs : List α).take n).idxsOf x s = (xs.idxsOf x s).take ((xs.take n).count x) :=
   findIdxs_take
 
-@[simp, grind =>]
+@[simp]
 theorem le_getElem_idxsOf [BEq α] (h : i < ((xs : List α).idxsOf x s).length) :
     s ≤ (xs.idxsOf x s)[i] := by grind [getElem_mem]
 
-@[simp, grind =>]
+@[simp]
 theorem getElem_idxsOf_lt [BEq α] (h : i < ((xs : List α).idxsOf x s).length) :
     (xs.idxsOf x s)[i] < xs.length + s := by grind [getElem_mem]
 
-@[grind =>]
+grind_pattern getElem_idxsOf_lt => (xs.idxsOf x s)[i]
+
 theorem getElem_getElem_idxsOf_sub [BEq α] (s : Nat)
     (h : i < ((xs : List α).idxsOf x s).length) :
     haveI : (idxsOf x xs s)[i] - s < xs.length := by grind
     xs[(xs.idxsOf x s)[i] - s] == x := getElem_getElem_findIdxs_sub s h
+
+grind_pattern getElem_getElem_idxsOf_sub => xs[(xs.idxsOf x s)[i] - s]
 
 @[simp]
 theorem getElem_getElem_idxsOf_sub_of_lawful [BEq α] [LawfulBEq α] (s : Nat)
@@ -831,17 +781,18 @@ theorem getElem_getElem_idxsOf_sub_of_lawful [BEq α] [LawfulBEq α] (s : Nat)
 
 theorem getElem_getElem_idxsOf [BEq α] (h : i < ((xs : List α).idxsOf x).length) :
     haveI : (idxsOf x xs)[i] < xs.length := by grind
-    xs[(xs.idxsOf x)[i]] == x := by grind
+    xs[(xs.idxsOf x)[i]] == x := getElem_getElem_idxsOf_sub 0 h
 
 @[simp]
 theorem getElem_getElem_idxsOf_of_lawful [BEq α] [LawfulBEq α]
     (h : i < ((xs : List α).idxsOf x).length) :
     haveI : (idxsOf x xs)[i] < xs.length := by grind
-  xs[(xs.idxsOf x)[i]] = x := by grind
+  xs[(xs.idxsOf x)[i]] = x := getElem_getElem_idxsOf_sub_of_lawful 0 h
 
-@[grind =>]
 theorem mem_idxsOf_getElem [BEq α] [EquivBEq α] (h : i < (xs : List α).length) :
     i ∈ xs.idxsOf xs[i] := by grind
+
+grind_pattern mem_idxsOf_getElem => xs.idxsOf xs[i]
 
 @[grind =]
 theorem getElem_zero_idxsOf_eq_idxOf_add [BEq α] (h : 0 < ((xs : List α).idxsOf x s).length) :
@@ -851,9 +802,10 @@ theorem getElem_zero_idxsOf_eq_idxOf_add [BEq α] (h : 0 < ((xs : List α).idxsO
 theorem getElem_zero_idxsOf_eq_idxOf [BEq α] (h : 0 < ((xs : List α).idxsOf x).length) :
     (xs.idxsOf x)[0] = xs.idxOf x := getElem_zero_idxsOf_eq_idxOf_add h
 
-@[grind =>]
 theorem idxOf_add_mem_idxsOf [BEq α] (s : Nat) (h : (xs : List α).idxOf x < xs.length) :
     xs.idxOf x + s ∈ xs.idxsOf x s := findIdx_add_mem_findIdxs s h
+
+grind_pattern idxOf_add_mem_idxsOf => xs.idxOf x, xs.idxOf x + s
 
 theorem idxOf_mem_idxsOf [BEq α] (h : (xs : List α).idxOf x < xs.length) :
     xs.idxOf x ∈ xs.idxsOf x := idxOf_add_mem_idxsOf 0 h
@@ -909,17 +861,18 @@ theorem getElem_idxOfNth_eq {xs : List α} [BEq α] [LawfulBEq α] {h : xs.idxOf
 theorem idxOfNth_zero [BEq α] : (xs : List α).idxOfNth x 0 = xs.idxOf x := by
   induction xs <;> grind
 
-@[grind _=_]
+@[local grind =_]
 theorem idxOfNth_lt_length_iff [BEq α] {xs : List α} :
     xs.idxOfNth x n < xs.length ↔ n < xs.count x := findIdxNth_lt_length_iff
 
-@[grind _=_]
+@[local grind =_]
 theorem idxOfNth_eq_length_iff [BEq α] {xs : List α} :
     xs.idxOfNth x n = xs.length ↔ xs.count x ≤ n := findIdxNth_eq_length_iff
 
-@[grind .]
 theorem idxOfNth_le_length [BEq α] {xs : List α} :
     xs.idxOfNth x n ≤ xs.length := findIdxNth_le_length
+
+grind_pattern idxOfNth_le_length => xs.idxOfNth x n
 
 theorem idxOfNth_lt_length_of_lt_count {xs : List α} [BEq α] :
     n < xs.count x → xs.idxOfNth x n < xs.length := by grind
@@ -998,12 +951,12 @@ theorem countPBefore_of_ge_length {xs : List α} (hi : xs.length ≤ i) :
 theorem countPBefore_length {xs : List α} :
     xs.countPBefore p xs.length = xs.countP p := countPBefore_of_ge_length (by grind)
 
-@[simp, grind <=]
+@[simp, grind =]
 theorem findIdxNth_countPBefore_of_lt_length_of_pos {xs : List α} {h : i < xs.length}
     (hip : p xs[i]) : xs.findIdxNth p (xs.countPBefore p i) = i := by
   induction xs generalizing i <;> grind
 
-@[simp, grind <=]
+@[simp, grind =]
 theorem countPBefore_findIdxNth_of_lt_countP {xs : List α} :
     n < xs.countP p → xs.countPBefore p (xs.findIdxNth p n) = n := by
   induction xs generalizing n <;> grind
@@ -1021,10 +974,11 @@ theorem countPBefore_mono {xs : List α} (hij : i ≤ j) :
   simp only [countPBefore_eq_countP_take]
   exact (take_sublist_take_left hij).countP_le
 
-@[grind <=]
 theorem countPBefore_lt_countP_of_lt_length_of_pos {xs : List α} {h : i < xs.length}
     (hip : p xs[i]) : xs.countPBefore p i < xs.countP p := by
   rwa [← findIdxNth_lt_length_iff, findIdxNth_countPBefore_of_lt_length_of_pos hip]
+
+grind_pattern countPBefore_lt_countP_of_lt_length_of_pos => xs.countPBefore p i, xs.countP p
 
 /-! ### countBefore -/
 
@@ -1051,11 +1005,11 @@ theorem countBefore_eq_count_take [BEq α] :
     (xs : List α).countBefore x i = (xs.take i).count x := by
   induction xs generalizing i <;> cases i <;> grind
 
-@[grind <=]
+@[grind =]
 theorem countBefore_idxOfNth_of_lt_count [BEq α] {xs : List α} (hn : n < xs.count x) :
      xs.countBefore x (xs.idxOfNth x n) = n := countPBefore_findIdxNth_of_lt_countP hn
 
-@[grind <=]
+@[grind =]
 theorem idxOfNth_countBefore_of_lt_length_of_beq [BEq α] {xs : List α} {h : i < xs.length}
     (hip : xs[i] == x) : xs.idxOfNth x (xs.countBefore x i) = i :=
   findIdxNth_countPBefore_of_lt_length_of_pos hip
@@ -1072,15 +1026,16 @@ theorem countBefore_le_count [BEq α] {xs : List α} :
     xs.countBefore x i ≤ xs.count x := by
   induction xs generalizing i <;> cases i <;> grind
 
-@[grind <=]
 theorem countBefore_lt_count_of_lt_length_of_beq [BEq α] {xs : List α} {h : i < xs.length}
     (hip : xs[i] == x) : xs.countBefore x i < xs.count x :=
   countPBefore_lt_countP_of_lt_length_of_pos hip
 
-@[simp, grind <=]
+@[simp]
 theorem countBefore_lt_count_getElem [BEq α] [ReflBEq α] {xs : List α} {h : i < xs.length} :
     xs.countBefore xs[i] i < xs.count xs[i] :=
   countBefore_lt_count_of_lt_length_of_beq BEq.rfl
+
+grind_pattern countBefore_lt_count_getElem => xs.countBefore xs[i] i
 
 theorem countBefore_of_ge_length [BEq α] {xs : List α} (hi : xs.length ≤ i) :
     xs.countBefore x i = xs.count x := countPBefore_of_ge_length hi
@@ -1287,18 +1242,6 @@ theorem finRange_eq_nil_iff : finRange n = [] ↔ n = 0 := by
 theorem finRange_eq_pmap_range : finRange n = (range n).pmap Fin.mk (by simp) := by
   apply List.ext_getElem <;> simp [finRange]
 
-theorem nodup_finRange (n) : (finRange n).Nodup := by
-  rw [finRange_eq_pmap_range]
-  exact (Pairwise.pmap nodup_range _) fun _ _ _ _ => @Fin.ne_of_val_ne _ ⟨_, _⟩ ⟨_, _⟩
-
-theorem pairwise_lt_finRange (n) : Pairwise (· < ·) (finRange n) := by
-  rw [finRange_eq_pmap_range]
-  exact List.pairwise_lt_range.pmap (by simp) (by simp)
-
-theorem pairwise_le_finRange (n) : Pairwise (· ≤ ·) (finRange n) := by
-  rw [finRange_eq_pmap_range]
-  exact List.pairwise_le_range.pmap (by simp) (by simp)
-
 @[simp]
 theorem map_get_finRange (l : List α) : (finRange l.length).map l.get = l := by
   apply ext_getElem <;> simp
@@ -1310,27 +1253,14 @@ theorem map_getElem_finRange (l : List α) : (finRange l.length).map (l[·.1]) =
 @[simp]
 theorem map_coe_finRange_eq_range : (finRange n).map (↑·) = List.range n := by
   apply List.ext_getElem <;> simp
+
 /-! ### sum/prod -/
-
-@[simp, grind =]
-theorem prod_nil [Mul α] [One α] : ([] : List α).prod = 1 := rfl
-
-@[simp, grind =]
-theorem prod_cons [Mul α] [One α] {a : α} {l : List α} : (a :: l).prod = a * l.prod := rfl
 
 theorem prod_one_cons [Mul α] [One α] [Std.LawfulLeftIdentity (α := α) (· * ·) 1] {l : List α} :
     (1 :: l).prod = l.prod := by simp [Std.LawfulLeftIdentity.left_id]
 
-theorem prod_singleton [Mul α] [One α] [Std.LawfulRightIdentity (α := α) (· * ·) 1] {a : α} :
-  [a].prod = a := by simp [Std.LawfulRightIdentity.right_id]
-
 theorem prod_pair [Mul α] [One α] [Std.LawfulRightIdentity (α := α) (· * ·) 1] {a b : α} :
   [a, b].prod = a * b := by simp [Std.LawfulRightIdentity.right_id]
-
-@[simp, grind =]
-theorem prod_append [Mul α] [One α] [Std.LawfulLeftIdentity (α := α) (· * ·) 1]
-    [Std.Associative (α := α) (· * ·)] {l₁ l₂ : List α} : (l₁ ++ l₂).prod = l₁.prod * l₂.prod := by
-  induction l₁ with simp [Std.LawfulLeftIdentity.left_id, Std.Associative.assoc, *]
 
 theorem prod_concat [Mul α] [One α] [Std.LawfulIdentity (α := α) (· * ·) 1]
     [Std.Associative (α := α) (· * ·)] {l : List α} {a : α} :
@@ -1341,13 +1271,6 @@ theorem prod_flatten [Mul α] [One α] [Std.LawfulIdentity (α := α) (· * ·) 
     [Std.Associative (α := α) (· * ·)] {l : List (List α)} :
     l.flatten.prod = (l.map prod).prod := by
   induction l with simp [*]
-
-theorem prod_eq_foldr [Mul α] [One α] {l : List α} :
-    l.prod = l.foldr (· * ·) 1 := rfl
-
-theorem prod_eq_foldl [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
-    [Std.LawfulIdentity (α := α) (· * ·) 1] {l : List α} :
-    l.prod = l.foldl (· * ·) 1 := foldr_eq_foldl ..
 
 theorem sum_zero_cons [Add α] [Zero α] [Std.LawfulLeftIdentity (α := α) (· + ·) 0] {l : List α} :
     (0 :: l).sum = l.sum := by simp [Std.LawfulLeftIdentity.left_id]
@@ -1370,3 +1293,132 @@ theorem take_succ_drop {l : List α} {n stop : Nat}
     (l.drop stop |>.take (n + 1)) = (l.drop stop |>.take n) ++ [l[stop + n]'(by omega)] := by
   rw [← List.take_append_getElem (by simpa [← List.length_drop] using h)]
   simp [List.getElem_drop]
+
+/-! ### max!/min! -/
+
+@[simp, grind =]
+theorem max!_eq_max?_getD [Inhabited α] {l : List α} [Max α] :
+    l.max! = (l.max?).getD (default : α) := by rw [max!]; cases l.max? <;> rfl
+
+theorem max!_eq_max_of_ne_nil [Inhabited α] [Max α] (l : List α) (hl : l ≠ []) :
+    l.max! = l.max hl := by
+  grind [List.max?_eq_some_max]
+
+grind_pattern max!_eq_max_of_ne_nil => l.max! where
+  guard l ≠ []
+
+@[simp, grind =] theorem max!_nil [Inhabited α] [Max α] : ([] : List α).max! = default := rfl
+
+@[simp, grind =]
+theorem min!_eq_min?_getD [Inhabited α] {l : List α} [Min α] :
+    l.min! = (l.min?).getD (default : α) := by rw [min!]; cases l.min? <;> rfl
+
+theorem min!_eq_min_of_ne_nil [Inhabited α] [Min α] (l : List α) (hl : l ≠ []) :
+    l.min! = l.min hl := by
+  grind [List.min?_eq_some_min]
+
+grind_pattern min!_eq_min_of_ne_nil => l.min! where
+  guard l ≠ []
+
+@[simp, grind =] theorem min!_nil [Inhabited α] [Min α] : ([] : List α).min! = default := rfl
+
+/-! ### swapAt -/
+
+@[simp, grind =] theorem swapAt_def : swapAt xs i v = (xs[i]?.getD v, xs.set i v) := rfl
+
+/-! ### swap -/
+
+@[simp] theorem swap_nil : ([] : List α).swap i j = [] := rfl
+
+@[simp] theorem swap_cons :
+    (a :: xs).swap (i + 1) (j + 1) = a :: xs.swap i j := rfl
+
+@[simp] theorem swap_cons_zero_left :
+    (a :: xs).swap 0 (j + 1) = xs[j]?.getD a :: xs.set j a := rfl
+
+@[simp] theorem swap_cons_zero_right :
+    (a :: xs).swap (i + 1) 0 = xs[i]?.getD a :: xs.set i a := rfl
+
+theorem swap_eq {xs : List α}  :
+    xs.swap i j = if h : i < xs.length ∧ j < xs.length then
+    (xs.set i xs[j]).set j xs[i] else xs := by induction xs generalizing i j with
+  | nil => simp | cons a xs ih => cases i <;> cases j <;>
+    simp only [swap, ih, length_cons, Nat.add_lt_add_iff_right] <;>
+    split <;> simp_all [set_eq_of_length_le, Nat.not_lt]
+
+@[simp] theorem swap_eq_of_ge_left {xs : List α} (h : xs.length ≤ i) : xs.swap i j = xs := by
+  rw [swap_eq, dite_eq_right (not_and_of_not_left (j < xs.length) (Nat.not_lt_of_ge h))]
+
+@[simp] theorem swap_eq_of_ge_right {xs : List α} (h : xs.length ≤ j) : xs.swap i j = xs := by
+  rw [swap_eq, dite_eq_right (not_and_of_not_right (i < xs.length) (Nat.not_lt_of_ge h))]
+
+theorem swap_eq_of_lt {xs : List α} (hi :  i < xs.length) (hj : j < xs.length) :
+    xs.swap i j = (xs.set i xs[j]).set j xs[i] := by
+  rw [swap_eq, dite_eq_left (And.intro hi hj)]
+
+@[simp, grind =] theorem swap_self {xs : List α} {i : Nat} : xs.swap i i = xs := by
+  obtain (hi | hi) := Nat.lt_or_ge i (xs.length)
+  · rw [swap_eq_of_lt hi hi, set_getElem_self, set_getElem_self]
+  · rw [swap_eq_of_ge_left hi]
+
+@[grind =] theorem swap_comm {xs : List α} {i j : Nat} : xs.swap i j = xs.swap j i := by
+  obtain (hi | hi) := Nat.lt_or_ge i (xs.length)
+  · obtain (hj | hj) := Nat.lt_or_ge j (xs.length)
+    · rw [swap_eq_of_lt hi hj, swap_eq_of_lt hj hi]
+      obtain (rfl | hij) := Decidable.em (i = j)
+      · rfl
+      · exact List.set_comm _ _ hij
+    · rw [swap_eq_of_ge_right hj, swap_eq_of_ge_left hj]
+  · rw [swap_eq_of_ge_left hi, swap_eq_of_ge_right hi]
+
+@[simp, grind =] theorem length_swap {xs : List α} : (xs.swap i j).length = xs.length := by
+  obtain (hi | hi) := Nat.lt_or_ge i (xs.length)
+  · obtain (hj | hj) := Nat.lt_or_ge j (xs.length)
+    · rw [swap_eq_of_lt hi hj, length_set, length_set]
+    · rw [swap_eq_of_ge_right hj]
+  · rw [swap_eq_of_ge_left hi]
+
+theorem getElem_swap_left {xs : List α} {i j : Nat} (hi : i < (xs.swap i j).length) :
+    (xs.swap i j)[i] = if hj : j < xs.length then xs[j] else xs[i]'(length_swap ▸ hi) := by
+  obtain (hj | hj) := Nat.lt_or_ge j xs.length
+  · simp only [swap_eq_of_lt (length_swap ▸ hi) hj, hj, getElem_set, dite_true]
+    split <;> simp_all
+  · simp [swap_eq_of_ge_right hj, Nat.not_lt_of_ge hj]
+
+theorem getElem_swap_right {xs : List α} {i j : Nat} (hj : j < (xs.swap i j).length) :
+    (xs.swap i j)[j] = if hi : i < xs.length then xs[i] else xs[j]'(length_swap ▸ hj) := by
+  simp [swap_comm (i := i), getElem_swap_left]
+
+@[simp] theorem getElem_swap_of_ne {xs : List α} {i j k : Nat} (hik : k ≠ i) (hjk : k ≠ j)
+    (hk : k < (xs.swap i j).length) : (xs.swap i j)[k] = xs[k]'(length_swap ▸ hk) := by
+  obtain (hi | hi) := Nat.lt_or_ge i (xs.length)
+  · obtain (hj | hj) := Nat.lt_or_ge j (xs.length)
+    · simp only [swap_eq_of_lt hi hj, getElem_set, hik.symm, hjk.symm, ite_false]
+    · exact getElem_congr_coll (swap_eq_of_ge_right hj)
+  · exact getElem_congr_coll (swap_eq_of_ge_left hi)
+
+@[simp] theorem getElem_swap_left_of_lt {xs : List α} {i j : Nat} (hj : j < xs.length)
+    (hi : i < (xs.swap i j).length) : (xs.swap i j)[i] = xs[j] := by
+  rw [getElem_swap_left, dite_eq_left hj]
+
+@[simp] theorem getElem_swap_right_of_lt {xs : List α} {i j : Nat} (hi : i < xs.length)
+    (hj : j < (xs.swap i j).length) : (xs.swap i j)[j] = xs[i] := by
+  rw [getElem_swap_right, dite_eq_left hi]
+
+@[grind =]
+theorem getElem_swap {xs : List α} {i j k : Nat}
+    (hk : k < (xs.swap i j).length) : (xs.swap i j)[k] =
+    if h₁ : k = i ∧ j < xs.length then xs[j] else if h₂ : k = j ∧ i < xs.length then xs[i]
+    else xs[k]'(length_swap ▸ hk) := by
+  obtain (rfl | hi) := Decidable.em (k = i)
+  · simp only [getElem_swap_left, true_and]
+    exact dite_congr rfl (fun _ => rfl) (by simp)
+  · obtain (rfl | hj) := Decidable.em (k = j)
+    · simp [getElem_swap_right, hi]
+    · simp [getElem_swap_of_ne, hi, hj]
+
+@[simp, grind =] theorem swap_swap {xs : List α} {i j : Nat} : (xs.swap i j).swap i j = xs :=
+  ext_getElem (by simp) (by grind)
+
+@[simp, grind =] theorem swap_swap_flip {xs : List α} {i j : Nat} :
+    (xs.swap i j).swap j i = xs := swap_comm.trans swap_swap

@@ -30,13 +30,13 @@ Note: This linter can be disabled with `set_option linter.unnecessarySimpa false
 -/
 #guard_msgs in
 example (h : foo n ≠ [n]) : False := by
-  simpa [foo] using h
+  simpa [foo] using! h
 
 end unnecessarySimpa
 
 example (p : Nat → Prop) (h : p (a + b)) : p (b + a) := by
   have : a + b = b + a := Nat.add_comm _ _
-  simpa [this] using h
+  simpa [this] using! h
 
 def Injective (f : α → β) : Prop := ∀ ⦃a₁ a₂⦄, f a₁ = f a₂ → a₁ = a₂
 
@@ -54,7 +54,7 @@ axiom div_eq_mul_inv (a b : G) : a / b = a * Inv.inv b
 axiom mul_left_injective (a : G) : Injective (· * a)
 
 theorem div_left_injective (b : G) : Injective fun a => a / b := by
-  simpa only [div_eq_mul_inv] using fun a a' h => mul_left_injective (Inv.inv b) h
+  simpa only [div_eq_mul_inv] using! fun a a' h => mul_left_injective (Inv.inv b) h
 
 end div_left_inj_issue
 
@@ -65,18 +65,18 @@ theorem mk.inj_iff {a₁ a₂ : α} {b₁ b₂ : β} : (a₁, b₁) = (a₂, b�
 
 theorem mk.inj_left {α β : Type _} (a : α) : Injective (Prod.mk a : β → α × β) := by
   intro b₁ b₂ h
-  simpa only [true_and, Prod.mk.inj_iff, eq_self] using h
+  simpa only [true_and, Prod.mk.inj_iff, eq_self] using! h
 
 end Prod
 
 theorem implicit_lambda (h : ∀ {x : Nat}, a = x) : a = 2 := by
-  simpa using h
+  simpa using! h
 
 theorem implicit_lambda2 (h : a = 2) : ∀ {_ : Nat}, a = 2 := by
-  simpa using h
+  simpa using! h
 
 theorem no_implicit_lambda (h : ∀ {x : Nat}, a = x) : ∀ {x : Nat}, a = x := by
-  simpa using @h
+  simpa using! @h
 
 #guard_msgs (drop warning) in
 theorem thm : (a : Int) ≤ b - c ↔ a + b ≤ c := sorry
@@ -85,10 +85,10 @@ theorem thm : (a : Int) ≤ b - c ↔ a + b ≤ c := sorry
 theorem thm2 : (b : Int) - c ≤ (a - b) - (a - c) := sorry
 
 example : (b - c : Int) + (a - b) + a ≤ c := by
-  simpa only [thm] using thm2
+  simpa only [thm] using! thm2
 
 example : (b - c : Int) + (a - b) + a ≤ c := by
-  simpa only [thm] using @thm2
+  simpa only [thm] using! @thm2
 
 example (P : Bool) (h : ¬ ¬ P) : P := by
   have : ¬ ¬ P := h
@@ -96,14 +96,14 @@ example (P : Bool) (h : ¬ ¬ P) : P := by
 
 /--
 info: Try this:
-  [apply] simpa only using h
+  [apply] simpa only using! h
 -/
 #guard_msgs in
-example (p : Prop) (h : p) : p := by simpa? using h
+example (p : Prop) (h : p) : p := by simpa? using! h
 
 /--
 info: Try this:
-  [apply] simpa only [and_true] using h
+  [apply] simpa only [and_true] using! h
 -/
 #guard_msgs in
-example (p : Prop) (h : p ∧ True) : p := by simpa? using h
+example (p : Prop) (h : p ∧ True) : p := by simpa? using! h

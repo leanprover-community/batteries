@@ -95,22 +95,6 @@ Returns true iff `pattern` occurs as a substring of `s`.
 
 end Substring.Raw
 
-section Deprecations
-
-@[deprecated Substring.Raw.findAllSubstr (since := "2025-11-16"),
-  inherit_doc Substring.Raw.findAllSubstr]
-abbrev Substring.findAllSubstr := Substring.Raw.findAllSubstr
-
-@[deprecated Substring.Raw.findSubstr? (since := "2025-11-16"),
-  inherit_doc Substring.Raw.findSubstr?]
-abbrev Substring.findSubstr? := Substring.Raw.findSubstr?
-
-@[deprecated Substring.Raw.containsSubstr (since := "2025-11-16"),
-  inherit_doc Substring.Raw.containsSubstr]
-abbrev Substring.containsSubstr := Substring.Raw.containsSubstr
-
-end Deprecations
-
 namespace String
 
 @[inherit_doc Substring.Raw.findAllSubstr]
@@ -121,7 +105,7 @@ abbrev findAllSubstr (s : String) (pattern : Substring.Raw) : Array Substring.Ra
 abbrev findSubstr? (s : String) (pattern : Substring.Raw) : Option Substring.Raw :=
   s.toRawSubstring.findSubstr? pattern
 
-@[inherit_doc Substring.Raw.containsSubstr]
+@[deprecated String.contains (since := "2026-02-25"), inherit_doc Substring.Raw.containsSubstr]
 abbrev containsSubstr (s : String) (pattern : Substring.Raw) : Bool :=
   s.toRawSubstring.containsSubstr pattern
 

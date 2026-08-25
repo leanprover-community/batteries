@@ -53,20 +53,23 @@ syntax withPosition("#help " colGt &"option" (colGt ppSpace Parser.rawIdent)?) :
 
 private def elabHelpOption (id : Option Ident) : CommandElabM Unit := do
   let id := id.map (·.raw.getId.toString false)
-  let mut decls : Std.TreeMap _ _ compare := {}
+  -- Keep the original `Name` for option lookup; `Name.mkSimple` on a dotted
+  -- string like `"pp.all"` is not the same as `` `pp.all ``, so looking up by
+  -- the display string would never show `(currently: …)` for real options.
+  let mut decls : Std.TreeMap String (Name × OptionDecl) compare := {}
   for (name, decl) in show NameMap OptionDecl from ← getOptionDecls do
-    let name := name.toString false
+    let nameStr := name.toString false
     if let some id := id then
-      if !id.isPrefixOf name then
+      if !id.isPrefixOf nameStr then
         continue
-    decls := decls.insert name decl
+    decls := decls.insert nameStr (name, decl)
   let mut msg := Format.nil
   let opts ← getOptions
   if decls.isEmpty then
     match id with
     | some id => throwError "no options start with {id}"
     | none => throwError "no options found (!)"
-  for (name, decl) in decls do
+  for (nameStr, (name, decl)) in decls do
     let mut msg1 := match decl.defValue with
     | .ofString val => s!"String := {repr val}"
     | .ofBool val => s!"Bool := {repr val}"
@@ -74,9 +77,9 @@ private def elabHelpOption (id : Option Ident) : CommandElabM Unit := do
     | .ofNat val => s!"Nat := {repr val}"
     | .ofInt val => s!"Int := {repr val}"
     | .ofSyntax val => s!"Syntax := {repr val}"
-    if let some val := opts.find? (.mkSimple name) then
+    if let some val := opts.find? name then
       msg1 := s!"{msg1} (currently: {val})"
-    msg := msg ++ .nest 2 (f!"option {name} : {msg1}" ++ .line ++ decl.descr) ++ .line ++ .line
+    msg := msg ++ .nest 2 (f!"option {nameStr} : {msg1}" ++ .line ++ decl.descr) ++ .line ++ .line
   logInfo msg
 
 elab_rules : command | `(#help option $(id)?) => elabHelpOption id

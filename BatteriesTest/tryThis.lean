@@ -91,8 +91,6 @@ with `rfl` in text-link color.
 /--
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.value` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
-warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.value` has been deprecated: `SuggestionStyle` is not used anymore.
----
 info: Try these:
   [apply] rfl
   [apply] rfl
@@ -120,8 +118,6 @@ Try these:
 /--
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.error` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
-warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.error` has been deprecated: `SuggestionStyle` is not used anymore.
----
 info: Try this:
   [apply] rfl
 -/
@@ -130,8 +126,6 @@ info: Try this:
 #demo1 {s with style? := some <| .error (decorated := false)}
 
 /--
-warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
----
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
 info: Try this:
@@ -144,8 +138,6 @@ info: Try this:
 /--
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
-warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
----
 info: Try this:
   [apply] rfl
 -/
@@ -154,8 +146,6 @@ info: Try this:
 #demo1 {s with style? := some <| .warning (decorated := false)}
 
 /--
-warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.success` has been deprecated: `SuggestionStyle` is not used anymore.
----
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.success` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
 info: Try this:
@@ -168,8 +158,6 @@ info: Try this:
 /--
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.asHypothesis` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
-warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.asHypothesis` has been deprecated: `SuggestionStyle` is not used anymore.
----
 info: Try this:
   [apply] rfl
 -/
@@ -178,8 +166,6 @@ info: Try this:
 #demo1 {s with style? := some .asHypothesis}
 
 /--
-warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.asInaccessible` has been deprecated: `SuggestionStyle` is not used anymore.
----
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.asInaccessible` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
 info: Try this:
@@ -243,17 +229,9 @@ info: We've got everything here! Such as:
 /--
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.error` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
-warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.error` has been deprecated: `SuggestionStyle` is not used anymore.
----
-warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
----
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.success` has been deprecated: `SuggestionStyle` is not used anymore.
----
-warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.success` has been deprecated: `SuggestionStyle` is not used anymore.
----
-warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.value` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.value` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
