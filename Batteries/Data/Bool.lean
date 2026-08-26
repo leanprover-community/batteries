@@ -16,6 +16,7 @@ WellFoundedGT classes available in Mathlib.
 -/
 
 /-- Boolean '<' is well founded -/
+@[implicit_reducible]
 def Bool.lt_wfRel : WellFoundedRelation Bool where
   rel := (· < ·)
   wf := ⟨fun
@@ -23,6 +24,7 @@ def Bool.lt_wfRel : WellFoundedRelation Bool where
     | true => ⟨true, fun | false, _ => ⟨false, nofun⟩⟩⟩
 
 /-- Boolean '>' is well founded -/
+@[implicit_reducible]
 def Bool.gt_wfRel : WellFoundedRelation Bool where
   rel := (· > ·)
   wf := ⟨fun

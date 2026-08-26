@@ -26,8 +26,6 @@ theorem pairwise_iff_getElem {as : Array α} : as.Pairwise R ↔
     ∀ (i j : Nat) (_ : i < as.size) (_ : j < as.size), i < j → R as[i] as[j] := by
   unfold Pairwise; simp [List.pairwise_iff_getElem, length_toList]
 
-@[deprecated (since := "2025-02-19")] alias pairwise_iff_get := pairwise_iff_getElem
-
 instance (R : α → α → Prop) [DecidableRel R] (as) : Decidable (Pairwise R as) :=
   have : (∀ (j : Fin as.size) (i : Fin j.val), R as[i.val] (as[j.val])) ↔ Pairwise R as := by
     rw [pairwise_iff_getElem]

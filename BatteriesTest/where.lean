@@ -6,7 +6,6 @@ import Batteries.Data.UnionFind.Basic
 -- Return to pristine state
 set_option linter.missingDocs false
 set_option internal.cmdlineSnapshots false
-set_option backward.privateInPublic.warn true
 set_option experimental.module false
 set_option Elab.inServer false
 
@@ -68,12 +67,12 @@ open Lean.Elab hiding TermElabM
 #guard_msgs in #where
 
 open Command Batteries
-open Array renaming map -> listMap
+open _root_.Array renaming map -> listMap
 
 /--
 info: open Lean Lean.Meta
 open Lean.Elab hiding TermElabM
-open Lean.Elab.Command Batteries
+open Lean.Elab.Command Lean.Meta.Command Batteries
 open Array renaming map → listMap
 -/
 #guard_msgs in #where

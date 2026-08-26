@@ -138,6 +138,7 @@ def testMatchProof : (n : Nat) → Fin n → Unit
 
 /--
 info: testMatchProof (n : Nat) : Fin n → Unit
+testMatchProof._f (x✝ : Nat) (f : Nat.below (motive := fun x => Fin x → Unit) x✝) : Fin x✝ → Unit
 testMatchProof._proof_1 (as i : Nat) (h : i.succ < as.succ) : i.succ ≤ as
 testMatchProof._sunfold (n : Nat) : Fin n → Unit
 testMatchProof._unsafe_rec (n : Nat) : Fin n → Unit
@@ -172,7 +173,6 @@ TestInd.rec.{u} {motive : TestInd → Sort u} (foo : motive TestInd.foo) (bar : 
   motive t
 TestInd.recOn.{u} {motive : TestInd → Sort u} (t : TestInd) (foo : motive TestInd.foo) (bar : motive TestInd.bar) :
   motive t
-TestInd.toCtorIdx : TestInd → Nat
 -/
 #guard_msgs in
 #print prefix TestInd

@@ -12,13 +12,6 @@ public import Batteries.Data.List.Lemmas
 
 namespace Array
 
-@[deprecated forIn_toList (since := "2025-07-01")]
-theorem forIn_eq_forIn_toList [Monad m]
-    (as : Array α) (b : β) (f : α → β → m (ForInStep β)) :
-    forIn as b f = forIn as.toList b f := by
-  cases as
-  simp
-
 /-! ### idxOf? -/
 
 @[grind =]
@@ -29,9 +22,6 @@ theorem idxOf?_toList [BEq α] {a : α} {l : Array α} :
 
 /-! ### erase -/
 
-@[deprecated (since := "2025-02-06")] alias eraseP_toArray := List.eraseP_toArray
-@[deprecated (since := "2025-02-06")] alias erase_toArray := List.erase_toArray
-
 @[simp, grind =] theorem toList_erase [BEq α] (l : Array α) (a : α) :
     (l.erase a).toList = l.toList.erase a := by
   rcases l with ⟨l⟩
@@ -41,19 +31,17 @@ theorem idxOf?_toList [BEq α] {a : α} {l : Array α} :
     (a.eraseIdxIfInBounds i).size = if i < a.size then a.size-1 else a.size := by
   grind
 
-/-! ### set -/
+theorem toList_drop (as: Array α) (n : Nat) :
+    (as.drop n).toList = as.toList.drop n := by
+  simp only [drop, toList_extract, size_eq_length_toList, List.drop_eq_extract]
 
-theorem size_set! (a : Array α) (i v) : (a.set! i v).size = a.size := by simp
+/-! ### set -/
 
 /-! ### map -/
 
 /-! ### mem -/
 
 /-! ### insertAt -/
-
-@[deprecated (since := "2025-02-06")] alias getElem_insertIdx_lt := getElem_insertIdx_of_lt
-@[deprecated (since := "2025-02-06")] alias getElem_insertIdx_eq := getElem_insertIdx_self
-@[deprecated (since := "2025-02-06")] alias getElem_insertIdx_gt := getElem_insertIdx_of_gt
 
 /-! ### extract -/
 
@@ -69,3 +57,7 @@ theorem extract_append_of_size_left_le_start {a b : Array α} (h : a.size ≤ i)
 
 theorem extract_eq_of_size_le_stop {a : Array α} (h : a.size ≤ j) :
     a.extract i j = a.extract i := by grind
+
+/-! ### swapIfInBounds -/
+@[simp, grind =] theorem toList_swapIfInBounds {a : Array α} :
+    (a.swapIfInBounds i j).toList = a.toList.swap i j := List.ext_getElem (by simp) (by grind)

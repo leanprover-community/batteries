@@ -32,7 +32,7 @@ def toSyntax (e : Expr) : TermElabM Syntax.Term := withFreshMacroScope do
 /-- Like `withApp` but ignores metadata. -/
 @[inline]
 def withApp' (e : Expr) (k : Expr → Array Expr → α) : α :=
-  let dummy := mkSort levelZero
+  let dummy := mkSort .zero
   let nargs := e.getAppNumArgs'
   go e (.replicate nargs dummy) (nargs - 1)
 where

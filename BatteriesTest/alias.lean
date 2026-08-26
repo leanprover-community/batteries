@@ -64,15 +64,11 @@ example : True := Foo.barbaz
 noncomputable def foobaz : Nat → Nat := id
 alias foobaz1 := foobaz
 
-/--
-error: failed to compile definition, compiler IR check failed at `foobaz2`. Error: depends on declaration 'A.foobaz1', which has no executable code; consider marking definition as 'noncomputable'
--/
+/-- error: Failed to find LCNF signature for A.foobaz1 -/
 #guard_msgs in def foobaz2 (n : Nat) := foobaz1 n
 
 noncomputable alias foobaz3 := id
-/--
-error: failed to compile definition, compiler IR check failed at `foobaz4`. Error: depends on declaration 'A.foobaz3', which has no executable code; consider marking definition as 'noncomputable'
--/
+/-- error: Failed to find LCNF signature for A.foobaz3 -/
 #guard_msgs in def foobaz4 (n : Nat) := foobaz3 n
 
 /- Test unsafe -/
@@ -122,6 +118,6 @@ Note: The updated constant is in a different namespace. Dot notation may need to
 /-- info: **Alias** of `A.foo`. -/
 #guard_msgs in
 #eval show MetaM _ from do
-  match ← Batteries.Tactic.Alias.getAliasInfo `A.foo1 with
+  match ← Batteries.Tactic.Alias.getAliasInfo? `A.foo1 with
   | some i => IO.println i.toString
   | none => IO.println "alias not found"

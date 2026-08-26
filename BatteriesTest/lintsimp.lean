@@ -14,9 +14,6 @@ run_meta guard (← [``fg, ``fh].anyM fun n => return (← simpNF.test n).isSome
 @[simp] theorem test_and_comm : a ∧ b ↔ b ∧ a := And.comm
 run_meta guard (← simpComm.test ``test_and_comm).isSome
 
-@[simp] theorem Prod.mk_fst : (a, b).1 = id a := rfl
-run_meta guard (← simpVarHead.test ``Prod.mk_fst).isSome
-
 def SemiconjBy [Mul M] (a x y : M) : Prop :=
   a * x = y * a
 

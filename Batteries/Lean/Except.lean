@@ -11,6 +11,8 @@ public import Lean.Util.Trace
 
 open Lean
 
+deriving instance DecidableEq for Except
+
 namespace Except
 
 /-- Visualize an `Except` using a checkmark or a cross. -/
