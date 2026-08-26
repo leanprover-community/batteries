@@ -144,7 +144,7 @@ theorem filterMapVal_cons (f : α → β → Option γ) (k) (v) (t) :
     | none
     | some d => simp
 
-theorem length_filterMapVal : (filterMapVal f l).length ≤ l.length := by
+theorem length_filterMapVal_le : (filterMapVal f l).length ≤ l.length := by
   induction l with
   | nil => simp
   | cons k v t ih =>
