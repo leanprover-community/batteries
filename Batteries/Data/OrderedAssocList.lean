@@ -664,7 +664,8 @@ theorem ext_toAssocList {l₁ l₂ : OrderedAssocList cmp β}
     (w : ∀ a : α, l₁[a]? = l₂[a]?) : l₁ = l₂ := by
   apply ext_toAssocList
   apply AssocList.ext_orderedFind? _ l₁.keysOrdered l₂.keysOrdered
-  simpa [find?, AssocList.orderedFind?_eq_find?, l₁.keysOrdered, l₂.keysOrdered] using w
+  simpa [getElem?, find?, AssocList.orderedFind?_eq_find?, l₁.keysOrdered, l₂.keysOrdered]
+    using w
 
 @[simp] theorem contains_nil : contains (nil : OrderedAssocList cmp β) x = false := rfl
 @[simp] theorem contains_mk_cons_self [OrientedCmp cmp]
@@ -692,7 +693,7 @@ def cons (a : α) (b : β) (l : OrderedAssocList cmp β) (w : LTHeadKey? a l) :
 @[simp] theorem getElem?_cons [TransCmp cmp] {l : OrderedAssocList cmp β} {w} :
     (cons a b l w)[x]? = if cmp x a = .eq then some b else l[x]? := by
   simp only [cons]
-  split <;> simp [getElem?_mk_cons]
+  split <;> exact getElem?_mk_cons
 
 @[simp] theorem headKey?_cons : headKey? (cons a b l w) = some a := by
   match l with
@@ -722,11 +723,11 @@ def insert (l : OrderedAssocList cmp β) (a : α) (b : β) : OrderedAssocList cm
     | .lt => ⟨.cons a b (.cons x y t), ⟨w, h⟩⟩
     | .eq => ⟨.cons a b t, by
         cases (LawfulEqCmp.eq_of_compare w); exact h⟩
-    | .gt => .cons x y (insert ⟨t, h.tail⟩ a b) (AssocList.ltHeadKey?_of_keysOrdered_cons
-        (AssocList.keysOrdered_orderedInsert_aux h w)) := by
+    | .gt => ⟨.cons x y (t.orderedInsert cmp a b),
+        AssocList.keysOrdered_orderedInsert_aux h w⟩ := by
   dsimp [insert, AssocList.orderedInsert]
   congr
-  split <;> simp
+  split <;> rfl
 
 theorem length_insert_ne_zero {l : OrderedAssocList cmp β} : (insert l a b).length ≠ 0 := by
   match l with
@@ -903,7 +904,7 @@ unseal AssocList.orderedMerge in
           simp only [← h₂, getElem?_mk_cons_self]
           rw [getElem?_eq_none_of_ltHeadKey?]
           exact h₁
-        · rw [getElem?_merge hf, getElem?_mk_cons (a := x), if_neg h₃]
+        · rw [getElem?_merge hf, getElem?_mk_cons (a := x), ite_eq_right h₃]
     · rcases (LawfulEqCmp.eq_of_compare h₁)
       split <;> rename_i h₂
       · rw [getElem?_merge hf]
@@ -918,8 +919,8 @@ unseal AssocList.orderedMerge in
         split <;> rename_i h₃
         · rcases (LawfulEqCmp.eq_of_compare h₃)
           rw [getElem?_mk_cons_self, getElem?_mk_cons_self, h₂]
-        · rw [getElem?_merge hf, getElem?_mk_cons (a := x), if_neg h₃, getElem?_mk_cons (a := x),
-            if_neg h₃]
+        · rw [getElem?_merge hf, getElem?_mk_cons (a := x), ite_eq_right h₃,
+            getElem?_mk_cons (a := x), ite_eq_right h₃]
     · split <;> rename_i h₂
       · rw [getElem?_merge hf]
         rw [getElem?_mk_cons (a := x')]
@@ -936,7 +937,7 @@ unseal AssocList.orderedMerge in
           simp only [getElem?_mk_cons_self]
           rw [getElem?_eq_none_of_ltHeadKey?, h₂]
           exact OrientedCmp.lt_of_gt h₁
-        · rw [getElem?_merge hf, getElem?_mk_cons (a := x'), if_neg h₃]
+        · rw [getElem?_merge hf, getElem?_mk_cons (a := x'), ite_eq_right h₃]
 
 theorem merge_comm
     (f : α → Option β → Option γ → Option δ) (g : α → Option γ → Option β → Option δ)
