@@ -385,17 +385,16 @@ theorem ltHeadKey_orderedMerge [TransCmp cmp]
       · exact h₂
       · exact ltHeadKey_orderedMerge h₁ (ltHeadKey_of_cons h₂ w₂) w₁ w₂.tail
 
-unseal orderedMerge in
 theorem keysOrdered_orderedMerge [LawfulEqCmp cmp] [TransCmp cmp]
     (h₁ : KeysOrdered cmp l₁) (h₂ : KeysOrdered cmp l₂) :
     KeysOrdered cmp (orderedMerge cmp f l₁ l₂) := by
   match l₁, l₂ with
-  | .nil, .nil => trivial
+  | .nil, .nil => rw [orderedMerge]; trivial
   | .nil, .cons a₂ g t₂ =>
-    unfold orderedMerge
+    rw [orderedMerge]
     exact keysOrdered_filterMapVal h₂
   | .cons a₁ b t₁, .nil =>
-    unfold orderedMerge
+    rw [orderedMerge]
     exact keysOrdered_filterMapVal h₁
   | .cons a₁ b t₁, .cons a₂ g t₂ =>
     rw [orderedMerge]
@@ -891,18 +890,17 @@ def merge (f : α → Option β → Option γ → Option δ)
     (merge f l₁ l₂).toAssocList = AssocList.orderedMerge cmp f l₁.toAssocList l₂.toAssocList :=
   rfl
 
-unseal AssocList.orderedMerge in
 @[simp] theorem merge_nil_nil {f : α → Option β → Option γ → Option δ} :
-    merge f (nil : OrderedAssocList cmp β) nil = nil := rfl
+    merge f (nil : OrderedAssocList cmp β) nil = nil := by
+  apply ext_toAssocList
+  simp [AssocList.orderedMerge]
 
-unseal AssocList.orderedMerge in
 @[simp] theorem merge_mk_nil_mk_cons {f : α → Option β → Option γ → Option δ} :
     merge f (⟨.nil, h⟩ : OrderedAssocList cmp β) ⟨.cons x' y' t', h'⟩ =
       filterMapVal (fun a g => f a none (some g)) ⟨.cons x' y' t', h'⟩ := by
   simp [merge, AssocList.orderedMerge]
   rfl
 
-unseal AssocList.orderedMerge in
 @[simp] theorem merge_mk_cons_mk_nil {f : α → Option β → Option γ → Option δ} :
     merge f ⟨.cons x y t, h⟩ (⟨.nil, h'⟩ : OrderedAssocList cmp γ) =
       filterMapVal (fun a b => f a (some b) none) ⟨.cons x y t, h⟩ := by
@@ -954,12 +952,11 @@ private theorem merge_mk_cons_mk_cons {f : α → Option β → Option γ → Op
             simp only [← p]
             exact (merge f _ _).keysOrdered⟩ := by grind +locals
 
-unseal AssocList.orderedMerge in
 @[simp] theorem getElem?_merge {f : α → Option β → Option γ → Option δ}
     (hf : f a none none = none) {l₁ : OrderedAssocList cmp β} {l₂} :
     (merge f l₁ l₂)[a]? = f a l₁[a]? l₂[a]? := by
   match l₁, l₂ with
-  | ⟨.nil, _⟩, ⟨.nil, _⟩ => exact hf.symm
+  | ⟨.nil, _⟩, ⟨.nil, _⟩ => simp [getElem?, find?, AssocList.orderedMerge, hf]
   | ⟨.nil, _⟩, ⟨.cons x' y' t', h'⟩ =>
     rw [merge_mk_nil_mk_cons, getElem?_filterMapVal, getElem?_mk_nil]
     unfold Option.bind
