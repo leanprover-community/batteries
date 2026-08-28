@@ -288,4 +288,5 @@ theorem take_flatten (L : List (List α)) (i : Nat) :
       simp [findIdx_cons, i_head_length] at goalJ_def
       have ⟨goalJ', goalJ_succ⟩ : ∃ goalJ', goalJ = goalJ' + 1 := by simp [goalJ_def]
       -- now with this information, the goal is essentially the same as tail_ih
-      simpa [goalJ_succ, take_append, take_of_length_le i_ge_head_length, ← Nat.sub_sub] using tail_ih
+      simpa [goalJ_succ, take_append, take_of_length_le i_ge_head_length,
+        ← Nat.sub_sub] using tail_ih
