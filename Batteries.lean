@@ -16,7 +16,6 @@ public import Batteries.Control.ForInStep.Basic
 public import Batteries.Control.ForInStep.Lemmas
 public import Batteries.Control.LawfulMonadState
 public import Batteries.Control.Lemmas
-public import Batteries.Control.Monad
 public import Batteries.Control.Nondet.Basic
 public import Batteries.Control.OptionT
 public import Batteries.Data.Array

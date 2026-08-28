@@ -38,10 +38,6 @@ instance : Std.LawfulLTOrd String :=
   .compareOfLessAndEq_of_irrefl_of_trans_of_antisymm
     String.lt_irrefl String.lt_trans String.lt_antisymm
 
-@[deprecated length_ofList (since := "2025-10-31")]
-theorem mk_length (s : List Char) : (String.ofList s).length = s.length :=
-  length_ofList
-
 theorem Pos.Raw.offsetBy_eq {p q : Pos.Raw} : p.offsetBy q = ⟨q.byteIdx + p.byteIdx⟩ := by
   ext
   simp
@@ -69,10 +65,6 @@ theorem utf8ByteSize_ofList (cs) : utf8ByteSize (String.ofList cs) = utf8Len cs 
     congr
     rw [← size_toByteArray, String.toByteArray_ofList, List.utf8Encode_singleton,
       List.size_toByteArray, length_utf8EncodeChar]
-
-@[deprecated utf8ByteSize_ofList (since := "2025-10-31")]
-theorem utf8ByteSize_mk (cs) : utf8ByteSize (ofList cs) = utf8Len cs :=
-  utf8ByteSize_ofList cs
 
 @[simp] theorem utf8Len_nil : utf8Len [] = 0 := rfl
 
@@ -111,29 +103,9 @@ end
   apply Pos.Raw.ext
   simp [String.rawEndPos, utf8ByteSize_ofList]
 
-@[deprecated rawEndPos_ofList (since := "2025-10-31")]
-theorem rawEndPos_asString (cs : List Char) : rawEndPos (ofList cs) = ⟨utf8Len cs⟩ :=
-  rawEndPos_ofList cs
-
-@[deprecated rawEndPos_ofList (since := "2025-10-21")]
-theorem endPos_asString (cs : List Char) : rawEndPos (ofList cs) = ⟨utf8Len cs⟩ :=
-  rawEndPos_ofList cs
-
-@[deprecated rawEndPos_ofList (since := "2025-10-21")]
-theorem rawEndPos_mk (cs : List Char) : rawEndPos (ofList cs) = ⟨utf8Len cs⟩ :=
-  rawEndPos_ofList cs
-
-@[deprecated rawEndPos_ofList (since := "2025-10-21")]
-theorem endPos_mk (cs : List Char) : rawEndPos (ofList cs) = ⟨utf8Len cs⟩ :=
-  rawEndPos_ofList cs
-
 @[simp]
 theorem utf8Len_toList (s : String) : utf8Len s.toList = s.utf8ByteSize := by
   rw [← utf8ByteSize_ofList, ofList_toList]
-
-@[deprecated utf8Len_toList (since := "2025-10-21")]
-theorem utf8Len_data (s : String) : utf8Len s.toList = s.utf8ByteSize :=
-  utf8Len_toList s
 
 namespace Pos.Raw
 
@@ -168,22 +140,10 @@ theorem Valid.exists : {s : String} → {p : Pos.Raw} → Valid s p →
 @[simp] theorem valid_rawEndPos : Valid s (rawEndPos s) :=
   .intro ⟨s.toList, [], by simp, by simp⟩
 
-@[deprecated valid_rawEndPos (since := "2025-10-21")]
-theorem valid_endPos : Valid s (rawEndPos s) :=
-  valid_rawEndPos
-
 theorem Valid.le_rawEndPos : ∀ {s p}, Valid s p → p ≤ rawEndPos s
   | _, ⟨_⟩, .mk cs cs' rfl => by simp [rawEndPos, le_iff,  utf8ByteSize_ofList]
 
-@[deprecated le_rawEndPos (since := "2025-10-21")]
-theorem Valid.le_endPos : ∀ {s p}, Valid s p → p ≤ rawEndPos s :=
-  le_rawEndPos
-
 end Pos.Raw
-
-@[deprecated rawEndPos_eq_zero_iff (since := "2025-10-21")]
-theorem endPos_eq_zero (s : String) : rawEndPos s = 0 ↔ s = "" :=
-  rawEndPos_eq_zero_iff
 
 /--
 Induction along the valid positions in a list of characters.
@@ -492,10 +452,6 @@ theorem extract_zero_rawEndPos (s : String) : Pos.Raw.extract s 0 (rawEndPos s) 
     congr
     apply Pos.Raw.extract.go₁_zero_utf8Len
 
-@[deprecated extract_zero_rawEndPos (since := "2025-10-21")]
-theorem extract_zero_endPos (s : String) : Pos.Raw.extract s 0 (rawEndPos s) = s :=
-  extract_zero_rawEndPos s
-
 theorem extract_of_valid (l m r : List Char) :
     Pos.Raw.extract (ofList (l ++ m ++ r)) ⟨utf8Len l⟩ ⟨utf8Len l + utf8Len m⟩ = ofList m := by
   simp only [Pos.Raw.extract]
@@ -531,10 +487,6 @@ theorem splitAux_of_valid (p l m r acc) :
 theorem splitToList_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList).map ofList := by
   simpa [splitToList] using splitAux_of_valid p [] [] s.toList []
 
-@[deprecated splitToList_of_valid (since := "2025-10-18")]
-theorem split_of_valid (s p) : splitToList s p = (List.splitOnP p s.toList).map ofList :=
-  splitToList_of_valid s p
-
 -- TODO: splitOn
 
 @[simp] theorem toString_toSubstring (s : String) : s.toRawSubstring.toString = s :=
@@ -550,10 +502,6 @@ theorem join_eq (ss : List String) : join ss = ofList (ss.map toList).flatten :=
   induction ss generalizing t with
   | nil => simp
   | cons s ss ih => simp [ih]
-
-@[deprecated toList_join (since := "2025-10-31")]
-theorem data_join (ss : List String) : (join ss).toList = (ss.map toList).flatten :=
-  toList_join
 
 namespace Legacy.Iterator
 
@@ -614,10 +562,6 @@ theorem pos_eq_zero {l r it} (h : ValidFor l r it) : it.2 = 0 ↔ l = [] := by
 theorem pos_eq_rawEndPos {l r it} (h : ValidFor l r it) : it.2 = it.1.rawEndPos ↔ r = [] := by
   simp only [h.pos, h.toString, rawEndPos_ofList, utf8Len_reverseAux, Pos.Raw.ext_iff]
   exact (Nat.add_left_cancel_iff (m := 0)).trans <| eq_comm.trans utf8Len_eq_zero
-
-@[deprecated pos_eq_rawEndPos (since := "2025-10-21")]
-theorem pos_eq_endPos {l r it} (h : ValidFor l r it) : it.2 = it.1.rawEndPos ↔ r = [] :=
-  pos_eq_rawEndPos h
 
 theorem curr : ∀ {it}, ValidFor l r it → it.curr = r.headD default
   | it, h => by cases h.out'; apply get_of_valid
