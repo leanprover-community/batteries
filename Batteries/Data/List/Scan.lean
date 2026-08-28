@@ -237,7 +237,7 @@ Lemma for `take_flatten` and all related theorems.
 Moving the threshold and all elements of `L` upwards by `offset`
 does not change the result of `findIdx`.
 -/
-theorem findIdx_thres_offset (L : List Nat) (offset thres : Nat) :
+private theorem findIdx_thres_offset (L : List Nat) (offset thres : Nat) :
     L.findIdx (· > thres) =
     (L.map (offset + ·)).findIdx (· > thres + offset) := by
   induction L generalizing offset thres with
@@ -248,9 +248,7 @@ theorem findIdx_thres_offset (L : List Nat) (offset thres : Nat) :
     by_cases thres_head : thres < head
     · grind
     · have not_thres_offset_lt_offset_head : ¬(thres + offset < offset + head) := by lia
-      simp [thres_head, not_thres_offset_lt_offset_head]
-      simp at tail_ih
-      apply tail_ih
+      simpa [thres_head, not_thres_offset_lt_offset_head] using tail_ih offset thres
 
 private theorem take_flatten_helper (L : List (List α)) (i : Nat) :
     let j := (L.map List.length).partialSums.findIdx (· > i) - 1
