@@ -233,7 +233,7 @@ theorem getElem_flatten (L : List (List α)) (i : Nat) (h : i < L.flatten.length
         · simp
 
 /--
-Lemma for `splitAt_flatten`.
+Lemma for `take_flatten` and all related theorems.
 Moving the threshold and all elements of `L` upwards by `offset`
 does not change the result of `findIdx`.
 -/
@@ -251,6 +251,61 @@ theorem findIdx_thres_offset (L : List Nat) (offset thres : Nat) :
       simp [thres_head, not_thres_offset_lt_offset_head]
       simp at tail_ih
       apply tail_ih
+
+private theorem take_flatten_helper (L : List (List α)) (i : Nat) :
+    let j := (L.map List.length).partialSums.findIdx (· > i) - 1
+    let k := i - (L.take j).flatten.length
+    (i < L.flatten.length → j < L.length) ∧
+    (i < L.flatten.length → (h : j < L.length) → k < L[j].length) ∧
+    L.flatten[i]? = L[j]?.bind (·[k]?) ∧
+    L.flatten.take i = (L.take j).flatten ++ (L[j]?.getD []).take k ∧
+    L.flatten.drop i = (L[j]?.getD []).drop k ++ (L.drop (j + 1)).flatten ∧
+    L.flatten.drop i = (L.drop j).flatten.drop k := by
+  induction L generalizing i with
+  | nil =>
+    simp
+  | cons head tail tail_ih =>
+    rw [map_cons, partialSums_cons, findIdx_cons]
+    by_cases i_head_length : i < head.length
+    · rw [partialSums_unfold_once, map_cons, findIdx_cons]
+      simp [i_head_length]
+      -- inequalities are removed by simp; last two statements are discharged with the same line
+      constructor <;> try constructor
+      · rw [getElem?_append]; simp [i_head_length]
+      · rw [take_append_of_le_length (by lia)]
+      · rw [drop_append_of_le_length (by lia)]
+    · have i_ge_head_length := Nat.le_of_not_lt i_head_length
+      -- handle j in both the goal and tail_ih to extract common term
+      have ⟨goalJ, goalJ_def⟩ : ∃ j, j =
+        ((tail.map length).partialSums.map (head.length + ·)).findIdx (· > i) := by simp
+      rw [← goalJ_def]
+      specialize tail_ih (i - head.length)
+      rw [findIdx_thres_offset _ head.length, Nat.sub_add_cancel i_ge_head_length] at tail_ih
+      rw [← goalJ_def] at tail_ih
+      -- goalJ is succ
+      rw [partialSums_unfold_once] at goalJ_def
+      simp [findIdx_cons, i_head_length] at goalJ_def
+      have ⟨goalJ', goalJ_succ⟩ : ∃ goalJ', goalJ = goalJ' + 1 := by simp [goalJ_def]
+      -- now with this information, the goal is essentially the same as tail_ih
+      constructor <;> try constructor <;> try constructor <;> try constructor
+      · simp [goalJ_succ]
+        intro tail_ih_hyp
+        have tail_ih_hyp := Nat.sub_lt_left_of_lt_add (by lia) tail_ih_hyp
+        simp [goalJ_succ] at tail_ih
+        apply tail_ih.1 tail_ih_hyp
+      · simp [goalJ_succ, ← Nat.sub_sub]
+        intro tail_ih_hyp
+        have tail_ih_hyp := Nat.sub_lt_left_of_lt_add (by lia) tail_ih_hyp
+        simp [goalJ_succ] at tail_ih
+        apply tail_ih.2.1 tail_ih_hyp
+      · simpa [goalJ_succ, getElem?_append,
+          i_head_length, ← Nat.sub_sub] using tail_ih.2.2.1
+      · simpa [goalJ_succ, take_append,
+          take_of_length_le i_ge_head_length, ← Nat.sub_sub]
+          using tail_ih.2.2.2.1
+      · simpa [goalJ_succ, drop_append,
+          drop_of_length_le i_ge_head_length, ← Nat.sub_sub]
+          using tail_ih.2.2.2.2
 
 /--
 Splitting a flattened list at `i` gives the two parts:
@@ -271,37 +326,7 @@ theorem splitAt_flatten (L : List (List α)) (i : Nat) :
       (L[j]?.getD []).drop k ++ (L.drop (j + 1)).flatten
     ) := by
   rw [splitAt_eq, Prod.mk.injEq]
-  induction L generalizing i with
-  | nil =>
-    simp
-  | cons head tail tail_ih =>
-    rw [map_cons, partialSums_cons, findIdx_cons]
-    by_cases i_head_length : i < head.length
-    · rw [partialSums_unfold_once, map_cons, findIdx_cons]
-      simp [i_head_length]
-      constructor
-      · rw [take_append_of_le_length (by lia)]
-      · rw [drop_append_of_le_length (by lia)]
-    · have i_ge_head_length := Nat.le_of_not_lt i_head_length
-      -- handle j in both the goal and tail_ih to extract common term
-      have ⟨goalJ, goalJ_def⟩ : ∃ j, j =
-        ((tail.map length).partialSums.map (head.length + ·)).findIdx (· > i) := by simp
-      rw [← goalJ_def]
-      specialize tail_ih (i - head.length)
-      rw [findIdx_thres_offset _ head.length, Nat.sub_add_cancel i_ge_head_length] at tail_ih
-      rw [← goalJ_def] at tail_ih
-      -- goalJ is succ
-      rw [partialSums_unfold_once] at goalJ_def
-      simp [findIdx_cons, i_head_length] at goalJ_def
-      have ⟨goalJ', goalJ_succ⟩ : ∃ goalJ', goalJ = goalJ' + 1 := by simp [goalJ_def]
-      -- now with this information, the goal is essentially the same as tail_ih
-      constructor
-      · simpa [goalJ_succ, take_append,
-          take_of_length_le i_ge_head_length, ← Nat.sub_sub]
-          using tail_ih.1
-      · simpa [goalJ_succ, drop_append,
-          drop_of_length_le i_ge_head_length, ← Nat.sub_sub]
-          using tail_ih.2
+  grind [take_flatten_helper L i]
 
 /--
 Taking the first `i` elements of a flattened list
@@ -309,10 +334,10 @@ can be expressed as the flattening of the first `j` complete sublists, plus the 
 `k` elements of the `j`-th sublist.
 -/
 theorem take_flatten (L : List (List α)) (i : Nat) :
-    let j := (L.map length).partialSums.findIdx (· > i) - 1
+    let j := (L.map List.length).partialSums.findIdx (· > i) - 1
     let k := i - (L.take j).flatten.length
     L.flatten.take i = (L.take j).flatten ++ (L[j]?.getD []).take k := by
-  grind [splitAt_flatten L i]
+  grind [take_flatten_helper L i]
 
 /--
 Dropping the first `i` elements of a flattened list
@@ -323,4 +348,40 @@ theorem drop_flatten (L : List (List α)) (i : Nat) :
     let j := (L.map List.length).partialSums.findIdx (· > i) - 1
     let k := i - (L.take j).flatten.length
     L.flatten.drop i = (L[j]?.getD []).drop k ++ (L.drop (j + 1)).flatten := by
-  grind [splitAt_flatten L i]
+  grind [take_flatten_helper L i]
+
+/--
+Alternatively, dropping the first `i` elements of a flattened list
+can be expressed as removing the first `j` sublists, flattening the result,
+and then removing its first `k` elements.
+-/
+theorem drop_flatten' (L : List (List α)) (i : Nat) :
+    let j := (L.map List.length).partialSums.findIdx (· > i) - 1
+    let k := i - (L.take j).flatten.length
+    L.flatten.drop i = (L.drop j).flatten.drop k := by
+  grind [take_flatten_helper L i]
+
+theorem getElem?_flatten (L : List (List α)) (i : Nat) :
+    let j := (L.map List.length).partialSums.findIdx (· > i) - 1
+    let k := i - (L.take j).flatten.length
+    L.flatten[i]? = L[j]?.bind (·[k]?) := by
+  grind [take_flatten_helper L i]
+
+theorem getElem_j_valid (L : List (List α)) (i : Nat) (h : i < L.flatten.length) :
+    let j := (L.map List.length).partialSums.findIdx (· > i) - 1
+    j < L.length := by
+  grind [take_flatten_helper L i]
+
+theorem getElem_k_valid (L : List (List α)) (i : Nat) (h : i < L.flatten.length) :
+    let j := (L.map List.length).partialSums.findIdx (· > i) - 1
+    let k := i - (L.take j).flatten.length
+    (h' : j < L.length) → k < L[j].length := by
+  grind [take_flatten_helper L i]
+
+theorem getElem_flatten' (L : List (List α)) (i : Nat) (h : i < L.flatten.length) :
+    let j := (L.map List.length).partialSums.findIdx (· > i) - 1
+    let k := i - (L.take j).flatten.length
+    have j_valid := getElem_j_valid L i h
+    have k_valid := getElem_k_valid L i h j_valid
+    L.flatten[i] = L[j][k] := by
+  grind [take_flatten_helper L i]
