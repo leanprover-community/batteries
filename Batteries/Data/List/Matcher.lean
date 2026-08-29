@@ -5,5 +5,6 @@ Authors: François G. Dorais
 -/
 module
 
-deprecated_module "this module has been moved to cell [batteries-kmp](https://github.com/fgdorais/batteries-kmp)"
-  (since := "2026-08-23")
+deprecated_module
+  "This module is obsolete and has been moved to Batteries Cell `batteries-kmp`"
+  (since := "2026-05-10")

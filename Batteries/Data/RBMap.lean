@@ -1,4 +1,4 @@
 module
-
-deprecated_module "this module is obsolete and has been moved to batteries-recycling"
-  (since := "2026-05-14")
+deprecated_module
+  "This module is obsolete and has been moved to Batteries Cell `batteries-recycling`"
+  (since := "2026-05-10")
