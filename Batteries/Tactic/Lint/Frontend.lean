@@ -231,7 +231,8 @@ def formatLinterResults
           groupedByFilename results (useErrorFormat := useErrorFormat)
         else
           printWarnings results
-      pure $ some m!"/- The `{linter.name}` linter reports:\n{linter.errorsFound} -/\n{warnings}\n"
+      pure $ some m!"/- The `{linter.name}` linter reports:\n{linter.errorsFound
+        }\nThis linter can be disabled with `@[nolint {linter.name}]`. -/\n{warnings}\n"
     else if verbose = LintVerbosity.high then
       pure $ some m!"/- OK: {linter.noErrorsFound} -/"
     else
