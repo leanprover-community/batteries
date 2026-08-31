@@ -36,7 +36,7 @@ attribute [grind =] zipIdx_nil zipIdx_cons
 
 /-! ### toArray-/
 
-@[deprecated List.getElem_toArray (since := "2025-09-11")]
+@[deprecated List.getElem_toArray +typeChanged (since := "2025-09-11")]
 theorem getElem_mk {xs : List α} {i : Nat} (h : i < xs.length) :
     (Array.mk xs)[i] = xs[i] := List.getElem_toArray h
 
@@ -70,8 +70,6 @@ theorem modify_eq_set_getElem? (f : α → α) :
   | n+1, b :: l =>
     (congrArg (cons _) (modify_eq_set_getElem? ..)).trans <| by cases h : l[n]? <;> simp [h]
 
-@[deprecated (since := "2025-02-15")] alias modify_eq_set_get? := modify_eq_set_getElem?
-
 theorem modify_eq_set_get (f : α → α) {n} {l : List α} (h) :
     l.modify n f = l.set n (f (l.get ⟨n, h⟩)) := by
   rw [modify_eq_set_getElem?, getElem?_eq_getElem h]; rfl
@@ -83,13 +81,9 @@ theorem getElem?_set_of_lt (a : α) {m n} (l : List α) (h : n < length l) :
     (set l m a)[n]? = if m = n then some a else l[n]? := by
   simp [getElem?_set', getElem?_eq_getElem h]
 
-@[deprecated (since := "2025-02-15")] alias get?_set_of_lt := getElem?_set_of_lt
-
 theorem getElem?_set_of_lt' (a : α) {m n} (l : List α) (h : m < length l) :
     (set l m a)[n]? = if m = n then some a else l[n]? := by
   simp [getElem?_set]; split <;> subst_vars <;> simp [*]
-
-@[deprecated (since := "2025-02-15")] alias get?_set_of_lt' := getElem?_set_of_lt'
 
 /-! ### tail -/
 
@@ -113,7 +107,7 @@ theorem erase_eq_self_iff_forall_bne [BEq α] (a : α) (xs : List α) :
 
 /-! ### findIdx? -/
 
-@[deprecated findIdx_eq_getD_findIdx? (since := "2025-11-06")]
+@[deprecated findIdx_eq_getD_findIdx? +typeChanged (since := "2025-11-06")]
 theorem findIdx_eq_findIdx? (p : α → Bool) (l : List α) :
     l.findIdx p = (match l.findIdx? p with | some i => i | none => l.length) := by
   rw [findIdx_eq_getD_findIdx?]
@@ -371,38 +365,29 @@ attribute [simp, grind ←] Pairwise.nil
 
 /-! ### IsChain -/
 
-@[deprecated (since := "2025-09-19")]
-alias chain_cons := isChain_cons_cons
-
 theorem rel_of_isChain_cons_cons (p : IsChain R (a :: b :: l)) : R a b :=
   (isChain_cons_cons.1 p).1
 
 alias IsChain.rel := rel_of_isChain_cons_cons
 
-@[deprecated (since := "2025-09-19")]
-alias rel_of_chain_cons := rel_of_isChain_cons_cons
-
 theorem isChain_of_isChain_cons (p : IsChain R (b :: l)) : IsChain R l := by grind [cases List]
 
 alias IsChain.of_cons := isChain_of_isChain_cons
 
-@[deprecated IsChain.of_cons (since := "2026-02-10")]
+@[deprecated IsChain.of_cons +typeChanged (since := "2026-02-10")]
 theorem isChain_cons_of_isChain_cons_cons : IsChain R (a :: b :: l) →
     IsChain R (b :: l) := IsChain.of_cons
 
 @[deprecated (since := "2025-09-19")]
-alias chain_of_chain_cons := isChain_cons_of_isChain_cons_cons
+alias chain_of_chain_cons := IsChain.of_cons
 
-@[deprecated IsChain.of_cons (since := "2026-02-10")]
+@[deprecated IsChain.of_cons +typeChanged (since := "2026-02-10")]
 theorem isChain_of_isChain_cons_cons : IsChain R (a :: b :: l) →
     IsChain R l := IsChain.of_cons ∘ IsChain.of_cons
 
 @[grind =>]
 theorem IsChain.imp (H : ∀ ⦃a b : α⦄, R a b → S a b)
     (p : IsChain R l) : IsChain S l := by induction p with grind
-
-@[deprecated (since := "2025-09-19")]
-alias Chain.imp := IsChain.imp
 
 theorem IsChain.cons_of_imp (h : ∀ c, R a c → R b c) :
     IsChain R (a :: l) → IsChain R (b :: l) := by grind [cases List]
@@ -413,12 +398,6 @@ alias IsChain.cons_of_imp_of_cons := IsChain.cons_of_imp
 theorem IsChain.cons_of_imp_of_imp (HRS : ∀ ⦃a b : α⦄, R a b → S a b)
     (Hab : ∀ ⦃c⦄, R a c → S b c) (h : IsChain R (a :: l)) : IsChain S (b :: l) := by
   grind [cases List]
-
-@[deprecated (since := "2025-09-19")]
-alias Chain.imp' := IsChain.cons_of_imp_of_imp
-
-@[deprecated (since := "2025-09-19")]
-protected alias Pairwise.chain := Pairwise.isChain
 
 theorem isChain_iff_pairwise [Trans R R R] : IsChain R l ↔ Pairwise R l := by
   induction l with | nil => grind | cons a l IH => cases l with | nil => grind | cons b l =>
@@ -445,7 +424,7 @@ theorem isChain_range' (s : Nat) : ∀ n step : Nat,
   | 1, _ => .singleton _
   | n + 2, step => (isChain_range' (s + step) (n + 1) step).cons_cons rfl
 
-@[deprecated isChain_range' (since := "2025-09-19")]
+@[deprecated isChain_range' +typeChanged (since := "2025-09-19")]
 theorem chain_succ_range' (s n step : Nat) :
     IsChain (fun a b => b = a + step) (s :: range' (s + step) n step) := isChain_range'  _ (n + 1) _
 
@@ -453,7 +432,7 @@ theorem isChain_lt_range' (s n : Nat) (h : 0 < step) :
     IsChain (· < ·) (range' s n step) :=
   (isChain_range' s n step).imp fun | _, _, rfl => Nat.lt_add_of_pos_right h
 
-@[deprecated isChain_lt_range' (since := "2025-09-19")]
+@[deprecated isChain_lt_range' +typeChanged (since := "2025-09-19")]
 theorem chain_lt_range' (s n : Nat) (h : 0 < step) :
     IsChain (· < ·) (s :: range' (s + step) n step) := isChain_lt_range' _ (n + 1) h
 
@@ -739,9 +718,6 @@ theorem findIdxNth_eq_findIdxNth_of_ge_countP_ge_countP {xs : List α} (hn : xs.
 @[grind =] theorem idxOf_eq_getD_idxOf? [BEq α] (a : α) (l : List α) :
     l.idxOf a = (l.idxOf? a).getD l.length := by
   simp [idxOf, idxOf?, findIdx_eq_getD_findIdx?]
-
-@[deprecated (since := "2025-11-06")]
-alias idxOf_eq_idxOf? := idxOf_eq_getD_idxOf?
 
 /-! ### idxsOf -/
 
@@ -1370,3 +1346,104 @@ grind_pattern min!_eq_min_of_ne_nil => l.min! where
   guard l ≠ []
 
 @[simp, grind =] theorem min!_nil [Inhabited α] [Min α] : ([] : List α).min! = default := rfl
+
+/-! ### swapAt -/
+
+@[simp, grind =] theorem swapAt_def : swapAt xs i v = (xs[i]?.getD v, xs.set i v) := rfl
+
+/-! ### swap -/
+
+@[simp] theorem swap_nil : ([] : List α).swap i j = [] := rfl
+
+@[simp] theorem swap_cons :
+    (a :: xs).swap (i + 1) (j + 1) = a :: xs.swap i j := rfl
+
+@[simp] theorem swap_cons_zero_left :
+    (a :: xs).swap 0 (j + 1) = xs[j]?.getD a :: xs.set j a := rfl
+
+@[simp] theorem swap_cons_zero_right :
+    (a :: xs).swap (i + 1) 0 = xs[i]?.getD a :: xs.set i a := rfl
+
+theorem swap_eq {xs : List α}  :
+    xs.swap i j = if h : i < xs.length ∧ j < xs.length then
+    (xs.set i xs[j]).set j xs[i] else xs := by induction xs generalizing i j with
+  | nil => simp | cons a xs ih => cases i <;> cases j <;>
+    simp only [swap, ih, length_cons, Nat.add_lt_add_iff_right] <;>
+    split <;> simp_all [set_eq_of_length_le, Nat.not_lt]
+
+@[simp] theorem swap_eq_of_ge_left {xs : List α} (h : xs.length ≤ i) : xs.swap i j = xs := by
+  rw [swap_eq, dite_eq_right (not_and_of_not_left (j < xs.length) (Nat.not_lt_of_ge h))]
+
+@[simp] theorem swap_eq_of_ge_right {xs : List α} (h : xs.length ≤ j) : xs.swap i j = xs := by
+  rw [swap_eq, dite_eq_right (not_and_of_not_right (i < xs.length) (Nat.not_lt_of_ge h))]
+
+theorem swap_eq_of_lt {xs : List α} (hi :  i < xs.length) (hj : j < xs.length) :
+    xs.swap i j = (xs.set i xs[j]).set j xs[i] := by
+  rw [swap_eq, dite_eq_left (And.intro hi hj)]
+
+@[simp, grind =] theorem swap_self {xs : List α} {i : Nat} : xs.swap i i = xs := by
+  obtain (hi | hi) := Nat.lt_or_ge i (xs.length)
+  · rw [swap_eq_of_lt hi hi, set_getElem_self, set_getElem_self]
+  · rw [swap_eq_of_ge_left hi]
+
+@[grind =] theorem swap_comm {xs : List α} {i j : Nat} : xs.swap i j = xs.swap j i := by
+  obtain (hi | hi) := Nat.lt_or_ge i (xs.length)
+  · obtain (hj | hj) := Nat.lt_or_ge j (xs.length)
+    · rw [swap_eq_of_lt hi hj, swap_eq_of_lt hj hi]
+      obtain (rfl | hij) := Decidable.em (i = j)
+      · rfl
+      · exact List.set_comm _ _ hij
+    · rw [swap_eq_of_ge_right hj, swap_eq_of_ge_left hj]
+  · rw [swap_eq_of_ge_left hi, swap_eq_of_ge_right hi]
+
+@[simp, grind =] theorem length_swap {xs : List α} : (xs.swap i j).length = xs.length := by
+  obtain (hi | hi) := Nat.lt_or_ge i (xs.length)
+  · obtain (hj | hj) := Nat.lt_or_ge j (xs.length)
+    · rw [swap_eq_of_lt hi hj, length_set, length_set]
+    · rw [swap_eq_of_ge_right hj]
+  · rw [swap_eq_of_ge_left hi]
+
+theorem getElem_swap_left {xs : List α} {i j : Nat} (hi : i < (xs.swap i j).length) :
+    (xs.swap i j)[i] = if hj : j < xs.length then xs[j] else xs[i]'(length_swap ▸ hi) := by
+  obtain (hj | hj) := Nat.lt_or_ge j xs.length
+  · simp only [swap_eq_of_lt (length_swap ▸ hi) hj, hj, getElem_set, dite_true]
+    split <;> simp_all
+  · simp [swap_eq_of_ge_right hj, Nat.not_lt_of_ge hj]
+
+theorem getElem_swap_right {xs : List α} {i j : Nat} (hj : j < (xs.swap i j).length) :
+    (xs.swap i j)[j] = if hi : i < xs.length then xs[i] else xs[j]'(length_swap ▸ hj) := by
+  simp [swap_comm (i := i), getElem_swap_left]
+
+@[simp] theorem getElem_swap_of_ne {xs : List α} {i j k : Nat} (hik : k ≠ i) (hjk : k ≠ j)
+    (hk : k < (xs.swap i j).length) : (xs.swap i j)[k] = xs[k]'(length_swap ▸ hk) := by
+  obtain (hi | hi) := Nat.lt_or_ge i (xs.length)
+  · obtain (hj | hj) := Nat.lt_or_ge j (xs.length)
+    · simp only [swap_eq_of_lt hi hj, getElem_set, hik.symm, hjk.symm, ite_false]
+    · exact getElem_congr_coll (swap_eq_of_ge_right hj)
+  · exact getElem_congr_coll (swap_eq_of_ge_left hi)
+
+@[simp] theorem getElem_swap_left_of_lt {xs : List α} {i j : Nat} (hj : j < xs.length)
+    (hi : i < (xs.swap i j).length) : (xs.swap i j)[i] = xs[j] := by
+  rw [getElem_swap_left, dite_eq_left hj]
+
+@[simp] theorem getElem_swap_right_of_lt {xs : List α} {i j : Nat} (hi : i < xs.length)
+    (hj : j < (xs.swap i j).length) : (xs.swap i j)[j] = xs[i] := by
+  rw [getElem_swap_right, dite_eq_left hi]
+
+@[grind =]
+theorem getElem_swap {xs : List α} {i j k : Nat}
+    (hk : k < (xs.swap i j).length) : (xs.swap i j)[k] =
+    if h₁ : k = i ∧ j < xs.length then xs[j] else if h₂ : k = j ∧ i < xs.length then xs[i]
+    else xs[k]'(length_swap ▸ hk) := by
+  obtain (rfl | hi) := Decidable.em (k = i)
+  · simp only [getElem_swap_left, true_and]
+    exact dite_congr rfl (fun _ => rfl) (by simp)
+  · obtain (rfl | hj) := Decidable.em (k = j)
+    · simp [getElem_swap_right, hi]
+    · simp [getElem_swap_of_ne, hi, hj]
+
+@[simp, grind =] theorem swap_swap {xs : List α} {i j : Nat} : (xs.swap i j).swap i j = xs :=
+  ext_getElem (by simp) (by grind)
+
+@[simp, grind =] theorem swap_swap_flip {xs : List α} {i j : Nat} :
+    (xs.swap i j).swap j i = xs := swap_comm.trans swap_swap
