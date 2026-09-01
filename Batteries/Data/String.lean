@@ -1,4 +1,4 @@
-module
+module -- deprecated_module: ignore
 
 public import Batteries.Data.String.AsciiCasing
 public import Batteries.Data.String.Basic
