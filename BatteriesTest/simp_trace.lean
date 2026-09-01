@@ -4,6 +4,7 @@ import Batteries.Tactic.SqueezeScope
 attribute [-simp] Nat.add_left_cancel_iff Nat.add_right_cancel_iff
 
 set_option linter.missingDocs false
+set_option linter.unreachableTactic false
 
 /--
 info: Try this:
