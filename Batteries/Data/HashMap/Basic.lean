@@ -45,9 +45,6 @@ end Std.HashMap
 
 namespace Batteries.HashMap
 
-@[reducible, deprecated (since := "2025-05-31")]
-alias LawfulHashable := LawfulHashable
-
 /--
 `HashMap α β` is a key-value map which stores elements in an array using a hash function
 to find the values. This allows it to have very good performance for lookups

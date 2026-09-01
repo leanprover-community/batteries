@@ -217,9 +217,6 @@ We have `l.findIdxsValues p s = (l.findIdxs p s).zip (l.filter p)`.
 @[inline] def findIdxsValues (p : α → Bool) (l : List α) (start : Nat := 0) : List (Nat × α) :=
   foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l start
 
-@[deprecated (since := "2025-11-06")]
-alias indexsValues := findIdxsValues
-
 /-- `findIdxNth p xs n` returns the index of the `n`th element for which `p` returns `true`.
 For example:
 ```
@@ -243,9 +240,6 @@ idxsOf a [a, b, a, a] 5 = [5, 7, 8]
 -/
 @[inline] def idxsOf [BEq α] (a : α) (xs : List α) (start : Nat := 0) : List Nat :=
   xs.findIdxs (· == a) start
-
-@[deprecated (since := "2025-11-06")]
-alias indexesOf := idxsOf
 
 /-- `idxOfNth a xs n` returns the index of the `n`th instance of `a` in `xs`, counting from `0`.
 
@@ -616,30 +610,6 @@ where
     | [] => isTrue <| .singleton a
     | b :: l => haveI := (go b l); decidable_of_iff' _ isChain_cons_cons
 
-/-- `Chain R a l` means that `R` holds between adjacent elements of `a::l`.
-```
-Chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d
-``` -/
-@[deprecated IsChain (since := "2025-09-19")]
-def Chain : (α → α → Prop) → α → List α → Prop := (IsChain · <| · :: ·)
-
-set_option linter.deprecated false in
-/-- A list of length 1 is a chain. -/
-@[deprecated IsChain.singleton (since := "2025-09-19")]
-theorem Chain.nil {a : α} : Chain R a [] := IsChain.singleton a
-
-set_option linter.deprecated false in
-/-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
-@[deprecated IsChain.cons_cons (since := "2025-09-19")]
-theorem Chain.cons : R a b → Chain R b l → Chain R a (b :: l)  := IsChain.cons_cons
-
-/-- `Chain' R l` means that `R` holds between adjacent elements of `l`.
-```
-Chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
-``` -/
-@[deprecated IsChain (since := "2025-09-19")]
-def Chain' : (α → α → Prop) → List α → Prop := (IsChain · ·)
-
 /-- **Deprecated:** Use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups` instead. -/
 @[deprecated "use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups`" (since := "2026-01-03")]
 abbrev eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
@@ -879,21 +849,6 @@ allSome [some 1, none  ] = none
 ```
 -/
 @[inline] def allSome (l : List (Option α)) : Option (List α) := l.mapM id
-
-/--
-`fillNones xs ys` replaces the `none`s in `xs` with elements of `ys`. If there
-are not enough `ys` to replace all the `none`s, the remaining `none`s are
-dropped from `xs`.
-```
-fillNones [none, some 1, none, none] [2, 3] = [2, 1, 3]
-```
--/
-@[simp, deprecated "Deprecated without replacement." (since := "2025-08-07")]
-def fillNones {α} : List (Option α) → List α → List α
-  | [], _ => []
-  | some a :: as, as' => a :: fillNones as as'
-  | none :: as, [] => as.reduceOption
-  | none :: as, a :: as' => a :: fillNones as as'
 
 /--
 `takeList as ns` extracts successive sublists from `as`. For `ns = n₁ ... nₘ`,
