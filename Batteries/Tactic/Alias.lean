@@ -114,10 +114,12 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
   StateT.run (m := Id) (s := false) do
     arr.mapM fun s => do
       if s.name == `deprecated then
-        if let `(deprecated| deprecated%$tk $[$desc:str]? $[(since := $since)]?) := s.stx then
+        if let `(deprecated| deprecated%$tk $[$desc:str]? $[$tc:deprecatedTypeChanged]?
+            $[(since := $since)]?) := s.stx then
           set true
           let stx := Unhygienic.run
-            `(deprecated| deprecated%$tk $(mkCIdent target) $[$desc:str]? $[(since := $since)]?)
+            `(deprecated| deprecated%$tk $(mkCIdent target) $[$desc:str]?
+              $[$tc:deprecatedTypeChanged]? $[(since := $since)]?)
           pure { s with stx }
         else pure s
       else pure s
