@@ -148,6 +148,23 @@ Hint: Add `+typeChanged` to silence this warning.
 /-- info: A.mprId {a : Prop} : a → a -/
 #guard_msgs in #check mprId
 
+-- `+typeChanged` is threaded through to the `deprecated` attribute generated for each side,
+-- silencing the declaration-site warning while still recording `Iff.rfl` as the target.
+#guard_msgs in
+@[deprecated +typeChanged (since := "2038-01-20")] alias ⟨mpId', mprId'⟩ := Iff.rfl
+
+/--
+warning: `A.mprId'` has been deprecated: Use `Iff.rfl` instead
+
+Note: The updated constant has a different type:
+  ∀ {a : Prop}, a ↔ a
+instead of
+  ∀ {a : Prop}, a → a
+
+Note: The updated constant is in a different namespace. Dot notation may need to be changed (e.g., from `x.mprId'` to `Iff.rfl x`).
+-/
+#guard_msgs in example := @mprId'
+
 /--
 warning: `A.mpId` has been deprecated: Use `Iff.rfl` instead
 
