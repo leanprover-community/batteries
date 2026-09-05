@@ -138,6 +138,11 @@ Hint: Add `+typeChanged` to silence this warning.
 #guard_msgs in
 @[deprecated (since := "2038-01-20")] alias ⟨mpId, mprId⟩ := Iff.rfl
 
+/-
+  Support the upcoming `+typeChanged` argument.
+-/
+@[deprecated +typeChanged (since := "2038-01-20")] alias ⟨mpId2, mprId2⟩ := Iff.rfl
+
 /-- info: A.mpId {a : Prop} : a → a -/
 #guard_msgs in #check mpId
 /-- info: A.mprId {a : Prop} : a → a -/
