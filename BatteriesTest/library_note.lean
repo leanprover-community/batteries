@@ -15,11 +15,11 @@ so it shouldn't appear when looking for notes with label starting with "te". -/
 #guard_msgs in
 #help note "Other"
 
-library_note "test4"/--
+library_note «test4» /--
 4: This note was not imported, and therefore appears below the imported notes.
 -/
 
-library_note "test5"/--
+library_note «test5» /--
 5: This note was also not imported, and therefore appears below the imported notes,
 and the previously added note.
 -/
