@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Batteries.Recycling.RBTree.Alter","Batteries.Recycling.RBTree.Basic","Batteries.Recycling.RBTree.Depth","Batteries.Recycling.RBTree.Lemmas","Batteries.Recycling.RBTree.WF","Init"],"instances":[],"name":"Batteries.Recycling.RBTree"}

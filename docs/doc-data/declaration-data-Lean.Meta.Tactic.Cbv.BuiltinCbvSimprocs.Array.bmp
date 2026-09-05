@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.CbvSimproc","Init.GetElem","Lean.Meta.Sym.InferType","Lean.Meta.Sym.LitValues","Lean.Meta.Sym.Simp.SimpM","Lean.Meta.Tactic.Cbv.CbvSimproc","Lean.Meta.Tactic.Cbv.Util"],"instances":[],"name":"Lean.Meta.Tactic.Cbv.BuiltinCbvSimprocs.Array"}

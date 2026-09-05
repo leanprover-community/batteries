@@ -1,0 +1,902 @@
+<html lang="en"><head><meta charset="UTF-8"></meta><meta name="viewport" content="width=device-width, initial-scale=1"></meta><link rel="stylesheet" href="../../.././style.css"></link><link rel="icon" href="../../.././favicon.svg"></link><link rel="mask-icon" href="../../.././favicon.svg" color="#000000"></link><link rel="prefetch" href="../../.././/declarations/declaration-data.bmp" as="image"></link><title>Std.Internal.ForIn.Lemmas</title><script defer="true" src="../../.././mathjax-config.js"></script><script defer="true" src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script><script defer="true" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script><script>const SITE_ROOT="../../.././";</script><script>const MODULE_NAME="Std.Internal.ForIn.Lemmas";</script><script type="module" src="../../.././jump-src.js"></script><script type="module" src="../../.././search.js"></script><script type="module" src="../../.././expand-nav.js"></script><script type="module" src="../../.././how-about.js"></script><script type="module" src="../../.././instances.js"></script><script type="module" src="../../.././importedBy.js"></script></head><body><input id="nav_toggle" type="checkbox"></input><header><h1><label for="nav_toggle"></label><span>Documentation</span></h1><h2 class="header_filename break_within"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">Lemmas</span></h2><form id="search_form"><input type="text" name="q" autocomplete="off"></input>&#32;<button id="search_button" onclick="javascript: form.action='../../.././search.html';">Search</button></form></header><nav class="internal_nav"><p><a href="#top">return to top</a></p><p class="gh_nav_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean">source</a></p><div class="imports"><details><summary>Imports</summary><ul><li><a href="../../.././Init/Omega.html">Init.Omega</a></li><li><a href="../../.././Init/Data/Array/Basic.html">Init.Data.Array.Basic</a></li><li><a href="../../.././Init/Data/Array/Bootstrap.html">Init.Data.Array.Bootstrap</a></li><li><a href="../../.././Init/Data/Array/Lemmas.html">Init.Data.Array.Lemmas</a></li><li><a href="../../.././Init/Data/List/Basic.html">Init.Data.List.Basic</a></li><li><a href="../../.././Init/Data/List/Control.html">Init.Data.List.Control</a></li><li><a href="../../.././Init/Data/List/Monadic.html">Init.Data.List.Monadic</a></li><li><a href="../../.././Init/Data/List/Range.html">Init.Data.List.Range</a></li><li><a href="../../.././Init/Data/Nat/Dvd.html">Init.Data.Nat.Dvd</a></li><li><a href="../../.././Init/Data/Range/Basic.html">Init.Data.Range.Basic</a></li><li><a href="../../.././Init/Data/Range/Lemmas.html">Init.Data.Range.Lemmas</a></li><li><a href="../../.././Init/Data/Slice/Lemmas.html">Init.Data.Slice.Lemmas</a></li><li><a href="../../.././Std/Internal/ForIn/Basic.html">Std.Internal.ForIn.Basic</a></li><li><a href="../../.././Init/Data/Range/Polymorphic/Lemmas.html">Init.Data.Range.Polymorphic.Lemmas</a></li><li><a href="../../.././Init/Data/Iterators/Lemmas/Consumers/Loop.html">Init.Data.Iterators.Lemmas.Consumers.Loop</a></li><li><a href="../../.././Init/Data/Iterators/Lemmas/Consumers/Monadic/Loop.html">Init.Data.Iterators.Lemmas.Consumers.Monadic.Loop</a></li></ul></details><details><summary>Imported by</summary><ul id="imported-by-Std.Internal.ForIn.Lemmas" class="imported-by-list"></ul></details></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_list"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_list</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instLawfulMemForInIdList"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdList</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForIn'List"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'List</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInList"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInList</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_array"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_array</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instLawfulMemForInIdArray"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdArray</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForIn'Array"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'Array</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInArray"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInArray</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_range"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_range</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instLawfulMemForInIdRangeNat"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRangeNat</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForIn'RangeNat"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RangeNat</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInRangeNat"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRangeNat</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_iter"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_iter</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInIterOfLawfulMonadOfFiniteOfLawfulIteratorLoopId"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInIterOfLawfulMonadOfFiniteOfLawfulIteratorLoopId</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_iterM_id"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_iterM_id</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInIterMIdOfLawfulMonadOfFiniteOfLawfulIteratorLoop"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInIterMIdOfLawfulMonadOfFiniteOfLawfulIteratorLoop</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_rcc"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_rcc</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instLawfulMemForInIdRcc"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRcc</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForIn'RccOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RccOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInRccOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRccOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_rco"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_rco</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instLawfulMemForInIdRco"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRco</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForIn'RcoOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RcoOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInRcoOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRcoOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_rci"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_rci</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instLawfulMemForInIdRci"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRci</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForIn'RciOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RciOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInRciOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRciOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_roc"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_roc</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instLawfulMemForInIdRoc"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRoc</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForIn'RocOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RocOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInRocOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRocOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_roo"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_roo</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instLawfulMemForInIdRoo"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRoo</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForIn'RooOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RooOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInRooOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRooOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_roi"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_roi</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instLawfulMemForInIdRoi"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRoi</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForIn'RoiOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RoiOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInRoiOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRoiOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_ric"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_ric</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instLawfulMemForInIdRic"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRic</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForIn'RicOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RicOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInRicOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRicOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_rio"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_rio</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instLawfulMemForInIdRio"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRio</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForIn'RioOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RioOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInRioOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRioOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_rii"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_rii</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instLawfulMemForInIdRii"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRii</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForIn'RiiOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RiiOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInRiiOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRiiOfLawfulMonad</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.ForIn.toList_slice"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_slice</span></a></div><div class="nav_link"><a class="break_within" href="#Std.Internal.instPureForInSliceOfLawfulMonadOfFiniteOfLawfulIteratorLoopId"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInSliceOfLawfulMonadOfFiniteOfLawfulIteratorLoopId</span></a></div></nav><main>
+<div class="mod_doc"><h1 id="ForIn-toList-of-the-effect-free-containers" class="markdown-heading"><code><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a></code> of the effect-free containers <a class="hover-link" href="#ForIn-toList-of-the-effect-free-containers">#</a></h1><p>Each bridge lemma computes <code><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a></code> for one container, in the spelling that carries the
+membership lemmas the verification conditions need, and each instance records that the container's
+loop is effect-free.</p></div><div class="decl" id="Std.Internal.ForIn.toList_list"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L47-L50">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_list"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_list</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> u₁}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">γ</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">xs</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn">xs</span></div></div></div></div><div class="decl" id="Std.Internal.instLawfulMemForInIdList"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L52-L53">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instLawfulMemForInIdList"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u₁}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.LawfulMemForInId">LawfulMemForInId</a> <span class="fn">(<a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForIn'List"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L55-L56">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForIn'List"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'List</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u₁}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn'">PureForIn'</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForInList"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L58-L59">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInList"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInList</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u₁}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#List">List</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.ForIn.toList_array"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L65-L70">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_array"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_array</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> u₁}</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">xs</span> : <span class="fn"><a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">γ</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">xs</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">xs</span>.<a href="../../.././Init/Prelude.html#Array.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Internal.instLawfulMemForInIdArray"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L72-L73">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instLawfulMemForInIdArray"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdArray</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u₁}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.LawfulMemForInId">LawfulMemForInId</a> <span class="fn">(<a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForIn'Array"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L75-L78">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForIn'Array"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'Array</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u₁}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn'">PureForIn'</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForInArray"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L80-L81">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInArray"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInArray</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u₁}</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Prelude.html#Array">Array</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.ForIn.toList_range"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L87-L93">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_range"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_range</span></a></span><span class="decl_args">
+<span class="fn">(<span class="fn">r</span> : <a href="../../.././Init/Data/Range/Basic.html#Std.Legacy.Range">Legacy.Range</a>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">r</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><a href="../../.././Init/Data/List/Basic.html#List.range'">List.range'</a> <span class="fn"><span class="fn">r</span>.<a href="../../.././Init/Data/Range/Basic.html#Std.Legacy.Range.start">start</a></span> <span class="fn"><span class="fn">r</span>.<a href="../../.././Init/Data/Range/Basic.html#Std.Legacy.Range.size">size</a></span> <span class="fn"><span class="fn">r</span>.<a href="../../.././Init/Data/Range/Basic.html#Std.Legacy.Range.step">step</a></span></span></div></div></div></div><div class="decl" id="Std.Internal.instLawfulMemForInIdRangeNat"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L95-L113">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instLawfulMemForInIdRangeNat"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRangeNat</span></a></span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.LawfulMemForInId">LawfulMemForInId</a> <a href="../../.././Init/Data/Range/Basic.html#Std.Legacy.Range">Legacy.Range</a> <a href="../../.././Init/Prelude.html#Nat">Nat</a></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForIn'RangeNat"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L115-L119">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForIn'RangeNat"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RangeNat</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn'">PureForIn'</a> <span class="fn">m</span> <a href="../../.././Init/Data/Range/Basic.html#Std.Legacy.Range">Legacy.Range</a> <a href="../../.././Init/Prelude.html#Nat">Nat</a></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForInRangeNat"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L121-L123">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInRangeNat"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRangeNat</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <a href="../../.././Init/Data/Range/Basic.html#Std.Legacy.Range">Legacy.Range</a> <a href="../../.././Init/Prelude.html#Nat">Nat</a></span></div></div></div></div><div class="decl" id="Std.Internal.ForIn.toList_iter"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L130-L138">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_iter"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_iter</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Basic.html#Std.Iterator">Iterator</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Basic.html#Std.Iterators.Finite">Iterators.Finite</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.IteratorLoop">IteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.LawfulIteratorLoop">LawfulIteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">it</span> : <span class="fn"><a href="../../.././Init/Data/Iterators/Basic.html#Std.Iter">Iter</a> <span class="fn">γ</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">it</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">it</span>.<a href="../../.././Init/Data/Iterators/Consumers/Collect.html#Std.Iter.toList">toList</a></span></div></div><p><code><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a></code> on an iterator is the iterator's own <code>toList</code>, so every container whose <code><a href="../../.././Init/Core.html#ForIn">ForIn</a></code>
+loop iterates its <code><a href="../../.././Init/Data/Iterators/ToIterator.html#Std.ToIterator">Std.ToIterator</a></code> reaches the iterator lemmas through this one step.</p></div></div><div class="decl" id="Std.Internal.instPureForInIterOfLawfulMonadOfFiniteOfLawfulIteratorLoopId"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L141-L145">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInIterOfLawfulMonadOfFiniteOfLawfulIteratorLoopId"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInIterOfLawfulMonadOfFiniteOfLawfulIteratorLoopId</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> w → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Basic.html#Std.Iterator">Iterator</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Basic.html#Std.Iterators.Finite">Iterators.Finite</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.IteratorLoop">IteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.LawfulIteratorLoop">LawfulIteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.IteratorLoop">IteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.LawfulIteratorLoop">LawfulIteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Iterators/Basic.html#Std.Iter">Iter</a> <span class="fn">γ</span>)</span> <span class="fn">γ</span></span></div></div></div></div><div class="decl" id="Std.Internal.ForIn.toList_iterM_id"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L152-L159">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_iterM_id"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_iterM_id</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Basic.html#Std.Iterator">Iterator</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Basic.html#Std.Iterators.Finite">Iterators.Finite</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.IteratorLoop">IteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.LawfulIteratorLoop">LawfulIteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">it</span> : <span class="fn"><a href="../../.././Init/Data/Iterators/Basic.html#Std.IterM">IterM</a> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">γ</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">it</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn"><span class="fn">it</span>.<a href="../../.././Init/Data/Iterators/Consumers/Monadic/Collect.html#Std.IterM.toList">toList</a></span>.<a href="../../.././Init/Control/Id.html#Id.run">run</a></span></div></div><p><code><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a></code> on a pure monadic iterator is the iterator's own <code>toList</code>.</p></div></div><div class="decl" id="Std.Internal.instPureForInIterMIdOfLawfulMonadOfFiniteOfLawfulIteratorLoop"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L162-L166">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInIterMIdOfLawfulMonadOfFiniteOfLawfulIteratorLoop"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInIterMIdOfLawfulMonadOfFiniteOfLawfulIteratorLoop</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> w → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Basic.html#Std.Iterator">Iterator</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">γ</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Basic.html#Std.Iterators.Finite">Iterators.Finite</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.IteratorLoop">IteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.LawfulIteratorLoop">LawfulIteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.IteratorLoop">IteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.LawfulIteratorLoop">LawfulIteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Iterators/Basic.html#Std.IterM">IterM</a> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">γ</span>)</span> <span class="fn">γ</span></span></div></div></div></div><div class="decl" id="Std.Internal.ForIn.toList_rcc"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L177-L183">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_rcc"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_rcc</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">r</span> : <span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rcc">Rcc</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">r</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rcc.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Internal.instLawfulMemForInIdRcc"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L185-L186">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instLawfulMemForInIdRcc"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRcc</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.LawfulMemForInId">LawfulMemForInId</a> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rcc">Rcc</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForIn'RccOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L188-L192">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForIn'RccOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RccOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn'">PureForIn'</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rcc">Rcc</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForInRccOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L194-L198">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInRccOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRccOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rcc">Rcc</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.ForIn.toList_rco"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L206-L212">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_rco"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_rco</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">r</span> : <span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rco">Rco</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">r</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rco.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Internal.instLawfulMemForInIdRco"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L214-L215">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instLawfulMemForInIdRco"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRco</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.LawfulMemForInId">LawfulMemForInId</a> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rco">Rco</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForIn'RcoOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L217-L221">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForIn'RcoOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RcoOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn'">PureForIn'</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rco">Rco</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForInRcoOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L223-L227">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInRcoOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRcoOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rco">Rco</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.ForIn.toList_rci"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L235-L241">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_rci"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_rci</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">r</span> : <span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rci">Rci</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">r</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rci.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Internal.instLawfulMemForInIdRci"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L243-L244">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instLawfulMemForInIdRci"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRci</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.LawfulMemForInId">LawfulMemForInId</a> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rci">Rci</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForIn'RciOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L246-L250">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForIn'RciOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RciOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn'">PureForIn'</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rci">Rci</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForInRciOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L252-L256">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInRciOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRciOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rci">Rci</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.ForIn.toList_roc"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L265-L271">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_roc"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_roc</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">r</span> : <span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roc">Roc</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">r</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roc.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Internal.instLawfulMemForInIdRoc"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L273-L274">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instLawfulMemForInIdRoc"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRoc</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.LawfulMemForInId">LawfulMemForInId</a> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roc">Roc</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForIn'RocOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L276-L280">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForIn'RocOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RocOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn'">PureForIn'</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roc">Roc</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForInRocOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L282-L286">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInRocOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRocOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roc">Roc</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.ForIn.toList_roo"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L294-L300">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_roo"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_roo</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">r</span> : <span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roo">Roo</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">r</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roo.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Internal.instLawfulMemForInIdRoo"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L302-L303">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instLawfulMemForInIdRoo"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRoo</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.LawfulMemForInId">LawfulMemForInId</a> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roo">Roo</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForIn'RooOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L305-L309">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForIn'RooOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RooOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn'">PureForIn'</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roo">Roo</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForInRooOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L311-L315">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInRooOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRooOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roo">Roo</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.ForIn.toList_roi"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L324-L330">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_roi"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_roi</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">r</span> : <span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roi">Roi</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">r</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Roi.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Internal.instLawfulMemForInIdRoi"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L332-L333">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instLawfulMemForInIdRoi"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRoi</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.LawfulMemForInId">LawfulMemForInId</a> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roi">Roi</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForIn'RoiOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L335-L339">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForIn'RoiOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RoiOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn'">PureForIn'</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roi">Roi</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForInRoiOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L341-L345">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInRoiOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRoiOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Roi">Roi</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.ForIn.toList_ric"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L353-L359">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_ric"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_ric</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLeast?">PRange.LawfulUpwardEnumerableLeast?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">r</span> : <span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Ric">Ric</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">r</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Ric.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Internal.instLawfulMemForInIdRic"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L361-L362">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instLawfulMemForInIdRic"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRic</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLeast?">PRange.LawfulUpwardEnumerableLeast?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.LawfulMemForInId">LawfulMemForInId</a> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Ric">Ric</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForIn'RicOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L364-L368">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForIn'RicOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RicOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLeast?">PRange.LawfulUpwardEnumerableLeast?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn'">PureForIn'</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Ric">Ric</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForInRicOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L370-L374">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInRicOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRicOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LE">LE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLE">DecidableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxc.IsAlwaysFinite">Rxc.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLeast?">PRange.LawfulUpwardEnumerableLeast?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLE">PRange.LawfulUpwardEnumerableLE</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Ric">Ric</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.ForIn.toList_rio"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L382-L388">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_rio"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_rio</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLeast?">PRange.LawfulUpwardEnumerableLeast?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">r</span> : <span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rio">Rio</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">r</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rio.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Internal.instLawfulMemForInIdRio"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L390-L391">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instLawfulMemForInIdRio"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRio</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLeast?">PRange.LawfulUpwardEnumerableLeast?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.LawfulMemForInId">LawfulMemForInId</a> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rio">Rio</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForIn'RioOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L393-L397">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForIn'RioOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RioOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLeast?">PRange.LawfulUpwardEnumerableLeast?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn'">PureForIn'</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rio">Rio</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForInRioOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L399-L403">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInRioOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRioOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#DecidableLT">DecidableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxo.IsAlwaysFinite">Rxo.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLeast?">PRange.LawfulUpwardEnumerableLeast?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rio">Rio</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.ForIn.toList_rii"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L412-L418">source</a></div><div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_rii"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_rii</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLeast?">PRange.LawfulUpwardEnumerableLeast?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">r</span> : <span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rii">Rii</a> <span class="fn">α</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">r</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">r</span>.<a href="../../.././Init/Data/Range/Polymorphic/Iterators.html#Std.Rii.toList">toList</a></span></div></div></div></div><div class="decl" id="Std.Internal.instLawfulMemForInIdRii"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L420-L421">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instLawfulMemForInIdRii"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instLawfulMemForInIdRii</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLeast?">PRange.LawfulUpwardEnumerableLeast?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.LawfulMemForInId">LawfulMemForInId</a> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rii">Rii</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForIn'RiiOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L423-L427">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForIn'RiiOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForIn'RiiOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLeast?">PRange.LawfulUpwardEnumerableLeast?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn'">PureForIn'</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rii">Rii</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.instPureForInRiiOfLawfulMonad"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L429-L433">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInRiiOfLawfulMonad"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInRiiOfLawfulMonad</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#LT">LT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.Least?">PRange.Least?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.UpwardEnumerable">PRange.UpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rxi.IsAlwaysFinite">Rxi.IsAlwaysFinite</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerable">PRange.LawfulUpwardEnumerable</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLeast?">PRange.LawfulUpwardEnumerableLeast?</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Range/Polymorphic/UpwardEnumerable.html#Std.PRange.LawfulUpwardEnumerableLT">PRange.LawfulUpwardEnumerableLT</a> <span class="fn">α</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> u → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Range/Polymorphic/PRange.html#Std.Rii">Rii</a> <span class="fn">α</span>)</span> <span class="fn">α</span></span></div></div></div></div><div class="decl" id="Std.Internal.ForIn.toList_slice"><div class="theorem"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L442-L450">source</a></div><div class="attributes">@[simp]</div>
+<div class="decl_header"><span class="decl_kind">theorem</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.ForIn.toList_slice"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">ForIn</span>.<span class="name">toList_slice</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">γ'</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/ToIterator.html#Std.ToIterator">ToIterator</a> <span class="fn">(<a href="../../.././Init/Data/Slice/Basic.html#Std.Slice">Slice</a> <span class="fn">γ</span>)</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">α</span> <span class="fn">γ'</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Basic.html#Std.Iterator">Iterator</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">γ'</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Basic.html#Std.Iterators.Finite">Iterators.Finite</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.IteratorLoop">IteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.LawfulIteratorLoop">LawfulIteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="decl_args">
+<span class="fn">(<span class="fn">s</span> : <span class="fn"><a href="../../.././Init/Data/Slice/Basic.html#Std.Slice">Slice</a> <span class="fn">γ</span></span>)</span></span>
+<span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a> <span class="fn">s</span></span> <a href="../../.././Init/Prelude.html#Eq">=</a> <span class="fn"><span class="fn">s</span>.<a href="../../.././Init/Data/Slice/Operations.html#Std.Slice.toList">toList</a></span></div></div><p><code><a href="../../.././Init/Control/Id.html#ForIn.toList">ForIn.toList</a></code> on a slice is the slice's own <code>toList</code>.</p></div></div><div class="decl" id="Std.Internal.instPureForInSliceOfLawfulMonadOfFiniteOfLawfulIteratorLoopId"><div class="instance"><div class="gh_link"><a href="https://github.com/leanprover/lean4/blob/6a10ac8c22beadecabdbb0919c2b50214762f91d/src/Std/Internal/ForIn/Lemmas.lean#L453-L458">source</a></div><div class="decl_header"><span class="decl_kind">instance</span>
+<span class="decl_name"><a class="break_within" href="../../.././Std/Internal/ForIn/Lemmas.html#Std.Internal.instPureForInSliceOfLawfulMonadOfFiniteOfLawfulIteratorLoopId"><span class="name">Std</span>.<span class="name">Internal</span>.<span class="name">instPureForInSliceOfLawfulMonadOfFiniteOfLawfulIteratorLoopId</span></a></span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">γ</span> : <a href="../../.././foundational_types.html">Type</a> u}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">α </span><span class="fn">γ'</span> : <a href="../../.././foundational_types.html">Type</a> w}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">{<span class="fn">m</span> : <span class="fn"><a href="../../.././foundational_types.html">Type</a> w → <a href="../../.././foundational_types.html">Type</a> v</span>}</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Prelude.html#Monad">Monad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Control/Lawful/Basic.html#LawfulMonad">LawfulMonad</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/ToIterator.html#Std.ToIterator">ToIterator</a> <span class="fn">(<a href="../../.././Init/Data/Slice/Basic.html#Std.Slice">Slice</a> <span class="fn">γ</span>)</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">α</span> <span class="fn">γ'</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Basic.html#Std.Iterator">Iterator</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">γ'</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Basic.html#Std.Iterators.Finite">Iterators.Finite</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.IteratorLoop">IteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.LawfulIteratorLoop">LawfulIteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <span class="fn">m</span></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.IteratorLoop">IteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="impl_arg"><span class="decl_args">
+<span class="fn">[<span class="fn"><a href="../../.././Init/Data/Iterators/Consumers/Monadic/Loop.html#Std.LawfulIteratorLoop">LawfulIteratorLoop</a> <span class="fn">α</span> <a href="../../.././Init/Control/Id.html#Id">Id</a> <a href="../../.././Init/Control/Id.html#Id">Id</a></span>]</span></span>
+</span><span class="decl_args"> :</span><div class="decl_type"><span class="fn"><a href="../../.././Std/Internal/ForIn/Basic.html#Std.Internal.PureForIn">PureForIn</a> <span class="fn">m</span> <span class="fn">(<a href="../../.././Init/Data/Slice/Basic.html#Std.Slice">Slice</a> <span class="fn">γ</span>)</span> <span class="fn">γ'</span></span></div></div></div></div></main>
+<nav class="nav"><iframe src="../../.././navbar.html" class="navframe" frameBorder="0"></iframe></nav></body></html>

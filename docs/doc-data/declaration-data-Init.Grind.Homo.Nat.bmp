@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Data.Nat.Bitwise.Lemmas","Init.Data.Nat.Lemmas","Init.Grind.Attr"],"instances":[],"name":"Init.Grind.Homo.Nat"}

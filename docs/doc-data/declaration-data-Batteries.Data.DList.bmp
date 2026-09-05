@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Batteries.Data.DList.Basic","Batteries.Data.DList.Lemmas","Init"],"instances":[],"name":"Batteries.Data.DList"}
