@@ -16,6 +16,9 @@ alias foo1 := foo
 warning: `A.foo2` is itself deprecated in favor of `A.foo`; consider deprecating `B.foo3` in favor of `A.foo` instead
 
 Note: This warning can be disabled with `set_option linter.deprecated.deprecatedTarget false`
+
+Hint: Deprecate in favor of `A.foo` instead:
+  foo2̵
 -/
 #guard_msgs in
 @[deprecated foo2 (since := "2038-01-20")] alias _root_.B.foo3 := foo
@@ -24,6 +27,9 @@ Note: This warning can be disabled with `set_option linter.deprecated.deprecated
 warning: `A.foo2` is itself deprecated in favor of `A.foo`; consider deprecating `A.foo4` in favor of `A.foo` instead
 
 Note: This warning can be disabled with `set_option linter.deprecated.deprecatedTarget false`
+
+Hint: Deprecate in favor of `A.foo` instead:
+  foo2̵
 -/
 #guard_msgs in
 @[deprecated foo2 "it was never a good idea anyway" (since := "last thursday")] alias foo4 := foo
@@ -131,6 +137,11 @@ Hint: Add `+typeChanged` to silence this warning.
 -/
 #guard_msgs in
 @[deprecated (since := "2038-01-20")] alias ⟨mpId, mprId⟩ := Iff.rfl
+
+/-
+  Support the upcoming `+typeChanged` argument.
+-/
+@[deprecated +typeChanged (since := "2038-01-20")] alias ⟨mpId2, mprId2⟩ := Iff.rfl
 
 /-- info: A.mpId {a : Prop} : a → a -/
 #guard_msgs in #check mpId
