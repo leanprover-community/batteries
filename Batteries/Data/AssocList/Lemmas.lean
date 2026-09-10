@@ -7,7 +7,7 @@ module
 
 public import Batteries.Data.AssocList.Basic
 
-@[expose] public section
+public section
 
 /-!
 # Lemmas about association lists

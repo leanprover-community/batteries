@@ -74,7 +74,7 @@ def length (L : AssocList α β) : Nat :=
   simp [foldl, foldlM_eq]
 
 /-- Optimized version of `toList`. -/
-def toListTR (as : AssocList α β) : List (α × β) :=
+@[no_expose] def toListTR (as : AssocList α β) : List (α × β) :=
   as.foldl (init := #[]) (fun r a b => r.push (a, b)) |>.toList
 
 @[csimp] theorem toList_eq_toListTR : @toList = @toListTR := by
