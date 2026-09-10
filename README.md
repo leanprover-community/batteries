@@ -73,23 +73,29 @@ been proven.
 
 Batteries PRs often affect Mathlib, a key component of the Lean ecosystem.
 When Batteries changes in a significant way, Mathlib must adapt promptly.
-When necessary, Batteries contributors are expected to either create an adaptation PR on Mathlib, or ask for assistance for and to collaborate with this necessary process.
+When necessary, Batteries contributors are expected to either create an adaptation PR, or ask for assistance for and to collaborate with this necessary process.
 
 Every Batteries PR has an automatically created [Mathlib Nightly Testing](https://github.com/leanprover-community/mathlib4-nightly-testing/) branch called `batteries-pr-testing-N` where `N` is the number of the Batteries PR.
 This is a clone of Mathlib where the Batteries requirement points to the Batteries PR branch instead of the main branch.
 Batteries uses this branch to check whether the Batteries PR needs Mathlib adaptations.
 A tag `builds-mathlib` will be issued when this branch needs no adaptation; a tag `breaks-mathlib` will be issued when the branch does need an adaptation.
 
-The first step in creating an adaptation PR is to switch to the `batteries-pr-testing-N` branch and push changes to that branch until the Mathlib CI process works.
-You may need to ask for write access to [Mathlib Nightly Testing](https://github.com/leanprover-community/mathlib4-nightly-testing/) to do that.
-Changes to the Batteries PR will be integrated automatically as you work on this process.
-Do not redirect the Batteries requirement to main until the Batteries PR is merged.
-Please ask questions to Batteries and Mathlib maintainers if you run into issues with this process.
+To create an adaptation PR:
 
-When everything works, create an adaptation PR on Mathlib from the `batteries-pr-testing-N` branch.
-You may need to ping a Mathlib maintainer to review the PR, ask if you don't know who to ping.
-Once the Mathlib adaptation PR and the original Batteries PR have been reviewed and accepted, the Batteries PR will be merged first. Then, the Mathlib PR's lakefile needs to be repointed to the Batteries main branch: change the Batteries line to
-```lean
-require "leanprover-community" / "batteries" @ git "main"
-```
-Once CI once again checks out on Mathlib, the adaptation PR can be merged using the regular Mathlib process.
+1. Fork [Mathlib Nightly Testing](https://github.com/leanprover-community/mathlib4-nightly-testing/)
+
+2. From your fork, open a PR to the branch `batteries-pr-testing-N` where `N` is the number of the Batteries PR.
+
+3. Edit that PR until CI works and then post a comment on your original Batteries PR that the adaptation PR is ready for review.
+
+Please ask questions to Batteries maintainers if you run into issues with this process. 
+
+Once these steps are completed, a Batteries maintainer will:
+
+4. Review your adaptation PR and your Batteries PR. They may request some changes, so please pay attention and be responsive.
+
+5. Merge your adaptation PR into the `batteries-pr-testing-N` branch and create a PR from that branch onto Mathlib.
+
+6. Merge your Batteries PR and finalize the Mathlib adaptation PR for review by Mathlib maintainers.
+
+Since the Mathlib adaptation PR has been carefully reviewed by Batteries maintainers at this point, the Mathlib review process is usually quick and easy.
