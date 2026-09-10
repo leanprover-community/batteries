@@ -351,4 +351,17 @@ theorem_wanted chained_instances_synth : True := by
   have : Stupid (❰W❱) := inferInstance
   trivial
 
+/-! An `instance_wanted` referencing a *chained* wanted (`bc` depends on `J`) alongside an
+earlier ambient instance on `J`. When a later declaration auto-includes both, `J` is deduplicated
+against the binder surfaced by the first include, and the surfaced `d_bc` binder's type must
+follow that rename rather than refer to the discarded fresh name. -/
+private class Baz {α β : Type} (f : α → β) : Prop
+
+def_wanted J (n : Nat) : Type
+instance_wanted (n : Nat) : Pointed (❰J❱ n)
+def_wanted bc (n : Nat) : ❰J❱ n → ❰J❱ (n + 1)
+instance_wanted (n : Nat) : Baz (❰bc❱ n)
+
+theorem_wanted after_chained_instance : True
+
 end InstWantedTests
