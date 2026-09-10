@@ -45,6 +45,7 @@ public import Batteries.Data.Rat
 public import Batteries.Data.RunningStats
 public import Batteries.Data.Stream
 public import Batteries.Data.String
+public import Batteries.Data.Tape
 public import Batteries.Data.UInt
 public import Batteries.Data.UnionFind
 public import Batteries.Data.Vector
