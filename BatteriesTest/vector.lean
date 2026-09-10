@@ -1,5 +1,9 @@
 import Batteries.Data.Vector
 
+/-! ### Testing scans over `Vector`. -/
+
+#guard (Vector.scanr (· + ·) 0 (#v[1, 2, 3] : Vector Nat 3)).toList == [6, 5, 3, 0]
+
 /-! ### Testing decidable quantifiers for `Vector`. -/
 
 example : ∃ v : Vector Bool 6, v.toList.count true = 3 := by decide

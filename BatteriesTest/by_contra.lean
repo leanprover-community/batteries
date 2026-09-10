@@ -1,11 +1,14 @@
 import Batteries.Tactic.Basic
 
+
+set_option linter.defProp false in
 private def nonDecid (P : Prop) (x : P) : P := by
   by_contra h
   guard_hyp h : ¬P
   guard_target = False
   exact h x
 
+set_option linter.defProp false in
 private def decid (P : Prop) [Decidable P] (x : P) : P := by
   by_contra h
   guard_hyp h : ¬P

@@ -6,7 +6,6 @@ Authors: Mario Carneiro, Jannis Limperg
 module
 
 public import Lean.Meta.Tactic.Intro
-public import Batteries.Control.AlternativeMonad
 import Lean.Meta.SynthInstance
 
 public section
@@ -23,8 +22,6 @@ result is unspecified.
 def Meta.sortFVarsByContextOrder [Monad m] [MonadLCtx m]
     (hyps : Array FVarId) : m (Array FVarId) :=
   return (← getLCtx).sortFVarsByContextOrder hyps
-
-instance : AlternativeMonad Lean.Meta.MetaM where
 
 namespace MetavarContext
 

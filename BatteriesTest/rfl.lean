@@ -12,7 +12,7 @@ open Setoid
 universe u
 variable {α : Sort u} [Setoid α]
 
-@[refl] def iseqv_refl (a : α) : a ≈ a :=
+@[refl] theorem iseqv_refl (a : α) : a ≈ a :=
   iseqv.refl a
 
 example (a : α) : a ≈ a := by rfl

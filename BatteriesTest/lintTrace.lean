@@ -26,11 +26,11 @@ trace: [Batteries.Lint] Running linters:
 
 /--
 trace: [Batteries.Lint] Running linters:
-      defLemma
-[Batteries.Lint] - defLemma: (0/2) Starting...
-[Batteries.Lint] - defLemma: (1/2) Getting...
-[Batteries.Lint] - defLemma: (2/2) Passed!
+      unusedHavesSuffices
+[Batteries.Lint] - unusedHavesSuffices: (0/2) Starting...
+[Batteries.Lint] - unusedHavesSuffices: (1/2) Getting...
+[Batteries.Lint] - unusedHavesSuffices: (2/2) Passed!
 [Batteries.Lint] Completed linting!
 -/
 #guard_msgs in
-#lint- only defLemma
+#lint- only unusedHavesSuffices

@@ -52,7 +52,7 @@ theorem parentD_linkAux {self} {x y : Fin self.size} :
       else
         if x = i then y else parentD self i := by
   dsimp only [linkAux]; split <;> [rfl; split] <;> [rw [parentD_set]; split] <;> rw [parentD_set]
-  split <;> [(subst i; rwa [if_neg, parentD_eq]); rw [parentD_set]]
+  split <;> [(subst i; rwa [ite_eq_right, parentD_eq]); rw [parentD_set]]
 
 theorem parent_link {self} {x y : Fin self.size} (yroot) {i} :
     (link self x y yroot).parent i =
@@ -72,7 +72,7 @@ theorem root_link {self : UnionFind} {x y : Fin self.size}
       if self.rootD i = x ∨ self.rootD i = y then r.1 else self.rootD i := by
   if h : x.1 = y then
     refine ⟨x, .inl rfl, fun i => ?_⟩
-    rw [rootD_ext (m2 := self) (fun _ => by rw [parent_link, if_pos h])]
+    rw [rootD_ext (m2 := self) (fun _ => by rw [parent_link, ite_eq_left h])]
     split <;> [obtain _ | _ := ‹_› <;> simp [*]; rfl]
   else
   have {x y : Fin self.size}
@@ -84,7 +84,7 @@ theorem root_link {self : UnionFind} {x y : Fin self.size}
         m.rootD i = if self.rootD i = x ∨ self.rootD i = y then x.1 else self.rootD i := by
       if h : m.parent i = i then
         rw [rootD_eq_self.2 h]; rw [hm i] at h; split at h
-        · rw [if_pos, h]; simp [← h, rootD_eq_self, xroot]
+        · rw [ite_eq_left, h]; simp [← h, rootD_eq_self, xroot]
         · rw [rootD_eq_self.2 ‹_›]; split <;> [skip; rfl]
           next h' => exact h'.resolve_right (Ne.symm ‹_›)
       else

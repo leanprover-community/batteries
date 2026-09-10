@@ -26,6 +26,7 @@ theorem not_isUpper_of_isLower {c : Char} : c.isLower → ¬ c.isUpper := by
   simp [isUpper, UInt32.le_iff_toNat_le, isLower]
   omega
 
+
 theorem toLower_eq_of_not_isUpper {c : Char} (h : ¬ c.isUpper) : c.toLower = c := by
   simp_all [isUpper, UInt32.le_iff_toNat_le, toLower]
   omega
@@ -38,7 +39,7 @@ theorem toLower_eq_of_isUpper {c : Char} (h : c.isUpper) : c.toLower = ofNat (c.
 
 theorem toUpper_eq_of_not_isLower {c : Char} (h : ¬ c.isLower) : c.toUpper = c := by
   simp only [isLower, Bool.and_eq_true, decide_eq_true_eq] at h
-  simp only [toUpper, dif_neg h]
+  simp only [toUpper, dite_eq_right h]
 
 theorem toUpper_eq_of_isLower {c : Char} (h : c.isLower) : c.toUpper = ofNat (c.toNat - 32) := by
   ext
@@ -102,7 +103,7 @@ theorem toUpper_eq_of_isLower {c : Char} (h : c.isLower) : c.toUpper = ofNat (c.
         Bool.decide_and, not_and, Nat.not_le] at hl hu
       omega
     rw [toLower_eq_of_isUpper hu', toUpper_eq_of_isLower hl, toLower_eq_of_not_isUpper hu,
-      toNat_ofNat, if_pos hv, Nat.sub_add_cancel h, ofNat_toNat]
+      toNat_ofNat, ite_eq_left hv, Nat.sub_add_cancel h, ofNat_toNat]
   · rw [toUpper_eq_of_not_isLower hl]
 
 @[simp] theorem toUpper_toUpper_eq_toUpper (c : Char) : c.toUpper.toUpper = c.toUpper := by
@@ -118,7 +119,7 @@ theorem toUpper_eq_of_isLower {c : Char} (h : c.isLower) : c.toUpper = ofNat (c.
         isLower, not_and, Nat.not_le] at hu hl
       omega
     rw [toUpper_eq_of_isLower hl', toLower_eq_of_isUpper hu, toUpper_eq_of_not_isLower hl,
-      toNat_ofNat, if_pos hv, Nat.add_sub_cancel, ofNat_toNat]
+      toNat_ofNat, ite_eq_left hv, Nat.add_sub_cancel, ofNat_toNat]
   · rw [toLower_eq_of_not_isUpper hu]
 
 /-- Case folding for ASCII characters only.

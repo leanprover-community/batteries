@@ -6,7 +6,11 @@ open Batteries.Tactic.Lint
 namespace A
 
 /--
-error: Instance @impossible has arguments β : Type that are impossible to infer. Those arguments are not instance-implicit and do not appear in another instance-implicit argument or the return type.
+error: This instance has 1 argument that cannot be inferred using typeclass synthesis. Specifically
+
+  argument 2: `{β : Type}`
+
+These arguments are not instance-implicit and appear neither in another instance-implicit argument nor the return type, so they cannot be inferred using typeclass synthesis.
 -/
 #guard_msgs in
 local instance impossible {α β : Type} [Inhabited α] : Nonempty α := ⟨default⟩
@@ -14,7 +18,9 @@ local instance impossible {α β : Type} [Inhabited α] : Nonempty α := ⟨defa
 end A
 
 namespace B
-/-- error: instance `B.bad` target `Nat` is not a type class. -/
+/--
+error: The declaration `bad` should not be an instance as its return type `Nat` is not a type class.
+-/
 #guard_msgs in
 instance bad : Nat := 1
 

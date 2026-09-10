@@ -17,7 +17,4 @@ mutual
 end
 
 #guard_msgs in
-#lint- only defLemma
-
-#guard_msgs in
 #lint- only docBlame

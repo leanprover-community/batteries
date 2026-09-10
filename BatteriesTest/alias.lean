@@ -12,16 +12,43 @@ theorem foo : 1 + 1 = 2 := rfl
 /-- doc string for `alias foo` -/
 alias foo1 := foo
 @[deprecated (since := "2038-01-20")] alias foo2 := foo
+/--
+warning: `A.foo2` is itself deprecated in favor of `A.foo`; consider deprecating `B.foo3` in favor of `A.foo` instead
+
+Note: This warning can be disabled with `set_option linter.deprecated.deprecatedTarget false`
+
+Hint: Deprecate in favor of `A.foo` instead:
+  foo2̵
+-/
+#guard_msgs in
 @[deprecated foo2 (since := "2038-01-20")] alias _root_.B.foo3 := foo
+
+/--
+warning: `A.foo2` is itself deprecated in favor of `A.foo`; consider deprecating `A.foo4` in favor of `A.foo` instead
+
+Note: This warning can be disabled with `set_option linter.deprecated.deprecatedTarget false`
+
+Hint: Deprecate in favor of `A.foo` instead:
+  foo2̵
+-/
+#guard_msgs in
 @[deprecated foo2 "it was never a good idea anyway" (since := "last thursday")] alias foo4 := foo
 
 example : 1 + 1 = 2 := foo1
-/-- warning: `A.foo2` has been deprecated: Use `A.foo` instead -/
+/--
+warning: `A.foo2` has been deprecated: Use `A.foo` instead
+
+Hint: Replace the deprecated name:
+  foo2̵
+-/
 #guard_msgs in example : 1 + 1 = 2 := foo2
 /--
 warning: `B.foo3` has been deprecated: Use `A.foo2` instead
 
 Note: The updated constant is in a different namespace. Dot notation may need to be changed (e.g., from `x.foo3` to `foo2 x`).
+
+Hint: Replace the deprecated name:
+  B̵.̵f̵o̵o̵3̵f̲o̲o̲2̲
 -/
 #guard_msgs in example : 1 + 1 = 2 := B.foo3
 /-- warning: `A.foo4` has been deprecated: it was never a good idea anyway -/
@@ -85,12 +112,58 @@ unsafe alias barbaz3 := id
 
 /- iff version -/
 
+/--
+warning: The updated constant has a different type:
+  ∀ {a : Prop}, a ↔ a
+instead of
+  ∀ {a : Prop}, a → a
+
+This suggests that addressing the deprecation might be more involved than simply replacing the old name with the new name. This is often expected, but sometimes it indicates that the deprecation is in favor of the wrong declaration, or that there is a mistake in one of the statements.
+
+If the type difference is intentional, use `+typeChanged` to silence this warning.
+
+Hint: Add `+typeChanged` to silence this warning.
+---
+warning: The updated constant has a different type:
+  ∀ {a : Prop}, a ↔ a
+instead of
+  ∀ {a : Prop}, a → a
+
+This suggests that addressing the deprecation might be more involved than simply replacing the old name with the new name. This is often expected, but sometimes it indicates that the deprecation is in favor of the wrong declaration, or that there is a mistake in one of the statements.
+
+If the type difference is intentional, use `+typeChanged` to silence this warning.
+
+Hint: Add `+typeChanged` to silence this warning.
+-/
+#guard_msgs in
 @[deprecated (since := "2038-01-20")] alias ⟨mpId, mprId⟩ := Iff.rfl
+
+/-
+  Support the upcoming `+typeChanged` argument.
+-/
+@[deprecated +typeChanged (since := "2038-01-20")] alias ⟨mpId2, mprId2⟩ := Iff.rfl
 
 /-- info: A.mpId {a : Prop} : a → a -/
 #guard_msgs in #check mpId
 /-- info: A.mprId {a : Prop} : a → a -/
 #guard_msgs in #check mprId
+
+-- `+typeChanged` is threaded through to the `deprecated` attribute generated for each side,
+-- silencing the declaration-site warning while still recording `Iff.rfl` as the target.
+#guard_msgs in
+@[deprecated +typeChanged (since := "2038-01-20")] alias ⟨mpId', mprId'⟩ := Iff.rfl
+
+/--
+warning: `A.mprId'` has been deprecated: Use `Iff.rfl` instead
+
+Note: The updated constant has a different type:
+  ∀ {a : Prop}, a ↔ a
+instead of
+  ∀ {a : Prop}, a → a
+
+Note: The updated constant is in a different namespace. Dot notation may need to be changed (e.g., from `x.mprId'` to `Iff.rfl x`).
+-/
+#guard_msgs in example := @mprId'
 
 /--
 warning: `A.mpId` has been deprecated: Use `Iff.rfl` instead
@@ -118,6 +191,6 @@ Note: The updated constant is in a different namespace. Dot notation may need to
 /-- info: **Alias** of `A.foo`. -/
 #guard_msgs in
 #eval show MetaM _ from do
-  match ← Batteries.Tactic.Alias.getAliasInfo `A.foo1 with
+  match ← Batteries.Tactic.Alias.getAliasInfo? `A.foo1 with
   | some i => IO.println i.toString
   | none => IO.println "alias not found"

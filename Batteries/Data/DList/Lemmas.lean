@@ -35,8 +35,10 @@ theorem ofList_toList (l : DList α) : DList.ofList (DList.toList l) = l := by
    funext x
    rw [(inv x)]
 
+set_option backward.isDefEq.respectTransparency.types false in
 theorem toList_empty : toList (@empty α) = [] := by simp [empty]
 
+set_option backward.isDefEq.respectTransparency.types false in
 theorem toList_singleton (x : α) : toList (singleton x) = [x] := by simp [singleton]
 
 theorem toList_append (l₁ l₂ : DList α) : toList (l₁ ++ l₂) = toList l₁ ++ toList l₂ := by

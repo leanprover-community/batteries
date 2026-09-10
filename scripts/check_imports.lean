@@ -50,7 +50,7 @@ partial def addModulesIn (recurse : Bool) (prev : Array Name) (root : Name := .a
     if ← entry.path.isDir then
       if recurse then
         r ← addModulesIn recurse r (root.mkStr entry.fileName) entry.path
-    else
+    else if FilePath.extension entry.fileName == some "lean" then
       let .some mod := FilePath.fileStem entry.fileName
         | continue
       r := r.push (root.mkStr mod)
@@ -63,7 +63,7 @@ def modulePath (name : Name) : FilePath :=
 def writeImportModule (path : FilePath) (imports : Array Name) : IO Unit := do
   let imports := imports.qsort (·.toString < ·.toString)
   let lines := imports.map (s!"public import {·}\n")
-  let contents := String.join ("module\n" :: "\n" :: lines.toList)
+  let contents := String.join ("module -- deprecated_module: ignore\n" :: "\n" :: lines.toList)
   IO.println s!"Generating {path}"
   IO.FS.writeFile path contents
 

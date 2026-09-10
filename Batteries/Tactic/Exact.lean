@@ -21,6 +21,3 @@ def Lean.MVarId.assignIfDefEq (g : MVarId) (e : Expr) : MetaM Unit := do
   guard <| ← isDefEq (← g.getType) (← inferType e)
   g.checkNotAssigned `assignIfDefEq
   g.assign e
-
-@[deprecated (since := "2025-04-09")]
-alias Lean.MVarId.assignIfDefeq := Lean.MVarId.assignIfDefEq

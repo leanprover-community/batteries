@@ -173,7 +173,6 @@ TestInd.rec.{u} {motive : TestInd → Sort u} (foo : motive TestInd.foo) (bar : 
   motive t
 TestInd.recOn.{u} {motive : TestInd → Sort u} (t : TestInd) (foo : motive TestInd.foo) (bar : motive TestInd.bar) :
   motive t
-TestInd.toCtorIdx : TestInd → Nat
 -/
 #guard_msgs in
 #print prefix TestInd

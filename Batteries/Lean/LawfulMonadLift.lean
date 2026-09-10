@@ -38,6 +38,9 @@ private theorem EIO.adapt_EST_bind (f : ε₁ → ε₂) (ma : EIO ε₁ α) (g 
     EIO.adapt f (EST.bind ma g) = EST.bind (EIO.adapt f ma) (fun a => EIO.adapt f (g a)) := by
   funext s; simp only [EIO.adapt, EST.bind]; cases ma s <;> rfl
 
+set_option allowUnsafeReducibility true in
+attribute [implicit_reducible] EIO
+
 @[simp] theorem EIO.adapt_bind (f : ε₁ → ε₂) (ma : EIO ε₁ α) (g : α → EIO ε₁ β) :
     EIO.adapt f (ma >>= g) = EIO.adapt f ma >>= fun a => EIO.adapt f (g a) := by
   simp only [EIO.bind_eq_EST_bind, EIO.adapt_EST_bind]
