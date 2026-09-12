@@ -1,0 +1,836 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.051/juliamono.css');
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-size: 17px;
+    font-variant-ligatures: none;
+    font-family: 'Lato Medium';
+    color: var(--text-color);
+    background: var(--body-bg);
+}
+
+input, select, textarea, button{font-family:inherit;}
+
+a {
+   color: var(--link-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Lato Medium';
+}
+
+body { line-height: 1.5; }
+nav { line-height: normal; }
+
+:root {
+    --header-height: 3em;
+    --fragment-offset: calc(var(--header-height) + 1em);
+    --content-width: 55vw;
+
+    --header-bg: #f8f8f8;
+    --body-bg: white;
+    --code-bg: #f3f3f3;
+    --text-color: black;
+    --link-color: hsl(210, 100%, 30%);
+
+    --implicit-arg-text-color: var(--text-color);
+
+    --def-color: #92dce5;
+    --def-color-hsl-angle: 187;
+    --theorem-color: #8fe388;
+    --theorem-color-hsl-angle: 115;
+    --axiom-and-constant-color: #f44708;
+    --axiom-and-constant-color-hsl-angle: 16;
+    --structure-and-inductive-color: #f0a202;
+    --structure-and-inductive-color-hsl-angle: 40;
+    --starting-percentage: 100;
+
+    --hamburger-bg-color: #eee;
+    --hamburger-active-color: white;
+    --hamburger-border-color: #ccc;
+
+    --tags-border-color: #555;
+
+    --fragment-offset: calc(var(--header-height) + 1em);
+    --content-width: 55vw;
+}
+/* automatic dark theme if no javascript */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --header-bg: #111010;
+        --body-bg: #171717;
+        --code-bg: #363333;
+        --text-color: #eee;
+        --link-color: #58a6ff;
+
+        --implicit-arg-text-color: var(--text-color);
+
+        --def-color: #1F497F;
+        --def-color-hsl-angle: 214;
+        --theorem-color: #134E2D;
+        --theorem-color-hsl-angle: 146;
+        --axiom-and-constant-color: #6B1B1A;
+        --axiom-and-constant-color-hsl-angle: 1;
+        --structure-and-inductive-color: #73461C;
+        --structure-and-inductive-color-hsl-angle: 29;
+        --starting-percentage: 30;
+
+        --hamburger-bg-color: #2d2c2c;
+        --hamburger-active-color: black;
+        --hamburger-border-color: #717171;
+
+        --tags-border-color: #AAA;
+    }
+}
+
+[data-theme="light"] {
+    color-scheme: light;
+
+    --header-height: 3em;
+    --fragment-offset: calc(var(--header-height) + 1em);
+    --content-width: 55vw;
+
+    --header-bg: #f8f8f8;
+    --body-bg: white;
+    --code-bg: #f3f3f3;
+    --text-color: black;
+    --link-color: hsl(210, 100%, 30%);
+
+    --implicit-arg-text-color: var(--text-color);
+
+    --def-color: #92dce5;
+    --def-color-hsl-angle: 187;
+    --theorem-color: #8fe388;
+    --theorem-color-hsl-angle: 115;
+    --axiom-and-constant-color: #f44708;
+    --axiom-and-constant-color-hsl-angle: 16;
+    --structure-and-inductive-color: #f0a202;
+    --structure-and-inductive-color-hsl-angle: 40;
+    --starting-percentage: 100;
+
+    --hamburger-bg-color: #eee;
+    --hamburger-active-color: white;
+    --hamburger-border-color: #ccc;
+
+    --tags-border-color: #555;
+
+    --fragment-offset: calc(var(--header-height) + 1em);
+    --content-width: 55vw;
+}
+
+[data-theme="dark"] {
+    color-scheme: dark;
+
+    --header-bg: #111010;
+    --body-bg: #171717;
+    --code-bg: #363333;
+    --text-color: #eee;
+    --link-color: #58a6ff;
+
+    --implicit-arg-text-color: var(--text-color);
+
+    --def-color: #1F497F;
+    --def-color-hsl-angle: 214;
+    --theorem-color: #134E2D;
+    --theorem-color-hsl-angle: 146;
+    --axiom-and-constant-color: #6B1B1A;
+    --axiom-and-constant-color-hsl-angle: 1;
+    --structure-and-inductive-color: #73461C;
+    --structure-and-inductive-color-hsl-angle: 29;
+    --starting-percentage: 30;
+
+    --hamburger-bg-color: #2d2c2c;
+    --hamburger-active-color: black;
+    --hamburger-border-color: #717171;
+
+    --tags-border-color: #AAA;
+}
+
+@supports (width: min(10px, 5vw)) {
+    :root {
+        --content-width: clamp(20em, 55vw, 60em);
+    }
+}
+
+#nav_toggle {
+    display: none;
+}
+label[for="nav_toggle"] {
+    display: none;
+}
+
+header {
+    height: var(--header-height);
+    float: left;
+    position: fixed;
+    width: 100vw;
+    max-width: 100%;
+    left: 0;
+    right: 0;
+    top: 0;
+    --header-side-padding: 1em;
+    padding: 0 var(--header-side-padding);
+    background: var(--header-bg);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+@media screen and (max-width: 1000px) {
+    :root {
+        --content-width: 100vw;
+    }
+
+    .internal_nav {
+        display: none;
+    }
+
+    body .nav {
+        width: 100vw;
+        max-width: 100vw;
+        margin-left: 1em;
+        z-index: 1;
+    }
+
+    body main {
+        width: unset;
+        max-width: unset;
+        margin-left: unset;
+        margin-right: unset;
+    }
+    body .decl > div {
+        overflow-x: unset;
+    }
+
+    #nav_toggle:not(:checked) ~ .nav {
+        display: none;
+    }
+    #nav_toggle:checked ~ main {
+        visibility: hidden;
+    }
+
+    label[for="nav_toggle"]::before {
+        content: '≡';
+    }
+    label[for="nav_toggle"] {
+        display: inline-block;
+        margin-right: 1em;
+        border: 1px solid var(--hamburger-border-color);
+        padding: 0.5ex 1ex;
+        cursor: pointer;
+        background: var(--hamburger-bg-color);
+    }
+    #nav_toggle:checked ~ * label[for="nav_toggle"] {
+        background: var(--hamburger-active-color);
+    }
+
+    body header h1 {
+        font-size: 100%;
+    }
+
+    header {
+        --header-side-padding: 1ex;
+    }
+}
+@media screen and (max-width: 700px) {
+    header h1 span { display: none; }
+    :root { --header-side-padding: 1ex; }
+    #search_form button { display: none; }
+    #search_form input { width: 100%; }
+    header #autocomplete_results {
+        left: 1ex;
+        right: 1ex;
+        width: inherit;
+    }
+    body header > * { margin: 0; }
+}
+
+header > * {
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+    vertical-align: middle;
+}
+
+header h1 {
+    font-weight: normal;
+    font-size: 1.5em;
+}
+
+header .header_filename {
+    font-size: 17px;
+    color: gray;
+    text-align: center;
+    line-height: 95%;
+}
+
+/* inserted by nav.js */
+#autocomplete_results {
+    position: absolute;
+    top: var(--header-height);
+    right: calc(var(--header-side-padding));
+    width: calc(20em + 4em);
+    z-index: 1;
+    background: var(--header-bg);
+    border: 1px solid #aaa;
+    border-top: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: calc(100vh - var(--header-height));
+}
+
+#autocomplete_results:empty {
+    display: none;
+}
+
+#autocomplete_results[state="loading"]:empty {
+    display: block;
+    cursor: progress;
+}
+#autocomplete_results[state="loading"]:empty::before {
+    display: block;
+    content: ' 🐙 🐙 🐙 🐙 🐙 🐙 🐙 🐙 🐙 🐙 🐙 🐙 🐙 🐙 🐙 ';
+    padding: 1ex;
+    animation: marquee 10s linear infinite;
+}
+@keyframes marquee {
+    0% { transform: translate(100%, 0); }
+    100% { transform: translate(-100%, 0); }
+}
+
+#autocomplete_results[state="done"]:empty {
+    display: block;
+    text-align: center;
+    padding: 1ex;
+}
+#autocomplete_results[state="done"]:empty::before {
+    content: '(no results)';
+    font-style: italic;
+}
+
+#autocomplete_results a {
+    display: block;
+    color: inherit;
+    padding: 1ex;
+    border-left: 0.5ex solid transparent;
+    padding-left: 0.5ex;
+    cursor: pointer;
+}
+
+#autocomplete_results .selected .result_link a {
+    background: var(--body-bg);
+    border-color: var(--structure-and-inductive-color);
+}
+
+
+#search_results {
+    width: 100%;
+}
+#search_results[state="done"]:empty::before {
+    content: '(no results)';
+    font-style: italic;
+}
+
+#search_results .result_link, #search_results .result_doc {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.8);
+}
+
+.search_result_block {
+    width: 100%;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 75em;
+}
+
+.search_result_block_inner {
+    display: table;
+    width: 100%;
+}
+
+.search_result {
+    display: table-row;
+}
+
+.result_link, .result_doc {
+    display: table-cell;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+main, nav {
+    margin-top: calc(var(--header-height) + 1em);
+}
+
+/* extra space for scrolling things to the top */
+main {
+    margin-bottom: 90vh;
+}
+
+main {
+    max-width: var(--content-width);
+    /* center it: */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+nav {
+    float: left;
+    height: calc(100vh - var(--header-height) - 1em);
+    position: fixed;
+    top: 0;
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+}
+
+nav:hover {
+    scrollbar-color: gray transparent;
+}
+
+nav {
+    --column-available-space: calc((100vw - var(--content-width) - 5em)/2);
+    --column-width: calc(var(--column-available-space) - 1ex);
+    --dist-to-edge: 1ex;
+    width: var(--content-width);
+    max-width: var(--column-width);
+}
+@supports (width: min(10px, 5vw)) {
+    .nav { --desired-column-width: 20em; }
+    .internal_nav { --desired-column-width: 30em; }
+    nav {
+        --column-available-space: calc(max(0px, (100vw - var(--content-width) - 5em)/2));
+        --column-width: calc(clamp(0px, var(--column-available-space) - 1ex, var(--desired-column-width)));
+        --dist-to-edge: calc(max(1ex, var(--column-available-space) - var(--column-width)));
+    }
+}
+
+.nav { left: var(--dist-to-edge); }
+.internal_nav { right: var(--dist-to-edge); }
+
+.internal_nav .nav_link, .taclink {
+    /* indent everything but first line by 2ex */
+    text-indent: -2ex; padding-left: 2ex;
+}
+
+.navframe {
+    height: 100%;
+    width: 100%;
+}
+
+.navframe .nav {
+    position: absolute;
+    left: 0;
+    margin-left: 0;
+}
+
+.internal_nav .imports {
+    margin-bottom: 1rem;
+}
+
+.tagfilter-div {
+    margin-bottom: 1em;
+}
+.tagfilter-div > summary {
+    margin-bottom: 1ex;
+}
+
+/* top-level modules in left navbar */
+.nav .module_list > details {
+    margin-top: 1ex;
+}
+
+.nav details > * {
+    padding-left: 2ex;
+}
+
+.nav summary {
+    cursor: pointer;
+    padding-left: 0;
+}
+
+.nav summary::marker {
+    font-size: 85%;
+}
+
+.nav .nav_file {
+    display: inline-block;
+}
+
+.nav h3 {
+    margin-block-end: 4px;
+}
+
+/* People use way too long declaration names. */
+.internal_nav, .decl_name {
+    overflow-wrap: break-word;
+}
+
+/* Add a linebreak after a declaration name. */
+.decl_name::after {
+    content: "\A";
+    white-space: pre;
+}
+
+.nav_link {
+    overflow-wrap: break-word;
+}
+
+.navframe {
+    --header-height: 0;
+}
+
+#settings {
+    margin-top: 5em;
+}
+#settings h3 {
+    font-size: inherit;
+}
+
+#color-theme-switcher {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 2ex;
+    flex-flow: row wrap;
+}
+
+/* custom radio buttons for dark/light switch */
+#color-theme-switcher input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    display: inline-block;
+    box-sizing: content-box;
+    height: 1em;
+    width: 1em;
+    background-clip: content-box;
+    padding: 2px;
+    border: 2px solid transparent;
+    margin-bottom: -4px;
+    border-radius: 50%;
+}
+#color-theme-dark { background-color: #444; }
+#color-theme-light { background-color: #ccc; }
+#color-theme-system {
+    background-image: linear-gradient(60deg, #444, #444 50%, #CCC 50%, #CCC);
+}
+#color-theme-switcher input:checked {
+    border-color: var(--text-color);
+}
+
+.decl > div, .mod_doc {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.decl {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.decl > div {
+    /* sometimes declarations arguments are way too long
+       and would continue into the right column,
+       so put a scroll bar there: */
+    overflow-x: auto;
+}
+
+/* Make `#id` links appear below header. */
+.decl, h1[id], h2[id], h3[id], h4[id], h5[id], h6[id] {
+    scroll-margin-top: var(--fragment-offset);
+}
+/* don't need as much vertical space for these
+inline elements */
+a[id], li[id] {
+    scroll-margin-top: var(--header-height);
+}
+
+/* HACK: Safari doesn't support scroll-margin-top for
+fragment links (yet?)
+https://caniuse.com/mdn-css_properties_scroll-margin-top
+https://bugs.webkit.org/show_bug.cgi?id=189265
+*/
+@supports not (scroll-margin-top: var(--fragment-offset)) {
+    .decl::before, h1[id]::before, h2[id]::before, h3[id]::before,
+    h4[id]::before, h5[id]::before, h6[id]::before,
+    a[id]::before, li[id]::before {
+        content: "";
+        display: block;
+        height:      var(--fragment-offset);
+        margin-top:  calc(-1 * var(--fragment-offset));
+        box-sizing: inherit;
+        visibility: hidden;
+        width: 1px;
+    }
+}
+
+
+/* hide # after markdown headings except on hover */
+.markdown-heading:not(:hover) > .hover-link {
+    visibility: hidden;
+}
+
+main h2, main h3, main h4, main h5, main h6 {
+    margin-top: 1rem;
+    margin-bottom: -0.4rem;
+}
+.decl + .mod_doc > h2,
+        .decl + .mod_doc > h3,
+        .decl + .mod_doc > h4,
+        .decl + .mod_doc > h5,
+        .decl + .mod_doc > h6 {
+    margin-top: 4rem;
+}
+
+.def, .instance {
+    border-left: 10px solid var(--text-color);
+    border-top: 2px solid var(--text-color);
+}
+
+.theorem {
+    border-left: 10px solid var(--theorem-color);
+    border-top: 2px solid var(--theorem-color);
+}
+
+.axiom, .opaque {
+    border-left: 10px solid var(--axiom-and-constant-color);
+    border-top: 2px solid var(--axiom-and-constant-color);
+}
+
+.structure, .inductive, .class {
+    border-left: 10px solid var(--structure-and-inductive-color);
+    border-top: 2px solid var(--structure-and-inductive-color);
+}
+
+.fn {
+    display: inline-block;
+    /* border: 1px dashed red; */
+    text-indent: -1ex;
+    padding-left: 1ex;
+    white-space: pre-wrap;
+    vertical-align: top;
+}
+
+.fn { --fn: 1; }
+.fn .fn { --fn: 2; }
+.fn .fn .fn { --fn: 3; }
+.fn .fn .fn .fn { --fn: 4; }
+.fn .fn .fn .fn .fn { --fn: 5; }
+.fn .fn .fn .fn .fn .fn { --fn: 6; }
+.fn .fn .fn .fn .fn .fn .fn { --fn: 7; }
+.fn .fn .fn .fn .fn .fn .fn .fn { --fn: 8; }
+.fn {
+    transition: background-color 100ms ease-in-out;
+}
+
+.def .fn:hover, .instance .fn:hover {
+    background-color: hsla(var(--def-color-hsl-angle), 61%, calc(var(--starting-percentage) - 5%*var(--fn)));
+    box-shadow: 0 0 0 1px hsla(var(--def-color-hsl-angle), 61%, calc(var(--starting-percentage) - 5%*(var(--fn) + 1)));
+    border-radius: 5px;
+}
+.theorem .fn:hover {
+    background-color: hsla(var(--theorem-color-hsl-angle), 62%, calc(var(--starting-percentage) - 5%*var(--fn)));
+    box-shadow: 0 0 0 1px hsla(var(--theorem-color-hsl-angle), 62%, calc(var(--starting-percentage) - 5%*(var(--fn) + 1)));
+    border-radius: 5px;
+}
+.axiom .fn:hover, .opaque .fn:hover {
+    background-color: hsla(var(--axiom-and-constant-color-hsl-angle), 94%, calc(var(--starting-percentage) - 5%*var(--fn)));
+    box-shadow: 0 0 0 1px hsla(var(--axiom-and-constant-color-hsl-angle), 94%, calc(var(--starting-percentage) - 5%*(var(--fn) + 1)));
+    border-radius: 5px;
+}
+.structure .fn:hover, .inductive .fn:hover, .class .fn:hover {
+    background-color: hsla(var(--structure-and-inductive-color-hsl-angle), 98%, calc(var(--starting-percentage) - 5%*var(--fn)));
+    box-shadow: 0 0 0 1px hsla(var(--structure-and-inductive-color-hsl-angle), 98%, calc(var(--starting-percentage) - 5%*(var(--fn) + 1)));
+    border-radius: 5px;
+}
+
+.decl_args, .decl_type .decl_parent {
+    font-weight: normal;
+}
+
+.implicits, .impl_arg {
+    color: var(--text-color);
+    white-space: normal;
+}
+
+.decl_kind, .decl_name, .decl_extends {
+    font-weight: bold;
+}
+
+/* break long declaration names at periods where possible */
+.break_within {
+    word-break: break-all;
+}
+
+.break_within .name {
+    word-break: normal;
+}
+
+.decl_header {
+    /* indent everything but first line twice as much as decl_type */
+    text-indent: -8ex; padding-left: 8ex;
+}
+
+.decl_type {
+    margin-top: 2px;
+    margin-left: 4ex; /* extra indentation */
+}
+
+.decl.sorried .decl_name {
+    text-decoration: underline wavy #cca733;
+}
+
+.decl .sorry_msg > strong {
+    color: #a90000;
+}
+
+.imports li, code, .decl_header, .attributes, .structure_field_info,
+        .constructor, .instances li, .instances-for-list li, .equation, .structure_ext_ctor {
+    font-size: 92%;
+    font-family: 'JuliaMono', monospace;
+}
+
+pre {
+    white-space: break-spaces;
+}
+
+code, pre { background: var(--code-bg); }
+code, pre { border-radius: 5px; }
+code { padding: 1px 3px; }
+pre { padding: 1ex; }
+pre code { padding: 0 0; }
+
+#howabout code { background: inherit; }
+#howabout li { margin-bottom: 0.5ex; }
+
+.structure_fields, .constructors {
+    display: block;
+    padding-inline-start: 0;
+    margin-top: 1ex;
+    text-indent: -2ex; padding-left: 2ex;
+}
+
+.structure_field {
+    display: block;
+    margin-left: 2ex;
+}
+
+.inductive_ctor_doc  {
+    text-indent: 0;
+    margin-left: 2ex;
+    font-family: 'Lato Medium';
+    font-size: 17px;
+}
+
+.structure_field_doc {
+    text-indent: 0;
+    font-family: 'Lato Medium';
+    font-size: 17px;
+}
+
+.structure_ext_fields {
+    display: block;
+    padding-inline-start: 0;
+    margin-top: 1ex;
+    text-indent: -2ex; padding-left: 2ex;
+}
+
+.structure_ext_fields .structure_field {
+    margin-left: -1ex !important;
+}
+
+.structure_ext_ctor {
+    display: block;
+    text-indent: -3ex;
+}
+
+.constructor {
+    display: block;
+}
+.constructor:before {
+    content: '| ';
+    color: gray;
+}
+
+/** Don't show underline on types, to prevent the ≤ vs < confusion. **/
+a:link, a:visited, a:active {
+    color:var(--link-color);
+    text-decoration: none;
+}
+
+/** Show it on hover though. **/
+a:hover {
+    text-decoration: underline;
+}
+
+.impl_arg {
+    font-style: italic;
+    transition: opacity 300ms ease-in;
+}
+
+.decl_header:not(:hover) .impl_arg,
+        .constructor:not(:hover) .impl_arg,
+        .structure_field_info:not(:hover) .impl_arg {
+    opacity: 30%;
+    transition: opacity 1000ms ease-out;
+}
+
+.inherited_field {
+    transition: opacity 300ms ease-in;
+}
+
+.structure_fields:not(:hover) .inherited_field {
+    opacity: 30%;
+    transition: opacity 1000ms ease-out;
+}
+
+.gh_link {
+    float: right;
+    margin-left: 10px;
+}
+
+.ink_link {
+    float: right;
+    margin-left: 20px;
+}
+
+
+.docfile h2, .note h2 {
+    margin-block-start: 3px;
+    margin-block-end: 0px;
+}
+
+.docfile h2 a {
+    color: var(--text-color);
+}
+
+.tags {
+    margin-bottom: 1ex;
+}
+
+.tags ul {
+    display: inline;
+    padding: 0;
+}
+
+.tags li {
+    border: 1px solid var(--tags-border-color);
+    border-radius: 4px;
+    list-style-type: none;
+    padding: 1px 3px;
+    margin-left: 1ex;
+    display: inline-block;
+}
+
+/* used by nav.js */
+.hide { display: none; }
+
+.tactic, .note {
+    border-top: 3px solid #0479c7;
+    padding-top: 2em;
+    margin-top: 2em;
+    margin-bottom: 2em;
+}

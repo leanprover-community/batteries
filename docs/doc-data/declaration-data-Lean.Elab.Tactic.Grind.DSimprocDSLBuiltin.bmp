@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Sym.DSimp.DSimprocDSL","Lean.Elab.Tactic.Grind.DSimprocDSL","Lean.Meta.Sym.DSimp.DSimproc","Lean.Meta.Sym.DSimp.EvalGround","Lean.Meta.Sym.DSimp.Reduce"],"instances":[],"name":"Lean.Elab.Tactic.Grind.DSimprocDSLBuiltin"}

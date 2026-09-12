@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Data.List.Erase","Init.Data.List.Lemmas","Init.Data.List.Nat.InsertIdx","Init.Data.List.Nat.Modify","Init.Data.List.Nat.TakeDrop","Init.Data.List.TakeDrop","Init.Data.List.Zip","Init.Grind.Attr"],"instances":[],"name":"Init.Grind.Homo.List"}

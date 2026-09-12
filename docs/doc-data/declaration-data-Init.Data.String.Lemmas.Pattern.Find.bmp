@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Data.String.Lemmas.Pattern.Find.Basic","Init.Data.String.Lemmas.Pattern.Find.Char","Init.Data.String.Lemmas.Pattern.Find.Pred","Init.Data.String.Lemmas.Pattern.Find.String"],"instances":[],"name":"Init.Data.String.Lemmas.Pattern.Find"}

@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.Tactic.Grind.Basic","Lean.Elab.Tactic.Grind.DSimprocDSL","Lean.Meta.Sym.DSimp.DSimproc","Lean.Meta.Sym.DSimp.Reduce","Lean.Meta.Sym.DSimp.Variant"],"instances":[],"name":"Lean.Elab.Tactic.Grind.DSimp"}
