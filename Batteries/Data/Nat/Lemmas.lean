@@ -161,11 +161,6 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 
 -- TODO cont_to_bool_mod_two
 
-/-! ### sum -/
-
-@[deprecated (since := "2025-07-31")]
-alias sum_append := List.sum_append_nat
-
 /-! ### ofBits -/
 
 @[simp] theorem ofBits_zero (f : Fin 0 → Bool) : ofBits f = 0 := rfl

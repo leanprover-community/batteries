@@ -444,20 +444,26 @@ private def elabWanted (kind : WantedCmdKind) (stx : Syntax)
   -- `❰J❱`) referenced but unbound.
   let surfaceDeps (deps : Array WantedDep) :
       CommandElabM (TSyntax `term → CommandElabM (TSyntax `term)) := do
+    let applyRenames (renames : Std.HashMap Name Name) (t : TSyntax `term) : TSyntax `term :=
+      if renames.isEmpty then t else
+      ⟨Id.run <| t.raw.replaceM fun s => do
+        if s.isIdent then
+          if let some r := renames[s.getId]? then return some (mkIdent r).raw
+        return none⟩
     let mut renames : Std.HashMap Name Name := {}
     for dep in deps do
       match (← nameToHypRef.get).find? dep.name with
       | some existing => renames := renames.insert dep.ident.getId existing.getId
       | none =>
         nameToHypRef.modify (·.insert dep.name dep.ident)
+        -- A dep's binder type may refer to an *earlier* dep of the same reference (e.g. `d_bc`'s
+        -- type mentions `d_J`); if that earlier dep was deduplicated against an existing binder,
+        -- the reference must follow the rename too, or it is left dangling.
         hypOrderRef.modify (·.push (dep.ident,
-          { kind := .defWanted, binderType := dep.binderType, isClass := dep.isClass }))
-    return fun t => do
-      if renames.isEmpty then return t
-      return ⟨← t.raw.replaceM fun s => do
-        if s.isIdent then
-          if let some r := renames[s.getId]? then return some (mkIdent r).raw
-        return none⟩
+          { kind := .defWanted, binderType := applyRenames renames dep.binderType,
+            isClass := dep.isClass }))
+    let finalRenames := renames
+    return fun t => pure (applyRenames finalRenames t)
   let rewriteRefs (s : Syntax) : CommandElabM Syntax := s.replaceM fun node => do
     unless node.getKind == ``wantedRef do return none
     let identStx : Syntax.Ident := ⟨node[1]⟩
