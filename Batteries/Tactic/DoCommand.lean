@@ -192,7 +192,7 @@ private def continuation (ref : IO.Ref (Option ContinuationResult))
     mkPureApp (mkConst ``Data) resExpr
 
 /-- Monad-generic version of the `#do` command -/
-def elabDoCommandCore (m : Type → Type) [Monad m] [MonadEvalT m CommandElabM]
+def elabDoCommandCore (m : Type → Type) [MonadEvalT m CommandElabM]
     (mExpr : Expr) (doSeq : TSyntax ``Lean.Parser.Term.doSeq) :
     CommandElabM Unit := do
   let extData := doExtension.getState (← getEnv)
