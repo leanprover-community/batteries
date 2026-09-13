@@ -135,49 +135,6 @@ private def checkLCtx (lctx : LocalContext) : TermElabM LocalContext := do
           | d => d
     return lctx
 
-/-- Implementation detail of `#do` -/
-structure ContinuationResult where
-  /-- All new free variables in the order they are stored in the resulting array -/
-  newFVars : Array FVarId
-  /-- The new state, with updated local context and mutable variables -/
-  newState : DoCommandExtensionState
-
-/-- Continuation for just executing something without adding new variables -/
-def observationCont (resultName : Name) : DoElemCont where
-  resultName
-  resultType := mkConst ``Unit
-  kind := .duplicable
-  k := mkPureApp (mkConst ``Data) (mkConst ``Data.empty)
-
-/-- Continuation for adding new variables -/
-def variableAdditionCont (ref : IO.Ref (Option ContinuationResult))
-    (outerRef : Syntax) (state : DoCommandExtensionState) (resultName : Name) : DoElemCont where
-  resultName
-  resultType := mkConst ``Unit
-  kind := .nonDuplicable
-  k := do
-    if (← ref.get).isSome then
-      logWarningAt outerRef "The continuation got run twice. This is probably due to \
-        https://github.com/leanprover/lean4/issues/13858"
-      -- even if the other branch returned a larger array,
-      -- this will cause it to ignore those values
-      ref.set <| some ⟨#[], state⟩
-      return ← mkPureApp (mkConst ``Data) (mkConst ``Data.empty)
-    let lctx ← getLCtx
-    let localInstances ← getLocalInstances
-    let mut newFVars := #[]
-    let mut resExpr := mkConst ``Data.empty
-    for decl in lctx do
-      if state.lctx.contains decl.fvarId then
-        continue
-      newFVars := newFVars.push decl.fvarId
-      let u ← getLevel decl.type
-      resExpr := mkApp3 (.const ``Data.push [u]) decl.type resExpr decl.toExpr
-    let { mutVars, mutVarDefs, .. } ← read
-    let newState := { state with lctx, localInstances, mutVars, mutVarDefs }
-    ref.set <| some { newFVars, newState }
-    mkPureApp (mkConst ``Data) resExpr
-
 /--
 Returns `true` if `nm` doesn't depend on any `sorry`s that were introduced in this module.
 -/
@@ -200,6 +157,40 @@ Returns `true` if `e` doesn't depend on any `sorry`s that were introduced in thi
 def checkNoNewSorriesInExpr (env : Environment) (e : Expr) : Bool :=
   e.getUsedConstants.allM (checkNoNewSorries env) |>.run' {} |>.run
 
+/-- Implementation detail of `#do` -/
+structure ContinuationResult where
+  /-- All new free variables in the order they are stored in the resulting array -/
+  newFVars : Array FVarId
+  /-- The new state, with updated local context and mutable variables -/
+  newState : DoCommandExtensionState
+
+/-- Continuation for adding new variables -/
+private def continuation (ref : IO.Ref (Option ContinuationResult))
+    (outerRef : Syntax) (state : DoCommandExtensionState) (resultName : Name) : DoElemCont where
+  resultName
+  resultType := mkConst ``Unit
+  kind := .nonDuplicable
+  k := do
+    if (← ref.get).isSome then
+      logWarningAt outerRef "The continuation got run twice. This is probably due to \
+        https://github.com/leanprover/lean4/issues/13858"
+      -- empty returns get handled in a special way in `elabDoCommandCore`
+      return ← mkPureApp (mkConst ``Data) (mkConst ``Data.empty)
+    let lctx ← getLCtx
+    let localInstances ← getLocalInstances
+    let mut newFVars := #[]
+    let mut resExpr := mkConst ``Data.empty
+    for decl in lctx do
+      if state.lctx.contains decl.fvarId then
+        continue
+      newFVars := newFVars.push decl.fvarId
+      let u ← getLevel decl.type
+      resExpr := mkApp3 (.const ``Data.push [u]) decl.type resExpr decl.toExpr
+    let { mutVars, mutVarDefs, .. } ← read
+    let newState := { state with lctx, localInstances, mutVars, mutVarDefs }
+    ref.set <| some { newFVars, newState }
+    mkPureApp (mkConst ``Data) resExpr
+
 /-- Monad-generic version of the `#do` command -/
 def elabDoCommandCore (m : Type → Type) [Monad m] [MonadEvalT m CommandElabM]
     (mExpr : Expr) (doSeq : TSyntax ``Lean.Parser.Term.doSeq) :
@@ -214,14 +205,7 @@ def elabDoCommandCore (m : Type → Type) [Monad m] [MonadEvalT m CommandElabM]
     withLCtx extData.lctx extData.localInstances do
     let resultName ← mkFreshUserName `__x
     let ref : IO.Ref (Option ContinuationResult) ← IO.mkRef none
-    let controlInfo ← inferControlInfoSeq doSeq
-    let cont : DoElemCont :=
-      if controlInfo.returnsEarly then
-        -- if we have early returns, we can't add new variables since we might
-        -- return before any variables are introduced
-        observationCont resultName
-      else
-        variableAdditionCont ref outerRef extData resultName
+    let cont : DoElemCont := continuation ref outerRef extData resultName
     let monadInfo := { m := mExpr, u := 0, v := 0 }
     let ctx := {
       monadInfo
@@ -229,12 +213,7 @@ def elabDoCommandCore (m : Type → Type) [Monad m] [MonadEvalT m CommandElabM]
       contInfo := ContInfo.toContInfoRef {
         returnCont := {
           resultType := mkConst ``Unit
-          k _ := do
-            if controlInfo.returnsEarly then
-              mkPureApp (mkConst ``Data) (mkConst ``Data.empty)
-            else
-              throwError "Internal error inside a do elaborator: called return continuation \
-                while the ControlInfo indicates no early returns"
+          k _ := mkPureApp (mkConst ``Data) (mkConst ``Data.empty)
         }
       }
       ops := DoOps.toDoOpsRef .default
@@ -252,6 +231,7 @@ def elabDoCommandCore (m : Type → Type) [Monad m] [MonadEvalT m CommandElabM]
     let act ← unsafe extData.eval (m Data) (.app mExpr (mkConst ``Data)) res
       (checkMeta := !Elab.inServer.get (← getOptions))
     -- if the continuation didn't get run, that probably means we throw an error or return
+    -- in that case, we just don't add new values below
     let ⟨newFVars, newState⟩ := (← ref.get).getD ⟨#[], extData⟩
     let newState := { newState with lctx := ← checkLCtx newState.lctx }
     withLCtx newState.lctx newState.localInstances do
@@ -268,9 +248,13 @@ def elabDoCommandCore (m : Type → Type) [Monad m] [MonadEvalT m CommandElabM]
   match res with
   | .error e => throw e
   | .ok res =>
+    if res.isEmpty && !newFVars.isEmpty then
+      -- No new variables were added; either because of an early return or because of a
+      -- continuation running twice. In this case using `newState` would break the invariant
+      -- of `values` so we just keep the old state
+      return
     let mut newState := newState
-    -- Note: `newFVars` may be shorter than `res`; the additional values are just ignored
-    -- See comment in `variableAdditionCont`
+    assert! res.size == newFVars.size
     for fvar in newFVars, val in res do
       newState := { newState with values := newState.values.insert fvar val }
     modifyEnv (doExtension.setState · newState)
