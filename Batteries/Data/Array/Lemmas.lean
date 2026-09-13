@@ -12,13 +12,6 @@ public import Batteries.Data.List.Lemmas
 
 namespace Array
 
-@[deprecated forIn_toList +typeChanged (since := "2025-07-01")]
-theorem forIn_eq_forIn_toList [Monad m]
-    (as : Array α) (b : β) (f : α → β → m (ForInStep β)) :
-    forIn as b f = forIn as.toList b f := by
-  cases as
-  simp
-
 /-! ### idxOf? -/
 
 @[grind =]

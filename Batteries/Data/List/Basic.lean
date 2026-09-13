@@ -610,30 +610,6 @@ where
     | [] => isTrue <| .singleton a
     | b :: l => haveI := (go b l); decidable_of_iff' _ isChain_cons_cons
 
-/-- `Chain R a l` means that `R` holds between adjacent elements of `a::l`.
-```
-Chain R a [b, c, d] ↔ R a b ∧ R b c ∧ R c d
-``` -/
-@[deprecated IsChain +typeChanged (since := "2025-09-19")]
-def Chain : (α → α → Prop) → α → List α → Prop := (IsChain · <| · :: ·)
-
-set_option linter.deprecated false in
-/-- A list of length 1 is a chain. -/
-@[deprecated IsChain.singleton (since := "2025-09-19")]
-theorem Chain.nil {a : α} : Chain R a [] := IsChain.singleton a
-
-set_option linter.deprecated false in
-/-- If `a` relates to `b` and `b::l` is a chain, then `a :: b :: l` is also a chain. -/
-@[deprecated IsChain.cons_cons (since := "2025-09-19")]
-theorem Chain.cons : R a b → Chain R b l → Chain R a (b :: l)  := IsChain.cons_cons
-
-/-- `Chain' R l` means that `R` holds between adjacent elements of `l`.
-```
-Chain' R [a, b, c, d] ↔ R a b ∧ R b c ∧ R c d
-``` -/
-@[deprecated IsChain (since := "2025-09-19")]
-def Chain' : (α → α → Prop) → List α → Prop := (IsChain · ·)
-
 /-- **Deprecated:** Use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups` instead. -/
 @[deprecated "use `reverse ∘ eraseDups ∘ reverse` or just `eraseDups`" (since := "2026-01-03")]
 abbrev eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
