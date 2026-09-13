@@ -178,6 +178,28 @@ def variableAdditionCont (ref : IO.Ref (Option ContinuationResult))
     ref.set <| some { newFVars, newState }
     mkPureApp (mkConst ``Data) resExpr
 
+/--
+Returns `true` if `nm` doesn't depend on any `sorry`s that were introduced in this module.
+-/
+partial def checkNoNewSorries (env : Environment) (nm : Name) : StateM NameSet Bool := do
+  if nm == ``sorryAx then return false
+  if (env.getModuleIdx? nm).isSome then
+    -- imported constant
+    return true
+  if (← get).contains nm then
+    return true
+  modify fun visited => visited.insert nm
+  let some info := env.find? nm | return true
+  for c in info.getUsedConstantsAsSet do
+    unless ← checkNoNewSorries env c do return false
+  return true
+
+/--
+Returns `true` if `e` doesn't depend on any `sorry`s that were introduced in this module.
+-/
+def checkNoNewSorriesInExpr (env : Environment) (e : Expr) : Bool :=
+  e.getUsedConstants.allM (checkNoNewSorries env) |>.run' {} |>.run
+
 /-- Monad-generic version of the `#do` command -/
 def elabDoCommandCore (m : Type → Type) [Monad m] [MonadEvalT m CommandElabM]
     (mExpr : Expr) (doSeq : TSyntax ``Lean.Parser.Term.doSeq) :
@@ -185,6 +207,10 @@ def elabDoCommandCore (m : Type → Type) [Monad m] [MonadEvalT m CommandElabM]
   let extData := doExtension.getState (← getEnv)
   let outerRef ← getRef
   let (act, newFVars, newState) ← liftTermElabM do
+    -- better give it any name than pollute the global namespace
+    -- we can't just use `withoutModifyingEnv` because the auxiliary constants may be needed by
+    -- further uses of `#do`
+    Term.withDeclName (mkPrivateName (← getEnv) (← mkFreshUserName `_do)) do
     withLCtx extData.lctx extData.localInstances do
     let resultName ← mkFreshUserName `__x
     let ref : IO.Ref (Option ContinuationResult) ← IO.mkRef none
@@ -216,14 +242,16 @@ def elabDoCommandCore (m : Type → Type) [Monad m] [MonadEvalT m CommandElabM]
       mutVarDefs := extData.mutVarDefs
     }
     let res ← ((elabDoSeq doSeq cont).run ctx)
-    -- don't evaluate terms with elaboration errors
-    if res.hasSyntheticSorry then throwAbortTerm
     Term.synthesizeSyntheticMVarsNoPostponing
     let res ← checkExpr res
+    unless checkNoNewSorriesInExpr (← getEnv) res do
+      if res.hasSyntheticSorry then throwAbortTerm -- an error has already been logged
+      throwError "\
+        Aborting evaluation since the expression depends on the 'sorry' axiom, \
+        which can lead to runtime instability and crashes."
     let act ← unsafe extData.eval (m Data) (.app mExpr (mkConst ``Data)) res
       (checkMeta := !Elab.inServer.get (← getOptions))
-    -- if the continuation didn't get run, that probably means there is an infinite loop somewhere
-    -- ... which is ... fine but then we just don't have to update the state in any way
+    -- if the continuation didn't get run, that probably means we throw an error or return
     let ⟨newFVars, newState⟩ := (← ref.get).getD ⟨#[], extData⟩
     let newState := { newState with lctx := ← checkLCtx newState.lctx }
     withLCtx newState.lctx newState.localInstances do
@@ -232,13 +260,20 @@ def elabDoCommandCore (m : Type → Type) [Monad m] [MonadEvalT m CommandElabM]
         let substr := { str := "", startPos := 0, stopPos := 0 }
         Term.addTermInfo' (.atom (.original substr 0 substr 0) "") (.fvar fvar)
     return (act, newFVars, newState)
-  let res ← MonadEvalT.monadEval act
-  let mut newState := newState
-  -- Note: `newFVars` may be shorter than `res`; the additional values are just ignored
-  -- See comment in `variableAdditionCont`
-  for fvar in newFVars, val in res do
-    newState := { newState with values := newState.values.insert fvar val }
-  modifyEnv (doExtension.setState · newState)
+  -- Make sure that `IO.println` output is always in the right spot and capturable by `#guard_msgs`
+  let (out, res) ← IO.FS.withIsolatedStreams
+      (isolateStderr := Core.stderrAsMessages.get (← getOptions)) do
+    observing <| MonadEvalT.monadEval act
+  unless out.isEmpty do logInfo out
+  match res with
+  | .error e => throw e
+  | .ok res =>
+    let mut newState := newState
+    -- Note: `newFVars` may be shorter than `res`; the additional values are just ignored
+    -- See comment in `variableAdditionCont`
+    for fvar in newFVars, val in res do
+      newState := { newState with values := newState.values.insert fvar val }
+    modifyEnv (doExtension.setState · newState)
 
 /--
 `#do code` runs `code` with access to all variables from previous `#do` invocations. Example:
@@ -257,8 +292,8 @@ syntax (name := doCommand) "#do " doSeq : command
 
 @[command_elab doCommand, inherit_doc doCommand, incremental]
 def elabDoCommand : CommandElab := simpleIncrementalElab fun stx => do
-  let `(#do $seq) := stx | throwUnsupportedSyntax
-  elabDoCommandCore CommandElabM (mkConst ``CommandElabM) seq
+  let `(#do%$tk $seq) := stx | throwUnsupportedSyntax
+  withRef tk <| elabDoCommandCore CommandElabM (mkConst ``CommandElabM) seq
 
 /--
 `#do_meta code` runs `code` with access to all variables from previous `#do` invocations in the
@@ -277,8 +312,8 @@ syntax (name := doMetaCommand) "#do_meta " doSeq : command
 
 @[command_elab doMetaCommand, inherit_doc doCommand, incremental]
 def elabDoMetaCommand : CommandElab := simpleIncrementalElab fun stx => do
-  let `(#do $seq) := stx | throwUnsupportedSyntax
-  elabDoCommandCore MetaM (mkConst ``MetaM) seq
+  let `(#do_meta%$tk $seq) := stx | throwUnsupportedSyntax
+  withRef tk <| elabDoCommandCore MetaM (mkConst ``MetaM) seq
 
 /--
 Clears all variables from the current `#do` context.
