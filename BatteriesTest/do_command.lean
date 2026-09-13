@@ -79,6 +79,16 @@ set_option linter.unusedVariables false in
 #guard_msgs in #do IO.println y
 
 /-!
+`#do` will refuse to evaluate in the presence of `sorry`
+-/
+
+/--
+error: Aborting evaluation since the expression depends on the 'sorry' axiom,
+which can lead to runtime instability and crashes.
+-/
+#guard_msgs in #do sorry
+
+/-!
 After `#clear_do`, all previously existing variables are removed.
 -/
 
