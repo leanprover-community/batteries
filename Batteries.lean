@@ -97,6 +97,7 @@ public import Batteries.Tactic.Alias
 public import Batteries.Tactic.Basic
 public import Batteries.Tactic.Case
 public import Batteries.Tactic.Congr
+public import Batteries.Tactic.DoCommand
 public import Batteries.Tactic.Exact
 public import Batteries.Tactic.GeneralizeProofs
 public import Batteries.Tactic.HelpCmd
@@ -122,6 +123,7 @@ public import Batteries.Tactic.Trans
 public import Batteries.Tactic.Unreachable
 public import Batteries.Util.Cache
 public import Batteries.Util.ExtendedBinder
+public import Batteries.Util.Incremental
 public import Batteries.Util.LibraryNote
 public import Batteries.Util.Panic
 public import Batteries.Util.Pickle
