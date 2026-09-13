@@ -1,0 +1,287 @@
+/-
+Copyright (c) 2026 Robin Arnez. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Robin Arnez
+-/
+module
+
+public meta import Lean.Elab.Do.Basic
+public meta import Lean.Meta.Eval
+public meta import Batteries.Util.Incremental
+
+public meta section
+
+/-!
+# The `#do` command
+
+The `#do` command is like `run_cmd` but allows using variables from previous uses of `#do`.
+Furthermore, `#do_meta` is like `#do` and shares its variable state while operating in `MetaM`.
+Finally, `#clear_do` can be used to remove all variables from the current do state.
+-/
+
+namespace Batteries.Tactic.DoCommand
+
+open Lean Meta Elab Command Do
+
+/-- The state for `#do` -/
+structure DoCommandExtensionState where
+  /--
+  The current local context for `#do`.
+
+  Invariant: `lctx` does not contain metavariables or level parameters or non-dependent `ldecl`s.
+  -/
+  lctx : LocalContext := {}
+  /-- The local instances for `lctx` -/
+  localInstances : LocalInstances := #[]
+  /--
+  The values associated to free variables in `lctx`.
+
+  Invariant: every free variable in `lctx` has a corresponding value in `values`
+  -/
+  values : FVarIdMap NonScalar := {}
+  /-- See `Lean.Elab.Do.Context.mutVars` -/
+  mutVars : Array MutVar := #[]
+  /-- See `Lean.Elab.Do.Context.mutVarDefs` -/
+  mutVarDefs : Std.HashMap Name MutVar := {}
+deriving Inhabited
+
+/-- The extension for `#do` -/
+initialize doExtension : EnvExtension DoCommandExtensionState ←
+  registerEnvExtension (pure {})
+
+/-- Implementation detail of `#do` -/
+abbrev Data := Array NonScalar
+
+/-- Implementation detail of `#do` -/
+unsafe def Data.getValue.{u} {α : Sort u} (vs : Data) (i : Nat) : α :=
+  unsafeCast <| vs[i]'lcProof
+
+@[inherit_doc Data.getValue]
+unsafe def Data.getValueLetImpl.{u} {α : Sort u} (vs : Data) (i : Nat) (_v : α) : α :=
+  unsafeCast <| vs[i]'lcProof
+
+/-- Implementation detail of `#do` -/
+@[implemented_by getValueLetImpl]
+unsafe abbrev Data.getValueLet.{u} {α : Sort u} (_vs : Data) (_i : Nat) (v : α) : α := v
+
+/-- Implementation detail of `#do` -/
+def Data.empty : Data := #[]
+
+/-- Implementation detail of `#do` -/
+unsafe nonrec def Data.push.{u} {α : Sort u} (d : Data) (x : α) : Data := d.push (unsafeCast x)
+
+/--
+Given `value : type` which may depend on free variables in `state.lctx`, evaluates it to a value
+of type `α` (assuming `type` is equivalent to `α`).
+-/
+unsafe def DoCommandExtensionState.eval (state : DoCommandExtensionState)
+    (α : Type) (type : Expr) (value : Expr) (checkMeta := true) : MetaM α := do
+  if value.hasMVar then
+    throwError "failed to evaluate expression, it contains metavariables{indentExpr value}"
+  let fvars ← (collectFVars {} value).addDependencies
+  let fvarsInOrder := state.lctx.getFVarIds.filter fvars.fvarSet.contains
+  let value ← withLCtx state.lctx state.localInstances do
+    withLocalDeclD `data (mkConst ``Data) fun data => do
+      let mut newLCtx ← getLCtx -- including the `data` variable
+      -- Replace local declarations in `fvarsInOrder` with `have` and `let` declarations
+      for h : i in 0...fvarsInOrder.size do
+        let fvar := fvarsInOrder[i]
+        let u ← getLevel (← fvar.getType)
+        newLCtx := newLCtx.modifyLocalDecl fvar fun
+          | .cdecl idx fvar userName type bi kind =>
+            let value := mkApp3 (.const ``Data.getValue [u]) type data (mkRawNatLit i)
+            .ldecl idx fvar userName type value (nondep := true) kind
+          | .ldecl idx fvar userName type value nondep kind =>
+            let value := mkApp4 (.const ``Data.getValueLet [u]) type data (mkRawNatLit i) value
+            .ldecl idx fvar userName type value nondep kind
+      -- Note: The free variables are out of order here (`data` should be first)
+      -- but `mkLetFVars` ignores the order as long as we don't have metavariables
+      -- (which we don't have here, see check above)
+      withLCtx' newLCtx do
+        mkLetFVars (#[data] ++ fvarsInOrder.map Expr.fvar) value (generalizeNondepLet := false)
+  let mut data : Data := .empty
+  for fvar in fvarsInOrder do
+    data := data.push (state.values.get! fvar)
+  let f ← evalExpr (Data → α) (.forallE `data (mkConst ``Data) type .default) value
+    (safety := .unsafe) (checkMeta := checkMeta)
+  return f data
+
+private def checkExpr (e : Expr) : TermElabM Expr := do
+  let e ← instantiateMVars e
+  if e.hasExprMVar then
+    discard <| Term.logUnassignedUsingErrorInfos (← getMVars e)
+    throwAbortTerm
+  if e.hasLevelMVar then
+    let lmvars := collectLevelMVars {} e
+    discard <| Term.logUnassignedLevelMVarsUsingErrorInfos lmvars.result
+    throwAbortTerm
+  if e.hasLevelParam then
+    throwError "Resulting expression has unexpected level parameters"
+  return e
+
+private def checkLCtx (lctx : LocalContext) : TermElabM LocalContext := do
+  withLCtx lctx #[] do
+    let mut lctx := lctx
+    for decl in lctx do
+      if decl.type.hasMVar || decl.type.hasLevelParam then
+        lctx := lctx.setType decl.fvarId <| ← checkExpr decl.type
+      if let some value := decl.value? then
+        let newValue ← checkExpr value
+        lctx := lctx.modifyLocalDecl decl.fvarId fun decl => decl.setValue newValue
+      if decl.isNondep then
+        lctx := lctx.modifyLocalDecl decl.fvarId fun
+          | .ldecl idx fvar userName type _value (nondep := true) kind =>
+            .cdecl idx fvar userName type .default kind
+          | d => d
+    return lctx
+
+/-- Implementation detail of `#do` -/
+structure ContinuationResult where
+  /-- All new free variables in the order they are stored in the resulting array -/
+  newFVars : Array FVarId
+  /-- The new state, with updated local context and mutable variables -/
+  newState : DoCommandExtensionState
+
+/-- Continuation for just executing something without adding new variables -/
+def observationCont (resultName : Name) : DoElemCont where
+  resultName
+  resultType := mkConst ``Unit
+  kind := .duplicable
+  k := mkPureApp (mkConst ``Data) (mkConst ``Data.empty)
+
+/-- Continuation for adding new variables -/
+def variableAdditionCont (ref : IO.Ref (Option ContinuationResult))
+    (outerRef : Syntax) (state : DoCommandExtensionState) (resultName : Name) : DoElemCont where
+  resultName
+  resultType := mkConst ``Unit
+  kind := .nonDuplicable
+  k := do
+    if (← ref.get).isSome then
+      logWarningAt outerRef "The continuation got run twice. This is probably due to \
+        https://github.com/leanprover/lean4/issues/13858"
+      -- even if the other branch returned a larger array,
+      -- this will cause it to ignore those values
+      ref.set <| some ⟨#[], state⟩
+      return ← mkPureApp (mkConst ``Data) (mkConst ``Data.empty)
+    let lctx ← getLCtx
+    let localInstances ← getLocalInstances
+    let mut newFVars := #[]
+    let mut resExpr := mkConst ``Data.empty
+    for decl in lctx do
+      if state.lctx.contains decl.fvarId then
+        continue
+      newFVars := newFVars.push decl.fvarId
+      let u ← getLevel decl.type
+      resExpr := mkApp3 (.const ``Data.push [u]) decl.type resExpr decl.toExpr
+    let { mutVars, mutVarDefs, .. } ← read
+    let newState := { state with lctx, localInstances, mutVars, mutVarDefs }
+    ref.set <| some { newFVars, newState }
+    mkPureApp (mkConst ``Data) resExpr
+
+/-- Monad-generic version of the `#do` command -/
+def elabDoCommandCore (m : Type → Type) [Monad m] [MonadEvalT m CommandElabM]
+    (mExpr : Expr) (doSeq : TSyntax ``Lean.Parser.Term.doSeq) :
+    CommandElabM Unit := do
+  let extData := doExtension.getState (← getEnv)
+  let outerRef ← getRef
+  let (act, newFVars, newState) ← liftTermElabM do
+    withLCtx extData.lctx extData.localInstances do
+    let resultName ← mkFreshUserName `__x
+    let ref : IO.Ref (Option ContinuationResult) ← IO.mkRef none
+    let controlInfo ← inferControlInfoSeq doSeq
+    let cont : DoElemCont :=
+      if controlInfo.returnsEarly then
+        -- if we have early returns, we can't add new variables since we might
+        -- return before any variables are introduced
+        observationCont resultName
+      else
+        variableAdditionCont ref outerRef extData resultName
+    let monadInfo := { m := mExpr, u := 0, v := 0 }
+    let ctx := {
+      monadInfo
+      doBlockResultType := mkConst ``Data
+      contInfo := ContInfo.toContInfoRef {
+        returnCont := {
+          resultType := mkConst ``Unit
+          k _ := do
+            if controlInfo.returnsEarly then
+              mkPureApp (mkConst ``Data) (mkConst ``Data.empty)
+            else
+              throwError "Internal error inside a do elaborator: called return continuation \
+                while the ControlInfo indicates no early returns"
+        }
+      }
+      ops := DoOps.toDoOpsRef .default
+      mutVars := extData.mutVars
+      mutVarDefs := extData.mutVarDefs
+    }
+    let res ← ((elabDoSeq doSeq cont).run ctx)
+    -- don't evaluate terms with elaboration errors
+    if res.hasSyntheticSorry then throwAbortTerm
+    Term.synthesizeSyntheticMVarsNoPostponing
+    let res ← checkExpr res
+    let act ← unsafe extData.eval (m Data) (.app mExpr (mkConst ``Data)) res
+      (checkMeta := !Elab.inServer.get (← getOptions))
+    -- if the continuation didn't get run, that probably means there is an infinite loop somewhere
+    -- ... which is ... fine but then we just don't have to update the state in any way
+    let ⟨newFVars, newState⟩ := (← ref.get).getD ⟨#[], extData⟩
+    let newState := { newState with lctx := ← checkLCtx newState.lctx }
+    withLCtx newState.lctx newState.localInstances do
+      for fvar in newFVars do
+        -- we have to invent original syntax to appease the unused variable linter :-(
+        let substr := { str := "", startPos := 0, stopPos := 0 }
+        Term.addTermInfo' (.atom (.original substr 0 substr 0) "") (.fvar fvar)
+    return (act, newFVars, newState)
+  let res ← MonadEvalT.monadEval act
+  let mut newState := newState
+  -- Note: `newFVars` may be shorter than `res`; the additional values are just ignored
+  -- See comment in `variableAdditionCont`
+  for fvar in newFVars, val in res do
+    newState := { newState with values := newState.values.insert fvar val }
+  modifyEnv (doExtension.setState · newState)
+
+/--
+`#do code` runs `code` with access to all variables from previous `#do` invocations. Example:
+```
+#do let x ← IO.rand 0 100
+-- these will both print the same number
+#do IO.println x
+#do IO.println x
+```
+This command can be used to run expensive computations once and refer to them later.
+
+For `#do`, the body is run in the `CommandElabM` monad. For an alternative where computations run
+in `MetaM`, use `#do_meta`.
+-/
+syntax (name := doCommand) "#do " doSeq : command
+
+@[command_elab doCommand, inherit_doc doCommand, incremental]
+def elabDoCommand : CommandElab := simpleIncrementalElab fun stx => do
+  let `(#do $seq) := stx | throwUnsupportedSyntax
+  elabDoCommandCore CommandElabM (mkConst ``CommandElabM) seq
+
+/--
+`#do_meta code` runs `code` with access to all variables from previous `#do` invocations in the
+`MetaM` monad. Example:
+```
+#do_meta let x ← IO.rand 0 100
+-- these will both print the same number
+#do_meta IO.println x
+#do_meta IO.println x
+```
+This command can be used to run expensive computations once and refer to them later.
+
+For an alternative where computations run in `CommandElabM`, use `#do`.
+-/
+syntax (name := doMetaCommand) "#do_meta " doSeq : command
+
+@[command_elab doMetaCommand, inherit_doc doCommand, incremental]
+def elabDoMetaCommand : CommandElab := simpleIncrementalElab fun stx => do
+  let `(#do $seq) := stx | throwUnsupportedSyntax
+  elabDoCommandCore MetaM (mkConst ``MetaM) seq
+
+/--
+Clears all variables from the current `#do` context.
+-/
+elab "#clear_do" : command => do
+  modifyEnv (doExtension.setState · {})
