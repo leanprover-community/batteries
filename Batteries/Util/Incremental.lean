@@ -91,6 +91,12 @@ def simpleIncrementalElab (cmd : CommandElab) : CommandElab := fun stx => do
           -- correspond to failed but potentially expensive computations
           if res.error?.isNone || !res.stx.hasMissing then
             lastNoSyntaxErrorResult? := res
+  -- if we don't have syntax errors, don't bother saving a `lastNoSyntaxErrorResult?`
+  -- since the new run will already become a result without syntax errors
+  -- and saving the data from the previous run would only retain a potentially large amount
+  -- of memory for longer
+  unless stx.hasMissing do
+    lastNoSyntaxErrorResult? := none
   -- commit the cheap parts of the snapshot (i.e. the `lastNoSyntaxErrorResult?`)
   let promise : IO.Promise CommandElabResultSnapshot ← IO.Promise.new
   if let some snap := snap? then
