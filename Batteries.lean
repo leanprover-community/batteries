@@ -122,6 +122,7 @@ public import Batteries.Tactic.SqueezeScope
 public import Batteries.Tactic.Trans
 public import Batteries.Tactic.Unreachable
 public import Batteries.Util.Cache
+public import Batteries.Util.Eval
 public import Batteries.Util.ExtendedBinder
 public import Batteries.Util.Incremental
 public import Batteries.Util.LibraryNote
