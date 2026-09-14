@@ -90,6 +90,10 @@ def simpleIncrementalElab (cmd : CommandElab) : CommandElab := fun stx => do
           -- correspond to failed but potentially expensive computations
           if res.error?.isNone || !res.stx.hasMissing then
             lastNoSyntaxErrorResult? := res
+      else
+        -- if the task is not finished that means we didn't wait on it above and
+        -- don't need it so cancel all previous tasks
+        val.result.cancelRec
   -- if we don't have syntax errors, don't bother saving a `lastNoSyntaxErrorResult?`
   -- since the new run will already become a result without syntax errors
   -- and saving the data from the previous run would only retain a potentially large amount
