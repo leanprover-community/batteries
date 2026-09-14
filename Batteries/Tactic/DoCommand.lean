@@ -23,6 +23,12 @@ namespace Batteries.Tactic.DoCommand
 
 open Lean Meta Elab Command Do
 
+/-- The part of the `DoCommandExtensionState` used for monad state -/
+structure MonadStackState where
+  /-- The meta state used for `#do_meta` -/
+  metaState : Meta.State := {}
+deriving Inhabited
+
 /-- The state for `#do` -/
 structure DoCommandExtensionState where
   /--
@@ -43,6 +49,8 @@ structure DoCommandExtensionState where
   mutVars : Array MutVar := #[]
   /-- See `Lean.Elab.Do.Context.mutVarDefs` -/
   mutVarDefs : Std.HashMap Name MutVar := {}
+  /-- Monad state for use in e.g. `#do_meta` -/
+  monadState : MonadStackState := {}
 deriving Inhabited
 
 /-- The extension for `#do` -/
@@ -192,7 +200,8 @@ private def continuation (ref : IO.Ref (Option ContinuationResult))
     mkPureApp (mkConst ``Data) resExpr
 
 /-- Monad-generic version of the `#do` command -/
-def elabDoCommandCore (m : Type → Type) [MonadEvalT m CommandElabM]
+def elabDoCommandCore (m : Type → Type)
+    (lift : ∀ {α}, m α → MonadStackState → CommandElabM (α × MonadStackState))
     (mExpr : Expr) (doSeq : TSyntax ``Lean.Parser.Term.doSeq) :
     CommandElabM Unit := do
   let extData := doExtension.getState (← getEnv)
@@ -243,17 +252,18 @@ def elabDoCommandCore (m : Type → Type) [MonadEvalT m CommandElabM]
   -- Make sure that `IO.println` output is always in the right spot and capturable by `#guard_msgs`
   let (out, res) ← IO.FS.withIsolatedStreams
       (isolateStderr := Core.stderrAsMessages.get (← getOptions)) do
-    observing <| MonadEvalT.monadEval act
+    observing <| lift act extData.monadState
   unless out.isEmpty do logInfo out
   match res with
   | .error e => throw e
-  | .ok res =>
+  | .ok (res, monadState) =>
     if res.isEmpty && !newFVars.isEmpty then
       -- No new variables were added; either because of an early return or because of a
       -- continuation running twice. In this case using `newState` would break the invariant
-      -- of `values` so we just keep the old state
+      -- of `values` so we just keep the old variables but update the monad state
+      modifyEnv (doExtension.modifyState · fun state => { state with monadState })
       return
-    let mut newState := newState
+    let mut newState := { newState with monadState }
     assert! res.size == newFVars.size
     for fvar in newFVars, val in res do
       newState := { newState with values := newState.values.insert fvar val }
@@ -277,7 +287,8 @@ syntax (name := doCommand) "#do " doSeq : command
 @[command_elab doCommand, inherit_doc doCommand, incremental]
 def elabDoCommand : CommandElab := simpleIncrementalElab fun stx => do
   let `(#do%$tk $seq) := stx | throwUnsupportedSyntax
-  withRef tk <| elabDoCommandCore CommandElabM (mkConst ``CommandElabM) seq
+  withRef tk <| elabDoCommandCore CommandElabM (fun act state => return (← act, state))
+    (mkConst ``CommandElabM) seq
 
 /--
 `#do_meta code` runs `code` with access to all variables from previous `#do` invocations in the
@@ -297,7 +308,12 @@ syntax (name := doMetaCommand) "#do_meta " doSeq : command
 @[command_elab doMetaCommand, inherit_doc doCommand, incremental]
 def elabDoMetaCommand : CommandElab := simpleIncrementalElab fun stx => do
   let `(#do_meta%$tk $seq) := stx | throwUnsupportedSyntax
-  withRef tk <| elabDoCommandCore MetaM (mkConst ``MetaM) seq
+  withRef tk <| elabDoCommandCore MetaM
+    (fun act stateStack =>
+      liftCoreM do
+        let (res, state) ← act.run {} stateStack.metaState
+        return (res, { stateStack with metaState := state }))
+    (mkConst ``MetaM) seq
 
 /--
 Clears all variables from the current `#do` context.
