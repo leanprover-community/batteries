@@ -116,8 +116,23 @@ error: don't know how to synthesize placeholder for argument `s`
 -/
 #guard_msgs (substring := true) in #do IO.println (_ : String)
 
+elab "forget" : tactic => do
+  Elab.Tactic.replaceMainGoal []
+
 /-!
-... including level metavariables
+... even if they don't have error infos
+-/
+
+/--
+error: Resulting expression contains metavariables
+  do
+    let __x ← ?m.1
+    pure (Batteries.Tactic.DoCommand.Data.empty.push __x)
+-/
+#guard_msgs in #do by forget
+
+/-!
+... and including level metavariables
 -/
 
 /--

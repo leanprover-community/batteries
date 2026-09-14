@@ -119,8 +119,9 @@ unsafe def DoCommandExtensionState.eval (state : DoCommandExtensionState)
 private def checkExpr (e : Expr) : TermElabM Expr := do
   let e ← instantiateMVars e
   if e.hasExprMVar then
-    discard <| Term.logUnassignedUsingErrorInfos (← getMVars e)
-    throwAbortTerm
+    if ← Term.logUnassignedUsingErrorInfos (← getMVars e) then
+      throwAbortTerm
+    throwError "Resulting expression contains metavariables{indentExpr e}"
   if e.hasLevelMVar then
     let lmvars := collectLevelMVars {} e
     if ← Term.logUnassignedLevelMVarsUsingErrorInfos lmvars.result then
