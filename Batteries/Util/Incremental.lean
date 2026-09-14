@@ -50,8 +50,7 @@ instance : Language.ToSnapshotTree SimpleIncrementalSnapshot where
 
 /--
 Wraps `cmd` with simple incrementality handling that makes the command not re-run if only trailing
-whitespace was changed or when a syntax error gets introduced to the command before reverting back
-to the previous command syntax.
+whitespace was changed or when a syntax error gets introduced and then removed again.
 
 To make this work, `cmd` doesn't receive the trailing whitespace of the command and doesn't have
 access to incrementality itself.
