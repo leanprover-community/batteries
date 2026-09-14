@@ -8,6 +8,7 @@ module
 public meta import Lean.Elab.Do.Basic
 public meta import Lean.Meta.Eval
 public meta import Batteries.Util.Incremental
+public meta import Batteries.Util.Eval
 
 public meta section
 
@@ -24,7 +25,7 @@ namespace Batteries.Tactic.DoCommand
 open Lean Meta Elab Command Do
 
 /-- The part of the `DoCommandExtensionState` used for monad state -/
-structure MonadStackState where
+structure MonadStateStack where
   /-- The meta state used for `#do_meta` -/
   metaState : Meta.State := {}
 deriving Inhabited
@@ -50,7 +51,7 @@ structure DoCommandExtensionState where
   /-- See `Lean.Elab.Do.Context.mutVarDefs` -/
   mutVarDefs : Std.HashMap Name MutVar := {}
   /-- Monad state for use in e.g. `#do_meta` -/
-  monadState : MonadStackState := {}
+  monadState : MonadStateStack := {}
 deriving Inhabited
 
 /-- The extension for `#do` -/
@@ -83,7 +84,8 @@ Given `value : type` which may depend on free variables in `state.lctx`, evaluat
 of type `α` (assuming `type` is equivalent to `α`).
 -/
 unsafe def DoCommandExtensionState.eval (state : DoCommandExtensionState)
-    (α : Type) (type : Expr) (value : Expr) (checkMeta := true) : MetaM α := do
+    (α : Type) (type : Expr) (value : Expr) (checkMeta := true)
+    (allowSorry := false) (alternative? : Option String := none) : MetaM α := do
   if value.hasMVar then
     throwError "failed to evaluate expression, it contains metavariables{indentExpr value}"
   let fvars ← (collectFVars {} value).addDependencies
@@ -110,8 +112,8 @@ unsafe def DoCommandExtensionState.eval (state : DoCommandExtensionState)
   let mut data : Data := .empty
   for fvar in fvarsInOrder do
     data := data.push (state.values.get! fvar)
-  let f ← evalExpr (Data → α) (.forallE `data (mkConst ``Data) type .default) value
-    (safety := .unsafe) (checkMeta := checkMeta)
+  let f ← evalExprWithSorryCheck (Data → α) (.forallE `data (mkConst ``Data) type .default) value
+    (safety := .unsafe) checkMeta allowSorry alternative?
   return f data
 
 private def checkExpr (e : Expr) : TermElabM Expr := do
@@ -142,28 +144,6 @@ private def checkLCtx (lctx : LocalContext) : TermElabM LocalContext := do
             .cdecl idx fvar userName type .default kind
           | d => d
     return lctx
-
-/--
-Returns `true` if `nm` doesn't depend on any `sorry`s that were introduced in this module.
--/
-partial def checkNoNewSorries (env : Environment) (nm : Name) : StateM NameSet Bool := do
-  if nm == ``sorryAx then return false
-  if (env.getModuleIdx? nm).isSome then
-    -- imported constant
-    return true
-  if (← get).contains nm then
-    return true
-  modify fun visited => visited.insert nm
-  let some info := env.find? nm | return true
-  for c in info.getUsedConstantsAsSet do
-    unless ← checkNoNewSorries env c do return false
-  return true
-
-/--
-Returns `true` if `e` doesn't depend on any `sorry`s that were introduced in this module.
--/
-def checkNoNewSorriesInExpr (env : Environment) (e : Expr) : Bool :=
-  e.getUsedConstants.allM (checkNoNewSorries env) |>.run' {} |>.run
 
 /-- Implementation detail of `#do` -/
 structure ContinuationResult where
@@ -201,8 +181,9 @@ private def continuation (ref : IO.Ref (Option ContinuationResult))
 
 /-- Monad-generic version of the `#do` command -/
 def elabDoCommandCore (m : Type → Type)
-    (lift : ∀ {α}, m α → MonadStackState → CommandElabM (α × MonadStackState))
-    (mExpr : Expr) (doSeq : TSyntax ``Lean.Parser.Term.doSeq) :
+    (lift : ∀ {α}, m α → MonadStateStack → CommandElabM (α × MonadStateStack))
+    (mExpr : Expr) (doSeq : TSyntax ``Lean.Parser.Term.doSeq)
+    (allowSorry : Bool) (alternative? : Option String := none) :
     CommandElabM Unit := do
   let extData := doExtension.getState (← getEnv)
   let outerRef ← getRef
@@ -232,13 +213,8 @@ def elabDoCommandCore (m : Type → Type)
     let res ← ((elabDoSeq doSeq cont).run ctx)
     Term.synthesizeSyntheticMVarsNoPostponing
     let res ← checkExpr res
-    unless checkNoNewSorriesInExpr (← getEnv) res do
-      if res.hasSyntheticSorry then throwAbortTerm -- an error has already been logged
-      throwError "\
-        Aborting evaluation since the expression depends on the 'sorry' axiom, \
-        which can lead to runtime instability and crashes."
     let act ← unsafe extData.eval (m Data) (.app mExpr (mkConst ``Data)) res
-      (checkMeta := !Elab.inServer.get (← getOptions))
+      (checkMeta := !Elab.inServer.get (← getOptions)) allowSorry alternative?
     -- if the continuation didn't get run, that probably means we throw an error or return
     -- in that case, we just don't add new values below
     let ⟨newFVars, newState⟩ := (← ref.get).getD ⟨#[], extData⟩
@@ -285,11 +261,23 @@ in `MetaM`, use `#do_meta`.
 -/
 syntax (name := doCommand) "#do " doSeq : command
 
+/-- An alternative to `#do` that doesn't check for `sorry`s -/
+syntax (name := doBangCommand) "#do! " doSeq : command
+
+private def liftCommand (act : CommandElabM α) (stateStack : MonadStateStack) :
+    CommandElabM (α × MonadStateStack) := return (← act, stateStack)
+
 @[command_elab doCommand, inherit_doc doCommand, incremental]
 def elabDoCommand : CommandElab := simpleIncrementalElab fun stx => do
   let `(#do%$tk $seq) := stx | throwUnsupportedSyntax
-  withRef tk <| elabDoCommandCore CommandElabM (fun act state => return (← act, state))
-    (mkConst ``CommandElabM) seq
+  withRef tk <| elabDoCommandCore CommandElabM liftCommand (mkConst ``CommandElabM) seq
+    (allowSorry := false) (alternative? := "#do!")
+
+@[command_elab doBangCommand, inherit_doc doBangCommand, incremental]
+def elabDoBangCommand : CommandElab := simpleIncrementalElab fun stx => do
+  let `(#do!%$tk $seq) := stx | throwUnsupportedSyntax
+  withRef tk <| elabDoCommandCore CommandElabM liftCommand (mkConst ``CommandElabM) seq
+    (allowSorry := true)
 
 /--
 `#do_meta code` runs `code` with access to all variables from previous `#do` and `#do_meta`
@@ -306,17 +294,27 @@ For an alternative where computations run in `CommandElabM`, use `#do`.
 -/
 syntax (name := doMetaCommand) "#do_meta " doSeq : command
 
+/-- An alternative to `#do_meta` that doesn't check for `sorry`s -/
+syntax (name := doMetaBangCommand) "#do_meta! " doSeq : command
+
+private def liftMeta (act : MetaM α) (stateStack : MonadStateStack) :
+    CommandElabM (α × MonadStateStack) :=
+  liftCoreM do
+    let (res, state) ← act.run {} stateStack.metaState
+    -- we can't keep the cache since commands in between `#do_meta` calls might
+    -- e.g. introduce new instances
+    return (res, { stateStack with metaState := { state with cache := {} } })
+
 @[command_elab doMetaCommand, inherit_doc doMetaCommand, incremental]
 def elabDoMetaCommand : CommandElab := simpleIncrementalElab fun stx => do
   let `(#do_meta%$tk $seq) := stx | throwUnsupportedSyntax
-  withRef tk <| elabDoCommandCore MetaM
-    (fun act stateStack =>
-      liftCoreM do
-        let (res, state) ← act.run {} stateStack.metaState
-        -- we can't keep the cache since commands in between `#do_meta` calls might
-        -- e.g. introduce new instances
-        return (res, { stateStack with metaState := { state with cache := {} } }))
-    (mkConst ``MetaM) seq
+  withRef tk <| elabDoCommandCore MetaM liftMeta (mkConst ``MetaM) seq
+    (allowSorry := false) (alternative? := "#do_meta!")
+
+@[command_elab doMetaBangCommand, inherit_doc doMetaBangCommand, incremental]
+def elabDoMetaBangCommand : CommandElab := simpleIncrementalElab fun stx => do
+  let `(#do_meta!%$tk $seq) := stx | throwUnsupportedSyntax
+  withRef tk <| elabDoCommandCore MetaM liftMeta (mkConst ``MetaM) seq (allowSorry := true)
 
 /--
 Clears all variables from the current `#do` context.
