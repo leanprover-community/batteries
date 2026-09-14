@@ -312,7 +312,9 @@ def elabDoMetaCommand : CommandElab := simpleIncrementalElab fun stx => do
     (fun act stateStack =>
       liftCoreM do
         let (res, state) ← act.run {} stateStack.metaState
-        return (res, { stateStack with metaState := state }))
+        -- we can't keep the cache since commands in between `#do_meta` calls might
+        -- e.g. introduce new instances
+        return (res, { stateStack with metaState := { state with cache := {} } }))
     (mkConst ``MetaM) seq
 
 /--
