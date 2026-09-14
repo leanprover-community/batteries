@@ -53,8 +53,10 @@ Mutable variables also work
 `#do_meta` lets you run computation in `MetaM` instead
 -/
 
-/-- info: 2 -/
-#guard_msgs in #do_meta lambdaTelescope value fun vars _ => logInfo m!"{vars.size}"
+#do_meta let (vars, bis, body) ← lambdaMetaTelescope value
+
+/-- info: [Sort u, ?m.1], #[Lean.BinderInfo.implicit, Lean.BinderInfo.default], ?m.2 -/
+#guard_msgs in #do_meta logInfo m!"{← vars.mapM inferType}, {repr bis}, {body}"
 
 /-!
 If you use `return`, variables will not be persisted
