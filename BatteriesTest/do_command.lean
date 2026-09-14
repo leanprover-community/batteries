@@ -85,10 +85,27 @@ set_option linter.unusedVariables false in
 -/
 
 /--
-error: Aborting evaluation since the expression depends on the 'sorry' axiom,
-which can lead to runtime instability and crashes.
+warning: declaration uses `sorry`
+---
+error: Aborting evaluation since the expression depends on the `sorry` axiom, which can lead to
+runtime instability and crashes.
+
+To attempt to evaluate anyway despite the risks, use the `#do!` command.
 -/
 #guard_msgs in #do sorry
+
+/-!
+`#do!` lets you bypass that restriction
+-/
+
+/--
+warning: declaration uses `sorry`
+---
+info: 2
+-/
+#guard_msgs in #do!
+  have arr := #[1, 2, 3]
+  IO.println (arr[1]'sorry)
 
 /-!
 After `#clear_do`, all previously existing variables are removed.
