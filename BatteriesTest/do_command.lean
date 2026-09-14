@@ -108,6 +108,29 @@ info: 2
   IO.println (arr[1]'sorry)
 
 /-!
+`#do` rejects expressions with metavariables
+-/
+
+/--
+error: don't know how to synthesize placeholder for argument `s`
+-/
+#guard_msgs (substring := true) in #do IO.println (_ : String)
+
+/-!
+... including level metavariables
+-/
+
+/--
+error: Resulting expression contains universe level metavariables at the expression
+  PUnit.rec.{1, ?u.5} (pure ()) PUnit.unit.{?u.5}
+inside of
+  do
+    let __x ← PUnit.rec.{1, ?u.5} (pure ()) PUnit.unit.{?u.5}
+    pure (Batteries.Tactic.DoCommand.Data.empty.push __x)
+-/
+#guard_msgs in #do PUnit.rec (pure ()) ⟨⟩
+
+/-!
 After `#clear_do`, all previously existing variables are removed.
 -/
 
