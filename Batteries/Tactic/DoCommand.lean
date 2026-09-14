@@ -270,7 +270,8 @@ def elabDoCommandCore (m : Type → Type)
     modifyEnv (doExtension.setState · newState)
 
 /--
-`#do code` runs `code` with access to all variables from previous `#do` invocations. Example:
+`#do code` runs `code` with access to all variables from previous `#do` (and `#do_meta`)
+invocations. Example:
 ```
 #do let x ← IO.rand 0 100
 -- these will both print the same number
@@ -291,8 +292,8 @@ def elabDoCommand : CommandElab := simpleIncrementalElab fun stx => do
     (mkConst ``CommandElabM) seq
 
 /--
-`#do_meta code` runs `code` with access to all variables from previous `#do` invocations in the
-`MetaM` monad. Example:
+`#do_meta code` runs `code` with access to all variables from previous `#do` and `#do_meta`
+invocations in the `MetaM` monad. Example:
 ```
 #do_meta let x ← IO.rand 0 100
 -- these will both print the same number
@@ -305,7 +306,7 @@ For an alternative where computations run in `CommandElabM`, use `#do`.
 -/
 syntax (name := doMetaCommand) "#do_meta " doSeq : command
 
-@[command_elab doMetaCommand, inherit_doc doCommand, incremental]
+@[command_elab doMetaCommand, inherit_doc doMetaCommand, incremental]
 def elabDoMetaCommand : CommandElab := simpleIncrementalElab fun stx => do
   let `(#do_meta%$tk $seq) := stx | throwUnsupportedSyntax
   withRef tk <| elabDoCommandCore MetaM
