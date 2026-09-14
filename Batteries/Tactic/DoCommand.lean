@@ -123,10 +123,16 @@ private def checkExpr (e : Expr) : TermElabM Expr := do
     throwAbortTerm
   if e.hasLevelMVar then
     let lmvars := collectLevelMVars {} e
-    discard <| Term.logUnassignedLevelMVarsUsingErrorInfos lmvars.result
+    if ← Term.logUnassignedLevelMVarsUsingErrorInfos lmvars.result then
+      throwAbortTerm
+    Term.forEachExprWithExposedLevelMVars e fun e' => do
+      throwError "\
+        Resulting expression contains universe level metavariables at the expression\
+        {indentExpr e'}\n\
+        inside of{indentExpr <| ← Term.exposeLevelMVars e}"
     throwAbortTerm
   if e.hasLevelParam then
-    throwError "Resulting expression has unexpected level parameters"
+    throwError "Resulting expression has unexpected level parameters{indentExpr e}"
   return e
 
 private def checkLCtx (lctx : LocalContext) : TermElabM LocalContext := do
