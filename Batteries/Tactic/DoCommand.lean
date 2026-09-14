@@ -118,6 +118,9 @@ unsafe def DoCommandExtensionState.eval (state : DoCommandExtensionState)
 
 private def checkExpr (e : Expr) : TermElabM Expr := do
   let e ← instantiateMVars e
+  if e.hasSyntheticSorry then
+    -- an error has already been logged
+    throwAbortTerm
   if e.hasExprMVar then
     if ← Term.logUnassignedUsingErrorInfos (← getMVars e) then
       throwAbortTerm
@@ -140,6 +143,7 @@ private def checkLCtx (lctx : LocalContext) : TermElabM LocalContext := do
   withLCtx lctx #[] do
     let mut lctx := lctx
     for decl in lctx do
+      prependError m!"Declaration {decl.toExpr}" do←
       if decl.type.hasMVar || decl.type.hasLevelParam then
         lctx := lctx.setType decl.fvarId <| ← checkExpr decl.type
       if let some value := decl.value? then
@@ -166,6 +170,8 @@ private def continuation (ref : IO.Ref (Option ContinuationResult))
   resultType := mkConst ``Unit
   kind := .nonDuplicable
   k := do
+    unless (← read).deadCode matches .alive do
+      return ← mkPureApp (mkConst ``Data) (mkConst ``Data.empty)
     if (← ref.get).isSome then
       logWarningAt outerRef "The continuation got run twice. This is probably due to \
         https://github.com/leanprover/lean4/issues/13858"
