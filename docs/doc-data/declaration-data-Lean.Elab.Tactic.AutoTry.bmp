@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Try","Lean.Elab.BuiltinTerm","Lean.Elab.Tactic.Meta","Lean.Elab.Tactic.Try","Lean.Linter.Basic","Lean.Server.InfoUtils"],"instances":[],"name":"Lean.Elab.Tactic.AutoTry"}

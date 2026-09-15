@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Data.String.Lemmas.Pattern.Split.Basic","Init.Data.String.Lemmas.Pattern.Split.Char","Init.Data.String.Lemmas.Pattern.Split.Pred"],"instances":[],"name":"Init.Data.String.Lemmas.Pattern.Split"}
