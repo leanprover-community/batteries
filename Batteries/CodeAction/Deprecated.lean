@@ -30,14 +30,12 @@ namespace CodeAction
 /-- A code action which applies replacements for `@[deprecated]` definitions. -/
 @[code_action_provider]
 def deprecatedCodeActionProvider : CodeActionProvider := fun params snap => do
-  let mut i := 0
   let doc ← readDoc
   let mut msgs := #[]
-  for m in snap.msgLog.toList do
+  for m in snap.msgLog.toList, i in 0...* do
     if m.data.isDeprecationWarning then
       if h : _ then
         msgs := msgs.push (snap.cmdState.messages.toList[i]'h)
-    i := i + 1
   if msgs.isEmpty then return #[]
   let start := doc.meta.text.lspPosToUtf8Pos params.range.start
   let stop := doc.meta.text.lspPosToUtf8Pos params.range.end
