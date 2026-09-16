@@ -7,7 +7,7 @@ module
 
 public import Batteries.Data.AssocList.Basic
 
-@[expose] public section
+public section
 
 /-!
 # Lemmas about association lists
@@ -89,7 +89,7 @@ theorem find?_eq_findEntry? [BEq α] (a : α) (l : AssocList α β) :
     find? a l = (l.findEntry? a).map (·.2) := by
   induction l <;> simp [find?, List.find?_cons]; split <;> simp [*]
 
-theorem find?_eq [BEq α] (a : α) (l : AssocList α β) :
+@[simp] theorem find?_eq [BEq α] (a : α) (l : AssocList α β) :
     find? a l = (l.toList.find? (·.1 == a)).map (·.2) := by simp [find?_eq_findEntry?]
 
 @[simp] theorem any_eq (p : α → β → Bool) (l : AssocList α β) :
