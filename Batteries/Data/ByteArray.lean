@@ -9,6 +9,14 @@ module
 
 namespace ByteArray
 
+/-- Allocate a `ByteArray` with a given size and capacity.
+
+This function is unsafe since it does not initialize the allocated data.
+The `size ≤ capacity` hypothesis can be dispatched using `lcProof`.
+-/
+@[never_extract, extern c inline "lean_alloc_sarray(1, #1, #2)"]
+unsafe opaque allocate (size capacity : USize) : size ≤ capacity → ByteArray
+
 attribute [ext] ByteArray
 
 instance : DecidableEq ByteArray :=
