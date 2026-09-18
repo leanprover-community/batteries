@@ -74,7 +74,7 @@ public import Batteries.Lean.PersistentHashMap
 public import Batteries.Lean.PersistentHashSet
 public meta import Batteries.Lean.Position
 public meta import Batteries.Lean.SatisfiesM
-public import Batteries.Lean.Syntax
+public meta import Batteries.Lean.Syntax
 public import Batteries.Lean.System.IO
 public meta import Batteries.Lean.TagAttribute
 public import Batteries.Lean.Util.EnvSearch

@@ -13,6 +13,11 @@ deriving instance DecidableEq for Except
 
 namespace Except
 
+/-- Visualize an `Except` using a checkmark or a cross. -/
+def emoji : Except ε α → String
+  | .error _ => "❌️"
+  | .ok _ => "✅️"
+
 @[simp] theorem map_error {ε : Type u} (f : α → β) (e : ε) :
     f <$> (.error e : Except ε α) = .error e := rfl
 
@@ -44,7 +49,6 @@ end Except
 
 namespace ExceptT
 
--- This will be redundant after nightly-2024-11-08.
 attribute [ext] ExceptT.ext
 
 @[simp] theorem mk_run (x : ExceptT ε m α) : ExceptT.mk (ExceptT.run x) = x := rfl
