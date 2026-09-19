@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Data.String.Lemmas.Pattern.TakeDrop.Basic","Init.Data.String.Lemmas.Pattern.TakeDrop.Char","Init.Data.String.Lemmas.Pattern.TakeDrop.Pred","Init.Data.String.Lemmas.Pattern.TakeDrop.String"],"instances":[],"name":"Init.Data.String.Lemmas.Pattern.TakeDrop"}

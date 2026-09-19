@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Meta.Tactic.Simp.Arith.Int.Basic","Lean.Meta.Tactic.Simp.Arith.Int.Simp"],"instances":[],"name":"Lean.Meta.Tactic.Simp.Arith.Int"}

@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.CbvSimproc","Init.Sym.Lemmas","Lean.Meta.Sym.Simp.SimpM","Lean.Meta.Tactic.Cbv.CbvSimproc"],"instances":[],"name":"Lean.Meta.Tactic.Cbv.BuiltinCbvSimprocs.Core"}

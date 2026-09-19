@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Batteries.Lean.EStateM","Batteries.Lean.Except","Batteries.Recycling.MonadSatisfying.Basic","Init"],"instances":[],"name":"Batteries.Classes.SatisfiesM"}
