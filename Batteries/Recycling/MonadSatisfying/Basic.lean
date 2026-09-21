@@ -6,7 +6,7 @@ Authors: Mario Carneiro, Kim Morrison
 module
 
 public import Batteries.Lean.EStateM
-public import Batteries.Lean.Except
+public import Batteries.Data.Except
 
 @[expose] public section
 
