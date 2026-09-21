@@ -1,6 +1,6 @@
 -- Test: core does not currently provide DecidableEq for Except.
 -- If this test fails, it means core now provides DecidableEq for Except
--- and the Batteries instance in Batteries.Lean.Except should be removed.
+-- and the Batteries instance in Batteries.Data.Except should be removed.
 
 /--
 error: failed to synthesize instance of type class
