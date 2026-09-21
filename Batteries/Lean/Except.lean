@@ -7,3 +7,5 @@ module
 
 public import Batteries.Data.Except
 public import Lean.Util.Trace
+
+deprecated_module "moved to Batteries.Data.Except" (since := "2026-09-21")
