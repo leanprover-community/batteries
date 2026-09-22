@@ -10,6 +10,8 @@ on:
 
 jobs:
   update-label:
+    permissions:
+      issues: write
     if: github.event.issue.pull_request != null && (github.event.comment.body == 'awaiting-review' || github.event.comment.body == 'awaiting-author' || github.event.comment.body == 'WIP')
     runs-on: ubuntu-latest
 
