@@ -49,6 +49,35 @@ theorem length_toList (l : AssocList α β) : l.toList.length = l.length := by
 @[simp] theorem length_mapVal : (mapVal f l).length = l.length := by
   induction l <;> simp_all
 
+@[simp] theorem filterMapVal_nil : filterMapVal f nil = nil := rfl
+
+theorem filterMapVal_cons (f : α → β → Option γ) (k) (v) (t) :
+    filterMapVal f (.cons k v t) =
+      match f k v with
+      | none => filterMapVal f t
+      | some d => .cons k d (filterMapVal f t) := rfl
+
+@[simp] theorem toList_filterMapVal (f : α → β → Option δ) (l : AssocList α β) :
+    (filterMapVal f l).toList =
+      l.toList.filterMap (fun (a, b) => (f a b).map fun v => (a, v)) := by
+  induction l with
+  | nil => simp
+  | cons k v t ih =>
+    revert ih
+    simp only [filterMapVal, toList, List.filterMap_cons]
+    match f k v with
+    | none
+    | some d => simp
+
+theorem length_filterMapVal_le : (filterMapVal f l).length ≤ l.length := by
+  induction l with
+  | nil => simp
+  | cons k v t ih =>
+    simp_all only [filterMapVal, length_cons]
+    match f k v with
+    | none => exact Nat.le_trans ih (Nat.le_succ _)
+    | some _ => exact Nat.succ_le_succ ih
+
 @[simp] theorem findEntryP?_eq (p : α → β → Bool) (l : AssocList α β) :
     findEntryP? p l = l.toList.find? fun (a, b) => p a b := by
   induction l <;> simp [findEntryP?, List.find?_cons]; split <;> simp [*]
