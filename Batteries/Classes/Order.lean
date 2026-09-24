@@ -248,7 +248,7 @@ theorem LawfulLECmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
       rw [this.gt_iff_lt, Batteries.compareOfLessAndEq_eq_lt] }
 
 theorem LawfulCmp.compareOfLessAndEq_of_irrefl_of_trans_of_not_lt_of_antisymm
-    [LT α] [LE α] [DecidableLT α] [DecidableLE α] [DecidableEq α]
+    [LT α] [LE α] [DecidableLT α] [DecidableEq α]
     (lt_irrefl : ∀ x : α, ¬x < x)
     (lt_trans : ∀ {x y z : α}, x < y → y < z → x < z)
     (not_lt : ∀ {x y : α}, ¬x < y ↔ y ≤ x)
