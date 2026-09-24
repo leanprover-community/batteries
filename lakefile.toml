@@ -8,10 +8,12 @@ linter.missingDocs = true
 
 [[lean_lib]]
 name = "Batteries"
+precompileModules = true
 
 [[lean_lib]]
 name = "BatteriesTest"
 globs = ["BatteriesTest.+"]
+precompileModules = true
 leanOptions = {linter.missingDocs = false}
 
 [[lean_exe]]
