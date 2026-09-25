@@ -85,7 +85,6 @@ their value, and allow arguments starting with `_` to be unused. -/
 /-- A linter for checking definition doc strings. -/
 @[env_linter] def docBlame : Linter where
   noErrorsFound := "No definitions are missing documentation."
-  isLocal := true
   errorsFound := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
     -- leanprover/lean4#12263: isGlobalInstance was removed, use isInstance instead

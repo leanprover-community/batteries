@@ -204,8 +204,9 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
     if failed then
       let fmtResults ←
         formatLinterResults results decls (groupByFilename := true) (useErrorFormat := true)
-          s!"in {module}{if onlyModules.isSome then
-            " (local linters: only the modules listed by --only-modules)" else ""}"
+          s!"in {module}{match localDecls with
+            | some ds => s!" (local linters: only the {ds.size} declarations of the listed modules)"
+            | none => ""}"
           (runSlowLinters := true) .medium linters.size
       IO.print (← fmtResults.toString)
       IO.Process.exit 1
@@ -231,7 +232,8 @@ If `--only-modules=FILE` is set, where `FILE` lists module names one per line, l
 (`Linter.isLocal`) lint only the declarations defined in those modules, for example to lint only
 the files a pull request changed; the other linters, such as `simpNF`, still lint every
 declaration. Listed modules that are not in the environment are skipped and reported.
-`--only-modules` cannot be combined with `--update`.
+`--only-modules` cannot be combined with `--update`. It is only sound for changes to ordinary
+modules: a caller must lint everything when a linter's own code or `nolints.json` changes.
 -/
 unsafe def main (args : List String) : IO Unit := do
   let linterArgs := parseLinterArgs args

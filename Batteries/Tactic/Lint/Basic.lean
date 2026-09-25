@@ -107,12 +107,15 @@ structure Linter where
   errorsFound : MessageData
   /-- If `isFast` is false, this test will be omitted from `#lint-`. -/
   isFast := true
-  /-- Whether only a declaration's own module can make this linter report it, so that linting just
-  the declarations of changed modules (`runLinter --only-modules`) cannot miss a report. Attributes
-  that other modules add to a declaration may only suppress its report (for example, `docBlame`
-  skips instances). Linters that consult such attributes to decide *whether* to report, such as
-  `simpNF` (a `@[simp]` added elsewhere makes a lemma subject to it), are not local. Default `false`,
-  so that a new linter is linted everywhere until someone checks it is local. -/
+  /-- Whether this linter's verdict on a declaration depends only on the declaration's own module, so
+  that linting just the declarations of changed modules (`runLinter --only-modules`) cannot miss a
+  report. A linter is not local if anything another module can add or remove changes its verdict:
+  `simpNF` and `simpComm` consult the simp set, the instance linters and `docBlame` consult instance
+  attributes (deleting a downstream `attribute [instance]` can create a `docBlame` report).
+
+  Locality says nothing about changes to the linter itself or to external suppression lists such as
+  `nolints.json`: a caller restricting local linters must lint everything when those change.
+  Default `false`, so that a new linter lints everywhere until someone checks it is local. -/
   isLocal := false
 
 /-- A `NamedLinter` is a linter associated to a particular declaration. -/
