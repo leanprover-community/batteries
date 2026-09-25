@@ -35,7 +35,7 @@ Use `withUnpickle` to call `CompactedRegion.free` automatically.
 This function is unsafe because the data being loaded may not actually have type `α`, and this
 may cause crashes or other bad behavior.
 -/
-unsafe def unpickle (α : Type) (path : FilePath) : IO (α × CompactedRegion) := 
+unsafe def unpickle (α : Type) (path : FilePath) : IO (α × CompactedRegion) :=
   CompactedRegion.read path #[]
 
 /-- Load an object from disk and run some continuation on it, freeing memory afterwards. -/
