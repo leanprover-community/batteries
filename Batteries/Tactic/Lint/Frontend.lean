@@ -120,6 +120,11 @@ def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Na
 /--
 Runs all the specified linters on all the specified declarations in parallel,
 producing a list of results.
+
+When `inIO` is true (as in `runLinter --trace`), each linter's completion trace line also reports
+the number of declarations it checked, and the elapsed time and heartbeats summed over its
+per-declaration tasks. Linters run concurrently on a shared thread pool, so these sums, and not the
+wall-clock gaps between trace lines, measure a linter's cost. Heartbeats are deterministic.
 -/
 def lintCore (decls : Array Name) (linters : Array NamedLinter)
     -- For tracing:
@@ -129,17 +134,25 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
       s!"Running linters:\n  {"\n  ".intercalate <| linters.map (s!"{·.name}") |>.toList}"
       inIO currentModule
 
-  let tasks : Array (NamedLinter × Array (Name × Task (Except Exception <| Option MessageData))) ←
+  let tasks : Array (NamedLinter ×
+      Array (Name × Task (Except Exception <| Option MessageData × Nat × Nat))) ←
     linters.mapM fun linter => do
       traceLint "(0/2) Starting..." inIO currentModule linter.name
       let decls ← decls.filterM (shouldBeLinted linter.name)
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
-        let act : MetaM (Option MessageData) := do
+        let act : MetaM (Option MessageData × Nat × Nat) := do
+          -- Per-task cost accounting (reported by the `(2/2)` trace line). Linters run
+          -- concurrently, so wall-clock intervals between trace lines do not measure a linter's
+          -- cost; summed task time and heartbeats do.
+          let t0 ← IO.monoNanosNow
+          let h0 ← IO.getNumHeartbeats
           let result ← linter.test decl
+          let t1 ← IO.monoNanosNow
+          let h1 ← IO.getNumHeartbeats
           if inIO then
             -- Ensure any trace messages are propagated to stdout
             printTraces
-          return result
+          return (result, t1 - t0, h1 - h0)
         EIO.asTask <| (← Core.wrapAsync (fun _ =>
           act |>.run' mkMetaContext -- We use the context used by `Command.liftTermElabM`
         ) (cancelTk? := none)) ()
@@ -147,9 +160,14 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
   let result ← tasks.mapM fun (linter, decls) => do
     traceLint "(1/2) Getting..." inIO currentModule linter.name
     let mut msgs : Std.HashMap Name MessageData := {}
+    let mut nanos := 0
+    let mut heartbeats := 0
     for (declName, msgTask) in decls do
       let msg? ← match msgTask.get with
-      | Except.ok msg? => pure msg?
+      | Except.ok (msg?, dt, dh) =>
+        nanos := nanos + dt
+        heartbeats := heartbeats + dh
+        pure msg?
       | Except.error err => pure m!"LINTER FAILED:\n{err.toMessageData}"
 
       if let .some msg := msg? then
@@ -157,7 +175,10 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
     traceLint
       s!"(2/2) {if msgs.isEmpty then "Passed!" else
         s!"Failed with {msgs.size} messages\
-        {if inIO then ", but these may include declarations in `nolints.json`" else ""}."}"
+        {if inIO then ", but these may include declarations in `nolints.json`" else ""}.\
+        "}{if inIO then
+          s!" [{decls.size} decls, task time {nanos / 1000000} ms, {heartbeats} heartbeats]"
+        else ""}"
       inIO currentModule linter.name
     pure (linter, msgs)
   traceLint "Completed linting!" inIO currentModule
