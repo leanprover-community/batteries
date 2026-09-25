@@ -34,3 +34,7 @@ trace: [Batteries.Lint] Running linters:
 -/
 #guard_msgs in
 #lint- only unusedHavesSuffices
+
+/-- info: " [3 decls, summed task time 2 ms, 700 heartbeats]" -/
+#guard_msgs in
+#eval Batteries.Tactic.Lint.formatLintCost 3 2500000 700
