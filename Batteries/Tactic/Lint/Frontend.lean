@@ -160,7 +160,7 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
           let result ← tryCatchRuntimeEx (.ok <$> linter.test decl) (pure ∘ .error)
           let t1 ← if reportCost then IO.monoNanosNow else pure 0
           let h1 ← if reportCost then IO.getNumHeartbeats else pure 0
-          if inIO then
+          if inIO && result matches .ok _ then
             -- Ensure any trace messages are propagated to stdout
             printTraces
           return (result, t1 - t0, h1 - h0)
