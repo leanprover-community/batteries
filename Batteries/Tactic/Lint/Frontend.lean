@@ -120,10 +120,14 @@ def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Na
 /--
 Runs all the specified linters on all the specified declarations in parallel,
 producing a list of results.
+
+If `localDecls` is given, linters with `isLocal` lint only those declarations (for example, the
+declarations of the modules a change touched), while the other linters still lint all of `decls`.
 -/
 def lintCore (decls : Array Name) (linters : Array NamedLinter)
     -- For tracing:
-    (currentModule : Option Name := none) (inIO : Bool := false) :
+    (currentModule : Option Name := none) (inIO : Bool := false)
+    (localDecls : Option (Array Name) := none) :
     CoreM (Array (NamedLinter × Std.HashMap Name MessageData)) := do
   traceLint
       s!"Running linters:\n  {"\n  ".intercalate <| linters.map (s!"{·.name}") |>.toList}"
@@ -132,6 +136,7 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
   let tasks : Array (NamedLinter × Array (Name × Task (Except Exception <| Option MessageData))) ←
     linters.mapM fun linter => do
       traceLint "(0/2) Starting..." inIO currentModule linter.name
+      let decls := if linter.isLocal then localDecls.getD decls else decls
       let decls ← decls.filterM (shouldBeLinted linter.name)
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
         let act : MetaM (Option MessageData) := do

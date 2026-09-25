@@ -107,6 +107,13 @@ structure Linter where
   errorsFound : MessageData
   /-- If `isFast` is false, this test will be omitted from `#lint-`. -/
   isFast := true
+  /-- Whether only a declaration's own module can make this linter report it, so that linting just
+  the declarations of changed modules (`runLinter --only-modules`) cannot miss a report. Attributes
+  that other modules add to a declaration may only suppress its report (for example, `docBlame`
+  skips instances). Linters that consult such attributes to decide *whether* to report, such as
+  `simpNF` (a `@[simp]` added elsewhere makes a lemma subject to it), are not local. Default `false`,
+  so that a new linter is linted everywhere until someone checks it is local. -/
+  isLocal := false
 
 /-- A `NamedLinter` is a linter associated to a particular declaration. -/
 structure NamedLinter extends Linter where
