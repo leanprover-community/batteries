@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Meta.DiscrTree.Basic","Lean.Meta.DiscrTree.Main","Lean.Meta.DiscrTree.Util","Lean.Meta.WHNF"],"instances":[],"name":"Lean.Meta.DiscrTree"}

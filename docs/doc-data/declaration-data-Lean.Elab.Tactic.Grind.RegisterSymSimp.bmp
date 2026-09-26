@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Sym.Simp.SimprocDSL","Lean.Elab.Tactic.Grind.SimprocDSL","Lean.Elab.Tactic.Grind.WithGrindTacticM","Lean.Meta.Sym.Simp.Variant"],"instances":[],"name":"Lean.Elab.Tactic.Grind.RegisterSymSimp"}

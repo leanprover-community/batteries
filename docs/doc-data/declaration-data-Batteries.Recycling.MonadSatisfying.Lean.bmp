@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Batteries.Lean.LawfulMonad","Batteries.Recycling.MonadSatisfying.Basic","Init","Init.System.ST","Lean.Elab.Command"],"instances":[],"name":"Batteries.Recycling.MonadSatisfying.Lean"}
