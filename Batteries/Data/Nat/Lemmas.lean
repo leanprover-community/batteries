@@ -214,47 +214,20 @@ private theorem toDigits_append_toDigits_pow_length
       Nat.toDigits 10
         (a * 10 ^ (Nat.toDigits 10 b).length + b) := by
   induction b using Nat.base_induction 10 (by decide) with
-    | single b hb =>
-      have h_digits_b := Nat.toDigits_of_lt_base hb
-      have h_append_b := Nat.toDigits_append_toDigits (by decide) (Nat.pos_of_ne_zero ha) hb
-      have h_value_eq : (10 * a + b) = (a * 10 ^ (toDigits 10 b).length + b) := by
-        rw [h_digits_b]
-        have h_singleton_length : [b.digitChar].length = 1 := by simp
-        simp [h_singleton_length, Nat.mul_comm]
-      rw [h_value_eq] at h_append_b
-      apply h_append_b
-    | digit m k hk hm ih =>
-      have ih_append_k := congrArg (fun n => n ++ (toDigits 10 k)) ih
-      rw [List.append_assoc] at ih_append_k
-
-      have h_digits_mk : toDigits 10 m ++ toDigits 10 k = toDigits 10 (10 * m + k) := by
-        apply Nat.toDigits_append_toDigits
-        decide
-        exact hm
-        exact hk
-
-      have h_digits_result_k := @Nat.toDigits_append_toDigits 10 (a * 10 ^ (toDigits 10 m).length + m) k (by decide) (by exact Nat.add_pos_right (a * 10 ^ (toDigits 10 m).length) hm) hk
-
-      have h_result_value_eq : (10 * (a * 10 ^ (toDigits 10 m).length + m) + k) = (a * 10 ^ (toDigits 10 (10 * m + k)).length + (10 * m + k)) := by
-        simp +arith +decide
-        rw [←Nat.toDigits_append_toDigits (by decide) hm hk]
-        rw [Nat.toDigits_of_lt_base hk]
-        rw [List.length_append]
-        simp [Nat.pow_add]
-        ac_rfl
-
-      rw [h_result_value_eq] at h_digits_result_k
-
-      rw [h_digits_mk, h_digits_result_k] at ih_append_k
-
-      exact ih_append_k
+  | single b hb =>
+    simpa [Nat.toDigits_of_lt_base hb, Nat.mul_comm] using
+      Nat.toDigits_append_toDigits (by decide) (Nat.pos_of_ne_zero ha) hb
+  | digit m k hk hm ih =>
+    have hmk := Nat.toDigits_append_toDigits (by decide) hm hk
+    rw [← hmk, List.length_append, ← List.append_assoc, ih,
+      Nat.toDigits_append_toDigits (by decide) (Nat.add_pos_right _ hm) hk]
+    simp [Nat.toDigits_of_lt_base hk, Nat.pow_succ, Nat.mul_add]
+    ac_rfl
 
 theorem toString_append_toString (a b : Nat) (ha : a ≠ 0) :
     toString a ++ toString b = toString (a * 10 ^ (toString b).length + b) := by
-  simp only [Nat.toString_eq_ofList_toDigits]
-  rw [←String.ofList_append]
-  rw [String.length_ofList]
-  rw [toDigits_append_toDigits_pow_length a b ha]
+  simpa only [Nat.toString_eq_ofList_toDigits, String.ofList_append, String.length_ofList] using
+    congrArg String.ofList (toDigits_append_toDigits_pow_length a b ha)
 
 /-! ### Misc -/
 
