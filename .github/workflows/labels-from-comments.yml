@@ -15,34 +15,38 @@ jobs:
       pull-requests: write
     if: github.event.issue.pull_request != null && (github.event.comment.body == 'awaiting-review' || github.event.comment.body == 'awaiting-author' || github.event.comment.body == 'WIP')
     runs-on: ubuntu-latest
+    # Serialize runs on the same PR, so that two status comments in quick succession
+    # cannot interleave and leave the PR with two status labels.
+    concurrency:
+      group: update-label-${{ github.event.issue.number }}
+      cancel-in-progress: false
 
     steps:
-    - name: Remove all relevant labels
-      uses: actions/github-script@v6
+    - name: Update status label
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const { owner, repo, number: issue_number } = context.issue;
+          const statusLabels = ['awaiting-review', 'awaiting-author', 'WIP'];
+          const target = context.payload.comment.body;
 
-          // Remove the labels if they exist
-          await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'awaiting-review' }).catch(() => {});
-          await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'awaiting-author' }).catch(() => {});
-          await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'WIP' }).catch(() => {});
+          const current = (await github.paginate(github.rest.issues.listLabelsOnIssue,
+            { owner, repo, issue_number })).map(label => label.name);
 
-    - name: Add label based on comment
-      uses: actions/github-script@v6
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const { owner, repo, number: issue_number  } = context.issue;
-          const commentBody = context.payload.comment.body;
+          // Remove the other status labels. A 404 means the label was already removed,
+          // which is fine; any other error fails the job.
+          for (const name of statusLabels) {
+            if (name === target || !current.includes(name)) continue;
+            try {
+              await github.rest.issues.removeLabel({ owner, repo, issue_number, name });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+          }
 
-          if (commentBody == 'awaiting-review') {
-            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['awaiting-review'] });
-          } else if (commentBody == 'awaiting-author') {
-            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['awaiting-author'] });
-          } else if (commentBody == 'WIP') {
-            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['WIP'] });
+          if (!current.includes(target)) {
+            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: [target] });
           }
 
     # - name: Delete the comment
