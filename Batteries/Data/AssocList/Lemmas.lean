@@ -65,7 +65,7 @@ theorem find?_eq_findEntry? [BEq α] (a : α) (l : AssocList α β) :
     find? a l = (l.toList.find? (·.1 == a)).map (·.2) := by simp [find?_eq_findEntry?]
 
 /- Adapted from Graphiti; generalized the equality assumptions. -/
-@[simp] theorem find?_mapVal [BEq α] [LawfulBEq α] (f : α → β → γ)
+theorem find?_mapVal [BEq α] [LawfulBEq α] (f : α → β → γ)
     (a : α) (l : AssocList α β) :
     (l.mapVal f).find? a = (l.find? a).map (f a) := by
   induction l with
