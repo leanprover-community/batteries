@@ -64,7 +64,7 @@ bottom.
 The goal is not required to be solved and any resulting subgoals are inserted back into the
 list of goals, replacing the chosen goal.
 -/
-elab "on_goal " ns:goalNum* " => " seq:tacticSeq : tactic => do
+elab "on_goal " ns:goalNum+ " => " seq:tacticSeq : tactic => do
   let ns ← ns.mapM elabGoalNum
   let mut newGoals := #[]
   for goal in ← getGoals, i in 0...* do
