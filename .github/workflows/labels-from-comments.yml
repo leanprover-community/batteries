@@ -15,11 +15,13 @@ jobs:
       pull-requests: write
     if: github.event.issue.pull_request != null && (github.event.comment.body == 'awaiting-review' || github.event.comment.body == 'awaiting-author' || github.event.comment.body == 'WIP')
     runs-on: ubuntu-latest
-    # Serialize runs on the same PR, so that two status comments in quick succession
-    # cannot interleave and leave the PR with two status labels.
+    # Serialize with every other status-label run on the same PR, including those of
+    # `labels-from-status.yml`, so that their label edits cannot interleave.
+    # `queue: max` keeps pending runs instead of replacing them.
     concurrency:
-      group: update-label-${{ github.event.issue.number }}
+      group: pr-status-label-${{ github.event.issue.number }}
       cancel-in-progress: false
+      queue: max
 
     steps:
     - name: Update status label
@@ -30,6 +32,10 @@ jobs:
         script: |
           const { owner, repo, number: issue_number } = context.issue;
           const statusLabels = ['awaiting-review', 'awaiting-author', 'WIP'];
+
+          // Closed PRs carry no status label (see `labels-from-status.yml`).
+          const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: issue_number });
+          if (pr.state === 'closed') return;
 
           // Runs are not guaranteed to start in comment order, and a pending run can be
           // replaced by a later one, so apply the newest status command on the PR
