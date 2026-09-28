@@ -42,3 +42,10 @@ example (p : Prop) : p → p := by
   intros
   fail_if_success swap -- can't swap with a single goal
   assumption
+
+example (p q r : Prop) : p → q → r → p ∧ q ∧ r := by
+  intros; constructor
+  on_goal 2 => constructor
+  on_goal 1 3 => assumption
+  guard_target = q
+  assumption
