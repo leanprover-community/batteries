@@ -29,7 +29,7 @@ open Lean Elab.Tactic
 and `-n` refers to the `n`-th goal from the bottom. -/
 syntax goalNum := "-"? num
 
-/-- Elaborate the `goalNum` syntax. -/
+/-- Turn the given `goalNum` syntax into a (zero-based) index in the current `getGoals` list. -/
 def elabGoalNum (goalNum : Syntax) : TacticM Nat := withRef goalNum do
   let nGoals := (← getGoals).length
   let some nth := goalNum[1].isNatLit? | Elab.throwUnsupportedSyntax
