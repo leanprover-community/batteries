@@ -42,7 +42,7 @@ def elabGoalNum (goalNum : Syntax) : TacticM Nat := withRef goalNum do
 
 `pick_goal -n` will move the `n`-th goal (counting from the bottom) to the front.
 
-See also `Tactic.rotate_goals`, which moves goals from the front to the back and vice-versa.
+See also `rotate_left`/`rotate_right`, which move goals from the front to the back and vice-versa.
 -/
 elab "pick_goal " n:goalNum : tactic => do
   let n ← elabGoalNum n
