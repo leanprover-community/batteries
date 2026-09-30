@@ -248,7 +248,7 @@ theorem Ordered.toList_sorted {t : RBNode α} : t.Ordered cmp → t.toList.Pairw
 theorem min?_mem {t : RBNode α} (h : t.min? = some a) : a ∈ t := by
   rw [min?_eq_toList_head?] at h
   rw [← mem_toList]
-  revert h; cases toList t <;> rintro ⟨⟩; constructor
+  revert h; cases toList t <;> rintro ⟨⟩; simp
 
 theorem Ordered.min?_le {t : RBNode α} [Std.TransCmp cmp] (ht : t.Ordered cmp)
     (h : t.min? = some a) (x) (hx : x ∈ t) : cmp a x ≠ .gt := by

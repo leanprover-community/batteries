@@ -10,37 +10,52 @@ on:
 
 jobs:
   update-label:
+    permissions:
+      pull-requests: write
     if: github.event.issue.pull_request != null && (github.event.comment.body == 'awaiting-review' || github.event.comment.body == 'awaiting-author' || github.event.comment.body == 'WIP')
     runs-on: ubuntu-latest
+    # Serialize with every other status-label run on the same PR, including those of
+    # `labels-from-status.yml`, so that their label edits cannot interleave.
+    # `queue: max` keeps pending runs instead of replacing them.
+    concurrency:
+      group: pr-status-label-${{ github.event.issue.number }}
+      cancel-in-progress: false
+      queue: max
 
     steps:
-    - name: Remove all relevant labels
-      uses: actions/github-script@v6
+    - name: Update status label
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
+        retries: 3
         script: |
           const { owner, repo, number: issue_number } = context.issue;
+          const statusLabels = ['awaiting-review', 'awaiting-author', 'WIP'];
 
-          // Remove the labels if they exist
-          await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'awaiting-review' }).catch(() => {});
-          await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'awaiting-author' }).catch(() => {});
-          await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'WIP' }).catch(() => {});
+          // Closed PRs carry no status label (see `labels-from-status.yml`).
+          const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: issue_number });
+          if (pr.state === 'closed') return;
 
-    - name: Add label based on comment
-      uses: actions/github-script@v6
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const { owner, repo, number: issue_number  } = context.issue;
-          const commentBody = context.payload.comment.body;
+          // Runs are not guaranteed to start in comment order, and a pending run can be
+          // replaced by a later one, so apply the newest status command on the PR
+          // rather than the comment that triggered this run.
+          const comments = await github.paginate(github.rest.issues.listComments,
+            { owner, repo, issue_number, per_page: 100 });
+          const target = comments.filter(c => statusLabels.includes(c.body)).at(-1)?.body
+            ?? context.payload.comment.body;
 
-          if (commentBody == 'awaiting-review') {
-            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['awaiting-review'] });
-          } else if (commentBody == 'awaiting-author') {
-            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['awaiting-author'] });
-          } else if (commentBody == 'WIP') {
-            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['WIP'] });
+          // Remove the other status labels. A 404 means the label is not on the PR,
+          // which is fine; any other error fails the job.
+          for (const name of statusLabels) {
+            if (name === target) continue;
+            try {
+              await github.rest.issues.removeLabel({ owner, repo, issue_number, name });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
           }
+
+          await github.rest.issues.addLabels({ owner, repo, issue_number, labels: [target] });
 
     # - name: Delete the comment
     #   uses: actions/github-script@v6
