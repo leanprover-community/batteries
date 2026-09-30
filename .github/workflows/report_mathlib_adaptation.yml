@@ -1,0 +1,32 @@
+name: Report Mathlib adaptation
+
+on:
+  repository_dispatch:
+    types: [mathlib-adaptation-result]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+concurrency:
+  group: mathlib-adaptation-feedback-${{ github.event.client_payload.batteries_pr_number }}
+  cancel-in-progress: false
+
+jobs:
+  report:
+    # The companion Mathlib reporter uses this App account. Do not accept
+    # result payloads from other repository writers.
+    if: github.repository == 'leanprover-community/batteries' && vars.MATHLIB_ADAPTATION_REPORTER_BOT != '' && github.actor == vars.MATHLIB_ADAPTATION_REPORTER_BOT
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ADAPTATION_FORK: ${{ vars.MATHLIB_ADAPTATION_FORK }}
+        with:
+          script: |
+            const helpers = require('./.github/scripts/mathlib_adaptations.cjs');
+            await helpers.reportAdaptation({ github, context });

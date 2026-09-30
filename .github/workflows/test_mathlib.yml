@@ -1,5 +1,3 @@
-# Test Mathlib against a Batteries PR
-
 name: Test Mathlib
 
 on:
@@ -7,98 +5,177 @@ on:
     workflows: [ci]
     types: [completed]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: mathlib-adaptation-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
 jobs:
-  on-success:
-    runs-on: ubuntu-latest
+  plan:
     if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' && github.repository == 'leanprover-community/batteries'
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.plan.outputs.pr_number }}
+      batteries_sha: ${{ steps.plan.outputs.batteries_sha }}
+      batteries_repo: ${{ steps.plan.outputs.batteries_repo }}
+      mathlib_sha: ${{ steps.plan.outputs.mathlib_sha }}
+      adaptation_fork: ${{ steps.plan.outputs.adaptation_fork }}
+      adaptation_pr: ${{ steps.plan.outputs.adaptation_pr }}
     steps:
-      - name: Checkout PR
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - id: plan
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ADAPTATION_FORK: ${{ vars.MATHLIB_ADAPTATION_FORK }}
+        with:
+          script: |
+            const helpers = require('./.github/scripts/mathlib_adaptations.cjs');
+            await helpers.plan({ github, context, core });
+
+  check:
+    needs: plan
+    if: needs.plan.outputs.pr_number != ''
+    # Match downstream-reports/mathlib-pr-validation.yml: no App tokens,
+    # CI secrets, or cache upload credentials in the dependency build job.
+    runs-on: [self-hosted, pr]
+    timeout-minutes: 120
+    outputs:
+      build_result: ${{ steps.build.outcome }}
+    env:
+      PR_NUMBER: ${{ needs.plan.outputs.pr_number }}
+      BATTERIES_SHA: ${{ needs.plan.outputs.batteries_sha }}
+      BATTERIES_REPO: ${{ needs.plan.outputs.batteries_repo }}
+      MATHLIB_SHA: ${{ needs.plan.outputs.mathlib_sha }}
+      ADAPTATION_FORK: ${{ needs.plan.outputs.adaptation_fork }}
+      ADAPTATION_PR: ${{ needs.plan.outputs.adaptation_pr }}
+      LAKE_NO_CACHE: true
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Checkout Mathlib
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
+          repository: leanprover-community/mathlib4
+          ref: ${{ needs.plan.outputs.mathlib_sha }}
           fetch-depth: 0
+          path: mathlib
+          persist-credentials: false
+      - name: Prepare the dependency update
+        run: bash .github/scripts/prepare_mathlib_adaptation.sh
+      - name: Build Mathlib before opening a PR
+        id: build
+        if: needs.plan.outputs.adaptation_pr == ''
+        continue-on-error: true
+        working-directory: mathlib
+        run: lake build Mathlib Archive Counterexamples
+      - name: Save the branch for the publisher
+        if: steps.build.outcome == 'failure' || needs.plan.outputs.adaptation_pr != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mathlib-adaptation-branch
+          path: ${{ runner.temp }}/mathlib-adaptation.bundle
+          if-no-files-found: error
+          retention-days: 7
 
-      - name: Get PR info
-        id: pr-info
-        run: |
-          echo "pullRequestNumber=$(gh pr list --search $SHA --json number -q '.[0].number' || echo '')" >> $GITHUB_OUTPUT
-          echo "targetBranch=$(gh pr list --search $SHA --json baseRefName -q '.[0].baseRefName' || echo '')" >> $GITHUB_OUTPUT
+  publish:
+    needs: [plan, check]
+    if: needs.check.outputs.build_result == 'failure' || needs.plan.outputs.adaptation_pr != ''
+    # Use a fresh runner. Never execute the candidate tree with write tokens.
+    runs-on: ubuntu-latest
+    outputs:
+      adaptation_url: ${{ steps.pr.outputs.adaptation_url }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: mathlib-adaptation-branch
+          path: ${{ runner.temp }}/adaptation
+      - name: Confirm the Batteries revision is current
+        id: current
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SHA: ${{ github.event.workflow_run.head_sha }}
-
-      - name: Generate app token
-        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
-        id: app-token
+          PR_NUMBER: ${{ needs.plan.outputs.pr_number }}
+          BATTERIES_SHA: ${{ needs.plan.outputs.batteries_sha }}
+        with:
+          script: |
+            const helpers = require('./.github/scripts/mathlib_adaptations.cjs');
+            core.setOutput('current', await helpers.isCurrent({ github, context }));
+      - name: Create a token for the adaptation fork
+        if: steps.current.outputs.current == 'true'
+        id: fork-token
         uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         with:
           app-id: ${{ secrets.MATHLIB_NIGHTLY_TESTING_APP_ID }}
           private-key: ${{ secrets.MATHLIB_NIGHTLY_TESTING_PRIVATE_KEY }}
           owner: leanprover-community
-          repositories: mathlib4,mathlib4-nightly-testing
-
-      - name: Checkout mathlib4 repository
-        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+          repositories: ${{ needs.plan.outputs.adaptation_fork }}
+          permission-contents: write
+      - name: Push the adaptation branch
+        if: steps.current.outputs.current == 'true'
+        env:
+          GH_TOKEN: ${{ steps.fork-token.outputs.token }}
+          ADAPTATION_FORK: ${{ needs.plan.outputs.adaptation_fork }}
+          PR_NUMBER: ${{ needs.plan.outputs.pr_number }}
+          MATHLIB_SHA: ${{ needs.plan.outputs.mathlib_sha }}
+        run: |
+          git init --bare "$RUNNER_TEMP/publish.git"
+          git -C "$RUNNER_TEMP/publish.git" fetch https://github.com/leanprover-community/mathlib4.git "$MATHLIB_SHA"
+          git -C "$RUNNER_TEMP/publish.git" fetch "$RUNNER_TEMP/adaptation/mathlib-adaptation.bundle" \
+            "refs/heads/adaptations/batteries-$PR_NUMBER:refs/heads/adaptations/batteries-$PR_NUMBER"
+          gh auth setup-git
+          # A regular push rejects concurrent human edits. Never force-push.
+          git -C "$RUNNER_TEMP/publish.git" push "https://github.com/leanprover-community/$ADAPTATION_FORK.git" \
+            "refs/heads/adaptations/batteries-$PR_NUMBER"
+      - name: Create a token for Mathlib PRs
+        if: steps.current.outputs.current == 'true'
+        id: mathlib-token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         with:
-          repository: leanprover-community/mathlib4
-          token: ${{ steps.app-token.outputs.token }}
-          ref: master
-          fetch-depth: 0
-
-      - name: Add nightly-testing remote
-        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
-        run: |
-          git remote add nightly-testing https://github.com/leanprover-community/mathlib4-nightly-testing.git
-          git fetch nightly-testing
-
-      - name: Install elan
-        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
-        run: |
-          set -o pipefail
-          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.0.0/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
-          ./elan-init -y --default-toolchain none
-          echo "$HOME/.elan/bin" >> "${GITHUB_PATH}"
-
-      - name: Check if branch exists
-        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
-        id: check_mathlib_tag
+          app-id: ${{ secrets.MATHLIB_NIGHTLY_TESTING_APP_ID }}
+          private-key: ${{ secrets.MATHLIB_NIGHTLY_TESTING_PRIVATE_KEY }}
+          owner: leanprover-community
+          repositories: mathlib4
+          permission-pull-requests: write
+      - name: Open or find the adaptation PR
+        if: steps.current.outputs.current == 'true'
+        id: pr
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          PR_NUMBER: ${{ steps.pr-info.outputs.pullRequestNumber }}
-          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
-          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
-        run: |
-          git config user.name "mathlib-nightly-testing[bot]"
-          git config user.email "mathlib-nightly-testing[bot]@users.noreply.github.com"
+          PR_NUMBER: ${{ needs.plan.outputs.pr_number }}
+          BATTERIES_SHA: ${{ needs.plan.outputs.batteries_sha }}
+          ADAPTATION_FORK: ${{ needs.plan.outputs.adaptation_fork }}
+        with:
+          github-token: ${{ steps.mathlib-token.outputs.token }}
+          script: |
+            const helpers = require('./.github/scripts/mathlib_adaptations.cjs');
+            await helpers.openAdaptation({ github, core });
 
-          echo "PR info: $HEAD_REPO $HEAD_BRANCH"
-
-          BASE=master
-          echo "Using base tag: $BASE"
-
-          EXISTS="$(git ls-remote --heads nightly-testing batteries-pr-testing-$PR_NUMBER | wc -l)"
-          echo "Branch exists: $EXISTS"
-          if [ "$EXISTS" = "0" ]; then
-            echo "Branch does not exist, creating it."
-            git switch -c batteries-pr-testing-$PR_NUMBER "$BASE"
-
-            # Modify the lakefile.lean with the fork and branch name
-            sed -i "s,require \"leanprover-community\" / \"batteries\" @ git \".\+\",require \"leanprover-community\" / \"batteries\" from git \"https://github.com/$HEAD_REPO\" @ \"$HEAD_BRANCH\",g" lakefile.lean
-
-            lake update batteries
-            git add lakefile.lean lake-manifest.json
-            git commit -m "Update Batteries branch for testing https://github.com/leanprover-community/batteries/pull/$PR_NUMBER"
-          else
-            echo "Branch already exists, merging $BASE and bumping Batteries."
-            git switch batteries-pr-testing-$PR_NUMBER
-            git merge "$BASE" --strategy-option ours --no-commit --allow-unrelated-histories
-            lake update batteries
-            git add lake-manifest.json
-            git commit --allow-empty -m "Trigger CI for https://github.com/leanprover-community/batteries/pull/$PR_NUMBER"
-          fi
-
-      - name: Push changes
-        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
+  report:
+    needs: [plan, check, publish]
+    if: ${{ !cancelled() && needs.check.result == 'success' && (needs.check.outputs.build_result == 'success' || needs.publish.outputs.adaptation_url != '') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          PR_NUMBER: ${{ steps.pr-info.outputs.pullRequestNumber }}
-        run: |
-          git push nightly-testing batteries-pr-testing-$PR_NUMBER
+          PR_NUMBER: ${{ needs.plan.outputs.pr_number }}
+          BATTERIES_SHA: ${{ needs.plan.outputs.batteries_sha }}
+          BUILD_RESULT: ${{ needs.check.outputs.build_result }}
+          ADAPTATION_URL: ${{ needs.publish.outputs.adaptation_url }}
+        with:
+          script: |
+            const helpers = require('./.github/scripts/mathlib_adaptations.cjs');
+            await helpers.reportInitial({ github, context });
