@@ -11,6 +11,7 @@ permissions:
 concurrency:
   group: mathlib-adaptation-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   plan:
@@ -33,54 +34,38 @@ jobs:
           ADAPTATION_FORK: ${{ vars.MATHLIB_ADAPTATION_FORK }}
         with:
           script: |
-            const helpers = require('./.github/scripts/mathlib_adaptations.cjs');
+            const helpers = require('./.github/scripts/mathlib_adaptations.js');
             await helpers.plan({ github, context, core });
 
   check:
     needs: plan
     if: needs.plan.outputs.pr_number != ''
-    # Match downstream-reports/mathlib-pr-validation.yml: no App tokens,
-    # CI secrets, or cache upload credentials in the dependency build job.
-    runs-on: [self-hosted, pr]
-    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
     outputs:
-      build_result: ${{ steps.build.outcome }}
-    env:
-      PR_NUMBER: ${{ needs.plan.outputs.pr_number }}
-      BATTERIES_SHA: ${{ needs.plan.outputs.batteries_sha }}
-      BATTERIES_REPO: ${{ needs.plan.outputs.batteries_repo }}
-      MATHLIB_SHA: ${{ needs.plan.outputs.mathlib_sha }}
-      ADAPTATION_FORK: ${{ needs.plan.outputs.adaptation_fork }}
-      ADAPTATION_PR: ${{ needs.plan.outputs.adaptation_pr }}
-      LAKE_NO_CACHE: true
+      build_result: ${{ steps.wait.outputs.build_result }}
+      downstream_run: ${{ steps.wait.outputs.downstream_run }}
+      downstream_url: ${{ steps.wait.outputs.downstream_url }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
-      - name: Checkout Mathlib
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Dispatch and wait for downstream validation
+        id: wait
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          APP_ID: ${{ secrets.MATHLIB_NIGHTLY_TESTING_APP_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.MATHLIB_NIGHTLY_TESTING_PRIVATE_KEY }}
+          PR_NUMBER: ${{ needs.plan.outputs.pr_number }}
+          BATTERIES_SHA: ${{ needs.plan.outputs.batteries_sha }}
+          BATTERIES_REPO: ${{ needs.plan.outputs.batteries_repo }}
+          MATHLIB_SHA: ${{ needs.plan.outputs.mathlib_sha }}
+          ADAPTATION_FORK: ${{ needs.plan.outputs.adaptation_fork }}
+          ADAPTATION_PR: ${{ needs.plan.outputs.adaptation_pr }}
         with:
-          repository: leanprover-community/mathlib4
-          ref: ${{ needs.plan.outputs.mathlib_sha }}
-          fetch-depth: 0
-          path: mathlib
-          persist-credentials: false
-      - name: Prepare the dependency update
-        run: bash .github/scripts/prepare_mathlib_adaptation.sh
-      - name: Build Mathlib before opening a PR
-        id: build
-        if: needs.plan.outputs.adaptation_pr == ''
-        continue-on-error: true
-        working-directory: mathlib
-        run: lake build Mathlib Archive Counterexamples
-      - name: Save the branch for the publisher
-        if: steps.build.outcome == 'failure' || needs.plan.outputs.adaptation_pr != ''
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: mathlib-adaptation-branch
-          path: ${{ runner.temp }}/mathlib-adaptation.bundle
-          if-no-files-found: error
-          retention-days: 7
+          script: |
+            const helpers = require('./.github/scripts/dispatch_mathlib.js');
+            await helpers.dispatchAndWait({ github, context, core });
 
   publish:
     needs: [plan, check]
@@ -93,8 +78,20 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+      - name: Create a token to read the downstream artifact
+        id: downstream-token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        with:
+          app-id: ${{ secrets.MATHLIB_NIGHTLY_TESTING_APP_ID }}
+          private-key: ${{ secrets.MATHLIB_NIGHTLY_TESTING_PRIVATE_KEY }}
+          owner: leanprover-community
+          repositories: downstream-reports
+          permission-actions: read
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
+          repository: leanprover-community/downstream-reports
+          run-id: ${{ needs.check.outputs.downstream_run }}
+          github-token: ${{ steps.downstream-token.outputs.token }}
           name: mathlib-adaptation-branch
           path: ${{ runner.temp }}/adaptation
       - name: Confirm the Batteries revision is current
@@ -105,7 +102,7 @@ jobs:
           BATTERIES_SHA: ${{ needs.plan.outputs.batteries_sha }}
         with:
           script: |
-            const helpers = require('./.github/scripts/mathlib_adaptations.cjs');
+            const helpers = require('./.github/scripts/mathlib_adaptations.js');
             core.setOutput('current', await helpers.isCurrent({ github, context }));
       - name: Create a token for the adaptation fork
         if: steps.current.outputs.current == 'true'
@@ -154,7 +151,7 @@ jobs:
         with:
           github-token: ${{ steps.mathlib-token.outputs.token }}
           script: |
-            const helpers = require('./.github/scripts/mathlib_adaptations.cjs');
+            const helpers = require('./.github/scripts/mathlib_adaptations.js');
             await helpers.openAdaptation({ github, core });
 
   report:
@@ -173,9 +170,10 @@ jobs:
         env:
           PR_NUMBER: ${{ needs.plan.outputs.pr_number }}
           BATTERIES_SHA: ${{ needs.plan.outputs.batteries_sha }}
+          DOWNSTREAM_URL: ${{ needs.check.outputs.downstream_url }}
           BUILD_RESULT: ${{ needs.check.outputs.build_result }}
           ADAPTATION_URL: ${{ needs.publish.outputs.adaptation_url }}
         with:
           script: |
-            const helpers = require('./.github/scripts/mathlib_adaptations.cjs');
+            const helpers = require('./.github/scripts/mathlib_adaptations.js');
             await helpers.reportInitial({ github, context });

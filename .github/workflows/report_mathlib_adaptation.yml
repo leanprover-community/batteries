@@ -28,5 +28,5 @@ jobs:
           ADAPTATION_FORK: ${{ vars.MATHLIB_ADAPTATION_FORK }}
         with:
           script: |
-            const helpers = require('./.github/scripts/mathlib_adaptations.cjs');
+            const helpers = require('./.github/scripts/mathlib_adaptations.js');
             await helpers.reportAdaptation({ github, context });

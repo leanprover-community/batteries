@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const helpers = require('./mathlib_adaptations.cjs');
+const helpers = require('./mathlib_adaptations.js');
 
 const sha = 'a'.repeat(40);
 const mathlibSHA = 'b'.repeat(40);

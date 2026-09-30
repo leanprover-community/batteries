@@ -107,7 +107,8 @@ async function reportInitial({ github, context }) {
   const success = process.env.BUILD_RESULT === 'success';
   const failed = process.env.BUILD_RESULT === 'failure';
   const label = success ? 'builds-mathlib' : failed ? 'breaks-mathlib' : null;
-  const url = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+  const url = process.env.DOWNSTREAM_URL ||
+    `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
   const message = [
     `Mathlib validation for Batteries \`${process.env.BATTERIES_SHA}\`:`,
     success ? 'The initial build passes. No adaptation PR is needed.' :

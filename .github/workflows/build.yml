@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Test the Mathlib adaptation automation
-        run: node --test .github/scripts/mathlib_adaptations.test.cjs
+        run: node --test .github/scripts/*.test.js
 
       - id: lean-action
         name: build, test, and lint batteries
