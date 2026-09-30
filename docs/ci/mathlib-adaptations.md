@@ -6,7 +6,20 @@ The new workflow shares the queue with `mathlib-pr-validation.yml` and uses the 
 
 ## Behavior
 
-1. Successful Batteries CI selects an open PR to `main` at the tested head SHA.
+New PRs and new head revisions receive `mathlib-not-checked`. Its description appears in the label tooltip:
+
+> Mathlib has not been checked for this revision. Comment !adaptations to request a check.
+
+The PR author or a user with triage or write access can post `!adaptations` on a standalone line.
+The command adds `mathlib-adaptations`, which opts the PR in to checks across subsequent updates.
+A maintainer can add that label directly. Removing it disables future dispatches and publication of an in-flight result.
+The workflow creates these labels if needed and keeps their descriptions current.
+
+A request after CI passes starts immediately. A request during CI waits for a successful CI run at the current head.
+Unrequested PRs do not dispatch builds. Duplicate CI events skip a validation already completed for both pinned revisions.
+Another `!adaptations` command requests a fresh check.
+
+1. Successful Batteries CI selects an opted-in PR to `main` at the tested head SHA.
 2. The bot pins Mathlib `master` and the Batteries head to exact revisions.
 3. Batteries dispatches a downstream run with a unique request ID, then waits for that exact run.
 4. With no existing adaptation PR, downstream-reports builds Mathlib, Archive, and Counterexamples.
@@ -16,6 +29,8 @@ The new workflow shares the queue with `mathlib-pr-validation.yml` and uses the 
    Ordinary Mathlib fork CI performs subsequent tests and cache uploads.
 
 The initial check tests compilation, not the complete Mathlib test and lint suite.
+Matching build results replace `mathlib-not-checked` with `builds-mathlib` or `breaks-mathlib`.
+A branch refresh alone keeps the unchecked label until ordinary Mathlib CI returns a matching result.
 Setup errors, missing results, cancellation, and timeout cannot open an adaptation PR.
 The controller checks the request ID, PR number, repositories, and both commit SHAs in the returned result.
 It renews the App token during long queue waits. It waits up to 285 minutes, then cancels the identified downstream run.
@@ -50,6 +65,7 @@ Conflicts with Mathlib `master` require a maintainer to resolve them.
   The existing App can serve this role if its installation and token source support those permissions.
 
 No new runner registrations, Batteries runner access, cache containers, or cache upload credentials are required.
+The request workflow uses Batteries' own `GITHUB_TOKEN` for labels and its local workflow dispatch.
 The new branch prefix avoids the cache client's special routing for `batteries-pr-testing-*`.
 
 ## Ordinary Mathlib CI reporter contract

@@ -8,7 +8,9 @@ const fork = 'mathlib4-adaptations';
 const repo = { owner: 'leanprover-community', repo: 'batteries' };
 const batteriesPR = {
   number: 123, state: 'open', base: { ref: 'main' },
-  head: { sha, repo: { full_name: 'contributor/batteries' } },
+  labels: [{ name: 'mathlib-adaptations' }],
+  user: { login: 'contributor' },
+  head: { sha, ref: 'change-batteries', repo: { full_name: 'contributor/batteries' } },
 };
 const adaptation = {
   number: 456, state: 'open', base: { ref: 'master' }, html_url: 'https://github.com/example/pr/456',
@@ -29,6 +31,7 @@ function fixture(options = {}) {
         listPullRequestsAssociatedWithCommit: 'associated',
         get: record('repo', { fork: true, parent: { full_name: 'leanprover-community/mathlib4' } }),
         getBranch: record('base', { commit: { sha: mathlibSHA } }),
+        getCollaboratorPermissionLevel: record('permission', { permission: options.permission || 'write' }),
       },
       pulls: {
         list: 'pulls',
@@ -40,11 +43,16 @@ function fixture(options = {}) {
         listComments: 'comments',
         removeLabel: record('removeLabel', {}), addLabels: record('addLabels', {}),
         createComment: record('createComment', {}), updateComment: record('updateComment', {}),
+        getLabel: record('getLabel', {}), createLabel: record('createLabel', {}),
+        updateLabel: record('updateLabel', {}),
       },
+      actions: { listWorkflowRuns: 'ci', createWorkflowDispatch: record('dispatch', {}) },
     },
     paginate: async method => ({
       associated: options.candidates || [batteriesPR],
       pulls: options.adaptations || [], comments: options.comments || [],
+      ci: options.ci || [{ id: 1, head_sha: sha, head_repository: { full_name: 'contributor/batteries' },
+        status: 'completed', conclusion: 'success' }],
     })[method],
   };
   return { github, calls, outputs,
@@ -57,6 +65,7 @@ test.beforeEach(() => {
   process.env.ADAPTATION_FORK = fork;
   process.env.PR_NUMBER = '123';
   process.env.BATTERIES_SHA = sha;
+  process.env.MATHLIB_SHA = mathlibSHA;
   process.env.BUILD_RESULT = 'success';
   process.env.ADAPTATION_URL = '';
 });
@@ -153,4 +162,118 @@ test('unsafe fork names and malformed results are rejected', () => {
   for (const change of [{ result: 'cancelled' }, { batteries_pr_number: '123' }, { mathlib_sha: 'HEAD' }]) {
     assert.equal(helpers.validResult({ ...result, ...change }), false);
   }
+});
+
+test('a passing CI run does not dispatch an unrequested PR', async () => {
+  const f = fixture({ batteriesPR: { ...batteriesPR, labels: [] } });
+  await helpers.plan(f);
+  assert.deepEqual(f.outputs, {});
+  assert.deepEqual(f.calls, []);
+});
+
+test('a repeated CI event skips an already completed validation for both SHAs', async () => {
+  const f = fixture({ comments: [{ user: { login: 'github-actions[bot]' },
+    body: `<!-- mathlib-adaptation-status -->\n<!-- mathlib-validation:${sha}:${mathlibSHA} -->` }] });
+  await helpers.plan(f);
+  assert.deepEqual(f.outputs, {});
+});
+
+test('only a standalone adaptations directive requests a build', async () => {
+  assert.equal(helpers.command('Please run !adaptations'), false);
+  assert.equal(helpers.command('Context\n  !adaptations\r\n'), true);
+  const f = fixture();
+  f.context.payload = { issue: { number: 123 }, comment: { body: 'Please run !adaptations' } };
+  await helpers.requestAdaptations(f);
+  assert.deepEqual(f.calls, []);
+});
+
+test('a request after CI passes opts in and dispatches the current fork branch', async () => {
+  const f = fixture();
+  f.context.payload = { issue: { number: 123 }, comment: { body: '!adaptations', user: { login: 'maintainer' } } };
+  await helpers.requestAdaptations(f);
+  assert.deepEqual(f.calls.find(call => call.method === 'dispatch').args.inputs,
+    { pr_number: '123', head_repo: 'contributor/batteries', head_branch: 'change-batteries' });
+  assert.deepEqual(f.calls.find(call => call.method === 'addLabels').args.labels,
+    ['mathlib-adaptations', 'mathlib-not-checked']);
+});
+
+test('a request during CI records the opt-in without a premature dispatch', async () => {
+  const f = fixture({ ci: [{ id: 1, head_sha: sha, head_repository: { full_name: 'contributor/batteries' },
+    status: 'in_progress', conclusion: null }] });
+  f.context.payload = { issue: { number: 123 }, comment: { body: '!adaptations', user: { login: 'maintainer' } } };
+  await helpers.requestAdaptations(f);
+  assert.equal(f.calls.filter(call => call.method === 'addLabels').length, 1);
+  assert.equal(f.calls.filter(call => call.method === 'dispatch').length, 0);
+});
+
+test('unrelated read-only commenters cannot opt a PR into expensive builds', async () => {
+  const f = fixture({ permission: 'read' });
+  f.context.payload = { issue: { number: 123 }, comment: { body: '!adaptations', user: { login: 'outsider' } } };
+  await helpers.requestAdaptations(f);
+  assert.deepEqual(f.calls.map(call => call.method), ['permission']);
+});
+
+test('a new PR revision receives the unchecked label and clears old verdicts', async () => {
+  const f = fixture();
+  f.context.payload = { action: 'synchronize', pull_request: batteriesPR };
+  await helpers.requestAdaptations(f);
+  assert.deepEqual(f.calls.find(call => call.method === 'addLabels').args.labels, ['mathlib-not-checked']);
+  assert.equal(f.calls.filter(call => call.method === 'removeLabel').length, 2);
+  assert.equal(f.calls.filter(call => call.method === 'dispatch').length, 0);
+});
+
+test('a delayed push event cannot replace a completed result with unchecked', async () => {
+  const f = fixture({ comments: [{ user: { login: 'github-actions[bot]' },
+    body: `<!-- mathlib-adaptation-status -->\n<!-- mathlib-checked:${sha} -->` }] });
+  f.context.payload = { action: 'synchronize', pull_request: batteriesPR };
+  await helpers.requestAdaptations(f);
+  assert.equal(f.calls.filter(call => call.method === 'addLabels').length, 0);
+});
+
+test('removing the opt-in stops publication of an in-flight result', async () => {
+  const f = fixture({ batteriesPR: { ...batteriesPR, labels: [] } });
+  await helpers.reportInitial(f);
+  assert.deepEqual(f.calls, []);
+});
+
+test('completed validation removes the unchecked label', async () => {
+  const f = fixture();
+  await helpers.reportInitial(f);
+  assert.ok(f.calls.some(call => call.method === 'removeLabel' && call.args.name === 'mathlib-not-checked'));
+});
+
+test('PR authors can request adaptations without repository write access', async () => {
+  const f = fixture({ permission: 'read' });
+  f.context.payload = { issue: { number: 123 }, comment: { body: '!adaptations', user: { login: 'contributor' } } };
+  await helpers.requestAdaptations(f);
+  assert.ok(f.calls.some(call => call.method === 'dispatch'));
+});
+
+test('a direct opt-in label requests the current PR build', async () => {
+  const f = fixture();
+  f.context.actor = 'maintainer';
+  f.context.payload = { action: 'labeled', pull_request: batteriesPR };
+  await helpers.requestAdaptations(f);
+  assert.ok(f.calls.some(call => call.method === 'dispatch'));
+});
+
+test('manual requests revalidate CI and keep the same branch concurrency key', async () => {
+  const f = fixture();
+  f.context.payload = { inputs: { pr_number: '123', head_repo: 'contributor/batteries', head_branch: 'change-batteries' } };
+  await helpers.plan(f);
+  assert.equal(f.outputs.batteries_sha, sha);
+  const pending = fixture({ ci: [] });
+  pending.context.payload = f.context.payload;
+  await helpers.plan(pending);
+  assert.deepEqual(pending.outputs, {});
+});
+
+test('the unchecked label tooltip advertises the adaptations command', async () => {
+  const f = fixture();
+  f.github.rest.issues.getLabel = async () => { throw { status: 404 }; };
+  await helpers.ensureLabels(f.github, repo);
+  const label = f.calls.find(call => call.method === 'createLabel' && call.args.name === 'mathlib-not-checked');
+  assert.equal(label.args.description,
+    'Mathlib has not been checked for this revision. Comment !adaptations to request a check.');
+  assert.ok(label.args.description.length <= 100);
 });

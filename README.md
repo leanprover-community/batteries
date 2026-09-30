@@ -75,11 +75,18 @@ Batteries PRs often affect Mathlib, a key component of the Lean ecosystem.
 When Batteries changes in a significant way, Mathlib must adapt promptly.
 When necessary, Batteries contributors are expected to either create an adaptation PR on Mathlib, or ask for assistance for and to collaborate with this necessary process.
 
-After Batteries CI passes, the bot dispatches a build in `downstream-reports` and waits for its result.
+New PR revisions receive a `mathlib-not-checked` label. Its tooltip explains how to request a check.
+The PR author or a user with triage or write access can comment `!adaptations` on a line by itself.
+Maintainers can also add the `mathlib-adaptations` label directly.
+The request opts the PR in to Mathlib checks for subsequent updates.
+Remove `mathlib-adaptations` to disable those checks.
+
+After the request and successful Batteries CI, the bot dispatches a build in `downstream-reports` and waits for its result.
 The build tests the exact PR revision against Mathlib `master`.
 The initial check builds Mathlib, Archive, and Counterexamples with Mathlib's toolchain.
 It reads the public cache and does not upload a cache.
 If the build passes, the bot applies the `builds-mathlib` label. No adaptation PR is needed.
+The `mathlib-not-checked` label clears when the check returns a matching result.
 
 If the build fails, the bot opens a draft Mathlib PR and applies the `breaks-mathlib` label.
 The PR uses `adaptations/batteries-N` in the configured adaptation fork, where `N` is the Batteries PR number.
