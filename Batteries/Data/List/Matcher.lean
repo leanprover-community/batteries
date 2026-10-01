@@ -51,7 +51,7 @@ The sublists may be overlapping.
 -/
 partial def Matcher.findAll [BEq α] (m : Matcher α) (l : List α) : Array (Nat × Nat) :=
   if m.pattern.isEmpty then
-    (Array.range (l.length + 1)).map fun i => (i, i)
+    Array.range (l.length + 1) |>.map fun i => (i, i)
   else
     loop (l, 0) m.toMatcher #[]
 where
