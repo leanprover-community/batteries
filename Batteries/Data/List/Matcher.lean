@@ -50,7 +50,10 @@ Find all start and end positions of all infix sublists of `l` matching `m.patter
 The sublists may be overlapping.
 -/
 partial def Matcher.findAll [BEq α] (m : Matcher α) (l : List α) : Array (Nat × Nat) :=
-  loop (l, 0) m.toMatcher #[]
+  if m.pattern.isEmpty then
+    (Array.range (l.length + 1)).map fun i => (i, i)
+  else
+    loop (l, 0) m.toMatcher #[]
 where
   /-- Accumulator loop for `List.Matcher.findAll` -/
   loop (l : List α × Nat) (am : Array.Matcher α) (occs : Array (Nat × Nat)) : Array (Nat × Nat) :=
@@ -63,9 +66,12 @@ Find the start and end positions of the first infix sublist of `l` matching `m.p
 or `none` if there is no such sublist.
 -/
 def Matcher.find? [BEq α] (m : Matcher α) (l : List α) : Option (Nat × Nat) :=
-  match m.next? (l, 0) with
-  | none => none
-  | some (l, _) => some (l.snd - m.table.size, l.snd)
+  if m.pattern.isEmpty then
+    some (0, 0)
+  else
+    match m.next? (l, 0) with
+    | none => none
+    | some (l, _) => some (l.snd - m.table.size, l.snd)
 
 /--
 Returns all the start and end positions of all infix sublists of of `l` that match `pattern`.
