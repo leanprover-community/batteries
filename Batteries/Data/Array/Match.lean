@@ -121,7 +121,7 @@ def modifyStep [BEq α] (m : Matcher α) [Iterator σ n α]
   | .done _ => .done
   | .skip it' _ => .skip ⟨{it.internalState with inner := it'}⟩
   | .yield it' x _ =>
-    let state := m.table.step x m.state
+    let state := m.table.step x it.internalState.state
     if state = m.table.size then
       .yield ⟨{inner := it', state := state}⟩ it'.internalState
     else
