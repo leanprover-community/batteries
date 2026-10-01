@@ -22,3 +22,24 @@ example : True ∧ True := by simp <;> simp
 example : True ∧ True ∧ True := by
   constructor
   all_goals (try apply And.intro) <;> simp
+
+/--
+@ +2:15...18
+warning: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+
+Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
+-/
+#guard_msgs (positions := true) in
+example : True ∧ True := by
+  conv => skip <;> simp
+  simp
+
+-- `<;>` leaves 2 goals
+example : 1 = 1 ∧ 1 = 1 := by
+  conv => congr <;> simp
+  exact ⟨trivial, trivial⟩
+
+-- `<;>` leaves 0 goals
+example : True ∧ True := by
+  conv => rfl <;> simp
+  simp
