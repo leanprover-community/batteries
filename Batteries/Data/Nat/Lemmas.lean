@@ -206,6 +206,29 @@ theorem testBit_ofBits (f : Fin n → Bool) :
 theorem ofBits_testBit (x n) : ofBits (fun i : Fin n => x.testBit i) = x % 2 ^ n := by
   apply eq_of_testBit_eq; simp [testBit_ofBits]
 
+/-! ### toString -/
+
+private theorem toDigits_append_toDigits_pow_length
+    (a b : Nat) (ha : a ≠ 0) :
+    Nat.toDigits 10 a ++ Nat.toDigits 10 b =
+      Nat.toDigits 10
+        (a * 10 ^ (Nat.toDigits 10 b).length + b) := by
+  induction b using Nat.base_induction 10 (by decide) with
+  | single b hb =>
+    simpa [Nat.toDigits_of_lt_base hb, Nat.mul_comm] using
+      Nat.toDigits_append_toDigits (by decide) (Nat.pos_of_ne_zero ha) hb
+  | digit m k hk hm ih =>
+    have hmk := Nat.toDigits_append_toDigits (by decide) hm hk
+    rw [← hmk, List.length_append, ← List.append_assoc, ih,
+      Nat.toDigits_append_toDigits (by decide) (Nat.add_pos_right _ hm) hk]
+    simp [Nat.toDigits_of_lt_base hk, Nat.pow_succ, Nat.mul_add]
+    ac_rfl
+
+theorem toString_append_toString (a b : Nat) (ha : a ≠ 0) :
+    toString a ++ toString b = toString (a * 10 ^ (toString b).length + b) := by
+  simpa only [Nat.toString_eq_ofList_toDigits, String.ofList_append, String.length_ofList] using
+    congrArg String.ofList (toDigits_append_toDigits_pow_length a b ha)
+
 /-! ### Misc -/
 
 theorem mul_add_lt_mul_of_lt_of_lt {m n x y : Nat} (hx : x < m) (hy : y < n) :
