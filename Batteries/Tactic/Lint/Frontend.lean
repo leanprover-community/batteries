@@ -118,8 +118,24 @@ def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Na
       {msg}"
 
 /--
+The cost suffix of a linter's `(2/2)` trace line in `runLinter --trace`: the number of declarations
+checked, the elapsed time summed over the per-declaration tasks, and the heartbeats (in the raw
+units of `IO.getNumHeartbeats`, 1000 per unit of `maxHeartbeats`) summed over those tasks.
+-/
+def formatLintCost (decls nanos heartbeats : Nat) : String :=
+  s!" [{decls} decls, summed task time {nanos / 1000000} ms, {heartbeats} heartbeats]"
+
+/--
 Runs all the specified linters on all the specified declarations in parallel,
 producing a list of results.
+
+When `inIO` is true and `trace.Batteries.Lint` is set (as in `runLinter --trace`), each linter's
+completion trace line also reports its cost; see `formatLintCost`. Linters run concurrently on a
+shared thread pool, so the wall-clock gaps between trace lines do not measure a linter's cost.
+The heartbeat sum is the stable measure: it counts allocations on the thread running each
+declaration's check, and it is reproducible from run to run for linters whose checks do not spawn
+tasks of their own (work in such tasks is attributed unreliably). The summed task time counts
+waiting and contention as well as work, so it varies with machine load.
 -/
 def lintCore (decls : Array Name) (linters : Array NamedLinter)
     -- For tracing:
@@ -128,18 +144,26 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
   traceLint
       s!"Running linters:\n  {"\n  ".intercalate <| linters.map (s!"{·.name}") |>.toList}"
       inIO currentModule
+  let reportCost := inIO && (← getBoolOption `trace.Batteries.Lint)
 
-  let tasks : Array (NamedLinter × Array (Name × Task (Except Exception <| Option MessageData))) ←
+  let tasks : Array (NamedLinter × Array (Name × Task (Except Exception <|
+      Except Exception (Option MessageData) × Nat × Nat))) ←
     linters.mapM fun linter => do
       traceLint "(0/2) Starting..." inIO currentModule linter.name
       let decls ← decls.filterM (shouldBeLinted linter.name)
       (linter, ·) <$> decls.mapM fun decl => (decl, ·) <$> do
-        let act : MetaM (Option MessageData) := do
-          let result ← linter.test decl
-          if inIO then
+        let act : MetaM (Except Exception (Option MessageData) × Nat × Nat) := do
+          let t0 ← if reportCost then IO.monoNanosNow else pure 0
+          let h0 ← if reportCost then IO.getNumHeartbeats else pure 0
+          -- Catch here, including runtime exceptions such as heartbeat timeouts, so that a
+          -- failing check is still counted in the cost.
+          let result ← tryCatchRuntimeEx (.ok <$> linter.test decl) (pure ∘ .error)
+          let t1 ← if reportCost then IO.monoNanosNow else pure 0
+          let h1 ← if reportCost then IO.getNumHeartbeats else pure 0
+          if inIO && result matches .ok _ then
             -- Ensure any trace messages are propagated to stdout
             printTraces
-          return result
+          return (result, t1 - t0, h1 - h0)
         EIO.asTask <| (← Core.wrapAsync (fun _ =>
           act |>.run' mkMetaContext -- We use the context used by `Command.liftTermElabM`
         ) (cancelTk? := none)) ()
@@ -147,17 +171,25 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
   let result ← tasks.mapM fun (linter, decls) => do
     traceLint "(1/2) Getting..." inIO currentModule linter.name
     let mut msgs : Std.HashMap Name MessageData := {}
+    let mut nanos := 0
+    let mut heartbeats := 0
     for (declName, msgTask) in decls do
       let msg? ← match msgTask.get with
-      | Except.ok msg? => pure msg?
-      | Except.error err => pure m!"LINTER FAILED:\n{err.toMessageData}"
+      | .ok (result, dt, dh) =>
+        nanos := nanos + dt
+        heartbeats := heartbeats + dh
+        match result with
+        | .ok msg? => pure msg?
+        | .error err => pure m!"LINTER FAILED:\n{err.toMessageData}"
+      | .error err => pure m!"LINTER FAILED:\n{err.toMessageData}"
 
       if let .some msg := msg? then
         msgs := msgs.insert declName msg
     traceLint
       s!"(2/2) {if msgs.isEmpty then "Passed!" else
         s!"Failed with {msgs.size} messages\
-        {if inIO then ", but these may include declarations in `nolints.json`" else ""}."}"
+        {if inIO then ", but these may include declarations in `nolints.json`" else ""}.\
+        "}{if reportCost then formatLintCost decls.size nanos heartbeats else ""}"
       inIO currentModule linter.name
     pure (linter, msgs)
   traceLint "Completed linting!" inIO currentModule
