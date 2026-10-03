@@ -95,6 +95,13 @@ def length (L : AssocList α β) : Nat :=
   | nil        => nil
   | cons k v t => cons k (f k v) (mapVal f t)
 
+/-- `O(n)`. Map a function `f` over the values of the list, dropping `none`. -/
+def filterMapVal (f : α → β → Option δ) : AssocList α β → AssocList α δ
+  | nil        => nil
+  | cons k v t => match f k v with
+    | none => filterMapVal f t
+    | some d => cons k d (filterMapVal f t)
+
 /-- `O(n)`. Returns the first entry in the list whose entry satisfies `p`. -/
 @[specialize] def findEntryP? (p : α → β → Bool) : AssocList α β → Option (α × β)
   | nil         => none
