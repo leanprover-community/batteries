@@ -20,7 +20,7 @@ Prove basic results about `List.scanl`, `List.scanr`, `List.scanlM` and `List.sc
 
 namespace List
 
-/-! ### partialSums/partialProd -/
+/-! ### partialSums/partialProds -/
 
 @[simp, grind =]
 theorem length_partialSums [Add α] [Zero α] {l : List α} :
@@ -70,6 +70,12 @@ theorem getElem?_partialSums [Add α] [Zero α] [Std.Associative (α := α) (· 
   split <;> grind
 
 @[simp, grind =]
+theorem getLast?_partialSums [Add α] [Zero α] [Std.Associative (α := α) (· + ·)]
+    [Std.LawfulIdentity (α := α) (· + ·) 0] {l : List α} :
+    l.partialSums.getLast? = some l.sum := by
+  simp [partialSums, getLast?_scanl, sum_eq_foldl]
+
+@[simp, grind =]
 theorem take_partialSums [Add α] [Zero α] {l : List α} :
     l.partialSums.take (i+1) = (l.take i).partialSums := by
   simp [partialSums, take_scanl]
@@ -78,6 +84,10 @@ theorem take_partialSums [Add α] [Zero α] {l : List α} :
 theorem length_partialProds [Mul α] [One α] {l : List α} :
     l.partialProds.length = l.length + 1 := by
   simp [partialProds]
+
+@[simp]
+theorem partialProds_ne_nil [Mul α] [One α] {l : List α} :
+    l.partialProds ≠ [] := by simp [ne_nil_iff_length_pos]
 
 @[simp, grind =]
 theorem partialProds_nil [Mul α] [One α]
@@ -117,6 +127,12 @@ theorem getElem?_partialProds [Mul α] [One α] [Std.Associative (α := α) (· 
     [Std.LawfulIdentity (α := α) (· * ·) 1] {l : List α} :
     l.partialProds[i]? = if i ≤ l.length then some (l.take i).prod else none := by
   split <;> grind
+
+@[simp, grind =]
+theorem getLast?_partialProds [Mul α] [One α] [Std.Associative (α := α) (· * ·)]
+    [Std.LawfulIdentity (α := α) (· * ·) 1] {l : List α} :
+    l.partialProds.getLast? = some l.prod := by
+  simp [partialProds, getLast?_scanl, prod_eq_foldl]
 
 @[simp, grind =]
 theorem take_partialProds [Mul α] [One α] {l : List α} :
