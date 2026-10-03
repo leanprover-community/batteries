@@ -75,32 +75,10 @@ initialize multigoalAttr : TagAttributeExtra ←
     ``Parser.Tactic.tacticStop_
   ]
 
-/-- The information we record for each `<;>` node appearing in the syntax. -/
-structure Entry where
-  /-- The `<;>` node itself. -/
-  stx : Syntax
-  /--
-  * `true`: this `<;>` has been used unnecessarily at least once
-  * `false`: it has never been executed
-  * If it has been used properly at least once, the entry is removed from the table.
-  -/
-  used : Bool
-
-/-- The monad for collecting used tactic syntaxes. -/
-abbrev M (ω) := StateRefT (Std.HashMap Lean.Syntax.Range Entry) (ST ω)
-
-/-- True if this is a `<;>` node in either `tactic` or `conv` classes. -/
-@[inline] def isSeqFocus (k : SyntaxNodeKind) : Bool :=
-  k == ``Parser.Tactic.«tactic_<;>_» || k == ``Parser.Tactic.Conv.«conv_<;>_»
-
-/-- Accumulates the set of tactic syntaxes that should be evaluated at least once. -/
-@[specialize] partial def getTactics {ω} (stx : Syntax) : M ω Unit := do
-  if let .node _ k args := stx then
-    if isSeqFocus k then
-      let r := stx.getRange? true
-      if let some r := r then
-        modify fun m => m.insert r { stx, used := false }
-    args.forM getTactics
+/-- The monad for collecting used tactic syntaxes.
+- `some stx` means that this `<;>` syntax has only been used unnecessarily.
+- `none` means that this `<;>` syntax was necessary at least once, so we won't warn about it. -/
+abbrev M := StateRefT (Std.HashMap Lean.Syntax.Range (Option Syntax)) BaseIO
 
 /--
 Traverse the info tree down a given path.
@@ -116,36 +94,36 @@ def getPath : Info → PersistentArray InfoTree → List ((n : Nat) × Fin n) �
 mutual
 variable (env : Environment)
 /-- Search for tactic executions in the info tree and remove executed tactic syntaxes. -/
-partial def markUsedTacticsList (trees : PersistentArray InfoTree) : M ω Unit :=
+partial def markUsedTacticsList (trees : PersistentArray InfoTree) : M Unit :=
   trees.forM markUsedTactics
 
 /-- Search for tactic executions in the info tree and remove executed tactic syntaxes. -/
-partial def markUsedTactics : InfoTree → M ω Unit
+partial def markUsedTactics : InfoTree → M Unit
   | .node i c => do
-    if let .ofTacticInfo i := i then
-      if let some r := i.stx.getRange? true then
-      if let some entry := (← get)[r]? then
-      if i.stx.getKind == ``Parser.Tactic.«tactic_<;>_» then
-        let isBad := do
-          unless i.goalsBefore.length == 1 || !multigoalAttr.hasTag env i.stx[0].getKind do
-            none
-          -- Note: this uses the exact sequence of tactic applications
-          -- in the macro expansion of `<;> : tactic`
-          let .ofTacticInfo i ← getPath (.ofTacticInfo i) c
-            [⟨1, 0⟩, ⟨2, 1⟩, ⟨1, 0⟩, ⟨5, 0⟩] | none
-          guard <| i.goalsAfter.length == 1
-        modify fun s => if isBad.isSome then s.insert r { entry with used := true } else s.erase r
-      else if i.stx.getKind == ``Parser.Tactic.Conv.«conv_<;>_» then
-        let isBad := do
-          unless i.goalsBefore.length == 1 || !multigoalAttr.hasTag env i.stx[0].getKind do
-            none
-          -- Note: this uses the exact sequence of tactic applications
-          -- in the macro expansion of `<;> : conv`
-          let .ofTacticInfo i ← getPath (.ofTacticInfo i) c
-            [⟨1, 0⟩, ⟨1, 0⟩, ⟨1, 0⟩, ⟨1, 0⟩, ⟨1, 0⟩, ⟨2, 1⟩, ⟨1, 0⟩, ⟨5, 0⟩] | none
-          guard <| i.goalsAfter.length == 1
-        modify fun s => if isBad.isSome then s.insert r { entry with used := true } else s.erase r
     markUsedTacticsList c
+    let .ofTacticInfo i := i | pure ()
+    if i.stx.getKind == ``Parser.Tactic.«tactic_<;>_» then
+      let some r := i.stx.getRange? true | pure ()
+      let isBad := do
+        unless i.goalsBefore.length == 1 || !multigoalAttr.hasTag env i.stx[0].getKind do
+          none
+        -- Note: this uses the exact sequence of tactic applications
+        -- in the macro expansion of `<;> : tactic`
+        let .ofTacticInfo i ← getPath (.ofTacticInfo i) c
+          [⟨1, 0⟩, ⟨2, 1⟩, ⟨1, 0⟩, ⟨5, 0⟩] | none
+        guard <| i.goalsAfter.length == 1
+      modify fun s => if isBad.isSome then s.insertIfNew r i.stx else s.insert r none
+    else if i.stx.getKind == ``Parser.Tactic.Conv.«conv_<;>_» then
+      let some r := i.stx.getRange? true | pure ()
+      let isBad := do
+        unless i.goalsBefore.length == 1 || !multigoalAttr.hasTag env i.stx[0].getKind do
+          none
+        -- Note: this uses the exact sequence of tactic applications
+        -- in the macro expansion of `<;> : conv`
+        let .ofTacticInfo i ← getPath (.ofTacticInfo i) c
+          [⟨1, 0⟩, ⟨1, 0⟩, ⟨1, 0⟩, ⟨1, 0⟩, ⟨1, 0⟩, ⟨2, 1⟩, ⟨1, 0⟩, ⟨5, 0⟩] | none
+        guard <| i.goalsAfter.length == 1
+      modify fun s => if isBad.isSome then s.insertIfNew r i.stx else s.insert r none
   | .context _ t => markUsedTactics t
   | .hole _ => pure ()
 
@@ -159,12 +137,9 @@ def unnecessarySeqFocusLinter : Linter where run := withSetOptionIn fun stx => d
     return
   let trees ← getInfoTrees
   let env ← getEnv
-  let go {ω} : M ω Unit := do
-    getTactics stx
-    markUsedTacticsList env trees
-  let (_, map) := runST fun _ => go.run {}
-  let unused := map.fold (init := #[]) fun acc r { stx, used } =>
-    if used then acc.push (stx[1].getRange?.getD r, stx[1]) else acc
+  let (_, map) ← markUsedTacticsList env trees |>.run {}
+  let unused := map.fold (init := #[]) fun acc r stx? =>
+    if let some stx := stx? then acc.push (stx[1].getRange?.getD r, stx[1]) else acc
   let key (r : Lean.Syntax.Range) := (r.start.byteIdx, (-r.stop.byteIdx : Int))
   let mut last : Lean.Syntax.Range := ⟨0, 0⟩
   for (r, stx) in let _ := @lexOrd; let _ := @ltOfOrd.{0}; unused.qsort (key ·.1 < key ·.1) do
