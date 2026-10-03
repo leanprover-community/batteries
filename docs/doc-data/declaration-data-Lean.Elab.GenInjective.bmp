@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.Command","Lean.Meta.Constructions.CtorIdx","Lean.Meta.Injective"],"instances":[],"name":"Lean.Elab.GenInjective"}

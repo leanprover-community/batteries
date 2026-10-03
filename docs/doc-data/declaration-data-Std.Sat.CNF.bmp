@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Std.Sat.CNF.Basic","Std.Sat.CNF.Dimacs","Std.Sat.CNF.Entails","Std.Sat.CNF.Literal","Std.Sat.CNF.Negation","Std.Sat.CNF.Redundancy","Std.Sat.CNF.Relabel","Std.Sat.CNF.RelabelFin","Std.Sat.CNF.Sat","Std.Sat.CNF.Unit"],"instances":[],"name":"Std.Sat.CNF"}
