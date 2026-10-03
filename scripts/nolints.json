@@ -1,1 +1,8 @@
-[["unusedArguments", "imp_intro"]]
+[["docBlame", "Batteries.RBNode.Slow.instDecidableEMem"],
+ ["docBlame", "Batteries.RBNode.Slow.instDecidableMem"],
+ ["docBlame", "Batteries.RBNode.Slow.instDecidableMemP"],
+ ["docBlame", "Batteries.RBNode.Slow.instDecidableOrdered"],
+ ["docBlame", "Batteries.RBSet.Slow.instDecidableEMem"],
+ ["docBlame", "Batteries.RBSet.Slow.instDecidableMem"],
+ ["docBlame", "Batteries.RBSet.Slow.instDecidableMemP"],
+ ["unusedArguments", "Batteries.Tactic.Lint.findUnusedHaves"]]
