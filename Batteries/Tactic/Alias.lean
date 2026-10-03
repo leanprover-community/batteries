@@ -125,6 +125,32 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
       else pure s
 
 /--
+The namespace that `def` opens while elaborating a declaration named `declName`:
+`Foo.Bar` for `Foo.Bar.baz`, and none for atomic names and names starting with `_root_`.
+-/
+def declNamespace? (declName : Name) : Option Name :=
+  if (`_root_).isPrefixOf declName then none else
+  match (extractMacroScopes declName).name with
+  | .str .anonymous _ => none
+  | .str pre _ => some pre
+  | _ => none
+
+/--
+Resolves the target of an alias named `aliasName`. If `target` cannot be resolved in the ambient
+scope, it is resolved again with the namespace of `aliasName` open, as `def` would do. The ambient
+scope is tried first so that existing aliases keep resolving to the same constants.
+-/
+def realizeAliasTarget (aliasName : Name) (target : Ident) : TermElabM Name := do
+  try
+    realizeGlobalConstNoOverloadWithInfo target
+  catch ex =>
+    let some ns := declNamespace? aliasName | throw ex
+    try
+      withTheReader Core.Context (fun ctx => { ctx with currNamespace := ctx.currNamespace ++ ns })
+        (realizeGlobalConstNoOverloadWithInfo target)
+    catch _ => throw ex
+
+/--
   The command `alias name := target` creates a synonym of `target` with the given name.
 
   The command `alias ⟨fwd, rev⟩ := target` creates synonyms for the forward and reverse directions
@@ -137,13 +163,13 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:iden
   Command.liftTermElabM do
     -- Whether we may access private `name`s here depends on whether it is a theorem, so first
     -- resolve in private scope always
-    let name ← withoutExporting <| realizeGlobalConstNoOverloadWithInfo nameStx
+    let name ← withoutExporting <| realizeAliasTarget alias.getId nameStx
     let cinfo ← withoutExporting <| getConstInfo name
     let declMods ← elabModifiers mods
     Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
     unless wasOriginallyTheorem (← getEnv) name do
       -- Now check again in correct scope for defs
-      discard <| realizeGlobalConstNoOverloadWithInfo nameStx
+      discard <| realizeAliasTarget alias.getId nameStx
     let (attrs, machineApplicable) := setDeprecatedTarget name declMods.attrs
     let env ← getEnv
     let declMods := { declMods with
