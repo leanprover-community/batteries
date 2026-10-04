@@ -5,7 +5,7 @@ Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro, Gabri
 -/
 module
 
-@[expose] public section
+public section
 
 /-- Type class for the canonical homomorphism `Rat → K`. -/
 class RatCast (K : Type u) where
@@ -16,7 +16,7 @@ instance : RatCast Rat where ratCast n := n
 
 /-- Canonical homomorphism from `Rat` to a division ring `K`.
 This is just the bare function in order to aid in creating instances of `DivisionRing`. -/
-@[coe, reducible, match_pattern] protected def Rat.cast {K : Type u} [RatCast K] : Rat → K :=
+@[expose, coe, reducible, match_pattern] protected def Rat.cast {K : Type u} [RatCast K] : Rat → K :=
   RatCast.ratCast
 
 -- see note [coercion into rings]

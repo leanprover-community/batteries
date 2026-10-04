@@ -11,7 +11,7 @@ public import Batteries.Tactic.Basic
 public import Batteries.Tactic.Trans
 public meta import Batteries.Tactic.Lint
 
-@[expose] public section
+public section
 
 /-! # Low-level coding recipes for `Fin` types
 

@@ -7,7 +7,7 @@ module
 
 public import Batteries.Recycling.RBTree.WF
 
-@[expose] public section
+public section
 
 /-!
 # RBNode depth bounds

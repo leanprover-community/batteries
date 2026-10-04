@@ -8,7 +8,7 @@ module
 public import Batteries.Recycling.MonadSatisfying.Basic
 public import Batteries.Recycling.MonadSatisfying.Array
 
-@[expose] public section
+public section
 
 namespace Vector
 

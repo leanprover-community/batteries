@@ -7,7 +7,7 @@ module
 
 public import Lean.Meta.DiscrTree
 
-@[expose] public section
+public section
 
 /-!
 # Once-per-file cache for tactics
@@ -40,7 +40,7 @@ open Lean Meta
 namespace Batteries.Tactic
 
 /-- Once-per-file cache. -/
-def Cache (α : Type) := IO.Ref <| MetaM α ⊕ Task (Except Exception α)
+@[expose] def Cache (α : Type) := IO.Ref <| MetaM α ⊕ Task (Except Exception α)
 
 -- This instance is required as we use `Cache` with `initialize`.
 -- One might expect an `Inhabited` instance here,
@@ -130,7 +130,7 @@ A type synonym for a `DeclCache` containing a pair of discrimination trees.
 The first will store declarations in the current file,
 the second will store declarations from imports (and will hopefully be "read-only" after creation).
 -/
-@[reducible] def DiscrTreeCache (α : Type) : Type := DeclCache (DiscrTree α × DiscrTree α)
+@[expose, reducible] def DiscrTreeCache (α : Type) : Type := DeclCache (DiscrTree α × DiscrTree α)
 
 /--
 Build a `DiscrTreeCache`,

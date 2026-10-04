@@ -7,7 +7,7 @@ module
 
 public import Batteries.Data.Nat.Lemmas
 
-@[expose] public section
+public section
 
 namespace Int
 
@@ -25,7 +25,7 @@ Construct an integer from a sequence of bits using little endian convention.
 The sign is determined using the two's complement convention: the result is negative if and only if
 `n > 0` and `f (n-1) = true`.
 -/
-def ofBits (f : Fin n → Bool) :=
+@[expose] def ofBits (f : Fin n → Bool) :=
   if 2 * Nat.ofBits f < 2 ^ n then
     ofNat (Nat.ofBits f)
   else

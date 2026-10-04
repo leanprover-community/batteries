@@ -5,7 +5,7 @@ Authors: F. G. Dorais
 -/
 module
 
-@[expose] public section
+public section
 
 namespace Array
 

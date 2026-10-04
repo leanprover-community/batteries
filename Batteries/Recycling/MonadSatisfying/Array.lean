@@ -9,7 +9,7 @@ module
 public import Batteries.Recycling.MonadSatisfying.Basic
 import all Init.Data.Array.Basic  -- for unfolding `modifyM`
 
-@[expose] public section
+public section
 
 /-!
 # Results about monadic operations on `Array`, in terms of `SatisfiesM`.

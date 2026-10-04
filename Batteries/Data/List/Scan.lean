@@ -10,7 +10,7 @@ public import Batteries.Data.List.Lemmas
 import Batteries.Util.ProofWanted
 meta import Batteries.Tactic.Init
 
-@[expose] public section
+public section
 
 /-!
 # List scan

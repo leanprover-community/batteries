@@ -8,7 +8,7 @@ module
 public import Batteries.Data.Float.Basic
 public import Lean.Data.Json.FromToJson.Basic
 
-@[expose] public section
+public section
 
 open Lean
 

@@ -11,7 +11,7 @@ public import Batteries.Data.Fin.OfBits
 public import Batteries.Data.Nat.Lemmas
 public import Batteries.Data.Int
 
-@[expose] public section
+public section
 
 namespace BitVec
 

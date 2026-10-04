@@ -8,7 +8,7 @@ module
 public import Batteries.Tactic.Alias
 public import Batteries.Data.Nat.Basic
 
-@[expose] public section
+public section
 
 /-! # Basic lemmas about natural numbers
 

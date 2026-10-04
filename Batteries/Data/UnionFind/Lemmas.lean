@@ -7,7 +7,7 @@ module
 
 public import Batteries.Data.UnionFind.Basic
 
-@[expose] public section
+public section
 
 namespace Batteries.UnionFind
 

@@ -8,7 +8,7 @@ module
 public import Batteries.Classes.Order
 public import Batteries.Data.List.Lemmas
 
-@[expose] public section
+public section
 
 namespace Char
 

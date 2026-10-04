@@ -8,7 +8,7 @@ module
 public import Batteries.Lean.EStateM
 public import Batteries.Data.Except
 
-@[expose] public section
+public section
 
 /-!
 ## SatisfiesM
@@ -45,7 +45,7 @@ should avoid `SatisfiesM` for now, so that it is easy to migrate to other approa
 have the type `x : m {a // p a}`, because there exists some `m {a // p a}` whose image is `x`.
 So `p` is the postcondition of the monadic value.
 -/
-def SatisfiesM {m : Type u → Type v} [Functor m] (p : α → Prop) (x : m α) : Prop :=
+@[expose] def SatisfiesM {m : Type u → Type v} [Functor m] (p : α → Prop) (x : m α) : Prop :=
   ∃ x' : m {a // p a}, Subtype.val <$> x' = x
 
 namespace SatisfiesM

@@ -10,7 +10,7 @@ public import Batteries.Data.Array.Merge
 public import Batteries.Lean.Meta.Expr
 public import Batteries.Lean.PersistentHashMap
 
-@[expose] public section
+public section
 
 namespace Lean.Meta.DiscrTree
 

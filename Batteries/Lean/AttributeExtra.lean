@@ -8,7 +8,7 @@ module
 public import Batteries.Lean.TagAttribute
 public import Std.Data.HashMap.Basic
 
-@[expose] public section
+public section
 
 open Lean
 

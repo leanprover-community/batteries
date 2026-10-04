@@ -7,7 +7,7 @@ module
 meta import Batteries.Tactic.Lint
 public meta import Batteries.Tactic.Lint.Simp
 
-@[expose] public section
+public section
 
 namespace Batteries
 /--
@@ -29,11 +29,11 @@ variable {α : Type u}
 open List
 
 /-- `O(1)` (`apply` is `O(|l|)`). Convert a `List α` into a `DList α`. -/
-def ofList (l : List α) : DList α :=
+@[expose] def ofList (l : List α) : DList α :=
   ⟨(l ++ ·), fun t => by simp⟩
 
 /-- `O(1)` (`apply` is `O(1)`). Return an empty `DList α`. -/
-def empty : DList α :=
+@[expose] def empty : DList α :=
   ⟨id, fun _ => rfl⟩
 
 instance : EmptyCollection (DList α) := ⟨DList.empty⟩
@@ -41,25 +41,25 @@ instance : EmptyCollection (DList α) := ⟨DList.empty⟩
 instance : Inhabited (DList α) := ⟨DList.empty⟩
 
 /-- `O(apply())`. Convert a `DList α` into a `List α` by running the `apply` function. -/
-def toList : DList α → List α
+@[expose] def toList : DList α → List α
   | ⟨f, _⟩ => f []
 
 @[simp] theorem toList_mk : toList ⟨f, h⟩ = f [] := rfl
 
 /-- `O(1)` (`apply` is `O(1)`). A `DList α` corresponding to the list `[a]`. -/
-def singleton (a : α) : DList α where
+@[expose] def singleton (a : α) : DList α where
   apply     := fun t => a :: t
   invariant := fun _ => rfl
 
 /-- `O(1)` (`apply` is `O(1)`). Prepend `a` on a `DList α`. -/
-def cons : α → DList α → DList α
+@[expose] def cons : α → DList α → DList α
   | a, ⟨f, h⟩ => {
     apply     := fun t => a :: f t
     invariant := by intro t; simp; rw [h]
   }
 
 /-- `O(1)` (`apply` is `O(1)`). Append two `DList α`. -/
-def append : DList α → DList α → DList α
+@[expose] def append : DList α → DList α → DList α
   | ⟨f, h₁⟩, ⟨g, h₂⟩ => {
     apply     := f ∘ g
     invariant := by
@@ -69,7 +69,7 @@ def append : DList α → DList α → DList α
     }
 
 /-- `O(1)` (`apply` is `O(1)`). Append an element at the end of a `DList α`. -/
-def push : DList α → α → DList α
+@[expose] def push : DList α → α → DList α
   | ⟨f, h⟩, a => {
     apply     := fun t => f (a :: t)
     invariant := by
@@ -82,7 +82,7 @@ def push : DList α → α → DList α
 instance : Append (DList α) := ⟨DList.append⟩
 
 /-- Convert a lazily-evaluated `List` to a `DList` -/
-def ofThunk (l : Thunk (List α)) : DList α :=
+@[expose] def ofThunk (l : Thunk (List α)) : DList α :=
   ⟨fun xs => l.get ++ xs, fun t => by simp⟩
 
 /-- Concatenates a list of difference lists to form a single difference list. Similar to

@@ -9,7 +9,7 @@ public import Batteries.Tactic.Basic
 public import Batteries.Data.List.Lemmas
 public import Batteries.Recycling.RBTree.Alter
 
-@[expose] public section
+public section
 
 /-!
 # Additional lemmas for Red-black trees
@@ -598,14 +598,14 @@ attribute [simp] RootOrdered Ordered
 
 /-- The list of elements to the left of the hole.
 (This function is intended for specification purposes only.) -/
-@[simp] def listL : Path α → List α
+@[expose, simp] def listL : Path α → List α
   | .root => []
   | .left _ parent _ _ => parent.listL
   | .right _ l v parent => parent.listL ++ (l.toList ++ [v])
 
 /-- The list of elements to the right of the hole.
 (This function is intended for specification purposes only.) -/
-@[simp] def listR : Path α → List α
+@[expose, simp] def listR : Path α → List α
   | .root => []
   | .left _ parent v r => v :: r.toList ++ parent.listR
   | .right _ _ _ parent => parent.listR

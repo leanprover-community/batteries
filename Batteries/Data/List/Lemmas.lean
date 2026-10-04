@@ -8,7 +8,7 @@ module
 public import Batteries.Control.ForInStep.Lemmas
 public import Batteries.Data.List.Basic
 
-@[expose] public section
+public section
 
 namespace List
 

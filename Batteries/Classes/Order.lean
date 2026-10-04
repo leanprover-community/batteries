@@ -8,13 +8,13 @@ module
 public import Batteries.Tactic.Basic
 public import Batteries.Tactic.SeqFocus
 
-@[expose] public section
+public section
 
 theorem lexOrd_def [Ord α] [Ord β] :
     (lexOrd : Ord (α × β)).compare = compareLex (compareOn (·.1)) (compareOn (·.2)) := rfl
 
 /-- Pull back a comparator by a function `f`, by applying the comparator to both arguments. -/
-@[inline] def Ordering.byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering :=
+@[expose, inline] def Ordering.byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering :=
   cmp (f a) (f b)
 
 namespace Batteries
