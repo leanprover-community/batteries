@@ -58,13 +58,16 @@ These repositories are supported by Batteries maintainers to make sure that they
 
 Current cells include:
 
-* [leanprover-community/batteries-cell-test](https://github.com/leanprover-community/batteries-cell-test): This is a trivial cell meant to test features.
+* [leanprover-community/batteries-cell-template](https://github.com/leanprover-community/batteries-cell-template):
+  A template for creating new cells.
 
-* [leanprover-community/batteries-recycling](https://github.com/leanprover-community/batteries-recycling): This is a repository to house obsolescent modules from Batteries.
+* [leanprover-community/batteries-recycling](https://github.com/leanprover-community/batteries-recycling):
+  Storage for obsolescent modules from Batteries.
 
-* [fgdorais/batteries-kmp](https://github.com/fgdorais/batteries-kmp): General purpose implementation of the Knuth-Morris-Pratt (KMP) matching algorithm.
+* [fgdorais/batteries-kmp](https://github.com/fgdorais/batteries-kmp):
+  General purpose implementation of the Knuth-Morris-Pratt (KMP) matching algorithm.
 
-The Batteries Cell Network is not currently open to external contributions.
+The Batteries Cell Network is not yet open to external contributions.
 
 # Contributing
 
