@@ -7,7 +7,6 @@ module
 
 public meta import Lean.Elab.Tactic.RenameInaccessibles
 public meta import Lean.Elab.Tactic.ElabTerm
-public meta import Std.Do.Triple.SpecLemmas
 import Lean.Parser.Term.Basic
 
 public meta section
