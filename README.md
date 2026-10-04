@@ -88,14 +88,6 @@ To create an adaptation PR:
 
 3. Edit that PR until CI works and then post a comment on your original Batteries PR that the adaptation PR is ready for review.
 
-Please ask questions to Batteries maintainers if you run into issues with this process. 
+A Batteries maintainer will then review your adaptation PR. Once approved, a maintainer will create an actual adaptation PR on Mathlib.
 
-Once these steps are completed, a Batteries maintainer will:
-
-4. Review your adaptation PR and your Batteries PR. They may request some changes, so please pay attention and be responsive.
-
-5. Merge your adaptation PR into the `batteries-pr-testing-N` branch and create a PR from that branch onto Mathlib.
-
-6. Merge your Batteries PR and finalize the Mathlib adaptation PR for review by Mathlib maintainers.
-
-Since the Mathlib adaptation PR has been carefully reviewed by Batteries maintainers at this point, the Mathlib review process is usually quick and easy.
+Please ask questions to Batteries maintainers if you run into issues with this process.
