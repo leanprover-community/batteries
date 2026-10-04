@@ -5,8 +5,8 @@ Authors: Mario Carneiro
 -/
 module
 
-public import Batteries.Tactic.Basic
-public import Batteries.Tactic.SeqFocus
+import Batteries.Tactic.Init
+import Batteries.Tactic.SeqFocus
 
 @[expose] public section
 

@@ -5,8 +5,6 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 module
 
-public import Batteries.Data.List.Basic
-
 @[expose] public section
 
 /-!

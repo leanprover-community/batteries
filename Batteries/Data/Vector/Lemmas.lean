@@ -6,9 +6,9 @@ Authors: Shreyas Srinivas, François G. Dorais, Eric Wieser, Chad Sharp
 module
 
 public import Batteries.Data.Array.Basic
-public import Batteries.Data.Array.Scan
-public import Batteries.Data.List.Scan
 public import Batteries.Data.Vector.Basic
+import Batteries.Data.Array.Lemmas
+import Batteries.Data.Array.Scan
 
 @[expose] public section
 

@@ -5,5 +5,3 @@ Authors: Kim Morrison
 -/
 module
 
-public import Batteries.Data.Except
-public import Lean.Util.Trace

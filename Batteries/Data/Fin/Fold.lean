@@ -5,7 +5,6 @@ Authors: François G. Dorais, Quang Dao
 -/
 module
 
-public import Batteries.Tactic.Alias
 public import Batteries.Data.Fin.Basic
 
 @[expose] public section

@@ -6,9 +6,8 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 module
 
 public import Batteries.Data.List.Basic
-public import Batteries.Data.List.Lemmas
 import Batteries.Util.ProofWanted
-meta import Batteries.Tactic.Init
+import Batteries.Tactic.Init
 
 @[expose] public section
 
