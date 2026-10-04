@@ -13,7 +13,8 @@ namespace Lean
 
 /-- Environment extension that maps declaration names to `α`.
 This uses a `Thunk` to avoid computing the name map when it isn't used. -/
-@[expose] def NameMapExtension (α : Type) := SimplePersistentEnvExtension (Name × α) (Thunk (NameMap α))
+@[expose]
+def NameMapExtension (α : Type) := SimplePersistentEnvExtension (Name × α) (Thunk (NameMap α))
 
 instance : Inhabited (NameMapExtension α) :=
   inferInstanceAs <| Inhabited (SimplePersistentEnvExtension ..)

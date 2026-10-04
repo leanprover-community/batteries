@@ -347,7 +347,8 @@ one list into the other. For example:
 (by decide : [1, 0, 1] <+~ [5, 0, 1, 3, 1]).idxInj 1 = 1
 ```
 -/
-@[expose] def Subperm.idxInj [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+~ ys) (i : Fin xs.length) :
+@[expose]
+def Subperm.idxInj [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+~ ys) (i : Fin xs.length) :
     Fin ys.length :=
   ⟨ys.idxOfNth xs[i.1] (xs.countBefore xs[i] i), idxOfNth_lt_length_of_lt_count <|
     Nat.lt_of_lt_of_le countBefore_lt_count_getElem <| h.count_le _⟩

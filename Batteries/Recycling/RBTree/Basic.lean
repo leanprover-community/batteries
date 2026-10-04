@@ -205,7 +205,8 @@ instance : Membership α (RBNode α) where
 @[expose] def MemP (cut : α → Ordering) (t : RBNode α) : Prop := t.Any (cut · = .eq)
 
 /-- True if `x` is equivalent to an element of `t`. -/
-@[expose, reducible] def Mem (cmp : α → α → Ordering) (x : α) (t : RBNode α) : Prop := MemP (cmp x) t
+@[expose, reducible]
+def Mem (cmp : α → α → Ordering) (x : α) (t : RBNode α) : Prop := MemP (cmp x) t
 
 -- These instances are put in a special namespace because they are usually not what users want
 -- when deciding membership in a RBSet, since this does a naive linear search through the tree.
@@ -404,7 +405,8 @@ if it returns `.eq` we will remove the element.
 (The function `cmp k` for some key `k` is a valid cut function, but we can also use cuts that
 are not of this form as long as they are suitably monotonic.)
 -/
-@[expose, specialize] def erase (cut : α → Ordering) (t : RBNode α) : RBNode α := (del cut t).setBlack
+@[expose, specialize]
+def erase (cut : α → Ordering) (t : RBNode α) : RBNode α := (del cut t).setBlack
 
 /-- Finds an element in the tree satisfying the `cut` function. -/
 @[expose, specialize] def find? (cut : α → Ordering) : RBNode α → Option α
@@ -416,7 +418,8 @@ are not of this form as long as they are suitably monotonic.)
     | .eq => some y
 
 /-- `upperBound? cut` retrieves the smallest entry larger than or equal to `cut`, if it exists. -/
-@[expose, specialize] def upperBound? (cut : α → Ordering) : RBNode α → (ub : Option α := .none) → Option α
+@[expose, specialize]
+def upperBound? (cut : α → Ordering) : RBNode α → (ub : Option α := .none) → Option α
   | nil,          ub => ub
   | node _ a y b, ub =>
     match cut y with
@@ -425,7 +428,8 @@ are not of this form as long as they are suitably monotonic.)
     | .eq => some y
 
 /-- `lowerBound? cut` retrieves the largest entry smaller than or equal to `cut`, if it exists. -/
-@[expose, specialize] def lowerBound? (cut : α → Ordering) : RBNode α → (lb : Option α := .none) → Option α
+@[expose, specialize]
+def lowerBound? (cut : α → Ordering) : RBNode α → (lb : Option α := .none) → Option α
   | nil,          lb => lb
   | node _ a y b, lb =>
     match cut y with
@@ -473,7 +477,8 @@ inductive Path (α : Type u) where
 Like `find?`, but instead of just returning the element, it returns the entire subtree
 at the element and a path back to the root for reconstructing the tree.
 -/
-@[expose, specialize] def zoom (cut : α → Ordering) : RBNode α → (e : Path α := .root) → RBNode α × Path α
+@[expose, specialize]
+def zoom (cut : α → Ordering) : RBNode α → (e : Path α := .root) → RBNode α × Path α
   | nil, path => (nil, path)
   | n@(node c a y b), path =>
     match cut y with
@@ -552,7 +557,8 @@ the element with `a` (which must have the same ordering properties as the origin
 
 The element is used linearly if `t` is unshared.
 -/
-@[expose, specialize] def alter (cut : α → Ordering) (f : Option α → Option α) (t : RBNode α) : RBNode α :=
+@[expose, specialize]
+def alter (cut : α → Ordering) (f : Option α → Option α) (t : RBNode α) : RBNode α :=
   match zoom cut t with
   | (nil, path) =>
     match f none with
@@ -630,7 +636,8 @@ it should satisfy the requirements of `TransCmp` for it to have sensible behavio
 @[expose] def RBSet (α : Type u) (cmp : α → α → Ordering) : Type u := {t : RBNode α // t.WF cmp}
 
 /-- `O(1)`. Construct a new empty tree. -/
-@[expose, inline] def mkRBSet (α : Type u) (cmp : α → α → Ordering) : RBSet α cmp := ⟨.nil, .mk ⟨⟩ .nil⟩
+@[expose, inline]
+def mkRBSet (α : Type u) (cmp : α → α → Ordering) : RBSet α cmp := ⟨.nil, .mk ⟨⟩ .nil⟩
 
 namespace RBSet
 
@@ -681,7 +688,8 @@ instance [Repr α] : Repr (RBSet α cmp) where
   reprPrec m prec := Repr.addAppParen ("RBSet.ofList " ++ repr m.toList) prec
 
 /-- `O(log n)`. Insert element `v` into the tree. -/
-@[expose, inline] def insert (t : RBSet α cmp) (v : α) : RBSet α cmp := ⟨t.1.insert cmp v, t.2.insert⟩
+@[expose, inline]
+def insert (t : RBSet α cmp) (v : α) : RBSet α cmp := ⟨t.1.insert cmp v, t.2.insert⟩
 
 /--
 Insert all elements from a collection into a `RBSet α cmp`.
@@ -717,7 +725,8 @@ are not of this form as long as they are suitably monotonic.)
 `O(log n)`. `upperBoundP cut` retrieves the smallest entry comparing `gt` or `eq` under `cut`,
 if it exists. If multiple keys in the map return `eq` under `cut`, any of them may be returned.
 -/
-@[expose, inline] def upperBoundP? (t : RBSet α cmp) (cut : α → Ordering) : Option α := t.1.upperBound? cut
+@[expose, inline]
+def upperBoundP? (t : RBSet α cmp) (cut : α → Ordering) : Option α := t.1.upperBound? cut
 
 /--
 `O(log n)`. `upperBound? k` retrieves the largest entry smaller than or equal to `k`,
@@ -729,7 +738,8 @@ if it exists.
 `O(log n)`. `lowerBoundP cut` retrieves the largest entry comparing `lt` or `eq` under `cut`,
 if it exists. If multiple keys in the map return `eq` under `cut`, any of them may be returned.
 -/
-@[expose, inline] def lowerBoundP? (t : RBSet α cmp) (cut : α → Ordering) : Option α := t.1.lowerBound? cut
+@[expose, inline]
+def lowerBoundP? (t : RBSet α cmp) (cut : α → Ordering) : Option α := t.1.lowerBound? cut
 
 /--
 `O(log n)`. `lowerBound? k` retrieves the largest entry smaller than or equal to `k`,
@@ -914,7 +924,8 @@ it should satisfy the requirements of `TransCmp` for it to have sensible behavio
   mkRBSet ..
 
 /-- `O(1)`. Construct a new empty map. -/
-@[expose, inline] def RBMap.empty {α : Type u} {β : Type v} {cmp : α → α → Ordering} : RBMap α β cmp :=
+@[expose, inline]
+def RBMap.empty {α : Type u} {β : Type v} {cmp : α → α → Ordering} : RBMap α β cmp :=
   mkRBMap ..
 
 instance (α : Type u) (β : Type v) (cmp : α → α → Ordering) : EmptyCollection (RBMap α β cmp) :=
@@ -1063,7 +1074,8 @@ instance [Repr α] [Repr β] : Repr (RBMap α β cmp) where
   reprPrec m prec := Repr.addAppParen ("RBMap.ofList " ++ repr m.toList) prec
 
 /-- `O(log n)`. Insert key-value pair `(k, v)` into the tree. -/
-@[expose, inline] def insert (t : RBMap α β cmp) (k : α) (v : β) : RBMap α β cmp := RBSet.insert t (k, v)
+@[expose, inline]
+def insert (t : RBMap α β cmp) (k : α) (v : β) : RBMap α β cmp := RBSet.insert t (k, v)
 
 /-- `O(log n)`. Remove an element `k` from the map. -/
 @[inline] def erase (t : RBMap α β cmp) (k : α) : RBMap α β cmp := RBSet.erase t (cmp k ·.1)
@@ -1077,7 +1089,8 @@ instance [Repr α] [Repr β] : Repr (RBMap α β cmp) where
   RBSet.ofArray l _
 
 /-- `O(log n)`. Find an entry in the tree with key equal to `k`. -/
-@[expose, inline] def findEntry? (t : RBMap α β cmp) (k : α) : Option (α × β) := t.findP? (cmp k ·.1)
+@[expose, inline]
+def findEntry? (t : RBMap α β cmp) (k : α) : Option (α × β) := t.findP? (cmp k ·.1)
 
 /-- `O(log n)`. Find the value corresponding to key `k`. -/
 @[expose, inline] def find? (t : RBMap α β cmp) (k : α) : Option β := t.findEntry? k |>.map (·.2)

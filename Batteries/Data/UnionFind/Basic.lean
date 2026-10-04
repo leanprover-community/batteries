@@ -489,7 +489,8 @@ theorem setParent_rankD_lt {arr : Array UFNode} {x y : Fin arr.size}
   split <;> [rfl; split] <;> [skip; split] <;> simp
 
 /-- Link a union-find node to a root node. -/
-@[expose] def link (self : UnionFind) (x y : Fin self.size) (yroot : self.parent y = y) : UnionFind where
+@[expose]
+def link (self : UnionFind) (x y : Fin self.size) (yroot : self.parent y = y) : UnionFind where
   arr := linkAux self.arr x y
   parentD_lt h := by
     simp only [linkAux_size] at *

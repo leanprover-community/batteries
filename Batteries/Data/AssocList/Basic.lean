@@ -125,7 +125,8 @@ def toListTR (as : AssocList α β) : List (α × β) :=
 def All (p : α → β → Prop) (l : AssocList α β) : Prop := ∀ a ∈ l.toList, p a.1 a.2
 
 /-- `O(n)`. Returns true if there is an element in the list whose key is equal to `a`. -/
-@[expose, inline] def contains [BEq α] (a : α) (l : AssocList α β) : Bool := any (fun k _ => k == a) l
+@[expose, inline]
+def contains [BEq α] (a : α) (l : AssocList α β) : Bool := any (fun k _ => k == a) l
 
 /--
 `O(n)`. Replace the first entry in the list

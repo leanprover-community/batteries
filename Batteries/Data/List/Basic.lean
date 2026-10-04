@@ -214,7 +214,8 @@ Returns the elements of `l` that satisfy `p` together with their indexes in
 `l` added to an optional parameter `start`. The returned list is ordered by index.
 We have `l.findIdxsValues p s = (l.findIdxs p s).zip (l.filter p)`.
 -/
-@[expose, inline] def findIdxsValues (p : α → Bool) (l : List α) (start : Nat := 0) : List (Nat × α) :=
+@[expose, inline]
+def findIdxsValues (p : α → Bool) (l : List α) (start : Nat := 0) : List (Nat × α) :=
   foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l start
 
 /-- `findIdxNth p xs n` returns the index of the `n`th element for which `p` returns `true`.
@@ -503,7 +504,8 @@ def revzip (l : List α) : List (α × α) := zip l l.reverse
 product [1, 2] [5, 6] = [(1, 5), (1, 6), (2, 5), (2, 6)]
 ```
 -/
-@[expose] def product (l₁ : List α) (l₂ : List β) : List (α × β) := l₁.flatMap fun a => l₂.map (Prod.mk a)
+@[expose]
+def product (l₁ : List α) (l₂ : List β) : List (α × β) := l₁.flatMap fun a => l₂.map (Prod.mk a)
 
 /-- Optimized version of `product`. -/
 def productTR (l₁ : List α) (l₂ : List β) : List (α × β) :=

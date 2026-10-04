@@ -16,7 +16,8 @@ instance : RatCast Rat where ratCast n := n
 
 /-- Canonical homomorphism from `Rat` to a division ring `K`.
 This is just the bare function in order to aid in creating instances of `DivisionRing`. -/
-@[expose, coe, reducible, match_pattern] protected def Rat.cast {K : Type u} [RatCast K] : Rat → K :=
+@[expose, coe, reducible, match_pattern]
+protected def Rat.cast {K : Type u} [RatCast K] : Rat → K :=
   RatCast.ratCast
 
 -- see note [coercion into rings]
