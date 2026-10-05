@@ -5,9 +5,8 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 module
 
-public import Batteries.Tactic.Alias
-public import Batteries.Data.List.Count
-import Batteries.Util.ProofWanted
+public import Batteries.Data.List.Basic
+public import Batteries.Data.List.Lemmas -- shake: keep
 
 @[expose] public section
 

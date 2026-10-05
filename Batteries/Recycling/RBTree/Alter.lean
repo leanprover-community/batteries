@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 module
 
 public import Batteries.Recycling.RBTree.WF
+import Batteries.Tactic.SeqFocus
 
 @[expose] public section
 

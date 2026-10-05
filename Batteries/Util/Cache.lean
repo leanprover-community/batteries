@@ -5,7 +5,8 @@ Authors: Gabriel Ebner
 -/
 module
 
-public import Lean.Meta.DiscrTree
+public import Lean.Meta.DiscrTree.Main
+public import Lean.Meta.DiscrTree.Util
 
 @[expose] public section
 

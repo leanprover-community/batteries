@@ -5,9 +5,11 @@ Authors: Mario Carneiro
 -/
 module
 
-public meta import Lean.Elab.Command
 public meta import Batteries.Lean.AttributeExtra
 public meta import Lean.Linter.Basic
+public meta import Lean.Elab.InfoTree.Types
+import Lean.Message
+import Lean.Syntax
 
 public meta section
 

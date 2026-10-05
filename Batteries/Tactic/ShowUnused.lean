@@ -5,8 +5,9 @@ Authors: Mario Carneiro
 -/
 module
 
-public meta import Lean.Util.FoldConsts
 public meta import Lean.Linter.UnusedVariables
+import Lean.Message
+import Lean.Syntax
 
 public meta section
 
