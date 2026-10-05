@@ -5,8 +5,8 @@ Authors: Mario Carneiro, Kim Morrison
 -/
 module
 
-public import Batteries.Lean.EStateM
 public import Batteries.Data.Except
+import Batteries.Lean.EStateM
 
 @[expose] public section
 
