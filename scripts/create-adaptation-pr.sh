@@ -32,6 +32,18 @@ usage() {
   exit 1
 }
 
+# A failed merge is recoverable only when it has left conflicts to resolve.
+merge_with_conflicts() {
+  if git merge --no-edit "$@"; then
+    return 0
+  fi
+  if git diff --name-only --diff-filter=U | grep -q .; then
+    return 0
+  fi
+  echo "Git merge failed without leaving conflicts; stopping adaptation." >&2
+  return 1
+}
+
 # Parse arguments
 if [ $# -eq 2 ] && [[ $1 != --* ]] && [[ $2 != --* ]]; then
   BUMPVERSION=$1
@@ -93,7 +105,7 @@ echo "### [auto] checkout 'bump/$BUMPVERSION' and merge the latest changes from 
 
 git checkout "bump/$BUMPVERSION"
 git pull
-git merge --no-edit origin/main || true # ignore error if there are conflicts
+merge_with_conflicts origin/main
 
 # Check if there are merge conflicts
 if git diff --name-only --diff-filter=U | grep -q .; then
@@ -138,7 +150,7 @@ echo
 echo "### [auto] create a new branch 'bump/nightly-$NIGHTLYDATE' and merge the latest changes from 'origin/nightly-testing'"
 
 git checkout -b "bump/nightly-$NIGHTLYDATE" || git checkout "bump/nightly-$NIGHTLYDATE"
-git merge --no-edit "$NIGHTLYSHA" || true # ignore error if there are conflicts
+merge_with_conflicts "$NIGHTLYSHA"
 
 # Check if there are merge conflicts
 if git diff --name-only --diff-filter=U | grep -q .; then
@@ -234,7 +246,7 @@ echo "### [auto] checkout the 'nightly-testing' branch and merge the new branch 
 
 git checkout nightly-testing
 git pull
-git merge --no-edit "bump/nightly-$NIGHTLYDATE" || true # ignore error if there are conflicts
+merge_with_conflicts "bump/nightly-$NIGHTLYDATE"
 
 # Check if there are merge conflicts
 if git diff --name-only --diff-filter=U | grep -q .; then
