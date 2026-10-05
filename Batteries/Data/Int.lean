@@ -15,7 +15,7 @@ namespace Int
 `testBit m n` returns whether the `(n+1)` least significant bit is `1` or `0`, using the two's
 complement convention for negative `m`.
 -/
-def testBit : Int → Nat → Bool
+@[expose] def testBit : Int → Nat → Bool
   | ofNat m, n => Nat.testBit m n
   | negSucc m, n => !(Nat.testBit m n)
 

@@ -32,7 +32,7 @@ Computes the "bag intersection" of `l₁` and `l₂`, that is,
 the collection of elements of `l₁` which are also in `l₂`. As each element
 is identified, it is removed from `l₂`, so elements are counted with multiplicity.
 -/
-protected def bagInter {α} [BEq α] : List α → List α → List α
+@[expose] protected def bagInter {α} [BEq α] : List α → List α → List α
   | [], _ => []
   | _, [] => []
   | a :: l₁, l₂ => if l₂.elem a then a :: List.bagInter l₁ (l₂.erase a) else List.bagInter l₁ l₂
@@ -120,7 +120,7 @@ def splitAtD (n : Nat) (l : List α) (dflt : α) : List α × List α := go n l 
   | n, [], acc => (acc.reverseAux (replicate n dflt), [])
 
 /-- Apply `f` to the last element of `l`, if it exists. -/
-@[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
+@[expose, inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
   /-- Auxiliary for `modifyLast`: `modifyLast.go f l acc = acc.toList ++ modifyLast f l`. -/
   @[specialize] go : List α → Array α → List α
   | [], _ => []
@@ -283,7 +283,7 @@ countBefore 1 [5, 1, 3, 2, 4, 0, 1, 4] 6 = 1
 `lookmap f l` will apply `f : α → Option α` to each element of the list,
 replacing `a → b` at the first value `a` in the list such that `f a = some b`.
 -/
-@[inline] def lookmap (f : α → Option α) (l : List α) : List α := go l #[] where
+@[expose, inline] def lookmap (f : α → Option α) (l : List α) : List α := go l #[] where
   /-- Auxiliary for `lookmap`: `lookmap.go f l acc = acc.toList ++ lookmap f l`. -/
   @[specialize] go : List α → Array α → List α
   | [], acc => acc.toList
@@ -341,7 +341,7 @@ It differs from `sublists` only in the order of appearance of the sublists;
 sublists' [1, 2, 3] = [[], [3], [2], [2, 3], [1], [1, 3], [1, 2], [1, 2, 3]]
 ```
 -/
-def sublists' (l : List α) : List (List α) :=
+@[expose] def sublists' (l : List α) : List (List α) :=
   let f a arr := arr.foldl (init := arr) fun r l => r.push (a :: l)
   (l.foldr f #[[]]).toList
 
@@ -352,7 +352,7 @@ for a different ordering.
 sublists [1, 2, 3] = [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
 ```
 -/
-def sublists (l : List α) : List (List α) :=
+@[expose] def sublists (l : List α) : List (List α) :=
   l.foldr (fun a acc => acc.flatMap fun x => [x, a :: x]) [[]]
 
 /-- A version of `List.sublists` that has faster runtime performance but worse kernel performance -/
@@ -496,7 +496,7 @@ with the elements of `l` in reverse order.
 revzip [1, 2, 3, 4, 5] = [(1, 5), (2, 4), (3, 3), (4, 2), (5, 1)]
 ```
 -/
-def revzip (l : List α) : List (α × α) := zip l l.reverse
+@[expose] def revzip (l : List α) : List (α × α) := zip l l.reverse
 
 /--
 `product l₁ l₂` is the list of pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂`.
@@ -520,6 +520,7 @@ def productTR (l₁ : List α) (l₂ : List β) : List (α × β) :=
 ```
 sigma [1, 2] (λ_, [(5 : Nat), 6]) = [(1, 5), (1, 6), (2, 5), (2, 6)]
 ``` -/
+@[expose]
 protected def sigma {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : List (Σ a, σ a) :=
   l₁.flatMap fun a => (l₂ a).map (Sigma.mk a)
 
@@ -622,7 +623,7 @@ abbrev eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
 rotate [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1]
 ```
 -/
-@[inline] def rotate (l : List α) (n : Nat) : List α :=
+@[expose, inline] def rotate (l : List α) (n : Nat) : List α :=
   let (l₁, l₂) := List.splitAt (n % l.length) l
   l₂ ++ l₁
 
@@ -746,7 +747,8 @@ zipWithRight' prod.mk [1] ['a', 'b'] = ([(some 1, 'a'), (none, 'b')], [])
 zipWithRight' prod.mk [1, 2] ['a'] = ([(some 1, 'a')], [2])
 ```
 -/
-@[inline] def zipWithRight' (f : Option α → β → γ) (as : List α) (bs : List β) : List γ × List α :=
+@[expose, inline]
+def zipWithRight' (f : Option α → β → γ) (as : List α) (bs : List β) : List γ × List α :=
   zipWithLeft' (flip f) bs as
 
 /--
@@ -759,7 +761,8 @@ zipLeft' [1] ['a', 'b'] = ([(1, some 'a')], ['b'])
 zipLeft' = zipWithLeft' prod.mk
 ```
 -/
-@[inline] def zipLeft' : List α → List β → List (α × Option β) × List β := zipWithLeft' Prod.mk
+@[expose, inline]
+def zipLeft' : List α → List β → List (α × Option β) × List β := zipWithLeft' Prod.mk
 
 /--
 Right-biased version of `List.zip`. `zipRight' as bs` returns the list of
@@ -771,7 +774,8 @@ zipRight' [1, 2] ['a'] = ([(some 1, 'a')], [2])
 zipRight' = zipWithRight' prod.mk
 ```
 -/
-@[inline] def zipRight' : List α → List β → List (Option α × β) × List α := zipWithRight' Prod.mk
+@[expose, inline]
+def zipRight' : List α → List β → List (Option α × β) × List α := zipWithRight' Prod.mk
 
 /--
 Left-biased version of `List.zipWith`. `zipWithLeft f as bs` applies `f` to each pair
@@ -815,7 +819,7 @@ zipWithRight prod.mk [1] ['a', 'b'] = [(some 1, 'a'), (none, 'b')]
 zipWithRight f as bs = (zipWithRight' f as bs).fst
 ```
 -/
-@[inline] def zipWithRight (f : Option α → β → γ) (as : List α) (bs : List β) : List γ :=
+@[expose, inline] def zipWithRight (f : Option α → β → γ) (as : List α) (bs : List β) : List γ :=
   zipWithLeft (flip f) bs as
 
 /--
@@ -828,7 +832,7 @@ zipLeft [1] ['a', 'b'] = [(1, some 'a')]
 zipLeft = zipWithLeft prod.mk
 ```
 -/
-@[inline] def zipLeft : List α → List β → List (α × Option β) := zipWithLeft Prod.mk
+@[expose, inline] def zipLeft : List α → List β → List (α × Option β) := zipWithLeft Prod.mk
 
 /--
 Right-biased version of `List.zip`. `zipRight as bs` returns the list of pairs
@@ -840,7 +844,7 @@ zipRight [1] ['a', 'b'] = [(some 1, 'a'), (none, 'b')]
 zipRight = zipWithRight prod.mk
 ```
 -/
-@[inline] def zipRight : List α → List β → List (Option α × β) := zipWithRight Prod.mk
+@[expose, inline] def zipRight : List α → List β → List (Option α × β) := zipWithRight Prod.mk
 
 /--
 If all elements of `xs` are `some xᵢ`, `allSome xs` returns the `xᵢ`. Otherwise
@@ -984,7 +988,7 @@ def mapWithComplement {α β} (f : α → List α → β) : List α → List β 
 Map each element of a `List` to an action, evaluate these actions in order,
 and collect the results.
 -/
-protected def traverse [Applicative F] (f : α → F β) : List α → F (List β)
+@[expose] protected def traverse [Applicative F] (f : α → F β) : List α → F (List β)
   | [] => pure []
   | x :: xs => List.cons <$> f x <*> List.traverse f xs
 
