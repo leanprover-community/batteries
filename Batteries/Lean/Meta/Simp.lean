@@ -6,7 +6,6 @@ Authors: Kim Morrison, Gabriel Ebner, Floris van Doorn
 module
 
 public import Lean.Elab.Tactic.Simp
-public import Batteries.Tactic.OpenPrivate
 import all Lean.Elab.Tactic.Simp  -- for accessing `mkDischargeWrapper`
 
 

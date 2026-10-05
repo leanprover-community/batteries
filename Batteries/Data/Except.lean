@@ -5,8 +5,6 @@ Authors: Kim Morrison
 -/
 module
 
-public import Init.Control.Except
-
 public section
 
 deriving instance DecidableEq for Except
