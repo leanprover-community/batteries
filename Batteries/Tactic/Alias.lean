@@ -5,11 +5,9 @@ Authors: Mario Carneiro, David Renshaw, François G. Dorais
 -/
 module
 
-public meta import Lean.Elab.Command
-public meta import Lean.Elab.DeclarationRange
 public meta import Lean.Compiler.NoncomputableAttr
-public meta import Lean.DocString
 public meta import Batteries.CodeAction.Deprecated
+import Lean.Elab.Attributes
 
 public meta section
 

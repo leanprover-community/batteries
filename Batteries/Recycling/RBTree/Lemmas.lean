@@ -5,9 +5,12 @@ Authors: Mario Carneiro
 -/
 module
 
-public import Batteries.Tactic.Basic
-public import Batteries.Data.List.Lemmas
 public import Batteries.Recycling.RBTree.Alter
+public import Batteries.Control.ForInStep.Lemmas
+public import Batteries.Data.List.Basic
+import Batteries.Data.List.Lemmas
+import Batteries.Tactic.Init
+import Batteries.Tactic.SeqFocus
 
 @[expose] public section
 

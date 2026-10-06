@@ -16,10 +16,10 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Install Lean
-        uses: leanprover/lean-action@v1
+        uses: leanprover/lean-action@f061402b660e0c34644504b324e830f2991d4865 # v1.6.1
         with:
           test: false
           lint: false
@@ -38,7 +38,7 @@ jobs:
           zip -rq docs-${TAG_NAME}.zip doc doc-data
 
       - name: Release Docs
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           prerelease: ${{ contains(github.ref, 'rc') }}
           make_latest: ${{ !contains(github.ref, 'rc') }}

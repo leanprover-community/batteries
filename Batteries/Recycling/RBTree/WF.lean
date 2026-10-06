@@ -5,8 +5,8 @@ Authors: Mario Carneiro
 -/
 module
 
-public import Batteries.Tactic.SeqFocus
 public import Batteries.Recycling.RBTree.Basic
+import Batteries.Tactic.SeqFocus
 
 @[expose] public section
 

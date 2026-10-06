@@ -85,13 +85,13 @@ set_option linter.unusedVariables.funArgs false in
 `f ⋯ (f (f x₁ x₂) x₃) ⋯ xₙ`.
 -/
 def mergeAdjacentDups [eq : BEq α] (f : α → α → α) (xs : Array α) : Array α :=
-  if h : 0 < xs.size then go (mkEmpty xs.size) 1 xs[0] else xs
+  if h : 0 < xs.size then go (mkEmpty xs.size) 1 xs[0] xs[0] else xs
 where
   /-- Auxiliary definition for `mergeAdjacentDups`. -/
-  go (acc : Array α) (i : Nat) (hd : α) :=
+  go (acc : Array α) (i : Nat) (prev hd : α) :=
     if h : i < xs.size then
       let x := xs[i]
-      if x == hd then go acc (i + 1) (f hd x) else go (acc.push hd) (i + 1) x
+      if x == prev then go acc (i + 1) x (f hd x) else go (acc.push hd) (i + 1) x x
     else
       acc.push hd
   termination_by xs.size - i

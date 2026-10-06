@@ -6,7 +6,6 @@ Authors: Mario Carneiro
 module
 
 public import Batteries.Lean.TagAttribute
-public import Std.Data.HashMap.Basic
 
 @[expose] public section
 
