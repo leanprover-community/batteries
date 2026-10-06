@@ -1,4 +1,4 @@
-module
+module -- shake: keep-all
 
 deprecated_module
   "This module has been moved to `leanprover-community/batteries-recycling`"
