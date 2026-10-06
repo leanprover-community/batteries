@@ -7,7 +7,7 @@ module
 
 public import Batteries.Data.BinomialHeap.Basic
 
-@[expose] public section
+public section
 
 namespace Batteries.BinomialHeap
 namespace Imp

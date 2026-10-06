@@ -5,10 +5,9 @@ Authors: François G. Dorais
 -/
 module
 
-public import Batteries.Data.Char.Basic
-public import Batteries.Tactic.Basic
+import Batteries.Data.Char.Basic
 
-@[expose] public section
+public section
 
 /-! # Lemmas for ASCII-casing
 

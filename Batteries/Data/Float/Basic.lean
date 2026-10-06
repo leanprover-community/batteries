@@ -5,7 +5,7 @@
 -/
 module
 
-@[expose] public section
+public section
 
 namespace Float
 

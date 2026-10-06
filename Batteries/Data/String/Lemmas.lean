@@ -7,7 +7,6 @@ module
 
 public import Batteries.Data.String.Basic
 public import Batteries.Tactic.Lint.Misc
-public import Batteries.Tactic.SeqFocus
 public import Batteries.Classes.Order
 public import Batteries.Data.List.Basic
 public import Batteries.Data.String.Legacy
@@ -20,8 +19,9 @@ import all Init.Data.String.Modify  -- for unfolding `String.mapAux`
 import all Init.Data.Ord.String  -- for unfolding `String.compare`
 import all Batteries.Data.String.Legacy -- for unfolding `String.Legacy.map`
 import all Init.Data.String.Legacy -- for unfolding `String.splitOnAux`
+import Batteries.Tactic.SeqFocus
 
-@[expose] public section
+public section
 
 set_option linter.deprecated false
 
@@ -52,7 +52,7 @@ private theorem ne_self_add_add_utf8Size : i ≠ i + (n + Char.utf8Size c) :=
   Nat.ne_of_lt (Nat.lt_add_of_pos_right add_utf8Size_pos)
 
 /-- The UTF-8 byte length of a list of characters. (This is intended for specification purposes.) -/
-@[inline] def utf8Len : List Char → Nat
+@[expose, inline] def utf8Len : List Char → Nat
   | []    => 0
   | c::cs => utf8Len cs + c.utf8Size
 

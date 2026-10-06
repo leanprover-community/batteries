@@ -5,14 +5,13 @@ Authors: Devon Tuma
 -/
 module
 
-public import Batteries.Control.Lemmas
-public import Batteries.Control.OptionT
 import all Init.Control.Option
 import all Init.Control.State
 import all Init.Control.Reader
 import all Init.Control.StateRef
+import Batteries.Control.Lemmas
 
-@[expose] public section
+public section
 
 
 /-!

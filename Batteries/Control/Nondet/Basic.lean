@@ -9,7 +9,7 @@ public import Batteries.Tactic.Lint.Misc
 public import Batteries.Data.MLList.Basic
 import Lean.Util.MonadBacktrack
 
-@[expose] public section
+public section
 
 /-!
 # A nondeterminism monad.

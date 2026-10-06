@@ -5,10 +5,9 @@ Authors: Kim Morrison
 -/
 module
 
-public import Batteries.Lean.System.IO
 public import Batteries.Data.MLList.Basic
 
-@[expose] public section
+public section
 
 /-!
 # IO operations using monadic lazy lists.

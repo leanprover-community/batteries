@@ -5,10 +5,9 @@ Authors: Robin Arnez
 -/
 module
 
-public import Batteries.Data.Float.Basic
 import all Init.Data.OfScientific -- remove when Float.ofNat is exposed
 
-@[expose] public section
+public section
 
 namespace Float.Model.UnpackedFloat
 

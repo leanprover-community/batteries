@@ -5,7 +5,7 @@ Authors: Gabriel Ebner
 -/
 module
 
-@[expose] public section
+public section
 
 /-!
 Defines an extended binder syntax supporting `∀ ε > 0, ...` etc.

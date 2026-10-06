@@ -6,9 +6,10 @@ Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 module
 
 public meta import Lean.Structure
-public meta import Lean.Elab.InfoTree.Main
-public meta import Lean.Elab.Exception
-public meta import Lean.ExtraModUses
+public meta import Lean.Meta.Basic
+meta import Lean.Elab.InfoTree.Main
+meta import Lean.ExtraModUses
+import Lean.Structure
 
 public meta section
 

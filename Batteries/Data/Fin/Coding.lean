@@ -5,13 +5,12 @@ Authors: François G. Dorais
 -/
 module
 
-public import Batteries.Data.Char
 public import Batteries.Data.Fin.Lemmas
-public import Batteries.Tactic.Basic
-public import Batteries.Tactic.Trans
-public meta import Batteries.Tactic.Lint
+public import Batteries.Data.Char.Basic
+public import Batteries.Tactic.Lint.Misc
+import Batteries.Tactic.Init
 
-@[expose] public section
+public section
 
 /-! # Low-level coding recipes for `Fin` types
 

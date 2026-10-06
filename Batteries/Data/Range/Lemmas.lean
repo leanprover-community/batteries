@@ -5,10 +5,7 @@ Authors: Mario Carneiro
 -/
 module
 
-public import Batteries.Tactic.SeqFocus
-public import Batteries.Tactic.Alias
-
-@[expose] public section
+public section
 
 namespace Std.Legacy.Range
 

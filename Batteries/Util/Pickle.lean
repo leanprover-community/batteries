@@ -7,7 +7,7 @@ module
 
 public import Lean.Environment
 
-@[expose] public section
+public section
 
 /-!
 # Pickling and unpickling objects
