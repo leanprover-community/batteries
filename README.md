@@ -51,6 +51,24 @@ documentation][mathlib4 docs].
 
 [mathlib4 docs]: https://leanprover-community.github.io/mathlib4_docs/Batteries.html
 
+# Batteries Cell Network (Experimental)
+
+The Batteries Cell Network consists of independent repositories that can be safely imported along with Batteries.
+These repositories are supported by Batteries maintainers to make sure that they are up to date and compatible with each other.
+
+Current cells include:
+
+* [leanprover-community/batteries-cell-template](https://github.com/leanprover-community/batteries-cell-template):
+  A template for creating new cells.
+
+* [leanprover-community/batteries-recycling](https://github.com/leanprover-community/batteries-recycling):
+  Storage for obsolescent modules from Batteries.
+
+* [fgdorais/batteries-kmp](https://github.com/fgdorais/batteries-kmp):
+  General purpose implementation of the Knuth-Morris-Pratt (KMP) matching algorithm.
+
+The Batteries Cell Network is not yet open to external contributions.
+
 # Contributing
 
 The first step to contribute is to create a fork of Batteries.
