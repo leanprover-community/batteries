@@ -6,9 +6,9 @@ Authors: Chad Sharp
 module
 
 public import Batteries.Data.Array.Basic
-public import Batteries.Data.Array.Lemmas
-import Batteries.Data.List.Scan
 import Batteries.Data.List.Lemmas
+import Batteries.Data.Array.Lemmas
+import Batteries.Tactic.Alias
 
 public section
 

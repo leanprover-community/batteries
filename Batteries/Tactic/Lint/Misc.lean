@@ -6,11 +6,8 @@ Authors: Floris van Doorn, Robert Y. Lewis, Arthur Paulino, Gabriel Ebner
 module
 
 public meta import Lean.Util.CollectFVars
-public meta import Lean.Util.CollectLevelParams
-public meta import Lean.Util.ForEachExpr
 public meta import Lean.Meta.Check
 public meta import Lean.Meta.Instances
-public meta import Lean.Util.Recognizers
 public meta import Lean.Linter.Deprecated
 public meta import Lean.DocString
 public meta import Batteries.Tactic.Lint.Basic

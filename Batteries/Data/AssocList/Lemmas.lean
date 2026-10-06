@@ -7,6 +7,7 @@ Authors: Leonardo de Moura, Mario Carneiro, Yann Herklotz
 module
 
 public import Batteries.Data.AssocList.Basic
+public import Batteries.Data.List.Basic
 
 public section
 

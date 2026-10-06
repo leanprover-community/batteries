@@ -6,7 +6,6 @@ Authors: Leonardo de Moura, Mario Carneiro
 module
 
 public import Batteries.Lean.HashMap
-public import Batteries.Tactic.Alias
 
 @[expose] public section
 

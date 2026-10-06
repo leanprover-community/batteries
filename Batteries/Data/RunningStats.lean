@@ -5,7 +5,6 @@ Authors: François G. Dorais
 -/
 
 module
-public import Init.Data.Nat
 
 section
 

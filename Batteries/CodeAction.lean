@@ -1,4 +1,4 @@
-module
+module -- shake: keep-all
 
 public import Batteries.CodeAction.Attr
 public import Batteries.CodeAction.Basic

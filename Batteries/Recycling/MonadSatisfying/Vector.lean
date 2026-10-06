@@ -5,7 +5,6 @@ Authors: Kim Morrison
 -/
 module
 
-public import Batteries.Recycling.MonadSatisfying.Basic
 public import Batteries.Recycling.MonadSatisfying.Array
 
 @[expose] public section
