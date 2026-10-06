@@ -9,7 +9,7 @@ public import Batteries.Data.List.Basic
 import Batteries.Util.ProofWanted
 import Batteries.Tactic.Init
 
-@[expose] public section
+public section
 
 /-!
 # List scan

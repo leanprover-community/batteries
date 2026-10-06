@@ -10,7 +10,7 @@ public import Batteries.Data.Char.Basic
 public import Batteries.Tactic.Lint.Misc
 import Batteries.Tactic.Init
 
-@[expose] public section
+public section
 
 /-! # Low-level coding recipes for `Fin` types
 

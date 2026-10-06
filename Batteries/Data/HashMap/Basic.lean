@@ -7,7 +7,7 @@ module
 
 public import Batteries.Lean.HashMap
 
-@[expose] public section
+public section
 
 namespace Std.HashMap
 

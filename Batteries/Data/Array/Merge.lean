@@ -5,7 +5,7 @@ Authors: Jannis Limperg
 -/
 module
 
-@[expose] public section
+public section
 
 namespace Array
 

@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 module
 
-@[expose] public section
+public section
 
 namespace Std.Legacy.Range
 

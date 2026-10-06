@@ -7,7 +7,7 @@ module
 
 public import Batteries.Classes.Order
 
-@[expose] public section
+public section
 
 namespace Char
 

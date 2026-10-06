@@ -10,7 +10,7 @@ public import Batteries.Data.Vector.Basic
 import Batteries.Data.Array.Lemmas
 import Batteries.Data.Array.Scan
 
-@[expose] public section
+public section
 
 namespace Vector
 

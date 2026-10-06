@@ -8,7 +8,7 @@ module
 public import Batteries.Recycling.RBTree.WF
 import Batteries.Tactic.SeqFocus
 
-@[expose] public section
+public section
 
 /-!
 # Path operations; `modify` and `alter`
@@ -27,7 +27,7 @@ attribute [simp] Path.fill
 /-! ## path balance -/
 
 /-- Asserts that property `p` holds on the root of the tree, if any. -/
-def OnRoot (p : α → Prop) : RBNode α → Prop
+@[expose] def OnRoot (p : α → Prop) : RBNode α → Prop
   | nil => True
   | node _ _ x _ => p x
 
@@ -153,7 +153,7 @@ theorem zoom_zoomed₂ (e : zoom cut t path = (t', path'))
 `path.RootOrdered cmp v` is true if `v` would be able to fit into the hole
 without violating the ordering invariant.
 -/
-def RootOrdered (cmp : α → α → Ordering) : Path α → α → Prop
+@[expose] def RootOrdered (cmp : α → α → Ordering) : Path α → α → Prop
   | .root, _ => True
   | .left _ parent x _, v => cmpLT cmp v x ∧ parent.RootOrdered cmp v
   | .right _ _ x parent, v => cmpLT cmp x v ∧ parent.RootOrdered cmp v
@@ -172,7 +172,7 @@ theorem Zoomed.toRootOrdered {cmp} :
   | .right .., ⟨h, hp⟩ => ⟨⟨Std.OrientedCmp.gt_iff_lt.1 h⟩, hp.toRootOrdered⟩
 
 /-- The ordering invariant for a `Path`. -/
-def Ordered (cmp : α → α → Ordering) : Path α → Prop
+@[expose] def Ordered (cmp : α → α → Ordering) : Path α → Prop
   | .root => True
   | .left _ parent x b => parent.Ordered cmp ∧
     b.All (cmpLT cmp x ·) ∧ parent.RootOrdered cmp x ∧
