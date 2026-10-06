@@ -10,7 +10,7 @@ public import Batteries.Control.ForInStep.Basic
 import Batteries.Control.ForInStep.Lemmas
 import Batteries.Tactic.Alias
 
-@[expose] public section
+public section
 
 namespace List
 

@@ -9,7 +9,7 @@ public import Batteries.Data.BitVec.Basic
 public import Batteries.Data.Fin.OfBits
 public import Batteries.Data.Int
 
-@[expose] public section
+public section
 
 namespace BitVec
 

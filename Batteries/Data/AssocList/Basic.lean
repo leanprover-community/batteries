@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 module
 
-@[expose] public section
+public section
 
 /-!
 # Association lists
@@ -37,19 +37,19 @@ namespace AssocList
 This is used to give specifications for all the `AssocList` functions
 in terms of corresponding list functions.
 -/
-@[simp] def toList : AssocList α β → List (α × β)
+@[expose, simp] def toList : AssocList α β → List (α × β)
   | nil => []
   | cons a b es => (a, b) :: es.toList
 
 instance : EmptyCollection (AssocList α β) := ⟨nil⟩
 
 /-- `O(1)`. Is the list empty? -/
-def isEmpty : AssocList α β → Bool
+@[expose] def isEmpty : AssocList α β → Bool
   | nil => true
   | _   => false
 
 /-- The number of entries in an `AssocList`. -/
-def length (L : AssocList α β) : Nat :=
+@[expose] def length (L : AssocList α β) : Nat :=
   match L with
   | .nil => 0
   | .cons _ _ t => t.length + 1
@@ -72,50 +72,50 @@ def length (L : AssocList α β) : Nat :=
   simp [foldl, foldlM_eq]
 
 /-- Optimized version of `toList`. -/
-@[no_expose] def toListTR (as : AssocList α β) : List (α × β) :=
+def toListTR (as : AssocList α β) : List (α × β) :=
   as.foldl (init := #[]) (fun r a b => r.push (a, b)) |>.toList
 
 @[csimp] theorem toList_eq_toListTR : @toList = @toListTR := by
   funext α β as; simp [toListTR]
 
 /-- `O(n)`. Run monadic function `f` on all elements in the list, from head to tail. -/
-@[specialize] def forM [Monad m] (f : α → β → m PUnit) : AssocList α β → m PUnit
+@[expose, specialize] def forM [Monad m] (f : α → β → m PUnit) : AssocList α β → m PUnit
   | nil         => pure ⟨⟩
   | cons a b es => do f a b; forM f es
 
 /-- `O(n)`. Map a function `f` over the keys of the list. -/
-@[simp] def mapKey (f : α → δ) : AssocList α β → AssocList δ β
+@[expose, simp] def mapKey (f : α → δ) : AssocList α β → AssocList δ β
   | nil        => nil
   | cons k v t => cons (f k) v (mapKey f t)
 
 /-- `O(n)`. Map a function `f` over the values of the list. -/
-@[simp] def mapVal (f : α → β → δ) : AssocList α β → AssocList α δ
+@[expose, simp] def mapVal (f : α → β → δ) : AssocList α β → AssocList α δ
   | nil        => nil
   | cons k v t => cons k (f k v) (mapVal f t)
 
 /-- `O(n)`. Returns the first entry in the list whose entry satisfies `p`. -/
-@[specialize] def findEntryP? (p : α → β → Bool) : AssocList α β → Option (α × β)
+@[expose, specialize] def findEntryP? (p : α → β → Bool) : AssocList α β → Option (α × β)
   | nil         => none
   | cons k v es => bif p k v then some (k, v) else findEntryP? p es
 
 /-- `O(n)`. Returns the first entry in the list whose key is equal to `a`. -/
-@[inline] def findEntry? [BEq α] (a : α) (l : AssocList α β) : Option (α × β) :=
+@[expose, inline] def findEntry? [BEq α] (a : α) (l : AssocList α β) : Option (α × β) :=
   findEntryP? (fun k _ => k == a) l
 
 /-- `O(n)`. Returns the first value in the list whose key is equal to `a`. -/
-def find? [BEq α] (a : α) : AssocList α β → Option β
+@[expose] def find? [BEq α] (a : α) : AssocList α β → Option β
   | nil         => none
   | cons k v es => match k == a with
     | true  => some v
     | false => find? a es
 
 /-- `O(n)`. Returns true if any entry in the list satisfies `p`. -/
-@[specialize] def any (p : α → β → Bool) : AssocList α β → Bool
+@[expose, specialize] def any (p : α → β → Bool) : AssocList α β → Bool
   | nil         => false
   | cons k v es => p k v || any p es
 
 /-- `O(n)`. Returns true if every entry in the list satisfies `p`. -/
-@[specialize] def all (p : α → β → Bool) : AssocList α β → Bool
+@[expose, specialize] def all (p : α → β → Bool) : AssocList α β → Bool
   | nil         => true
   | cons k v es => p k v && all p es
 
@@ -123,39 +123,40 @@ def find? [BEq α] (a : α) : AssocList α β → Option β
 def All (p : α → β → Prop) (l : AssocList α β) : Prop := ∀ a ∈ l.toList, p a.1 a.2
 
 /-- `O(n)`. Returns true if there is an element in the list whose key is equal to `a`. -/
-@[inline] def contains [BEq α] (a : α) (l : AssocList α β) : Bool := any (fun k _ => k == a) l
+@[expose, inline]
+def contains [BEq α] (a : α) (l : AssocList α β) : Bool := any (fun k _ => k == a) l
 
 /--
 `O(n)`. Replace the first entry in the list
 with key equal to `a` to have key `a` and value `b`.
 -/
-@[simp] def replace [BEq α] (a : α) (b : β) : AssocList α β → AssocList α β
+@[expose, simp] def replace [BEq α] (a : α) (b : β) : AssocList α β → AssocList α β
   | nil         => nil
   | cons k v es => match k == a with
     | true  => cons a b es
     | false => cons k v (replace a b es)
 
 /-- `O(n)`. Remove the first entry in the list with key equal to `a`. -/
-@[specialize, simp] def eraseP (p : α → β → Bool) : AssocList α β → AssocList α β
+@[expose, specialize, simp] def eraseP (p : α → β → Bool) : AssocList α β → AssocList α β
   | nil         => nil
   | cons k v es => bif p k v then es else cons k v (eraseP p es)
 
 /-- `O(n)`. Remove the first entry in the list with key equal to `a`. -/
-@[inline] def erase [BEq α] (a : α) (l : AssocList α β) : AssocList α β :=
+@[expose, inline] def erase [BEq α] (a : α) (l : AssocList α β) : AssocList α β :=
   eraseP (fun k _ => k == a) l
 
 /--
 `O(n)`. Replace the first entry `a', b` in the list
 with key equal to `a` to have key `a` and value `f a' b`.
 -/
-@[simp] def modify [BEq α] (a : α) (f : α → β → β) : AssocList α β → AssocList α β
+@[expose, simp] def modify [BEq α] (a : α) (f : α → β → β) : AssocList α β → AssocList α β
   | nil         => nil
   | cons k v es => match k == a with
     | true  => cons a (f k v) es
     | false => cons k v (modify a f es)
 
 /-- The implementation of `ForIn`, which enables `for (k, v) in aList do ...` notation. -/
-@[specialize] protected def forIn [Monad m]
+@[expose, specialize] protected def forIn [Monad m]
     (as : AssocList α β) (init : δ) (f : (α × β) → δ → m (ForInStep δ)) : m δ :=
   match as with
   | nil => pure init
@@ -176,12 +177,12 @@ instance : Std.ToStream (AssocList α β) (AssocList α β) := ⟨fun x => x⟩
 instance : Std.Stream (AssocList α β) (α × β) := ⟨pop?⟩
 
 /-- Converts a list into an `AssocList`. This is the inverse function to `AssocList.toList`. -/
-@[simp] def _root_.List.toAssocList : List (α × β) → AssocList α β
+@[expose, simp] def _root_.List.toAssocList : List (α × β) → AssocList α β
   | []          => nil
   | (a,b) :: es => cons a b (toAssocList es)
 
 /-- Implementation of `==` on `AssocList`. -/
-protected def beq [BEq α] [BEq β] : AssocList α β → AssocList α β → Bool
+@[expose] protected def beq [BEq α] [BEq β] : AssocList α β → AssocList α β → Bool
   | .nil, .nil => true
   | .cons _ _ _, .nil => false
   | .nil, .cons _ _ _ => false

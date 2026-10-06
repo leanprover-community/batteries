@@ -8,7 +8,7 @@ module
 public import Batteries.Recycling.RBTree.Basic
 import Batteries.Tactic.SeqFocus
 
-@[expose] public section
+public section
 
 /-!
 # Lemmas for Red-black trees
@@ -443,7 +443,7 @@ The invariant of the `del` function.
 * If the input tree is red or nil, then the result of deletion is a balanced tree with
   some color and the same black-height.
 -/
-def DelProp (p : RBColor) (t : RBNode α) (n : Nat) : Prop :=
+@[expose] def DelProp (p : RBColor) (t : RBNode α) (n : Nat) : Prop :=
   match p with
   | black => ∃ n', n = n' + 1 ∧ RedRed True t n'
   | red => ∃ c, Balanced t c n

@@ -10,7 +10,7 @@ public import Batteries.Lean.Meta.Expr
 public import Batteries.Lean.PersistentHashMap
 public import Lean.Meta.DiscrTree.Util
 
-@[expose] public section
+public section
 
 namespace Lean.Meta.DiscrTree
 

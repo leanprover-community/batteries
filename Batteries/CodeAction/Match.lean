@@ -11,7 +11,7 @@ public meta import Lean.Elab.InfoTree.Types
 import Batteries.Data.List.Basic
 import Lean.Parser.Term
 
-@[expose] public meta section
+public meta section
 
 namespace Batteries.CodeAction
 

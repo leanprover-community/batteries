@@ -7,7 +7,7 @@ module
 
 public import Batteries.Data.Float.Basic
 
-@[expose] public section
+public section
 
 /-! # Rational Numbers and Float -/
 

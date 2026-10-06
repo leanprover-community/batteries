@@ -5,7 +5,7 @@ Authors: Kim Morrison
 -/
 module
 
-@[expose] public section
+public section
 
 deriving instance DecidableEq for Except
 
@@ -23,6 +23,7 @@ def emoji : Except ε α → String
     f <$> (.ok x : Except ε α) = .ok (f x) := rfl
 
 /-- Map a function over an `Except` value, using a proof that the value is `.ok`. -/
+@[expose]
 def pmap {ε : Type u} {α β : Type v} (x : Except ε α) (f : (a : α) → x = .ok a → β) : Except ε β :=
   match x with
   | .error e => .error e

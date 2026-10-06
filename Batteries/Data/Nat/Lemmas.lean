@@ -7,7 +7,7 @@ module
 
 public import Batteries.Data.Nat.Basic
 
-@[expose] public section
+public section
 
 /-! # Basic lemmas about natural numbers
 
