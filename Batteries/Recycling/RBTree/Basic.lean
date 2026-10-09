@@ -7,7 +7,7 @@ module
 
 public import Batteries.Classes.Order
 public import Batteries.Control.ForInStep.Basic
-public import Batteries.Tactic.Lint.Misc
+import Batteries.Tactic.Lint.Misc
 
 public section
 

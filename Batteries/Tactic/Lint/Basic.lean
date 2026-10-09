@@ -175,7 +175,7 @@ initialize nolintAttr : ParametricAttribute (Array Name) ←
     name := `nolint
     descr := "Do not report this declaration in any of the tests of `#lint`"
     getParam := fun _ => fun
-      | `(attr| nolint $[$ids]*) => ids.mapM fun id => withRef id <| do
+      | `(attr| nolint $[$ids]*) => ids.mapM fun id => withRef id <| withoutExporting do
         let shortName := id.getId.eraseMacroScopes
         let some (declName, _) := (batteriesLinterExt.getState (← getEnv)).find? shortName
           | throwError "linter '{shortName}' not found"
