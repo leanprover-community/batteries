@@ -5,7 +5,7 @@ Authors: David Thrane Christiansen, Kim Morrison
 -/
 module
 
-public import Batteries.Tactic.Lint.Misc
+import Batteries.Tactic.Lint.Misc
 public meta import Lean.Meta.Tactic.TryThis -- shake: keep
 import Lean.Parser.Command
 
