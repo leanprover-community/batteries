@@ -249,9 +249,18 @@ public theorem toFinDigits_ofFinDigits (h : 2 ≤ base) {l : List (Fin base)}
       toFinDigits_of_ne_zero h hd, Nat.div_eq_of_lt d.isLt, toFinDigits_zero]
     simp
 
-/-! ### Subquadratic implementations -/
+/-! ### Subquadratic implementations
 
-/-- Divide-and-conquer implementation of `ofFinDigits`. -/
+The definitions and theorems below implement the functions above at runtime via `csimp`. They are
+public only because `csimp` requires it. They are not intended as part of the public API and they
+may change without warning.
+-/
+
+/--
+Divide-and-conquer implementation of `ofFinDigits`.
+
+Not intended as part of the public API, this may change without warning.
+-/
 public def ofFinDigitsImpl (l : List (Fin base)) : Nat :=
   if l.length ≤ 16 then ofFinDigits l else
     let k := l.length / 2
@@ -265,7 +274,11 @@ termination_by l.length
   | case2 l _ k ih₁ ih₂ =>
     rw [← ih₁, ← ih₂, ← List.length_drop, ← ofFinDigits_append, List.take_append_drop]
 
-/-- Divide-and-conquer implementation of `toFinDigitsUpTo`. -/
+/--
+Divide-and-conquer implementation of `toFinDigitsUpTo`.
+
+Not intended as part of the public API, this may change without warning.
+-/
 public def toFinDigitsUpToImpl (n base prec : Nat) [NeZero base] : List (Fin base) :=
   loopSplit n prec []
 where
@@ -299,7 +312,11 @@ private theorem toFinDigitsUpToImpl.loopSplit_eq [NeZero base] {acc : List (Fin 
   funext n base prec _
   rw [toFinDigitsUpToImpl, toFinDigitsUpToImpl.loopSplit_eq, List.append_nil]
 
-/-- Divide-and-conquer implementation of `toFinDigits`. -/
+/--
+Divide-and-conquer implementation of `toFinDigits`.
+
+Not intended as part of the public API, this may change without warning.
+-/
 public def toFinDigitsImpl (n base : Nat) : List (Fin base) :=
   if hbase : base < 2 then [] else loopSplit base (by omega) n []
 where
