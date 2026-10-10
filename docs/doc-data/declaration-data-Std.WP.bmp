@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Std.WP.Basic","Std.WP.Conjunctive","Std.WP.Frame","Std.WP.Gadget.Assert","Std.WP.Gadget.ForIn","Std.WP.Monad","Std.WP.Triple"],"instances":[],"name":"Std.WP"}

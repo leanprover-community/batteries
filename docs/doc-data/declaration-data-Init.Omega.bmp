@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Data.Int.Lemmas","Init.Data.Int.Order","Init.Data.Nat.Order","Init.Data.Order.Lemmas","Init.Omega.Constraint","Init.Omega.Int","Init.Omega.IntList","Init.Omega.LinearCombo","Init.Omega.Logic"],"instances":[],"name":"Init.Omega"}

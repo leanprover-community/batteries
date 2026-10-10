@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.Tactic.Grind.Basic","Lean.Meta.Sym.LetToHave","Lean.Meta.Tactic.Replace"],"instances":[],"name":"Lean.Elab.Tactic.Grind.LetToHave"}
