@@ -254,12 +254,19 @@ public theorem toFinDigits_ofFinDigits (h : 2 ≤ base) {l : List (Fin base)}
 The definitions and theorems in the `Nat.Internal` namespace implement the functions above at
 runtime via `csimp`. They are public only because `csimp` requires it. They are not intended as part
 of the public API and they may change without warning.
+
+Each implementation splits its input roughly in half and falls back to a simple loop on small
+inputs, where computing `base ^ k` and splitting would cost more than it saves. The cutoffs are
+16 digits for `ofFinDigits` and `toFinDigitsUpTo`, and a split size of at least 8 digits for
+`toFinDigits`. They were picked by judgment rather than tuned by benchmarks. Correctness does not
+depend on them.
 -/
 
 namespace Internal
 
 /-- Divide-and-conquer implementation of `Nat.ofFinDigits`. -/
 public def ofFinDigits (l : List (Fin base)) : Nat :=
+  -- cutoff for small inputs, see the section header
   if l.length ≤ 16 then Nat.ofFinDigits l else
     let k := l.length / 2
     ofFinDigits (l.take k) * base ^ (l.length - k) + ofFinDigits (l.drop k)
@@ -278,6 +285,7 @@ public def toFinDigitsUpTo (n base prec : Nat) [NeZero base] : List (Fin base) :
 where
   /-- Prepends `Nat.toFinDigitsUpTo n base prec` to `acc`. -/
   loopSplit (n prec : Nat) (acc : List (Fin base)) : List (Fin base) :=
+    -- cutoff for small inputs, see the section header
     if prec ≤ 16 then loopDigit n prec acc else
       let k := prec / 2
       loopSplit (n / base ^ k) (prec - k) (loopSplit (n % base ^ k) k acc)
@@ -312,7 +320,9 @@ where
   /-- Prepends `Nat.toFinDigits n base` to `acc`. -/
   loopSplit (base : Nat) (hbase : 2 ≤ base) (n : Nat) (acc : List (Fin base)) : List (Fin base) :=
     have : NeZero base := ⟨by omega⟩
-    -- `k` is about half the number of digits, and `base ^ k ≤ n` whenever `0 < k`
+    -- `k` is between a quarter and a half of the number of digits of `n`. Since
+    -- `base < 2 ^ (base.log2 + 1)` and `2 ^ n.log2 ≤ n`, this choice ensures `base ^ k ≤ n`, so
+    -- the check below only fails when `k < 8`, the cutoff for small inputs (see section header).
     let k := n.log2 / (2 * base.log2 + 2)
     if h : 8 ≤ k ∧ base ^ k ≤ n then
       have : 1 < base ^ k := Nat.lt_of_lt_of_le hbase (Nat.le_self_pow (by omega) _)
