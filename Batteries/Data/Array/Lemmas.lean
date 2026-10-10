@@ -13,6 +13,13 @@ public section
 
 namespace Array
 
+/-! ### equalSet -/
+
+@[simp] theorem equalSet_eq_true [BEq α] [LawfulBEq α] (xs ys : Array α) :
+    xs.equalSet ys = true ↔ ∀ a, a ∈ xs ↔ a ∈ ys := by
+  simp only [equalSet, Bool.and_eq_true, all_eq_true', contains_iff_mem,
+    iff_iff_implies_and_implies, forall_and]
+
 /-! ### idxOf? -/
 
 @[grind =]
