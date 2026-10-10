@@ -28,6 +28,7 @@ This file defines several small linters.
 their value, and allow arguments starting with `_` to be unused. -/
 @[env_linter] def unusedArguments : Linter where
   noErrorsFound := "No unused arguments."
+  isLocal := true
   errorsFound := "UNUSED ARGUMENTS."
   test declName := do
     if ← isAutoDecl declName then return none
@@ -109,6 +110,7 @@ their value, and allow arguments starting with `_` to be unused. -/
 /-- A linter for checking theorem doc strings. -/
 @[env_linter disabled] def docBlameThm : Linter where
   noErrorsFound := "No theorems are missing documentation."
+  isLocal := true
   errorsFound := "THEOREMS ARE MISSING DOCUMENTATION STRINGS:"
   test declName := do
     if ← isPrivateOrAutoDecl declName then
@@ -130,6 +132,7 @@ their value, and allow arguments starting with `_` to be unused. -/
 @[env_linter] def checkType : Linter where
   noErrorsFound :=
     "The statements of all declarations type-check with default reducibility settings."
+  isLocal := true
   errorsFound := "THE STATEMENTS OF THE FOLLOWING DECLARATIONS DO NOT TYPE-CHECK."
   isFast := true
   test declName := do
@@ -146,6 +149,7 @@ with rfl when elaboration results in a different term than the user intended. -/
 @[env_linter] def synTaut : Linter where
   noErrorsFound :=
     "No declarations are syntactic tautologies."
+  isLocal := true
   errorsFound := "THE FOLLOWING DECLARATIONS ARE SYNTACTIC TAUTOLOGIES. \
     This usually means that they are of the form `∀ a b ... z, e₁ = e₂` where `e₁` and `e₂` are \
     identical expressions. We call declarations of this form syntactic tautologies. \
@@ -189,6 +193,7 @@ def findUnusedHaves (_ : Expr) : MetaM (Array MessageData) := do
 /-- A linter for checking that declarations don't have unused term mode have statements. -/
 @[env_linter] def unusedHavesSuffices : Linter where
   noErrorsFound := "No declarations have unused term mode have statements."
+  isLocal := true
   errorsFound := "THE FOLLOWING DECLARATIONS HAVE INEFFECTUAL TERM MODE HAVE/SUFFICES BLOCKS. \
     In the case of `have` this is a term of the form `have h := foo, bar` where `bar` does not \
     refer to `foo`. Such statements have no effect on the generated proof, and can just be \
@@ -215,6 +220,7 @@ variables should be implicit instead.
 -/
 @[env_linter disabled] def explicitVarsOfIff : Linter where
   noErrorsFound := "No explicit variables on both sides of iff"
+  isLocal := true
   errorsFound := "EXPLICIT VARIABLES ON BOTH SIDES OF IFF"
   test declName := do
     if ← isAutoDecl declName then return none

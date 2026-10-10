@@ -46,6 +46,10 @@ structure LinterConfig where
   noBuild : Bool := false
   /-- Whether to enable tracing. Default is `false`; set to `true` with `--trace` or `-v`. -/
   trace := false
+  /-- If set (with `--only-modules=FILE`), a file listing module names, one per line. Local linters
+  (`Linter.isLocal`) then lint only the declarations defined in those modules; the other linters
+  still lint everything. -/
+  onlyModules : Option System.FilePath := none
 
 @[always_inline, inline]
 private def Except.consError (e : ε) : Except (List ε) α → Except (List ε) α
@@ -79,7 +83,10 @@ where
     | "--no-build" => some { parsed with noBuild := true }
     | "--trace"
     | "-v"         => some { parsed with trace := true }
-    | _ => none
+    | arg =>
+      if let some file := arg.dropPrefix? "--only-modules=" then
+        if file.isEmpty then none else some { parsed with onlyModules := some file.toString }
+      else none
 
 /--
 Return an array of the modules to lint.
@@ -99,7 +106,11 @@ def determineModulesToLint (specifiedModules : List Name) : IO (Array Name) := d
 
 /-- Run the Batteries linter on a given module and update the linter if `update` is `true`. -/
 unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := do
-  let { updateNoLints, noBuild, trace } := cfg
+  let { updateNoLints, noBuild, trace, onlyModules } := cfg
+  if updateNoLints && onlyModules.isSome then
+    IO.eprintln "--update cannot be combined with --only-modules: \
+      it would rewrite the nolints file from a partial run"
+    IO.Process.exit 1
   initSearchPath (← findSysroot)
   let rec
     /-- Builds `module` if the filepath `olean` does not exist. Throws if olean is not found and
@@ -150,7 +161,27 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
     traceLint s!"Starting lint..." (inIO := true) (currentModule := module)
     let decls ← getDeclsInPackage module.getRoot
     let linters ← getChecks (slow := true) (runAlways := none) (runOnly := none)
+    let localDecls ← match onlyModules with
+      | none => pure none
+      | some file =>
+        let env ← getEnv
+        let listed := (← IO.FS.lines file).map (·.trimAscii.copy) |>.filter (!·.isEmpty)
+          |>.map (·.toName)
+        -- Modules that are not in the environment (for example, deleted files) are skipped, but
+        -- always reported: a typo would otherwise silently narrow the lint.
+        let missing := listed.filter (env.getModuleIdx? · |>.isNone)
+        unless missing.isEmpty do
+          IO.println s!"[{module}] --only-modules: {missing.size} listed module(s) are not in the \
+            environment and are skipped: {missing.toList}"
+        let idxs := listed.filterMap env.getModuleIdx?
+        let restricted := decls.filter fun d => (env.getModuleIdxFor? d).any idxs.contains
+        let nLocal := (linters.filter (·.isLocal)).size
+        IO.println s!"[{module}] --only-modules: {nLocal} local linters lint the \
+          {restricted.size} declarations of {idxs.size} listed modules; the other \
+          {linters.size - nLocal} lint all {decls.size} declarations."
+        pure (some restricted)
     let results ← lintCore decls linters (inIO := true) (currentModule := module)
+      (localDecls := localDecls)
     if updateNoLints then
       traceLint s!"Updating nolints file at {nolintsFile}" (inIO := true) (currentModule := module)
       writeJsonFile (α := NoLints) nolintsFile <|
@@ -173,14 +204,18 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
     if failed then
       let fmtResults ←
         formatLinterResults results decls (groupByFilename := true) (useErrorFormat := true)
-          s!"in {module}" (runSlowLinters := true) .medium linters.size
+          s!"in {module}{match localDecls with
+            | some ds => s!" (local linters: only the {ds.size} declarations of the listed modules)"
+            | none => ""}"
+          (runSlowLinters := true) .medium linters.size
       IO.print (← fmtResults.toString)
       IO.Process.exit 1
     else
       IO.println s!"-- Linting passed for {module}."
 
 /--
-Usage: `runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]...`
+Usage: `runLinter [--update] [--trace | -v] [--no-build] [--only-modules=FILE]
+  [Batteries.Data.Nat.Basic]...`
 
 Runs the linters on all declarations in the given modules
 (or all root modules of Lake `lean_lib` and `lean_exe` default targets if no module is specified).
@@ -192,6 +227,13 @@ If `--trace` (or, synonymously, `-v`) is set, tracing will be enabled and logged
 
 If `--no-build` is set, `runLinter` will throw if either the oleans to be linted or the oleans
 which drive the linting itself are not present.
+
+If `--only-modules=FILE` is set, where `FILE` lists module names one per line, local linters
+(`Linter.isLocal`) lint only the declarations defined in those modules, for example to lint only
+the files a pull request changed; the other linters, such as `simpNF`, still lint every
+declaration. Listed modules that are not in the environment are skipped and reported.
+`--only-modules` cannot be combined with `--update`. It is only sound for changes to ordinary
+modules: a caller must lint everything when a linter's own code or `nolints.json` changes.
 -/
 unsafe def main (args : List String) : IO Unit := do
   let linterArgs := parseLinterArgs args
@@ -200,7 +242,8 @@ unsafe def main (args : List String) : IO Unit := do
     | Except.error msgs => do
       IO.eprintln s!"Error parsing args:\n  {"\n  ".intercalate msgs}"
       IO.eprintln "Usage: \
-        runLinter [--update] [--trace | -v] [--no-build] [Batteries.Data.Nat.Basic]..."
+        runLinter [--update] [--trace | -v] [--no-build] [--only-modules=FILE] \
+        [Batteries.Data.Nat.Basic]..."
       IO.Process.exit 1
 
   let modulesToLint ← determineModulesToLint mods
