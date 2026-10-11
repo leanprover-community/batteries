@@ -301,7 +301,7 @@ theorem heapifyUp_perm [Ord α] {a : Vector α sz} {i : Fin sz} : (heapifyUp a i
     grind only [Vector.Perm.trans, Vector.swap_perm, Vector.Perm.refl]
 
 /-- popMax returns a permutation: the original is a perm of max :: popMax -/
-theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
+public theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
     (heap.arr[0] :: heap.popMax.arr.toList).Perm heap.arr.toList := by
   have hne : heap.size ≠ 0 := by omega
   unfold popMax
@@ -314,8 +314,8 @@ theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
 
 /-- When max returns some, the value equals arr[0]. -/
 theorem max_eq_arr_zero [Ord α] {heap : BinaryHeap α} (h : heap.max = some x) :
-    x = heap.arr[0]'(size_of_some_max h) := by
-  rw [max, Array.getElem?_eq_getElem (size_of_some_max h)] at h
+    x = heap.arr[0]'(size_pos_of_max h) := by
+  rw [max, Array.getElem?_eq_getElem (size_pos_of_max h)] at h
   exact (Option.some.inj h).symm
 
 /-- The inner loop of toSortedArray produces a permutation of heap ++ out -/
@@ -325,9 +325,9 @@ theorem toSortedArray.loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α)
   split
   · simp_all [size]
   · rename_i h_some
-    have := size_of_some_max ‹_›
+    have := size_pos_of_max ‹_›
     simp only [max_eq_arr_zero h_some]
-    have hpos := size_of_some_max h_some
+    have hpos := size_pos_of_max h_some
     apply toSortedArray.loop_perm .. |>.trans
     simp only [Array.toList_push]
     apply List.perm_append_comm.append_left _ |>.trans
@@ -337,7 +337,7 @@ theorem toSortedArray.loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α)
     exact popMax_perm hpos
 
 /-- `toSortedArray` produces a permutation of the heap. -/
-theorem toSortedArray_perm [Ord α] (heap : BinaryHeap α) :
+public theorem toSortedArray_perm [Ord α] (heap : BinaryHeap α) :
     heap.toSortedArray.Perm heap.arr := by
   apply Array.Perm.of_toList_perm
   apply toSortedArray.loop_perm heap _ |>.trans
@@ -593,7 +593,7 @@ private theorem toSortedArray.loop_sorted [Ord α] [Std.TransOrd α] {heap : Bin
   unfold toSortedArray.loop
   split <;> try assumption
   rename_i x h
-  have h_pos : 0 < heap.size := size_of_some_max h
+  have h_pos : 0 < heap.size := size_pos_of_max h
   apply toSortedArray.loop_sorted
   · exact popMax_wf hwf
   · have : x ∈ heap := by simp_all [mem_def, max, Array.mem_of_getElem? h]
@@ -619,10 +619,10 @@ theorem mem_toSortedArray [Ord α] {heap : BinaryHeap α} {x : α} :
   toSortedArray_perm heap |>.mem_iff
 
 end
-end BinaryHeap
+end Batteries.BinaryHeap
 
 public section
-open Batteries.BinaryHeap
+open Batteries Batteries.BinaryHeap
 
 /-- Converting an array to a binary heap produces a well-formed heap. -/
 @[simp, grind .]
@@ -631,7 +631,7 @@ theorem Array.toBinaryHeap_wf [Ord α] [Std.TransOrd α] {a : Array α} : WF (a.
 
 /-- Converting a vector to a binary heap produces a well-formed heap. -/
 @[simp, grind .]
-theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] {a : Vector α sz} :
+theorem Batteries.Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] {a : Vector α sz} :
     WF (Batteries.Vector.toBinaryHeap a) := by
   simp [WF.of_topDown, Vector.toBinaryHeap]
 
@@ -640,7 +640,7 @@ theorem Array.size_toBinaryHeap [Ord α] {a : Array α} : a.toBinaryHeap.size = 
   simp [Array.toBinaryHeap, BinaryHeap.size]
 
 @[simp, grind =]
-theorem Vector.size_toBinaryHeap [Ord α] {a : Vector α sz} :
+theorem Batteries.Vector.size_toBinaryHeap [Ord α] {a : Vector α sz} :
     (Batteries.Vector.toBinaryHeap a).size = sz := by
   simp [Batteries.Vector.toBinaryHeap, BinaryHeap.size]
 
@@ -649,7 +649,7 @@ theorem Array.mem_toBinaryHeap [Ord α] {a : Array α} : x ∈ a.toBinaryHeap �
   simp [Array.toBinaryHeap, BinaryHeap.mem_def, mkHeap_perm.mem_iff]
 
 @[simp, grind =]
-theorem Vector.mem_toBinaryHeap [Ord α] {a : Vector α sz} {x : α} :
+theorem Batteries.Vector.mem_toBinaryHeap [Ord α] {a : Vector α sz} {x : α} :
     x ∈ Batteries.Vector.toBinaryHeap a ↔ x ∈ a := by
   simp only [Batteries.Vector.toBinaryHeap, BinaryHeap.mem_def, Vector.mem_toArray_iff]
   simp [← Vector.mem_toArray_iff, mkHeap_perm.mem_iff]

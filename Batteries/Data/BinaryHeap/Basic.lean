@@ -149,7 +149,7 @@ theorem max_eq_none_iff [Ord α] {heap : BinaryHeap α} :
     heap.max = none ↔ heap.size = 0 := by
   simp [max, size]
 
-theorem size_of_some_max [Ord α] {heap : BinaryHeap α} (h : heap.max = some x) : 0 < heap.size := by
+theorem size_pos_of_max [Ord α] {heap : BinaryHeap α} (h : heap.max = some x) : 0 < heap.size := by
   simp only [max, getElem?_def] at h
   split at h
   · assumption
@@ -162,8 +162,8 @@ def insertExtractMax [Ord α] (heap : BinaryHeap α) (x : α) : α × BinaryHeap
   | none => (x, heap)
   | some m =>
     if compare x m |>.isLT then
-      let v := heap.vector.set 0 x (size_of_some_max e)
-      (m, ⟨heapifyDown v ⟨0, size_of_some_max e⟩ |>.toArray⟩)
+      let v := heap.vector.set 0 x (size_pos_of_max e)
+      (m, ⟨heapifyDown v ⟨0, size_pos_of_max e⟩ |>.toArray⟩)
     else (x, heap)
 
 /-- `O(log n)`. Equivalent to `(heap.max, heap.popMax.insert x)`. -/
@@ -172,8 +172,8 @@ def replaceMax [Ord α] (heap : BinaryHeap α) (x : α) : Option α × BinaryHea
   match e : heap.max with
   | none => (none, ⟨heap.vector.push x |>.toArray⟩)
   | some m =>
-    let v := heap.vector.set 0 x (size_of_some_max e)
-    (some m, ⟨heapifyDown v ⟨0, size_of_some_max e⟩ |>.toArray⟩)
+    let v := heap.vector.set 0 x (size_pos_of_max e)
+    (some m, ⟨heapifyDown v ⟨0, size_pos_of_max e⟩ |>.toArray⟩)
 
 /-- `O(log n)`. Replace the value at index `i` by `x`. Assumes that `x ≤ heap.get i`. -/
 @[inline]
@@ -195,7 +195,7 @@ where
     match h: a.max with
     | none => out
     | some x =>
-      have := size_of_some_max h; -- termination hint
+      have := size_pos_of_max h; -- termination hint
       loop a.popMax (out.push x)
 end Batteries.BinaryHeap
 
