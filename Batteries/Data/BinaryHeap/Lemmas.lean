@@ -106,21 +106,8 @@ theorem heapifyDown_getElem_of_not_inSubtree' [Ord α] {a : Vector α sz} {i : F
     (heapifyDown a i)[k] = a[k] :=
   heapifyDown_getElem_of_not_inSubtree (k := ⟨k, hk⟩) hnsub
 
-/-- heapifyDown at j preserves WF.Children k when i < k < j and j is a child of i -/
-theorem heapifyDown_swap_children_of_lt [Ord α] {a : Vector α sz} {i j k : Fin sz}
-    (hchild : j.val = 2 * i.val + 1 ∨ j.val = 2 * i.val + 2)
-    (hik : i < k) (hkj : k < j) (hwf : WF.Children a k) :
-    WF.Children (heapifyDown (a.swap i j i.isLt j.isLt) j) k := by
-  apply hwf.congr
-    <;> intros
-    <;> (try simp only [Fin.getElem_fin])
-    <;> rw [heapifyDown_getElem_of_not_inSubtree' _ (by grind only [InSubtree.not_of_lt])]
-    <;> apply Vector.getElem_swap_of_ne
-    <;> omega
-
 /-- `heapifyDown` preserves WF.Children at positions before the heapified index that are not its
   children. -/
--- possible to merge with above theorem? they have the exact same structure
 theorem heapifyDown_get_of_not_child [Ord α] {v : Vector α sz}
     (hki : k < i) (hwf : WF.Children v k)
     (hleft_ne : i.val ≠ 2 * k.val + 1) (hright_ne : i.val ≠ 2 * k.val + 2) :
@@ -129,6 +116,17 @@ theorem heapifyDown_get_of_not_child [Ord α] {v : Vector α sz}
     <;> intros
     <;> (try simp only [Fin.getElem_fin])
     <;> rw [heapifyDown_getElem_of_not_inSubtree' _ (by grind only [InSubtree.not_of_lt])]
+
+/-- heapifyDown at j preserves WF.Children k when i < k < j and j is a child of i -/
+theorem heapifyDown_swap_children_of_lt [Ord α] {a : Vector α sz} {i j k : Fin sz}
+    (hchild : j.val = 2 * i.val + 1 ∨ j.val = 2 * i.val + 2)
+    (hik : i < k) (hkj : k < j) (hwf : WF.Children a k) :
+    WF.Children (heapifyDown (a.swap i j i.isLt j.isLt) j) k := by
+  refine heapifyDown_get_of_not_child hkj (hwf.congr ?_ ?_ ?_) (by omega) (by omega)
+    <;> intros
+    <;> (try simp only [Fin.getElem_fin])
+    <;> apply Vector.getElem_swap_of_ne
+    <;> omega
 
 /-- If v dominates all values in the subtree, v dominates the result at root -/
 theorem heapifyDown_preserves_ge_root_of_subtree [Ord α]
@@ -369,10 +367,6 @@ theorem mkHeap_wf [Ord α] [Std.TransOrd α] {a : Vector α sz} :
 theorem mkHeap_perm [Ord α] {a : Vector α sz} : (mkHeap a).toArray.Perm a.toArray :=
   mkHeap.loop_perm |>.toArray
 
-theorem size_extractMax [Ord α] (heap : BinaryHeap α) :
-    (heap.extractMax).2.size = heap.size - 1 := by
-  simp [extractMax]
-
 @[simp, grind =]
 theorem extractMax_fst [Ord α] (heap : BinaryHeap α) :
     heap.extractMax.1 = heap.max := by simp [extractMax]
@@ -590,8 +584,8 @@ theorem Array.toBinaryHeap_wf [Ord α] [Std.TransOrd α] {a : Array α} : WF (a.
 
 /-- Converting a vector to a binary heap produces a well-formed heap. -/
 @[simp, grind .]
-theorem Batteries.Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] {a : Vector α sz} :
-    WF (Batteries.Vector.toBinaryHeap a) := by
+theorem Vector.toBinaryHeap_wf [Ord α] [Std.TransOrd α] {a : Vector α sz} :
+    WF a.toBinaryHeap := by
   simp [WF.of_topDown, Vector.toBinaryHeap]
 
 @[simp, grind =]
@@ -600,8 +594,8 @@ theorem Array.size_toBinaryHeap [Ord α] {a : Array α} : a.toBinaryHeap.size = 
 
 @[simp, grind =]
 theorem Batteries.Vector.size_toBinaryHeap [Ord α] {a : Vector α sz} :
-    (Batteries.Vector.toBinaryHeap a).size = sz := by
-  simp [Batteries.Vector.toBinaryHeap, BinaryHeap.size]
+    a.toBinaryHeap.size = sz := by
+  simp [Vector.toBinaryHeap, BinaryHeap.size]
 
 @[simp, grind =]
 theorem Array.mem_toBinaryHeap [Ord α] {a : Array α} : x ∈ a.toBinaryHeap ↔ x ∈ a := by
@@ -609,8 +603,8 @@ theorem Array.mem_toBinaryHeap [Ord α] {a : Array α} : x ∈ a.toBinaryHeap �
 
 @[simp, grind =]
 theorem Batteries.Vector.mem_toBinaryHeap [Ord α] {a : Vector α sz} {x : α} :
-    x ∈ Batteries.Vector.toBinaryHeap a ↔ x ∈ a := by
-  simp only [Batteries.Vector.toBinaryHeap, BinaryHeap.mem_def, Vector.mem_toArray_iff]
+    x ∈ a.toBinaryHeap ↔ x ∈ a := by
+  simp only [Vector.toBinaryHeap, BinaryHeap.mem_def, Vector.mem_toArray_iff]
   simp [← Vector.mem_toArray_iff, mkHeap_perm.mem_iff]
 
 theorem Array.heapSort_perm [instOrd : Ord α] {a : Array α} : a.heapSort.Perm a := by

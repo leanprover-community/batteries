@@ -38,7 +38,7 @@ theorem maxChild_gt [Ord α] {a : Vector α sz} {i : Fin sz} {j : Fin sz}
 
 /-- Core operation for binary heaps, expressed directly on arrays.
 Given an array which is a max-heap, push item `i` down to restore the max-heap property. -/
-@[expose, specialize]
+@[specialize]
 def heapifyDown [Ord α] (a : Vector α sz) (i : Fin sz) :
     Vector α sz :=
   match h : maxChild a i with
@@ -123,7 +123,7 @@ def insert [Ord α] (heap : BinaryHeap α) (x : α) : BinaryHeap α where
 @[inline]
 def max [Ord α] (heap : BinaryHeap α) : Option α := heap.arr[0]?
 
-/-- `O(log n)`. Remove the maximum element from a `BinaryHeap`
+/-- `O(log n)`. Remove the maximum element from a `BinaryHeap`.
 Call `max` first to actually retrieve the maximum element. -/
 @[inline]
 def popMax [Ord α] (heap : BinaryHeap α) : BinaryHeap α :=
@@ -153,7 +153,8 @@ theorem max_eq_none_iff [Ord α] {heap : BinaryHeap α} :
     heap.max = none ↔ heap.size = 0 := by
   simp [max, size]
 
-theorem size_pos_of_max [Ord α] {heap : BinaryHeap α} (h : heap.max = some x) : 0 < heap.size := by
+theorem size_pos_of_max [Ord α] {heap : BinaryHeap α} (h : heap.max = some x) :
+    0 < heap.size := by
   simp only [max, getElem?_def] at h
   split at h
   · assumption
@@ -189,10 +190,10 @@ def decreaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x : α) : B
 def increaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x : α) : BinaryHeap α where
   arr := heapifyUp (heap.vector.set i x) i |>.toArray
 
-/-- `O(n log n)`. Return the contents of `heap` as a sorted array -/
+/-- `O(n log n)`. Return the contents of `heap` as an array sorted in descending order. -/
 @[inline]
 def toSortedArray [Ord α] (heap : BinaryHeap α) : Array α :=
-  loop heap #[]
+  loop heap (.emptyWithCapacity heap.size)
 where
   /-- Inner loop for `toSortedArray`. -/
   @[specialize]
@@ -202,12 +203,13 @@ where
     | some x =>
       have := size_pos_of_max h; -- termination hint
       loop a.popMax (out.push x)
+
 end Batteries.BinaryHeap
 
+open Batteries in
 /-- `O(n)`. Convert an unsorted vector to a `BinaryHeap`. -/
 @[inline]
-def Batteries.Vector.toBinaryHeap [Ord α] (v : Vector α n) :
-    Batteries.BinaryHeap α where
+def Vector.toBinaryHeap [Ord α] (v : Vector α n) : Batteries.BinaryHeap α where
   arr := BinaryHeap.mkHeap v |>.toArray
 
 open Batteries in
