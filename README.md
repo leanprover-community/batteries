@@ -67,6 +67,9 @@ Current cells include:
 * [fgdorais/batteries-kmp](https://github.com/fgdorais/batteries-kmp):
   General purpose implementation of the Knuth-Morris-Pratt (KMP) matching algorithm.
 
+* [fgdorais/batteries-finite-streams](https://github.com/fgdorais/batteries-finite-streams):
+  Finite streams, stream combinators and stream iterators.
+
 The Batteries Cell Network is not yet open to external contributions.
 
 # Contributing
