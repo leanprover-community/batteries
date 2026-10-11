@@ -115,7 +115,7 @@ theorem Children.set_of_ne [Ord α] {v : Vector α sz} {i k : Fin sz}
   simp_all [hwf.congr]
 
 /-- Setting a child to a smaller value preserves WF.Children at the parent -/
-theorem Children.set_of_ge_child [Ord α] [Std.TransOrd α] {v : Vector α sz} {k i : Fin sz}
+theorem Children.set_of_ge_child [Ord α] {v : Vector α sz} {k i : Fin sz}
     (hwf : WF.Children v k) (h_child : i.val = 2 * k.val + 1 ∨ i.val = 2 * k.val + 2)
     (h_ge : compare v[k] x |>.isGE) :
     WF.Children (v.set i x i.isLt) k := by
@@ -255,6 +255,8 @@ theorem ParentGeChildren.swap_parent [Ord α] [Std.TransOrd α] {a : Vector α s
   all_goals
     intro hside
     unfold ExceptAt Parent at hexcept
+    have hj (hne : j ≠ i.val) (hpos : 0 < j) : compare a[(j - 1) / 2] a[j] |>.isGE :=
+      hexcept ⟨j, by omega⟩ (Fin.ne_of_val_ne (Ne.symm hne)) hpos
     by_cases hli : i.val = targetIdx
     · grind only [= Fin.getElem_fin, = Vector.getElem_swap]
     · have h1 := hexcept ⟨targetIdx, hside⟩ (by lia) (by lia)
@@ -268,7 +270,7 @@ def BottomUp [Ord α] (v : Vector α sz) : Prop :=
   ∀ i : Fin sz, Parent v i
 
 /- WF and WF.BottomUp are equivalent -/
-theorem TopDown.iff_bottomUp [Ord α] [Std.OrientedOrd α] {a : Vector α sz} :
+theorem TopDown.iff_bottomUp [Ord α] {a : Vector α sz} :
     WF.TopDown a ↔ WF.BottomUp a := by
   constructor
   · intro htd i

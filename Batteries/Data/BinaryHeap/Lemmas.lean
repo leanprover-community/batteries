@@ -168,7 +168,7 @@ theorem heapifyDown_get_of_not_child [Ord α] {v : Vector α sz}
     <;> rfl
 
 /-- If v dominates all values in the subtree, v dominates the result at root -/
-theorem heapifyDown_preserves_ge_root_of_subtree [Ord α] [Std.TransOrd α]
+theorem heapifyDown_preserves_ge_root_of_subtree [Ord α]
     {a : Vector α sz} (hge : ∀ k : Fin sz, InSubtree j.val k.val → (compare v a[k]).isGE) :
     (compare v (heapifyDown a j)[j]).isGE := by
   -- this proof isn't really inductive, heapifyDown.induct is just a convenient way to split the
@@ -186,7 +186,7 @@ theorem heapifyDown_preserves_ge_root_of_subtree [Ord α] [Std.TransOrd α]
 
 /-- heapifyDown at j preserves WF.Children at k when j is a child of k,
     k dominates everything in j's subtree, and WF.Children already holds at k -/
-theorem heapifyDown_children_of_ge_subtree [Ord α] [Std.TransOrd α]
+theorem heapifyDown_children_of_ge_subtree [Ord α]
     {b : Vector α sz} {j k : Fin sz}
     (hj_child : j.val = 2 * k.val + 1 ∨ j.val = 2 * k.val + 2)
     (hge_subtree : ∀ m : Fin sz, InSubtree j.val m.val → (compare b[k] b[m]).isGE)
@@ -201,7 +201,7 @@ theorem heapifyDown_children_of_ge_subtree [Ord α] [Std.TransOrd α]
     cases hj_child
   -- Matching cases: j is the child we're proving about
   case left.inl hj | right.inr hj =>
-    simpa only [← hj] using heapifyDown_preserves_ge_root_of_subtree hge_subtree
+    simpa only [← hj, Fin.getElem_fin] using heapifyDown_preserves_ge_root_of_subtree hge_subtree
 
   all_goals
     rw [heapifyDown_getElem_of_not_inSubtree' hside (by grind only [InSubtree.not_of_lt])]
@@ -309,14 +309,14 @@ theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
   split <;> rename_i hsz
   · apply heapifyDown_perm.toList.cons _ |>.trans
     exact heap.vector.cast (by omega) |>.swap_last_pop_perm (i := ⟨0, by omega⟩) (by omega)
-  · simpa [show heap.size = 1 by omega]
-      using heap.vector.cast (by omega) |>.last_cons_pop_perm
+  · have : heap.arr.size = 1 := by simp only [size] at *; omega
+    rcases heap with ⟨⟨_ | ⟨_, _ | _⟩⟩⟩ <;> simp_all <;> rfl
 
 /-- When max returns some, the value equals arr[0]. -/
 theorem max_eq_arr_zero [Ord α] {heap : BinaryHeap α} (h : heap.max = some x) :
     x = heap.arr[0]'(size_of_some_max h) := by
-  unfold max at h
-  simp [Array.getElem_eq_iff.mpr h]
+  rw [max, Array.getElem?_eq_getElem (size_of_some_max h)] at h
+  exact (Option.some.inj h).symm
 
 /-- The inner loop of toSortedArray produces a permutation of heap ++ out -/
 theorem toSortedArray.loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α) :
@@ -453,12 +453,11 @@ theorem mem_singleton [Ord α] {x : α} : x ∈ singleton y ↔ x = y := by
 @[grind =]
 theorem mem_insert [Ord α] {heap : BinaryHeap α} :
     y ∈ heap.insert x ↔ y ∈ heap ∨ y = x := by
-  simp_all [heapifyUp_perm.mem_iff, insert, vector, mem_def]
+  simp_all [heapifyUp_perm.mem_iff, insert, mem_def]
 
 theorem mem_iff_get [Ord α] {heap : BinaryHeap α} :
     a ∈ heap ↔ ∃ i : Fin heap.size, heap.get i = a := by
-
-  simp only [mem_def, Array.mem_iff_getElem, get, Fin.getElem_fin, Fin.exists_iff]
+  simp only [mem_def, Array.mem_iff_getElem, get, Fin.exists_iff]
   rfl
 
 @[simp, grind .]
@@ -466,7 +465,9 @@ theorem max_ge_all [Ord α] [Std.TransOrd α]
     {heap : BinaryHeap α} (hwf : WF heap) (h_in: y ∈ heap) (h_ne : heap.size > 0) :
     compare (heap.max.get <| by simp_all [max,size]) y |>.isGE := by
   have ⟨idx, h_sz, h_ge⟩ := Array.mem_iff_getElem.mp h_in
-  simpa [vector, max, h_ge] using hwf.root_ge_all h_ne ⟨idx, h_sz⟩
+  subst h_ge
+  simp only [max, Array.getElem?_eq_getElem h_ne, Option.get_some]
+  exact hwf.root_ge_all h_ne ⟨idx, h_sz⟩
 
 /-- Removing the maximum element from a well-formed heap preserves well-formedness. -/
 @[simp, grind .]

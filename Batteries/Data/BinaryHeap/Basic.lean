@@ -34,7 +34,7 @@ def maxChild [Ord α] (a : Vector α sz) (i : Fin sz) : Option (Fin sz) :=
 /-- maxChild returns an index greater than i. -/
 theorem maxChild_gt [Ord α] {a : Vector α sz} {i : Fin sz} {j : Fin sz}
     (h : maxChild a i = some j) : i < j := by
-  grind only [maxChild, Lean.Grind.toInt_fin]
+  grind only [maxChild]
 
 /-- Core operation for binary heaps, expressed directly on arrays.
 Given an array which is a max-heap, push item `i` down to restore the max-heap property. -/
@@ -93,12 +93,18 @@ theorem mem_def [Ord α] {x : α} {h : BinaryHeap α} : x ∈ h ↔ x ∈ h.arr 
 def singleton [Ord α] (x : α) : BinaryHeap α := ⟨#[x]⟩
 
 /-- `O(1)`. Get the number of elements in a `BinaryHeap`. -/
-@[inline]
+@[inline, expose]
 def size [Ord α] (heap : BinaryHeap α) : Nat := heap.arr.size
 
 /-- `O(1)`. Get data vector of a `BinaryHeap`. -/
-@[inline]
+@[inline, expose]
 def vector [Ord α] (heap : BinaryHeap α) : Vector α heap.size := ⟨heap.arr, rfl⟩
+
+@[simp] theorem toArray_vector [Ord α] (heap : BinaryHeap α) : heap.vector.toArray = heap.arr :=
+  rfl
+
+@[simp] theorem mem_vector [Ord α] {heap : BinaryHeap α} : x ∈ heap.vector ↔ x ∈ heap.arr :=
+  (Vector.mem_toArray_iff ..).symm
 
 /-- `O(1)`. Get an element in the heap by index. -/
 @[inline]
