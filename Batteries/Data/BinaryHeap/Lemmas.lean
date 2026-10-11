@@ -8,44 +8,8 @@ public import Batteries.Data.BinaryHeap.Basic
 public import Batteries.Data.BinaryHeap.WF
 import all Batteries.Data.BinaryHeap.WF
 import all Batteries.Data.BinaryHeap.Basic
-
-/-! ### Utility lemmas -/
-section Util
-
-theorem Ordering.isGE_of_swap_isLT [Ord α] [Std.OrientedOrd α]
-    {x y : α} (hlt : compare x y |>.isLT) :
-    compare y x |>.isGE := by
-  rw [Std.OrientedOrd.eq_swap]
-  simp_all
-
-theorem List.cons_perm_append_singleton {l : List α} (x : α) : (x :: l).Perm (l ++ [x]) := by
-  induction l with
-  | nil => rfl
-  | cons x' xs ih => exact List.Perm.swap x' x xs |>.trans (ih.cons x')
-
-theorem Vector.last_cons_pop_perm {v : Vector α (n+1)} :
-    (v[n] :: v.pop.toList).Perm v.toList := by
-  have hne : v.toList ≠ [] := by simp
-  grind [List.dropLast_concat_getLast, List.cons_perm_append_singleton]
-
-@[simp]
-theorem Vector.swap_same {v : Vector α n} {i : Nat} (hi : i < n) :
-    v.swap i i hi hi = v := by
-  ext k hk
-  simp_all [Vector.getElem_swap]
-
-theorem Vector.swap_last_pop_perm {v : Vector α (n+1)} {i : Fin (n+1)} (hi : i.val < n) :
-    (v[i] :: (v.swap i n (by omega) (by omega) |>.pop).toList).Perm v.toList := by
-  simp only [Fin.getElem_fin]
-  rw [← Vector.getElem_swap_right]
-  apply Vector.last_cons_pop_perm.trans
-  exact Vector.swap_perm (by omega) (by omega) |>.toList
-
-theorem Ord.compare_opposite [instOrd: Ord α] {x y : α} :
-    instOrd.compare x y = instOrd.opposite.compare y x :=
-  rfl
-
-end Util
+import Batteries.Classes.Order
+import Batteries.Data.Vector.Lemmas
 
 namespace Batteries.BinaryHeap
 
@@ -67,7 +31,7 @@ theorem maxChild_isChild [Ord α] {a : Vector α sz} (h : maxChild a i = some j)
 theorem maxChild_ge_left [Ord α] [Std.OrientedOrd α] (a : Vector α sz) (i j : Fin sz)
     (hmc : maxChild a i = some j) (hleft : 2 * i.val + 1 < sz) :
     compare a[j] a[2 * i.val + 1] |>.isGE := by
-  grind only [Ordering.isGE_of_swap_isLT, Ordering.isGE, Ordering.isLT, maxChild, Fin.getElem_fin]
+  grind only [Std.OrientedOrd.isGE_of_isLT, Ordering.isGE, Ordering.isLT, maxChild, Fin.getElem_fin]
 
 theorem maxChild_ge_right [Ord α] [Std.OrientedOrd α] (a : Vector α sz)
     (i j : Fin sz) (hmc : maxChild a i = some j) (hright : 2 * i.val + 2 < sz) :
@@ -165,7 +129,6 @@ theorem heapifyDown_get_of_not_child [Ord α] {v : Vector α sz}
     <;> intros
     <;> (try simp only [Fin.getElem_fin])
     <;> rw [heapifyDown_getElem_of_not_inSubtree' _ (by grind only [InSubtree.not_of_lt])]
-    <;> rfl
 
 /-- If v dominates all values in the subtree, v dominates the result at root -/
 theorem heapifyDown_preserves_ge_root_of_subtree [Ord α]
@@ -242,7 +205,7 @@ theorem heapifyDown_wf [Ord α] [Std.TransOrd α] {a : Vector α sz} {i : Fin sz
     have hchild := maxChild_isChild hmaxChild
     constructor
     -- (1) WF.Children at i: a[j] (now at i) dominates both children of i
-    · exact heapifyDown_children_swap hmaxChild (Ordering.isGE_of_swap_isLT h_lt) hbelow
+    · exact heapifyDown_children_swap hmaxChild (Std.OrientedOrd.isGE_of_isLT h_lt) hbelow
     -- (2) WF.Below at i: all nodes k > i satisfy WF.Children.
     · apply ih_below.of_children_below_and_between ih_at
       intro k hik hkj
@@ -265,7 +228,7 @@ theorem heapifyUp_bottomUp [Ord α] [Std.TransOrd α] {a : Vector α sz}
     simp only [heapifyUp]
     exact .of_exceptAt_root (by omega) h_exc
   | case2 a i hisucc j h_lt ih =>
-    have h_ge := Ordering.isGE_of_swap_isLT h_lt
+    have h_ge := Std.OrientedOrd.isGE_of_isLT h_lt
     simp only [heapifyUp, h_lt, ↓reduceIte, j]
     exact ih (h_exc.swap_parent h_ge h_clp) (.swap_parent h_ge h_exc)
   | case3 _ _ _ j =>
@@ -310,7 +273,8 @@ public theorem popMax_perm [Ord α] {heap : BinaryHeap α} (h : 0 < heap.size) :
   · apply heapifyDown_perm.toList.cons _ |>.trans
     exact heap.vector.cast (by omega) |>.swap_last_pop_perm (i := ⟨0, by omega⟩) (by omega)
   · have : heap.arr.size = 1 := by simp only [size] at *; omega
-    rcases heap with ⟨⟨_ | ⟨_, _ | _⟩⟩⟩ <;> simp_all <;> rfl
+    rcases heap with ⟨⟨_ | ⟨_, _ | _⟩⟩⟩ <;> simp_all
+    rfl
 
 /-- When max returns some, the value equals arr[0]. -/
 theorem max_eq_arr_zero [Ord α] {heap : BinaryHeap α} (h : heap.max = some x) :
@@ -333,7 +297,7 @@ theorem toSortedArray.loop_perm [Ord α] (heap : BinaryHeap α) (out : Array α)
     apply List.perm_append_comm.append_left _ |>.trans
     simp only [← List.append_assoc]
     apply List.Perm.append_right
-    apply List.cons_perm_append_singleton _ |>.symm.trans
+    apply List.perm_append_singleton _ _ |>.trans
     exact popMax_perm hpos
 
 /-- `toSortedArray` produces a permutation of the heap. -/
@@ -404,11 +368,6 @@ theorem mkHeap_wf [Ord α] [Std.TransOrd α] {a : Vector α sz} :
 
 theorem mkHeap_perm [Ord α] {a : Vector α sz} : (mkHeap a).toArray.Perm a.toArray :=
   mkHeap.loop_perm |>.toArray
-
-@[simp, grind =]
-theorem size_insert [Ord α] (heap : BinaryHeap α) (x : α) :
-    (heap.insert x).size = heap.size + 1 := by
-  simp [size, insert]
 
 theorem size_extractMax [Ord α] (heap : BinaryHeap α) :
     (heap.extractMax).2.size = heap.size - 1 := by

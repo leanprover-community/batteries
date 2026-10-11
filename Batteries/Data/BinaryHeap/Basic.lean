@@ -115,6 +115,10 @@ def get [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) : α := heap.arr[i]'
 def insert [Ord α] (heap : BinaryHeap α) (x : α) : BinaryHeap α where
   arr := heapifyUp (heap.vector.push x) ⟨_, Nat.lt_succ_self _⟩ |>.toArray
 
+@[simp, grind =] theorem size_insert [Ord α] (heap : BinaryHeap α) (x : α) :
+    (heap.insert x).size = heap.size + 1 := by
+  simp [size, insert]
+
 /-- `O(1)`. Get the maximum element in a `BinaryHeap`. -/
 @[inline]
 def max [Ord α] (heap : BinaryHeap α) : Option α := heap.arr[0]?
@@ -190,8 +194,9 @@ def increaseKey [Ord α] (heap : BinaryHeap α) (i : Fin heap.size) (x : α) : B
 def toSortedArray [Ord α] (heap : BinaryHeap α) : Array α :=
   loop heap #[]
 where
+  /-- Inner loop for `toSortedArray`. -/
   @[specialize]
-  loop [Ord α] (a : BinaryHeap α) (out : Array α) : Array α :=
+  loop (a : BinaryHeap α) (out : Array α) : Array α :=
     match h: a.max with
     | none => out
     | some x =>
