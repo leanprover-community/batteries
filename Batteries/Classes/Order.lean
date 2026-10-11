@@ -5,16 +5,16 @@ Authors: Mario Carneiro
 -/
 module
 
-public import Batteries.Tactic.Basic
-public import Batteries.Tactic.SeqFocus
+public import Batteries.Tactic.Basic -- shake: keep
+import Batteries.Tactic.SeqFocus
 
-@[expose] public section
+public section
 
 theorem lexOrd_def [Ord α] [Ord β] :
     (lexOrd : Ord (α × β)).compare = compareLex (compareOn (·.1)) (compareOn (·.2)) := rfl
 
 /-- Pull back a comparator by a function `f`, by applying the comparator to both arguments. -/
-@[inline] def Ordering.byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering :=
+@[expose, inline] def Ordering.byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering :=
   cmp (f a) (f b)
 
 namespace Batteries
@@ -164,7 +164,7 @@ theorem LawfulLTCmp.eq_compareOfLessAndEq
 theorem ReflCmp.compareOfLessAndEq_of_lt_irrefl [LT α] [DecidableLT α] [DecidableEq α]
     (lt_irrefl : ∀ x : α, ¬ x < x) :
     ReflCmp (α := α) (compareOfLessAndEq · ·) where
-  compare_self {x} := by simp [compareOfLessAndEq, if_neg (lt_irrefl x)]
+  compare_self {x} := by simp [compareOfLessAndEq, ite_eq_right (lt_irrefl x)]
 
 theorem LawfulBEqCmp.compareOfLessAndEq_of_lt_irrefl
     [LT α] [DecidableLT α] [DecidableEq α] [BEq α] [LawfulBEq α]

@@ -5,11 +5,9 @@ Authors: Mario Carneiro, David Renshaw, François G. Dorais
 -/
 module
 
-public meta import Lean.Elab.Command
-public meta import Lean.Elab.DeclarationRange
 public meta import Lean.Compiler.NoncomputableAttr
-public meta import Lean.DocString
 public meta import Batteries.CodeAction.Deprecated
+import Lean.Elab.Attributes
 
 public meta section
 
@@ -114,10 +112,12 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
   StateT.run (m := Id) (s := false) do
     arr.mapM fun s => do
       if s.name == `deprecated then
-        if let `(deprecated| deprecated%$tk $[$desc:str]? $[(since := $since)]?) := s.stx then
+        if let `(deprecated| deprecated%$tk $[$desc:str]?
+            $[$typeChanged?]? $[(since := $since)]?) := s.stx then
           set true
           let stx := Unhygienic.run
-            `(deprecated| deprecated%$tk $(mkCIdent target) $[$desc:str]? $[(since := $since)]?)
+            `(deprecated| deprecated%$tk $(mkCIdent target)
+              $[$desc:str]? $[$typeChanged?]? $[(since := $since)]?)
           pure { s with stx }
         else pure s
       else pure s
@@ -173,8 +173,8 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:iden
       compileDecl decl
     addDeclarationRangesFromSyntax declName (← getRef) alias
     Term.addTermInfo' alias (← mkConstWithLevelParams declName) (isBinder := true)
-    if let some (doc, isVerso) := declMods.docString? then
-      addDocStringOf isVerso declName (mkNullNode #[]) doc
+    if let some doc := declMods.docString? then
+      addDocString declName (mkNullNode #[]) doc
     enableRealizationsForConst declName
     let info := AliasInfo.plain name
     setAliasInfo info declName
@@ -205,8 +205,8 @@ private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : 
     type := type
     levelParams := thm.levelParams
   }
-  if let some (doc, isVerso) := declMods.docString? then
-    addDocStringOf isVerso declName (mkNullNode #[]) doc
+  if let some doc := declMods.docString? then
+    addDocString declName (mkNullNode #[]) doc
   let info := if mp then AliasInfo.forward thm.name else AliasInfo.reverse thm.name
   setAliasInfo info declName
   Term.applyAttributes declName declMods.attrs

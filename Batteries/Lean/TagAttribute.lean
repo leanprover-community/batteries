@@ -7,10 +7,10 @@ module
 
 public import Lean.Attributes
 
-@[expose] public section
+public section
 
 /-- Get the list of declarations tagged with the tag attribute `attr`. -/
-def Lean.TagAttribute.getDecls (attr : TagAttribute) (env : Environment) : Array Name :=
+@[expose] def Lean.TagAttribute.getDecls (attr : TagAttribute) (env : Environment) : Array Name :=
   core <| attr.ext.toEnvExtension.getState env
 where
   /-- Implementation of `TagAttribute.getDecls`. -/

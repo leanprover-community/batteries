@@ -11,7 +11,7 @@ import all Init.System.IO  -- for unfolding `BaseIO.toEIO`
 import all Init.Control.StateRef  -- for unfolding `StateRefT'.lift`
 import all Init.System.ST
 
-@[expose] public section
+public section
 
 /-!
 # Lawful instances of `MonadLift` for the Lean monad stack.
@@ -37,6 +37,9 @@ private theorem EIO.bind_eq_EST_bind (ma : EIO ε α) (f : α → EIO ε β) :
 private theorem EIO.adapt_EST_bind (f : ε₁ → ε₂) (ma : EIO ε₁ α) (g : α → EIO ε₁ β) :
     EIO.adapt f (EST.bind ma g) = EST.bind (EIO.adapt f ma) (fun a => EIO.adapt f (g a)) := by
   funext s; simp only [EIO.adapt, EST.bind]; cases ma s <;> rfl
+
+set_option allowUnsafeReducibility true in
+attribute [implicit_reducible] EIO
 
 @[simp] theorem EIO.adapt_bind (f : ε₁ → ε₂) (ma : EIO ε₁ α) (g : α → EIO ε₁ β) :
     EIO.adapt f (ma >>= g) = EIO.adapt f ma >>= fun a => EIO.adapt f (g a) := by

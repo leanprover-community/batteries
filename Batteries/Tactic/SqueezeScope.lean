@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 module
 
 public meta import Lean.Elab.Tactic.SimpTrace
+import Lean.Elab.Tactic.Simp
 
 public meta section
 

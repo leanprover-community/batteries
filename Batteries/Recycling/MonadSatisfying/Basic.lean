@@ -5,10 +5,10 @@ Authors: Mario Carneiro, Kim Morrison
 -/
 module
 
-public import Batteries.Lean.EStateM
-public import Batteries.Lean.Except
+public import Batteries.Data.Except
+import Batteries.Lean.EStateM
 
-@[expose] public section
+public section
 
 /-!
 ## SatisfiesM
@@ -45,7 +45,7 @@ should avoid `SatisfiesM` for now, so that it is easy to migrate to other approa
 have the type `x : m {a // p a}`, because there exists some `m {a // p a}` whose image is `x`.
 So `p` is the postcondition of the monadic value.
 -/
-def SatisfiesM {m : Type u → Type v} [Functor m] (p : α → Prop) (x : m α) : Prop :=
+@[expose] def SatisfiesM {m : Type u → Type v} [Functor m] (p : α → Prop) (x : m α) : Prop :=
   ∃ x' : m {a // p a}, Subtype.val <$> x' = x
 
 namespace SatisfiesM
@@ -171,6 +171,7 @@ end SatisfiesM
   ⟨by revert x; intro | .ok _, ⟨.ok ⟨_, h⟩, rfl⟩, _, rfl => exact h,
    fun h => match x with | .ok a => ⟨.ok ⟨a, h _ rfl⟩, rfl⟩ | .error e => ⟨.error e, rfl⟩⟩
 
+set_option backward.isDefEq.respectTransparency.types false in
 theorem SatisfiesM_EStateM_eq :
     SatisfiesM (m := EStateM ε σ) p x ↔ ∀ s a s', x.run s = .ok a s' → p a := by
   constructor
@@ -283,6 +284,7 @@ instance [Monad m] [LawfulMonad m] [MonadSatisfying m] : MonadSatisfying (Except
     refine Eq.trans ?_ (MonadSatisfying.val_eq (SatisfiesM_ExceptT_eq.mp h))
     simp
 
+set_option backward.isDefEq.respectTransparency.types false in
 instance : MonadSatisfying (EStateM ε σ) where
   satisfying {α p x} h :=
     have h' := SatisfiesM_EStateM_eq.mp h

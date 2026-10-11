@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joe Hendrix
 -/
 import Batteries
+import Lean.Elab.ParseImportsFast
 
 /-!
 This test checks that all directories in `Batteries/Data/` have corresponding
@@ -62,7 +63,12 @@ def modulePath (name : Name) : FilePath :=
 
 def writeImportModule (path : FilePath) (imports : Array Name) : IO Unit := do
   let imports := imports.qsort (·.toString < ·.toString)
-  let lines := imports.map (s!"public import {·}\n")
+  let metaImports ← if ← path.pathExists then
+      pure <| (← Lean.parseImports' (← IO.FS.readFile path) path.toString).imports
+        |>.filter (·.isMeta) |>.map (·.module)
+    else pure #[]
+  let lines := imports.map fun m =>
+    s!"public {if metaImports.contains m then "meta " else ""}import {m}\n"
   let contents := String.join ("module -- deprecated_module: ignore\n" :: "\n" :: lines.toList)
   IO.println s!"Generating {path}"
   IO.FS.writeFile path contents

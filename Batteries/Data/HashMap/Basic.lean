@@ -6,9 +6,8 @@ Authors: Leonardo de Moura, Mario Carneiro
 module
 
 public import Batteries.Lean.HashMap
-public import Batteries.Tactic.Alias
 
-@[expose] public section
+public section
 
 namespace Std.HashMap
 
@@ -44,9 +43,6 @@ def ofListWith [BEq α] [Hashable α] (l : List (α × β)) (f : β → β → �
 end Std.HashMap
 
 namespace Batteries.HashMap
-
-@[reducible, deprecated (since := "2025-05-31")]
-alias LawfulHashable := LawfulHashable
 
 /--
 `HashMap α β` is a key-value map which stores elements in an array using a hash function

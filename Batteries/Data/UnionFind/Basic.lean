@@ -5,11 +5,11 @@ Authors: Mario Carneiro
 -/
 module
 
-public import Batteries.Tactic.Lint.Misc
-public import Batteries.Tactic.SeqFocus
+import Batteries.Tactic.Lint.Misc
 public import Batteries.Util.Panic
+import Batteries.Tactic.SeqFocus
 
-@[expose] public section
+public section
 
 namespace Batteries
 
@@ -23,19 +23,19 @@ structure UFNode where
 namespace UnionFind
 
 /-- Parent of a union-find node, defaults to self when the node is a root -/
-def parentD (arr : Array UFNode) (i : Nat) : Nat :=
+@[expose] def parentD (arr : Array UFNode) (i : Nat) : Nat :=
   if h : i < arr.size then arr[i].parent else i
 
 /-- Rank of a union-find node, defaults to 0 when the node is a root -/
-def rankD (arr : Array UFNode) (i : Nat) : Nat :=
+@[expose] def rankD (arr : Array UFNode) (i : Nat) : Nat :=
   if h : i < arr.size then arr[i].rank else 0
 
 theorem parentD_eq {arr : Array UFNode} {i} (h) :
-    parentD arr i = arr[i].parent := dif_pos _
+    parentD arr i = arr[i].parent := dite_eq_left _
 
-theorem rankD_eq {arr : Array UFNode} {i} (h) : rankD arr i = arr[i].rank := dif_pos _
+theorem rankD_eq {arr : Array UFNode} {i} (h) : rankD arr i = arr[i].rank := dite_eq_left _
 
-theorem parentD_of_not_lt : ¬i < arr.size → parentD arr i = i := (dif_neg ·)
+theorem parentD_of_not_lt : ¬i < arr.size → parentD arr i = i := (dite_eq_right ·)
 
 theorem lt_of_parentD : parentD arr i ≠ i → i < arr.size :=
   Decidable.not_imp_comm.1 parentD_of_not_lt
@@ -108,13 +108,13 @@ namespace UnionFind
 @[inline] abbrev size (self : UnionFind) := self.arr.size
 
 /-- Create an empty union-find structure with specific capacity -/
-def mkEmpty (c : Nat) : UnionFind where
+@[expose] def mkEmpty (c : Nat) : UnionFind where
   arr := Array.mkEmpty c
   parentD_lt := nofun
   rankD_lt := nofun
 
 /-- Empty union-find structure -/
-def empty := mkEmpty 0
+@[expose] def empty := mkEmpty 0
 
 instance : EmptyCollection UnionFind := ⟨.empty⟩
 
@@ -138,7 +138,7 @@ theorem rank'_lt (self : UnionFind) (i h) : self.arr[i].parent ≠ i →
   simpa only [← parentD_eq] using self.rankD_lt
 
 /-- Maximum rank of nodes in a union-find structure -/
-noncomputable def rankMax (self : UnionFind) := self.arr.foldr (max ·.rank) 0 + 1
+@[expose] noncomputable def rankMax (self : UnionFind) := self.arr.foldr (max ·.rank) 0 + 1
 
 theorem rank'_lt_rankMax (self : UnionFind) (i : Nat) (h) : (self.arr[i]).rank < self.rankMax := by
   let rec go : ∀ {l} {x : UFNode}, x ∈ l → x.rank ≤ List.foldr (max ·.rank) 0 l
@@ -164,7 +164,7 @@ theorem push_parentD (arr : Array UFNode) : parentD (arr.push ⟨arr.size, 0⟩)
   · cases ‹¬_› (Nat.lt_succ_of_lt ‹_›)
 
 /-- Add a new node to a union-find structure, unlinked with any other nodes -/
-def push (self : UnionFind) : UnionFind where
+@[expose] def push (self : UnionFind) : UnionFind where
   arr := self.arr.push ⟨self.arr.size, 0⟩
   parentD_lt {i} := by
     simp only [Array.size_push, push_parentD]; simp only [parentD]
@@ -190,7 +190,7 @@ def root! (self : UnionFind) (x : Nat) : Nat :=
   if h : x < self.size then self.root ⟨x, h⟩ else panicWith x "index out of bounds"
 
 /-- Root of a union-find node. Returns input if index is out of bounds. -/
-def rootD (self : UnionFind) (x : Nat) : Nat :=
+@[expose] def rootD (self : UnionFind) (x : Nat) : Nat :=
   if h : x < self.size then self.root ⟨x, h⟩ else x
 
 set_option backward.proofsInPublic true in  -- for `rw [root]`
@@ -215,7 +215,7 @@ theorem rootD_parent (self : UnionFind) (x : Nat) : self.rootD (self.parent x) =
   split
   · simp only [parentD, ↓reduceDIte, *]
     (conv => rhs; rw [root]); split
-    · rw [root, dif_pos] <;> simp_all
+    · rw [root, dite_eq_left] <;> simp_all
     · simp
   · simp only [not_false_eq_true, parentD_of_not_lt, *]
 
@@ -225,7 +225,7 @@ theorem rootD_lt {self : UnionFind} {x : Nat} : self.rootD x < self.size ↔ x <
 @[nolint unusedHavesSuffices]
 theorem rootD_eq_self {self : UnionFind} {x : Nat} : self.rootD x = x ↔ self.parent x = x := by
   refine ⟨fun h => by rw [← h, parent_rootD], fun h => ?_⟩
-  rw [rootD]; split <;> [rw [root, dif_pos (by rwa [parent, parentD_eq ‹_›] at h)]; rfl]
+  rw [rootD]; split <;> [rw [root, dite_eq_left (by rwa [parent, parentD_eq ‹_›] at h)]; rfl]
 
 theorem rootD_rootD {self : UnionFind} {x : Nat} : self.rootD (self.rootD x) = self.rootD x :=
   rootD_eq_self.2 (parent_rootD ..)
@@ -293,7 +293,7 @@ theorem findAux_s {self : UnionFind} {x : Fin self.size} :
   · rw [findAux]; split <;> rfl
   · rw [← rootD_parent, parent, parentD_eq (Fin.is_lt _)]
     simp only [rootD, findAux_root]
-    apply dif_pos
+    apply dite_eq_left
 
 theorem rankD_findAux {self : UnionFind} {x : Fin self.size} :
     rankD (findAux self x).s i = self.rank i := by
@@ -306,7 +306,7 @@ theorem rankD_findAux {self : UnionFind} {x : Fin self.size} :
       simp [← rankD_eq, rankD_findAux (x := ⟨_, self.parent'_lt _ x.2⟩)]
   else
     simp only [rankD, rank]
-    rw [dif_neg (by rwa [FindAux.size_eq]), dif_neg h]
+    rw [dite_eq_right (by rwa [FindAux.size_eq]), dite_eq_right h]
 termination_by self.rankMax - self.rank x
 
 theorem parentD_findAux {self : UnionFind} {x : Fin self.size} :
@@ -320,8 +320,8 @@ theorem parentD_findAux {self : UnionFind} {x : Fin self.size} :
     · rw [Array.getElem_modify (by simpa using h')]
       simp only [@eq_comm _ i]
       split <;> simp [← parentD_eq]
-    · rw [if_neg (mt (by rintro rfl; simp [FindAux.size_eq]) h')]
-      rw [parentD, dif_neg]; simpa using h'
+    · rw [ite_eq_right (mt (by rintro rfl; simp [FindAux.size_eq]) h')]
+      rw [parentD, dite_eq_right]; simpa using h'
 
 theorem parentD_findAux_rootD {self : UnionFind} {x : Fin self.size} :
     parentD (findAux self x).s (self.rootD x) = self.rootD x := by
@@ -335,7 +335,7 @@ termination_by self.rankMax - self.rank x
 theorem parentD_findAux_lt {self : UnionFind} {x : Fin self.size} (h : i < self.size) :
     parentD (findAux self x).s i < self.size := by
   if h' : self.arr[x.1].parent = x then
-    rw [findAux_s, if_pos h']; apply self.parentD_lt h
+    rw [findAux_s, ite_eq_left h']; apply self.parentD_lt h
   else
     rw [parentD_findAux]
     split
@@ -348,7 +348,7 @@ theorem parentD_findAux_or (self : UnionFind) (x : Fin self.size) (i) :
     parentD (findAux self x).s i = self.rootD i ∧ self.rootD i = self.rootD x ∨
     parentD (findAux self x).s i = self.parent i := by
   if h' : self.arr[x.1].parent = x then
-    rw [findAux_s, if_pos h']; exact .inr rfl
+    rw [findAux_s, ite_eq_left h']; exact .inr rfl
   else
     rw [parentD_findAux]
     split
@@ -363,7 +363,7 @@ theorem lt_rankD_findAux {self : UnionFind} {x : Fin self.size} :
     parentD (findAux self x).s i ≠ i →
     self.rank i < self.rank (parentD (findAux self x).s i) := by
   if h' : self.arr[x.1].parent = x then
-    rw [findAux_s, if_pos h']; apply self.rank_lt
+    rw [findAux_s, ite_eq_left h']; apply self.rank_lt
   else
     rw [parentD_findAux]; split <;> rename_i h <;> intro h'
     · subst i; rwa [lt_rank_root, Ne, ← rootD_eq_self]
@@ -413,7 +413,7 @@ def findD (self : UnionFind) (x : Nat) : UnionFind × Nat :=
 @[simp] theorem find_parent_1 (self : UnionFind) (x : Fin self.size) :
     (self.find x).1.parent x = self.rootD x := by
   simp only [parent, find]
-  rw [parentD_findAux, if_pos rfl]
+  rw [parentD_findAux, ite_eq_left rfl]
 
 theorem find_parent_or (self : UnionFind) (x : Fin self.size) (i) :
     (self.find x).1.parent i = self.rootD i ∧ self.rootD i = self.rootD x ∨
@@ -436,7 +436,7 @@ termination_by  (self.find x).1.rankMax - (self.find x).1.rank i
 decreasing_by exact this -- why is this needed? It is way slower without it
 
 /-- Link two union-find nodes -/
-def linkAux (self : Array UFNode) (x y : Fin self.size) : Array UFNode :=
+@[expose] def linkAux (self : Array UFNode) (x y : Fin self.size) : Array UFNode :=
   if x.1 = y then
     self
   else
@@ -489,6 +489,7 @@ theorem setParent_rankD_lt {arr : Array UFNode} {x y : Fin arr.size}
   split <;> [rfl; split] <;> [skip; split] <;> simp
 
 /-- Link a union-find node to a root node. -/
+@[expose]
 def link (self : UnionFind) (x y : Fin self.size) (yroot : self.parent y = y) : UnionFind where
   arr := linkAux self.arr x y
   parentD_lt h := by
@@ -532,7 +533,7 @@ def link! (self : UnionFind) (x y : Nat) (yroot : self.parent y = y) : UnionFind
     panicWith self "index out of bounds"
 
 /-- Link two union-find nodes, uniting their respective classes. -/
-def union (self : UnionFind) (x y : Fin self.size) : UnionFind :=
+@[expose] def union (self : UnionFind) (x y : Fin self.size) : UnionFind :=
   let ⟨self₁, rx, ex⟩ := self.find x
   have hy := by rw [ex]; exact y.2
   match eq : self₁.find ⟨y, hy⟩ with
@@ -580,4 +581,4 @@ def checkEquivD (self : UnionFind) (x y : Nat) : UnionFind × Bool :=
   (s, x == y)
 
 /-- Equivalence relation from a `UnionFind` structure -/
-def Equiv (self : UnionFind) (a b : Nat) : Prop := self.rootD a = self.rootD b
+@[expose] def Equiv (self : UnionFind) (a b : Nat) : Prop := self.rootD a = self.rootD b

@@ -8,7 +8,7 @@ module
 public import Lean.Elab.Command
 import all Init.System.ST
 
-@[expose] public section
+public section
 
 /-!
 # Construct `LawfulMonad` instances for the Lean monad stack.

@@ -225,6 +225,25 @@ info: @exists_ulift_down : {h_exists_ulift : exists_ulift.Stmt} → ProofWanted 
 -/
 #guard_msgs in #check @exists_ulift_down
 
+/-! When the referenced declaration carries a binder whose *type* mentions its universe parameter
+(`{α : Type _}`), that universe is also spelled as a hole in the generated hypothesis, so the
+reference may be used at a concrete universe — here `Array Nat` at `Type` — not just at a shared
+universe variable. -/
+
+theorem_wanted size_poly {α : Type _} (a : Array α) (x y : α) :
+    ((a.push x).push y).size = a.size + 2
+
+theorem_wanted ref_size_concrete (a : Array Nat) (x y : Nat) :
+    ((a.push x).push y).size = a.size + 2 := ❰size_poly❱ a x y
+
+/--
+info: ref_size_concrete : (a : Array Nat) →
+  (x y : Nat) →
+    {h_size_poly : ∀ {α : Type} (a : Array α) (x y : α), (size_poly a x y).Stmt} →
+      ProofWanted (((a.push x).push y).size = a.size + 2)
+-/
+#guard_msgs in #check @ref_size_concrete
+
 /-! TODO: a single `❰…❱` reference desugars to one hypothesis binder, which is monomorphic in
 universes. Using that one reference at two *different* universes therefore fails: the binder unifies
 with the first use's universe (`u` below) and the second use (`v`) then mismatches. Lifting this
@@ -247,6 +266,18 @@ theorem_wanted exists_ulift_two.{u, v} :
   obtain ⟨x, hx⟩ := hu
   obtain ⟨y, hy⟩ := hv
   exact ⟨x, y, hx.trans hy.symm⟩
+
+/-! Binder types from a universe-polymorphic wanted must not leak the referenced declaration's
+level parameter names into the use site (#1911). -/
+section UniverseBinderLeak
+set_option autoImplicit false
+universe v
+theorem_wanted univ_poly_eq (a : Type v) : a = a
+end UniverseBinderLeak
+
+def_wanted univ_poly_use : Nat :=
+  have _ := ❰univ_poly_eq❱ Nat
+  0
 
 /-! ## Namespacing -/
 

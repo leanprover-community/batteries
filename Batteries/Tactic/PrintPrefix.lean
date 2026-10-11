@@ -5,9 +5,12 @@ Authors: Shing Tak Lam, Daniel Selsam, Mario Carneiro
 -/
 module
 
-public meta import Batteries.Lean.Util.EnvSearch
-public meta import Lean.Elab.Tactic.Config
 public meta import Lean.Elab.Command
+public meta import Lean.Elab.ConfigEval.Basic
+import Batteries.Lean.Util.EnvSearch
+import Lean.Elab.ConfigEval.Commands
+public meta import Lean.Elab.ConfigEval.DeriveEvalConfigItem -- shake: keep
+import Lean.Message
 
 public meta section
 
