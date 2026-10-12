@@ -17,6 +17,14 @@ theorem lexOrd_def [Ord α] [Ord β] :
 @[expose, inline] def Ordering.byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering :=
   cmp (f a) (f b)
 
+theorem Std.OrientedOrd.isGE_of_isLT [Ord α] [Std.OrientedOrd α] {a b : α}
+    (h : (compare b a).isLT) : (compare a b).isGE := by
+  rw [Std.OrientedOrd.eq_swap]
+  simp_all
+
+theorem Ord.compare_opposite [ord : Ord α] {x y : α} :
+    ord.opposite.compare x y = ord.compare y x := rfl
+
 namespace Batteries
 
 /-- `TotalBLE le` asserts that `le` has a total order, that is, `le a b ∨ le b a`. -/
