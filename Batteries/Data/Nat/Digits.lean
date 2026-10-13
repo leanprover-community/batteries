@@ -8,10 +8,10 @@ module
 import Batteries.Tactic.Init
 
 /-!
-# Big-endian digits
+# Digits
 
-Conversions between natural numbers and big-endian lists of digits in a given base. The digits are
-represented as elements of `Fin base`.
+Conversions between natural numbers and big-endian or little-endian lists of digits in a given
+base. The digits are represented as elements of `Fin base`.
 
 The definitions are simple specifications. They are replaced at runtime, using `csimp`, by
 divide-and-conquer implementations, which are subquadratic when combined with the subquadratic
@@ -34,6 +34,19 @@ and therefore `ofFinDigits (base := 1) l = 0`.
   l.foldl (fun n d => n * base + d.val) 0
 
 /--
+Construct a natural number from a little-endian list of digits in the given base:
+```
+ofFinDigitsRev (base := 10) [4,3,2] = 234 -- 2*10^2 + 3*10^1 + 4*10^0
+ofFinDigitsRev (base := 2) [0,0,1,0] = 4 -- 0*2^3 + 1*2^2 + 0*2^1 + 0*2^0
+ofFinDigitsRev (base := b) [] = 0 -- any base, including "base 0" and "base 1"
+```
+There are no valid inputs other than `[]` in "base 0". In "base 1", the only valid digit is `0`
+and therefore `ofFinDigitsRev (base := 1) l = 0`.
+-/
+@[expose] public def ofFinDigitsRev (l : List (Fin base)) : Nat :=
+  l.foldr (fun d n => n * base + d.val) 0
+
+/--
 The `prec` least significant digits of `n` in the given `base`, listed in big-endian order.
 
 Only "base 0" is invalid, this is ensured by a `NeZero base` instance. In "base 1" the result is
@@ -49,6 +62,23 @@ toFinDigitsUpTo 12345 1 5 = ([0,0,0,0,0] : List (Fin 1))
   match prec with
   | 0 => []
   | prec+1 => toFinDigitsUpTo (n / base) base prec ++ [Fin.ofNat base n]
+
+/--
+The `prec` least significant digits of `n` in the given `base`, listed in little-endian order.
+
+Only "base 0" is invalid, this is ensured by a `NeZero base` instance. In "base 1" the result is
+always a list of `0`s with length `prec`.
+```
+toFinDigitsUpToRev 123 10 3 = ([3,2,1] : List (Fin 10))
+toFinDigitsUpToRev 123 10 2 = ([3,2] : List (Fin 10))
+toFinDigitsUpToRev 4 2 4 = ([0,0,1,0] : List (Fin 2))
+toFinDigitsUpToRev 12345 1 5 = ([0,0,0,0,0] : List (Fin 1))
+```
+-/
+@[expose] public def toFinDigitsUpToRev (n base prec : Nat) [NeZero base] : List (Fin base) :=
+  match prec with
+  | 0 => []
+  | prec+1 => Fin.ofNat base n :: toFinDigitsUpToRev (n / base) base prec
 
 /--
 Big-endian list of digits of a natural number `n` in a given `base`.
@@ -67,7 +97,34 @@ public def toFinDigits (n base : Nat) : List (Fin base) :=
     toFinDigits (n / base) base ++ [Fin.ofNat base n]
 decreasing_by exact Nat.div_lt_self (by omega) (by omega)
 
+/--
+Little-endian list of digits of a natural number `n` in a given `base`.
+
+When `n` is zero, the result is the empty list. Otherwise, the most significant digit is nonzero.
+The base should be at least 2, the result is always the empty list in "base 0" and "base 1".
+```
+toFinDigitsRev 123 10 = ([3,2,1] : List (Fin 10))
+toFinDigitsRev 4 2 = ([0,0,1] : List (Fin 2))
+toFinDigitsRev 0 12345 = ([] : List (Fin 12345))
+```
+-/
+@[expose] public def toFinDigitsRev (n base : Nat) : List (Fin base) :=
+  n.toFinDigits base |>.reverse
+
 /-! ### Lemmas -/
+
+public theorem toFinDigitsRev_eq_reverse_toFinDigits (n : Nat) :
+    n.toFinDigitsRev base = (n.toFinDigits base).reverse := rfl
+
+public theorem toFinDigitsUpToRev_eq_reverse_toFinDigitsUpTo [NeZero base] (n : Nat) :
+    n.toFinDigitsUpToRev base prec = (n.toFinDigitsUpTo base prec).reverse := by
+  induction prec generalizing n with
+  | zero => rfl
+  | succ prec ih => simp [toFinDigitsUpToRev, toFinDigitsUpTo, ih]
+
+public theorem ofFinDigitsRev_eq_ofFinDigits_reverse (l : List (Fin base)) :
+    ofFinDigitsRev l = ofFinDigits l.reverse := by
+  simp [ofFinDigitsRev, ofFinDigits, List.foldl_reverse]
 
 @[simp] public theorem ofFinDigits_nil : ofFinDigits (base := base) [] = 0 := rfl
 
