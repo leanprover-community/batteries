@@ -136,8 +136,9 @@ def mapOnWorkers (jobs : Array α) (numWorkers : Nat) (f : α → CoreM β) : Co
   let cancelTk? := (← read).cancelTk?
   let numWorkers := min (max numWorkers 1) jobs.size
   let tasks ← (Array.range numWorkers).mapM fun _ => do
-    -- A job can wait for another thread (for example, to generate an equation lemma). Lean adds a
-    -- pool thread when a pool task waits, so pool tasks could run more than `numWorkers` jobs.
+    -- Each worker runs until no jobs remain. Lean recommends dedicated threads for long-running
+    -- tasks: as pool tasks, the workers would by default occupy every pool thread for the whole
+    -- run.
     EIO.asTask (prio := .dedicated) <| (← Core.wrapAsync (cancelTk? := cancelTk?) fun _ => do
       let mut done := #[]
       repeat
