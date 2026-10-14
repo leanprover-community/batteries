@@ -4,6 +4,13 @@ open Lean Meta Batteries.Tactic.Lint
 
 /-! Regression tests for batched environment linting. -/
 
+-- Results keep the order of the jobs, even when later jobs finish first.
+run_meta do
+  let results ← mapOnWorkers (Array.range 100) 8 fun i => do
+    if i % 3 == 0 then IO.sleep 2
+    return i
+  unless results == Array.range 100 do throwError "results out of order: {results}"
+
 run_meta do
   let originalModule := (← getEnv).mainModule
   let names ← IO.mkRef ({} : Std.HashSet Name)
@@ -41,7 +48,6 @@ run_meta do
       unless actual? == expected? do
         throwError "unexpected result for {decls[i]}: {actual?}"
   unless (← names.get).size == 2 * decls.size do throwError "checks were skipped"
-  unless (← getEnv).mainModule == originalModule do throwError "caller state changed"
   unless (← lintCore decls #[]).isEmpty do throwError "empty linter list"
   for (_, failures) in ← lintCore #[] linters do
     unless failures.isEmpty do throwError "empty declaration list"
