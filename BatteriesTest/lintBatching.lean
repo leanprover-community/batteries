@@ -16,6 +16,8 @@ run_meta do
   let results ← mapOnWorkers (Array.range 10) 0 fun i => return i
   unless results == Array.range 10 do throwError "jobs dropped: {results}"
 
+-- Each check sees fresh Core and Meta state and a fresh name generator. Every check runs once,
+-- an exception becomes `LINTER FAILED`, and empty linter or declaration lists give no results.
 run_meta do
   let originalModule := (← getEnv).mainModule
   let names ← IO.mkRef ({} : Std.HashSet Name)
@@ -72,6 +74,7 @@ run_meta do
   unless failures.size == 1 && failures.contains ``batchingChecked do
     throwError "nolint attribute ignored"
 
+-- Each check uses half of the heartbeat budget, so the test fails if checks share one budget.
 run_meta do
   let test : NamedLinter := {
     name := `heartbeats, declName := `heartbeats
@@ -85,6 +88,7 @@ run_meta do
   let some (_, failures) := results[0]? | throwError "missing linter result"
   unless failures.isEmpty do throwError "checks shared a heartbeat budget"
 
+-- A token set before the run stops the workers before any check runs.
 run_meta do
   let called ← IO.mkRef false
   let test : NamedLinter := {
@@ -100,6 +104,7 @@ run_meta do
   | .ok _ => throwError "cancellation was ignored"
   if ← called.get then throwError "check ran after cancellation"
 
+-- An interrupt inside a check propagates and does not become a `LINTER FAILED` message.
 run_meta do
   let token ← IO.CancelToken.new
   let test : NamedLinter := {

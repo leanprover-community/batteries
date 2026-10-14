@@ -49,6 +49,7 @@ run_cmd liftCoreM do
     throwError "wrong declaration set"
   logInfo m!"{results.toList.map fun (l, msgs) => (l.name, msgs.size)}"
 
+-- An empty local declaration array runs the local linters on no declarations.
 /-- info: [(flagAllGlobal, 1), (flagAllLocal, 0)] -/
 #guard_msgs in
 run_cmd liftCoreM do
