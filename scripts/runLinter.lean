@@ -105,8 +105,10 @@ def determineModulesToLint (specifiedModules : List Name) : IO (Array Name) := d
     return modules.toArray
 
 /--
-Run the Batteries linter on a given module and update the linter if `update` is `true`.
-If `leakEnv` is `true`, mark the imported environment as persistent.
+Run the Batteries linter on `module`. If `cfg.updateNoLints` is `true`, update the nolints file.
+
+If `leakEnv` is `true`, mark the imported environment as persistent. Lean then never frees the
+environment, so set `leakEnv` only when the process exits after the lint.
 -/
 unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
     (leakEnv := false) : IO Unit := do
@@ -253,9 +255,10 @@ unsafe def main (args : List String) : IO Unit := do
 
   let modulesToLint ← determineModulesToLint mods
 
-  -- A single imported environment lives until process exit. Mark it persistent to avoid
-  -- atomic reference-count updates when the lint workers share it.
-  -- With several modules, each environment must be freed before the next import.
+  -- With one module, the imported environment stays in memory until the process exits. Mark it
+  -- as persistent to avoid atomic reference-count updates when the lint tasks share it.
+  -- With several modules, keep the default so that each environment is freed before the next
+  -- import.
   let leakEnv := modulesToLint.size == 1
   modulesToLint.forM fun module => runLinterOnModule cfg module (leakEnv := leakEnv)
   -- TODO: Remove manual Process.exit
