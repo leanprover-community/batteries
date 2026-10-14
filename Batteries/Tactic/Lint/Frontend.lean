@@ -117,20 +117,23 @@ def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Na
       {if let some l := linterName then s!"- {l}: " else ""}\
       {msg}"
 
-/-- The number of declarations that a lint worker claims at a time. -/
+/-- The number of declarations that a lint worker takes at a time. -/
 def lintBatchSize : Nat := 64
 
 /--
-Maps `f` over `jobs` on at most `numWorkers` workers, and returns the results in the order of
-`jobs`. Each worker claims the next unclaimed job until no jobs remain.
+Maps `f` over `jobs` on at most `numWorkers` workers (at least one), and returns the results in
+the order of `jobs`. Each worker takes the next job that no worker has taken, until no jobs
+remain. Changes that `f` makes to the Core state are discarded.
 
-The workers use dedicated threads: a job can block on a shared lazy declaration, and a blocked
-task in Lean's task pool temporarily expands the pool.
+Each worker runs on a dedicated thread, outside Lean's task pool. A job can wait for another
+thread to generate a declaration (for example, an equation lemma). When a pool task waits, Lean
+adds a thread to the pool. Pool tasks could therefore run more than `numWorkers` jobs at a time.
 -/
 def mapOnWorkers (jobs : Array α) (numWorkers : Nat) (f : α → CoreM β) : CoreM (Array β) := do
   let next ← IO.mkRef 0
   let cancelTk? := (← read).cancelTk?
-  let tasks ← (Array.range (min numWorkers jobs.size)).mapM fun _ => do
+  let numWorkers := min (max numWorkers 1) jobs.size
+  let tasks ← (Array.range numWorkers).mapM fun _ => do
     EIO.asTask (prio := .dedicated) <| (← Core.wrapAsync (cancelTk? := cancelTk?) fun _ => do
       let mut done := #[]
       repeat
@@ -156,8 +159,8 @@ def lintDecl (linter : NamedLinter) (decl : Name) (inIO : Bool) : CoreM (Option 
       -- Ensure any trace messages are propagated to stdout
       printTraces
     return result
-  -- We use the context used by `Command.liftTermElabM`
   let run ← Core.withCurrHeartbeats <|
+    -- We use the context used by `Command.liftTermElabM`
     Core.wrapAsync (fun _ => act.run' mkMetaContext) (← read).cancelTk?
   match ← (run ()).toBaseIO with
   | .ok msg? => return msg?
@@ -196,7 +199,7 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
       (Array.range ((decls.size + lintBatchSize - 1) / lintBatchSize)).map fun i =>
         (decls[i * lintBatchSize:(i + 1) * lintBatchSize], linters)
   let numWorkers := ((← IO.getEnv "LEAN_NUM_THREADS").bind String.toNat?).getD
-    (System.Platform.Internal.getHardwareConcurrency ()).toNat |>.max 1
+    (System.Platform.Internal.getHardwareConcurrency ()).toNat
   -- Keep only failures, and look up `nolint` once per declaration for all linters.
   let failures ← mapOnWorkers batches numWorkers fun (decls, linters) => do
     let mut failures := #[]
@@ -209,7 +212,7 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
             failures := failures.push (i, decl, msg)
     return failures
 
-  -- A batch can hold any subset of the linters, so each failure carries its linter's index.
+  -- A batch runs only some of the linters, so each failure records its linter's index.
   let mut messages : Array (Std.HashMap Name MessageData) := .replicate linters.size {}
   for (i, decl, msg) in failures.flatten do
     messages := messages.modify i (·.insert decl msg)

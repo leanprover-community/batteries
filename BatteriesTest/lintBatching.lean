@@ -11,6 +11,11 @@ run_meta do
     return i
   unless results == Array.range 100 do throwError "results out of order: {results}"
 
+-- A worker count of zero still runs every job.
+run_meta do
+  let results ← mapOnWorkers (Array.range 10) 0 fun i => return i
+  unless results == Array.range 10 do throwError "jobs dropped: {results}"
+
 run_meta do
   let originalModule := (← getEnv).mainModule
   let names ← IO.mkRef ({} : Std.HashSet Name)

@@ -104,7 +104,10 @@ def determineModulesToLint (specifiedModules : List Name) : IO (Array Name) := d
     println!"Running linter on specified modules: {modules}"
     return modules.toArray
 
-/-- Run the Batteries linter on a given module and update the linter if `update` is `true`. -/
+/--
+Run the Batteries linter on a given module and update the linter if `update` is `true`.
+If `leakEnv` is `true`, mark the imported environment as persistent.
+-/
 unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
     (leakEnv := false) : IO Unit := do
   let { updateNoLints, noBuild, trace, onlyModules } := cfg
@@ -252,7 +255,7 @@ unsafe def main (args : List String) : IO Unit := do
 
   -- A single imported environment lives until process exit. Mark it persistent to avoid
   -- atomic reference-count updates when the lint workers share it.
-  -- Multiple targets must be able to release each environment before importing the next.
+  -- With several modules, each environment must be freed before the next import.
   let leakEnv := modulesToLint.size == 1
   modulesToLint.forM fun module => runLinterOnModule cfg module (leakEnv := leakEnv)
   -- TODO: Remove manual Process.exit
