@@ -27,16 +27,12 @@ set_option linter.deprecated false
 
 namespace String
 
--- TODO(kmill): add `@[ext]` attribute to `String.ext` in core.
-attribute [ext (iff := false)] ext
-
 theorem lt_antisymm {s₁ s₂ : String} (h₁ : ¬s₁ < s₂) (h₂ : ¬s₂ < s₁) : s₁ = s₂ := by
-  simp at h₁ h₂
+  simp [Std.not_lt] at h₁ h₂
   exact String.le_antisymm h₂ h₁
 
-instance : Std.LawfulLTOrd String :=
-  .compareOfLessAndEq_of_irrefl_of_trans_of_antisymm
-    String.lt_irrefl String.lt_trans String.lt_antisymm
+instance : Std.LawfulLTOrd String where
+  eq_lt_iff_lt := Std.compare_eq_lt
 
 theorem Pos.Raw.offsetBy_eq {p q : Pos.Raw} : p.offsetBy q = ⟨q.byteIdx + p.byteIdx⟩ := by
   ext
