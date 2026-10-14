@@ -104,12 +104,8 @@ def determineModulesToLint (specifiedModules : List Name) : IO (Array Name) := d
     println!"Running linter on specified modules: {modules}"
     return modules.toArray
 
-/--
-Run the Batteries linter on a given module and update the linter if `update` is `true`.
-If `leakEnv` is `true`, mark the imported environment as persistent.
--/
-unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
-    (leakEnv := false) : IO Unit := do
+/-- Run the Batteries linter on a given module and update the linter if `update` is `true`. -/
+unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := do
   let { updateNoLints, noBuild, trace, onlyModules } := cfg
   if updateNoLints && onlyModules.isSome then
     IO.eprintln "--update cannot be combined with --only-modules: \
@@ -151,8 +147,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
   else
     pure #[]
   unsafe Lean.enableInitializersExecution
-  let env ← importModules #[module, lintModule] {} (trustLevel := 1024)
-    (loadExts := true) (leakEnv := leakEnv)
+  let env ← importModules #[module, lintModule] {} (trustLevel := 1024) (loadExts := true)
   let mut opts : Options := {}
   -- Propagate `trace` to `CoreM`
   if trace then
@@ -253,11 +248,7 @@ unsafe def main (args : List String) : IO Unit := do
 
   let modulesToLint ← determineModulesToLint mods
 
-  -- A single imported environment lives until process exit. Mark it persistent to avoid
-  -- atomic reference-count updates when the lint workers share it.
-  -- With several modules, each environment must be freed before the next import.
-  let leakEnv := modulesToLint.size == 1
-  modulesToLint.forM fun module => runLinterOnModule cfg module (leakEnv := leakEnv)
+  modulesToLint.forM <| runLinterOnModule cfg
   -- TODO: Remove manual Process.exit
   -- We are doing this to shortcut around a race in Lean's IO finalizers that we have observed in Mathlib CI
   -- (https://leanprover.zulipchat.com/#narrow/channel/287929-mathlib4/topic/slow.20linting.20step.20CI.3F/with/568830914)
