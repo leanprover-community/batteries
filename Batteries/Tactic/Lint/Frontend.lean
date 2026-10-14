@@ -209,6 +209,7 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
             failures := failures.push (i, decl, msg)
     return failures
 
+  -- A batch can hold any subset of the linters, so each failure carries its linter's index.
   let mut messages : Array (Std.HashMap Name MessageData) := .replicate linters.size {}
   for (i, decl, msg) in failures.flatten do
     messages := messages.modify i (·.insert decl msg)
