@@ -7,7 +7,7 @@ module
 
 public import Batteries.Data.Fin.Lemmas
 public import Batteries.Data.Char.Basic
-import Batteries.Tactic.Lint.Misc
+import Batteries.Linter.Misc
 import Batteries.Tactic.Init
 
 public section

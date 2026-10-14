@@ -1,21 +1,21 @@
-import Batteries.Tactic.Lint
+import Batteries.Linter
 
 /-!
 Tests `lintCore`'s `localDecls`: local linters (`Linter.isLocal`) lint only those declarations,
 while the other linters still lint all of them.
 -/
 
-open Lean Elab Command Batteries.Tactic.Lint
+open Lean Elab Command Batteries.Linter
 
 /-- A local linter that flags every declaration it is given. -/
-@[env_linter disabled] def flagAllLocal : Batteries.Tactic.Lint.Linter where
+@[env_linter disabled] def flagAllLocal : Batteries.Linter where
   noErrorsFound := "none"
   errorsFound := "flagged"
   isLocal := true
   test _ := pure (some "flagged")
 
 /-- A global linter that flags every declaration it is given. -/
-@[env_linter disabled] def flagAllGlobal : Batteries.Tactic.Lint.Linter where
+@[env_linter disabled] def flagAllGlobal : Batteries.Linter where
   noErrorsFound := "none"
   errorsFound := "flagged"
   test _ := pure (some "flagged")
