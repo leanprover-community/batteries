@@ -156,11 +156,12 @@ public theorem ofFinDigits_append {l₁ l₂ : List (Fin base)} :
     ofFinDigits (d :: l) = d * base ^ l.length + ofFinDigits l := by
   rw [← List.singleton_append, ofFinDigits_append]; simp [ofFinDigits]
 
-@[simp] public theorem toFinDigitsFixed_zero [NeZero base] : toFinDigitsFixed n base 0 = [] := rfl
+@[simp] public theorem toFinDigitsFixed_zero [NeZero base] :
+    toFinDigitsFixed n base 0 = [] := rfl
 
 @[simp] public theorem toFinDigitsFixed_succ [NeZero base] :
-    toFinDigitsFixed n base (prec+1) = toFinDigitsFixed (n / base) base prec ++ [Fin.ofNat base n] :=
-  rfl
+    toFinDigitsFixed n base (prec+1) =
+      toFinDigitsFixed (n / base) base prec ++ [Fin.ofNat base n] := rfl
 
 @[simp] public theorem length_toFinDigitsFixed [NeZero base] :
     (toFinDigitsFixed n base prec).length = prec := by
