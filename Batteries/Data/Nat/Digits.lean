@@ -52,16 +52,16 @@ The `prec` least significant digits of `n` in the given `base`, listed in big-en
 Only "base 0" is invalid, this is ensured by a `NeZero base` instance. In "base 1" the result is
 always a list of `0`s with length `prec`.
 ```
-toFinDigitsUpTo 123 10 3 = ([1,2,3] : List (Fin 10))
-toFinDigitsUpTo 123 10 2 = ([2,3] : List (Fin 10))
-toFinDigitsUpTo 4 2 4 = ([0,1,0,0] : List (Fin 2))
-toFinDigitsUpTo 12345 1 5 = ([0,0,0,0,0] : List (Fin 1))
+toFinDigitsFixed 123 10 3 = ([1,2,3] : List (Fin 10))
+toFinDigitsFixed 123 10 2 = ([2,3] : List (Fin 10))
+toFinDigitsFixed 4 2 4 = ([0,1,0,0] : List (Fin 2))
+toFinDigitsFixed 12345 1 5 = ([0,0,0,0,0] : List (Fin 1))
 ```
 -/
-@[expose] public def toFinDigitsUpTo (n base prec : Nat) [NeZero base] : List (Fin base) :=
+@[expose] public def toFinDigitsFixed (n base prec : Nat) [NeZero base] : List (Fin base) :=
   match prec with
   | 0 => []
-  | prec+1 => toFinDigitsUpTo (n / base) base prec ++ [Fin.ofNat base n]
+  | prec+1 => toFinDigitsFixed (n / base) base prec ++ [Fin.ofNat base n]
 
 /--
 The `prec` least significant digits of `n` in the given `base`, listed in little-endian order.
@@ -69,16 +69,16 @@ The `prec` least significant digits of `n` in the given `base`, listed in little
 Only "base 0" is invalid, this is ensured by a `NeZero base` instance. In "base 1" the result is
 always a list of `0`s with length `prec`.
 ```
-toFinDigitsUpToRev 123 10 3 = ([3,2,1] : List (Fin 10))
-toFinDigitsUpToRev 123 10 2 = ([3,2] : List (Fin 10))
-toFinDigitsUpToRev 4 2 4 = ([0,0,1,0] : List (Fin 2))
-toFinDigitsUpToRev 12345 1 5 = ([0,0,0,0,0] : List (Fin 1))
+toFinDigitsFixedRev 123 10 3 = ([3,2,1] : List (Fin 10))
+toFinDigitsFixedRev 123 10 2 = ([3,2] : List (Fin 10))
+toFinDigitsFixedRev 4 2 4 = ([0,0,1,0] : List (Fin 2))
+toFinDigitsFixedRev 12345 1 5 = ([0,0,0,0,0] : List (Fin 1))
 ```
 -/
-@[expose] public def toFinDigitsUpToRev (n base prec : Nat) [NeZero base] : List (Fin base) :=
+@[expose] public def toFinDigitsFixedRev (n base prec : Nat) [NeZero base] : List (Fin base) :=
   match prec with
   | 0 => []
-  | prec+1 => Fin.ofNat base n :: toFinDigitsUpToRev (n / base) base prec
+  | prec+1 => Fin.ofNat base n :: toFinDigitsFixedRev (n / base) base prec
 
 /--
 Big-endian list of digits of a natural number `n` in a given `base`.
@@ -108,19 +108,31 @@ toFinDigitsRev 4 2 = ([0,0,1] : List (Fin 2))
 toFinDigitsRev 0 12345 = ([] : List (Fin 12345))
 ```
 -/
-@[expose] public def toFinDigitsRev (n base : Nat) : List (Fin base) :=
-  n.toFinDigits base |>.reverse
+public def toFinDigitsRev (n base : Nat) : List (Fin base) :=
+  if h : n = 0 ∨ base < 2 then [] else
+    have : NeZero base := ⟨by omega⟩
+    Fin.ofNat base n :: toFinDigitsRev (n / base) base
+decreasing_by exact Nat.div_lt_self (by omega) (by omega)
 
 /-! ### Lemmas -/
 
 public theorem toFinDigitsRev_eq_reverse_toFinDigits (n : Nat) :
-    n.toFinDigitsRev base = (n.toFinDigits base).reverse := rfl
+    n.toFinDigitsRev base = (n.toFinDigits base).reverse := by
+  induction n using Nat.strongRecOn with
+  | ind n ih =>
+    rw [toFinDigitsRev, toFinDigits]
+    if h : n = 0 ∨ base < 2 then
+      rw [dite_eq_left h, dite_eq_left h, List.reverse_nil]
+    else
+      rw [dite_eq_right h, dite_eq_right h, List.reverse_append,
+        ih _ (Nat.div_lt_self (by omega) (by omega))]
+      rfl
 
-public theorem toFinDigitsUpToRev_eq_reverse_toFinDigitsUpTo [NeZero base] (n : Nat) :
-    n.toFinDigitsUpToRev base prec = (n.toFinDigitsUpTo base prec).reverse := by
+public theorem toFinDigitsFixedRev_eq_reverse_toFinDigitsFixed [NeZero base] (n : Nat) :
+    n.toFinDigitsFixedRev base prec = (n.toFinDigitsFixed base prec).reverse := by
   induction prec generalizing n with
   | zero => rfl
-  | succ prec ih => simp [toFinDigitsUpToRev, toFinDigitsUpTo, ih]
+  | succ prec ih => simp [toFinDigitsFixedRev, toFinDigitsFixed, ih]
 
 public theorem ofFinDigitsRev_eq_ofFinDigits_reverse (l : List (Fin base)) :
     ofFinDigitsRev l = ofFinDigits l.reverse := by
@@ -144,32 +156,32 @@ public theorem ofFinDigits_append {l₁ l₂ : List (Fin base)} :
     ofFinDigits (d :: l) = d * base ^ l.length + ofFinDigits l := by
   rw [← List.singleton_append, ofFinDigits_append]; simp [ofFinDigits]
 
-@[simp] public theorem toFinDigitsUpTo_zero [NeZero base] : toFinDigitsUpTo n base 0 = [] := rfl
+@[simp] public theorem toFinDigitsFixed_zero [NeZero base] : toFinDigitsFixed n base 0 = [] := rfl
 
-@[simp] public theorem toFinDigitsUpTo_succ [NeZero base] :
-    toFinDigitsUpTo n base (prec+1) = toFinDigitsUpTo (n / base) base prec ++ [Fin.ofNat base n] :=
+@[simp] public theorem toFinDigitsFixed_succ [NeZero base] :
+    toFinDigitsFixed n base (prec+1) = toFinDigitsFixed (n / base) base prec ++ [Fin.ofNat base n] :=
   rfl
 
-@[simp] public theorem length_toFinDigitsUpTo [NeZero base] :
-    (toFinDigitsUpTo n base prec).length = prec := by
+@[simp] public theorem length_toFinDigitsFixed [NeZero base] :
+    (toFinDigitsFixed n base prec).length = prec := by
   induction prec generalizing n with simp [*]
 
-@[simp] public theorem ofFinDigits_toFinDigitsUpTo [NeZero base] :
-    ofFinDigits (toFinDigitsUpTo n base prec) = n % base ^ prec := by
+@[simp] public theorem ofFinDigits_toFinDigitsFixed [NeZero base] :
+    ofFinDigits (toFinDigitsFixed n base prec) = n % base ^ prec := by
   induction prec generalizing n with
   | zero => simp [Nat.mod_one, ofFinDigits]
   | succ prec ih =>
-    simp only [toFinDigitsUpTo_succ, ofFinDigits_append, ih, List.length_singleton,
+    simp only [toFinDigitsFixed_succ, ofFinDigits_append, ih, List.length_singleton,
       ofFinDigits_cons, List.length_nil, Nat.pow_zero, Nat.mul_one, ofFinDigits_nil, Nat.add_zero,
       Fin.val_ofNat, Nat.pow_succ']
     rw [Nat.mod_mul, Nat.add_comm, Nat.mul_comm]
 
-public theorem toFinDigitsUpTo_add [NeZero base] : toFinDigitsUpTo n base (prec + k) =
-    toFinDigitsUpTo (n / base ^ k) base prec ++ toFinDigitsUpTo (n % base ^ k) base k := by
+public theorem toFinDigitsFixed_add [NeZero base] : toFinDigitsFixed n base (prec + k) =
+    toFinDigitsFixed (n / base ^ k) base prec ++ toFinDigitsFixed (n % base ^ k) base k := by
   induction k generalizing n with
   | zero => simp [Nat.mod_one]
   | succ k ih =>
-    rw [← Nat.add_assoc, toFinDigitsUpTo_succ, ih, toFinDigitsUpTo_succ, List.append_assoc,
+    rw [← Nat.add_assoc, toFinDigitsFixed_succ, ih, toFinDigitsFixed_succ, List.append_assoc,
       Nat.pow_succ', Nat.div_div_eq_div_mul, Nat.mod_mul_right_div_self]
     congr 3
     ext; simp [Nat.mod_mul_right_mod]
@@ -194,14 +206,14 @@ public theorem toFinDigits_of_ne_zero (h : 2 ≤ base) [NeZero base] (hn : n ≠
 
 public theorem toFinDigits_eq_append (h : 2 ≤ base) [NeZero base] (hk : base ^ k ≤ n) :
     toFinDigits n base =
-      toFinDigits (n / base ^ k) base ++ toFinDigitsUpTo (n % base ^ k) base k := by
+      toFinDigits (n / base ^ k) base ++ toFinDigitsFixed (n % base ^ k) base k := by
   induction k generalizing n with
   | zero => simp [Nat.mod_one]
   | succ k ih =>
     have hn : n ≠ 0 := Nat.ne_of_gt <| Nat.lt_of_lt_of_le (Nat.pow_pos (by omega)) hk
     have hk : base ^ k ≤ n / base := by
       rw [Nat.le_div_iff_mul_le (by omega), ← Nat.pow_succ]; exact hk
-    rw [toFinDigits_of_ne_zero h hn, ih hk, toFinDigitsUpTo_succ, List.append_assoc,
+    rw [toFinDigits_of_ne_zero h hn, ih hk, toFinDigitsFixed_succ, List.append_assoc,
       Nat.pow_succ', Nat.div_div_eq_div_mul, Nat.mod_mul_right_div_self]
     congr 3
     ext; simp [Nat.mod_mul_right_mod]
@@ -215,12 +227,12 @@ public theorem ofFinDigits_of_le_one (h : base ≤ 1) {l : List (Fin base)} :
     have : d.val = 0 := by have := d.isLt; omega
     simp [ih, this]
 
-/-- In "base 1", `toFinDigitsUpTo` is a list of zeros. -/
-public theorem toFinDigitsUpTo_one : toFinDigitsUpTo n 1 prec = List.replicate prec 0 := by
+/-- In "base 1", `toFinDigitsFixed` is a list of zeros. -/
+public theorem toFinDigitsFixed_one : toFinDigitsFixed n 1 prec = List.replicate prec 0 := by
   induction prec generalizing n with
   | zero => rfl
   | succ prec ih =>
-    rw [toFinDigitsUpTo_succ, ih, List.replicate_succ']
+    rw [toFinDigitsFixed_succ, ih, List.replicate_succ']
     congr 2; exact Fin.ext (Nat.mod_one _)
 
 public theorem ofFinDigits_lt_pow {l : List (Fin base)} : ofFinDigits l < base ^ l.length := by
@@ -233,8 +245,8 @@ public theorem ofFinDigits_lt_pow {l : List (Fin base)} : ofFinDigits l < base ^
       _ = (d + 1) * base ^ l.length := by rw [Nat.succ_mul]
       _ ≤ base * base ^ l.length := Nat.mul_le_mul_right _ d.isLt
 
-@[simp] public theorem toFinDigitsUpTo_ofFinDigits [NeZero base] {l : List (Fin base)} :
-    toFinDigitsUpTo (ofFinDigits l) base l.length = l := by
+@[simp] public theorem toFinDigitsFixed_ofFinDigits [NeZero base] {l : List (Fin base)} :
+    toFinDigitsFixed (ofFinDigits l) base l.length = l := by
   induction l with
   | nil => rfl
   | cons d l ih =>
@@ -244,7 +256,7 @@ public theorem ofFinDigits_lt_pow {l : List (Fin base)} : ofFinDigits l < base ^
       rw [Nat.mul_comm, Nat.mul_add_div hpos, Nat.div_eq_of_lt hlt, Nat.add_zero]
     have hmod : (d * base ^ l.length + ofFinDigits l) % base ^ l.length = ofFinDigits l := by
       rw [Nat.mul_comm, Nat.mul_add_mod, Nat.mod_eq_of_lt hlt]
-    rw [ofFinDigits_cons, List.length_cons, Nat.add_comm l.length 1, toFinDigitsUpTo_add, hdiv,
+    rw [ofFinDigits_cons, List.length_cons, Nat.add_comm l.length 1, toFinDigitsFixed_add, hdiv,
       hmod, ih]
     simp [Nat.div_eq_of_lt d.isLt]
 
@@ -302,7 +314,7 @@ public theorem toFinDigits_ofFinDigits (h : 2 ≤ base) {l : List (Fin base)}
       rw [Nat.mul_comm, Nat.mul_add_mod, Nat.mod_eq_of_lt hlt]
     have hle : base ^ l.length ≤ d * base ^ l.length + ofFinDigits l :=
       Nat.le_add_right_of_le (Nat.le_mul_of_pos_left _ (by omega))
-    rw [ofFinDigits_cons, toFinDigits_eq_append h hle, hdiv, hmod, toFinDigitsUpTo_ofFinDigits,
+    rw [ofFinDigits_cons, toFinDigits_eq_append h hle, hdiv, hmod, toFinDigitsFixed_ofFinDigits,
       toFinDigits_of_ne_zero h hd, Nat.div_eq_of_lt d.isLt, toFinDigits_zero]
     simp
 
@@ -314,7 +326,7 @@ of the public API and they may change without warning.
 
 Each implementation splits its input roughly in half and falls back to a simple loop on small
 inputs, where computing `base ^ k` and splitting would cost more than it saves. The cutoffs are
-16 digits for `ofFinDigits` and `toFinDigitsUpTo`, and a split size of at least 8 digits for
+16 digits for `ofFinDigits` and `toFinDigitsFixed`, and a split size of at least 8 digits for
 `toFinDigits`. They were picked by judgment rather than tuned by benchmarks. Correctness does not
 depend on them.
 -/
@@ -336,39 +348,39 @@ termination_by l.length
   | case2 l _ k ih₁ ih₂ =>
     rw [← ih₁, ← ih₂, ← List.length_drop, ← ofFinDigits_append, List.take_append_drop]
 
-/-- Divide-and-conquer implementation of `Nat.toFinDigitsUpTo`. -/
-public def toFinDigitsUpTo (n base prec : Nat) [NeZero base] : List (Fin base) :=
+/-- Divide-and-conquer implementation of `Nat.toFinDigitsFixed`. -/
+public def toFinDigitsFixed (n base prec : Nat) [NeZero base] : List (Fin base) :=
   loopSplit n prec []
 where
-  /-- Prepends `Nat.toFinDigitsUpTo n base prec` to `acc`. -/
+  /-- Prepends `Nat.toFinDigitsFixed n base prec` to `acc`. -/
   loopSplit (n prec : Nat) (acc : List (Fin base)) : List (Fin base) :=
     -- cutoff for small inputs, see the section header
     if prec ≤ 16 then loopDigit n prec acc else
       let k := prec / 2
       loopSplit (n / base ^ k) (prec - k) (loopSplit (n % base ^ k) k acc)
   termination_by prec
-  /-- Prepends `Nat.toFinDigitsUpTo n base prec` to `acc`, one digit at a time. -/
+  /-- Prepends `Nat.toFinDigitsFixed n base prec` to `acc`, one digit at a time. -/
   loopDigit (n : Nat) : Nat → List (Fin base) → List (Fin base)
     | 0, acc => acc
     | prec+1, acc => loopDigit (n / base) prec (Fin.ofNat base n :: acc)
 
-private theorem toFinDigitsUpTo.loopDigit_eq [NeZero base] {acc : List (Fin base)} :
-    loopDigit base n prec acc = Nat.toFinDigitsUpTo n base prec ++ acc := by
+private theorem toFinDigitsFixed.loopDigit_eq [NeZero base] {acc : List (Fin base)} :
+    loopDigit base n prec acc = Nat.toFinDigitsFixed n base prec ++ acc := by
   induction prec generalizing n acc with
   | zero => rfl
   | succ prec ih => simp [loopDigit, ih]
 
-private theorem toFinDigitsUpTo.loopSplit_eq [NeZero base] {acc : List (Fin base)} :
-    loopSplit base n prec acc = Nat.toFinDigitsUpTo n base prec ++ acc := by
+private theorem toFinDigitsFixed.loopSplit_eq [NeZero base] {acc : List (Fin base)} :
+    loopSplit base n prec acc = Nat.toFinDigitsFixed n base prec ++ acc := by
   fun_induction loopSplit base n prec acc with
   | case1 => exact loopDigit_eq
   | case2 n prec acc _ k ih₁ _ ih₂ =>
-    rw [ih₂, ih₁, ← List.append_assoc, ← toFinDigitsUpTo_add,
+    rw [ih₂, ih₁, ← List.append_assoc, ← toFinDigitsFixed_add,
       Nat.sub_add_cancel (Nat.div_le_self ..)]
 
-@[csimp] public theorem toFinDigitsUpTo_eq : @Nat.toFinDigitsUpTo = @toFinDigitsUpTo := by
+@[csimp] public theorem toFinDigitsFixed_eq : @Nat.toFinDigitsFixed = @toFinDigitsFixed := by
   funext n base prec _
-  rw [toFinDigitsUpTo, toFinDigitsUpTo.loopSplit_eq, List.append_nil]
+  rw [toFinDigitsFixed, toFinDigitsFixed.loopSplit_eq, List.append_nil]
 
 /-- Divide-and-conquer implementation of `Nat.toFinDigits`. -/
 public def toFinDigits (n base : Nat) : List (Fin base) :=
@@ -384,7 +396,7 @@ where
     if h : 8 ≤ k ∧ base ^ k ≤ n then
       have : 1 < base ^ k := Nat.lt_of_lt_of_le hbase (Nat.le_self_pow (by omega) _)
       have : n / base ^ k < n := Nat.div_lt_self (by omega) this
-      loopSplit base hbase (n / base ^ k) (Nat.toFinDigitsUpTo (n % base ^ k) base k ++ acc)
+      loopSplit base hbase (n / base ^ k) (Nat.toFinDigitsFixed (n % base ^ k) base k ++ acc)
     else
       loopDigit base hbase n acc
   termination_by n
