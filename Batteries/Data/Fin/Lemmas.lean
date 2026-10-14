@@ -6,12 +6,8 @@ Authors: Mario Carneiro
 module
 
 public import Batteries.Data.Fin.Basic
-public import Batteries.Data.Nat.Lemmas
-public import Batteries.Data.List.Basic
-public import Batteries.Util.ProofWanted
-public import Batteries.Tactic.Alias
 
-@[expose] public section
+public section
 
 namespace Fin
 

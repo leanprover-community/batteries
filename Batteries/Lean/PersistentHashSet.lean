@@ -7,7 +7,7 @@ module
 
 public import Lean.Data.PersistentHashSet
 
-@[expose] public section
+public section
 
 namespace Lean.PersistentHashSet
 

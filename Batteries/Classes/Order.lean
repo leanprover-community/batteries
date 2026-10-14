@@ -5,17 +5,25 @@ Authors: Mario Carneiro
 -/
 module
 
-public import Batteries.Tactic.Basic
-public import Batteries.Tactic.SeqFocus
+public import Batteries.Tactic.Basic -- shake: keep
+import Batteries.Tactic.SeqFocus
 
-@[expose] public section
+public section
 
 theorem lexOrd_def [Ord α] [Ord β] :
     (lexOrd : Ord (α × β)).compare = compareLex (compareOn (·.1)) (compareOn (·.2)) := rfl
 
 /-- Pull back a comparator by a function `f`, by applying the comparator to both arguments. -/
-@[inline] def Ordering.byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering :=
+@[expose, inline] def Ordering.byKey (f : α → β) (cmp : β → β → Ordering) (a b : α) : Ordering :=
   cmp (f a) (f b)
+
+theorem Std.OrientedOrd.isGE_of_isLT [Ord α] [Std.OrientedOrd α] {a b : α}
+    (h : (compare b a).isLT) : (compare a b).isGE := by
+  rw [Std.OrientedOrd.eq_swap]
+  simp_all
+
+theorem Ord.compare_opposite [ord : Ord α] {x y : α} :
+    ord.opposite.compare x y = ord.compare y x := rfl
 
 namespace Batteries
 

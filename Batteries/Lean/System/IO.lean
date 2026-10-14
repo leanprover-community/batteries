@@ -5,7 +5,7 @@ Authors: Kim Morrison
 -/
 module
 
-@[expose] public section
+public section
 
 /-!
 # Functions for manipulating a list of tasks

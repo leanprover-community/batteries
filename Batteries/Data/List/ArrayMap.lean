@@ -5,7 +5,7 @@ Authors: Michael Rothgang
 -/
 module
 
-@[expose] public section
+public section
 
 universe u v w
 variable {α : Type u} {β : Type v}

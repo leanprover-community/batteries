@@ -7,7 +7,7 @@ module
 import Batteries.Tactic.Alias
 import Batteries.Data.UInt
 
-@[expose] public section
+public section
 
 /-!
 ## Definitions on Arrays
@@ -201,7 +201,7 @@ example [Monad m] (f : α → β → m α) :
     := by simp [scanlM, scanlM.loop]
 ```
 -/
-@[implemented_by scanlMFast]
+@[expose, implemented_by scanlMFast]
 def scanlM [Monad m] (f : β → α → m β) (init : β) (as : Array α) (start := 0)
     (stop := as.size) : m (Array β) :=
   loop f init as (min start as.size) (min stop as.size) (Nat.min_le_right _ _) #[]
@@ -327,7 +327,7 @@ example [Monad m] (f : α → β → m β) :
     := by simp [scanrM, scanrM.loop]
 ```
 -/
-@[implemented_by scanrMUnsafe]
+@[expose, implemented_by scanrMUnsafe]
 def scanrM [Monad m]
     (f : α → β → m β) (init : β) (as : Array α) (start := as.size) (stop := 0) : m (Array β) :=
   let start := min start as.size
@@ -352,7 +352,7 @@ Fold a function `f` over the array from the left, returning the array of partial
 scanl (· + ·) 0 #[1, 2, 3] = #[0, 1, 3, 6]
 ```
 -/
-@[inline]
+@[expose, inline]
 def scanl (f : β → α → β) (init : β) (as : Array α) (start := 0) (stop := as.size) : Array β :=
   Id.run <| as.scanlM (pure <| f · ·) init start stop
 
@@ -362,7 +362,7 @@ Fold a function `f` over the array from the right, returning the array of partia
 scanr (· + ·) 0 #[1, 2, 3] = #[6, 5, 3, 0]
 ```
 -/
-@[inline]
+@[expose, inline]
 def scanr (f : α → β → β) (init : β) (as : Array α) (start := as.size) (stop := 0) : Array β :=
   Id.run <| as.scanrM (pure <| f · ·) init start stop
 
@@ -373,28 +373,28 @@ namespace Subarray
 /--
 Fold a monadic function `f` over the subarray from the left, returning the list of partial results.
 -/
-@[inline]
+@[expose, inline]
 def scanlM [Monad m] (f : β → α → m β) (init : β) (as : Subarray α) : m (Array β) :=
   as.array.scanlM f init (start := as.start) (stop := as.stop)
 
 /--
 Fold a monadic function `f` over the subarray from the right, returning the list of partial results.
 -/
-@[inline]
+@[expose, inline]
 def scanrM [Monad m] (f : α → β → m β) (init : β) (as : Subarray α) : m (Array β) :=
   as.array.scanrM f init (start := as.start) (stop := as.stop)
 
 /--
 Fold a function `f` over the subarray from the left, returning the list of partial results.
 -/
-@[inline]
+@[expose, inline]
 def scanl (f : β → α → β) (init : β) (as : Subarray α) : Array β :=
   as.array.scanl f init (start := as.start) (stop := as.stop)
 
 /--
 Fold a function `f` over the subarray from the right, returning the list of partial results.
 -/
-@[inline]
+@[expose, inline]
 def scanr (f : α → β → β) (init : β) (as : Subarray α) : Array β :=
   as.array.scanr f init (start := as.start) (stop := as.stop)
 
