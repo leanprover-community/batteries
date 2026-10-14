@@ -117,23 +117,27 @@ def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Na
       {if let some l := linterName then s!"- {l}: " else ""}\
       {msg}"
 
-/-- The number of declarations that a lint worker takes at a time. -/
+/--
+The number of declarations that a lint worker takes at a time. A larger batch means fewer updates
+to the shared job counter. A smaller batch spreads the work more evenly across the workers at the
+end of the run. The value 64 is not fine-tuned, but one counter update is cheap next to the lint
+checks on 64 declarations, and a large library such as Mathlib still gives each worker many
+batches.
+-/
 def lintBatchSize : Nat := 64
 
 /--
 Maps `f` over `jobs` on at most `numWorkers` workers (at least one), and returns the results in
 the order of `jobs`. Each worker takes the next job that no worker has taken, until no jobs
 remain. Changes that `f` makes to the Core state are discarded.
-
-Each worker runs on a dedicated thread, outside Lean's task pool. A job can wait for another
-thread to generate a declaration (for example, an equation lemma). When a pool task waits, Lean
-adds a thread to the pool. Pool tasks could therefore run more than `numWorkers` jobs at a time.
 -/
 def mapOnWorkers (jobs : Array α) (numWorkers : Nat) (f : α → CoreM β) : CoreM (Array β) := do
   let next ← IO.mkRef 0
   let cancelTk? := (← read).cancelTk?
   let numWorkers := min (max numWorkers 1) jobs.size
   let tasks ← (Array.range numWorkers).mapM fun _ => do
+    -- A job can wait for another thread (for example, to generate an equation lemma). Lean adds a
+    -- pool thread when a pool task waits, so pool tasks could run more than `numWorkers` jobs.
     EIO.asTask (prio := .dedicated) <| (← Core.wrapAsync (cancelTk? := cancelTk?) fun _ => do
       let mut done := #[]
       repeat
