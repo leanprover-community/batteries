@@ -117,11 +117,58 @@ def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Na
       {if let some l := linterName then s!"- {l}: " else ""}\
       {msg}"
 
+/-- The number of declarations that a lint worker claims at a time. -/
+def lintBatchSize : Nat := 64
+
+/--
+Maps `f` over `jobs` on at most `numWorkers` workers, and returns the results in the order of
+`jobs`. Each worker claims the next unclaimed job until no jobs remain.
+
+The workers use dedicated threads: a job can block on a shared lazy declaration, and a blocked
+task in Lean's task pool temporarily expands the pool.
+-/
+def mapOnWorkers (jobs : Array α) (numWorkers : Nat) (f : α → CoreM β) : CoreM (Array β) := do
+  let next ← IO.mkRef 0
+  let cancelTk? := (← read).cancelTk?
+  let tasks ← (Array.range (min numWorkers jobs.size)).mapM fun _ => do
+    EIO.asTask (prio := .dedicated) <| (← Core.wrapAsync (cancelTk? := cancelTk?) fun _ => do
+      let mut done := #[]
+      repeat
+        let i ← next.modifyGet fun i => (i, i + 1)
+        let some job := jobs[i]? | break
+        done := done.push (i, ← f job)
+      return done) ()
+  let mut results : Array (Option β) := .replicate jobs.size none
+  for task in tasks do
+    for (i, result) in ← ofExcept task.get do
+      results := results.set! i result
+  return results.filterMap id
+
+/--
+Runs `linter` on `decl` with separate Core and Meta state, a distinct name generator, and its own
+heartbeat budget. An exception from the linter becomes a `LINTER FAILED` message, except for an
+interrupt, which propagates.
+-/
+def lintDecl (linter : NamedLinter) (decl : Name) (inIO : Bool) : CoreM (Option MessageData) := do
+  let act : MetaM (Option MessageData) := do
+    let result ← linter.test decl
+    if inIO then
+      -- Ensure any trace messages are propagated to stdout
+      printTraces
+    return result
+  -- We use the context used by `Command.liftTermElabM`
+  let run ← Core.withCurrHeartbeats <|
+    Core.wrapAsync (fun _ => act.run' mkMetaContext) (← read).cancelTk?
+  match ← (run ()).toBaseIO with
+  | .ok msg? => return msg?
+  | .error err =>
+    if err.isInterrupt then throw err
+    return some m!"LINTER FAILED:\n{err.toMessageData}"
+
 /--
 Runs all the specified linters on all the specified declarations in parallel,
-producing a list of results. Checks use a bounded pool of workers. `LEAN_NUM_THREADS` sets the
-worker count; otherwise the hardware concurrency is used. Each check has isolated Core and Meta
-state and a separate heartbeat budget.
+producing a list of results. `LEAN_NUM_THREADS` sets the number of workers (by default, the
+hardware concurrency). Each worker lints batches of `lintBatchSize` declarations.
 
 If `localDecls` is given, linters with `isLocal` lint only those declarations (for example, the
 declarations of the modules a change touched), while the other linters still lint all of `decls`.
@@ -138,58 +185,33 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
   for linter in linters do
     traceLint "(0/2) Starting..." inIO currentModule linter.name
 
-  -- Use a bounded set of dedicated workers: checks can block on shared lazy declarations.
-  -- Dedicated workers avoid temporary expansion of Lean's task pool on these waits.
-  -- Workers claim small batches to balance the load.
-  -- Keep only failures and use one nolint lookup for all linters on a declaration.
-  let numWorkers := ((← IO.getEnv "LEAN_NUM_THREADS").bind String.toNat?).getD
-    (System.Platform.Internal.getHardwareConcurrency ()).toNat |>.max 1
-  let indexedLinters := linters.mapIdx fun i linter => (i, linter)
+  -- Each batch pairs a slice of declarations with the linters (and their indices) to run on it.
+  let indexed := linters.zipIdx
   let groups := match localDecls with
-    | none => #[(decls, indexedLinters)]
-    | some localDecls => #[(decls, indexedLinters.filter fun (_, l) => !l.isLocal),
-        (localDecls, indexedLinters.filter fun (_, l) => l.isLocal)]
+    | none => #[(decls, indexed)]
+    | some localDecls =>
+      #[(decls, indexed.filter (!·.1.isLocal)), (localDecls, indexed.filter (·.1.isLocal))]
   let batches := groups.flatMap fun (decls, linters) =>
     if linters.isEmpty then #[] else
-      (Array.range ((decls.size + 63) / 64)).map fun i => (decls, i * 64, linters)
-  let next ← IO.mkRef 0
-  let cancelTk? := (← read).cancelTk?
-  let mut tasks := #[]
-  unless linters.isEmpty do
-    for _ in [:min numWorkers batches.size] do
-      tasks := tasks.push <| ← EIO.asTask (prio := .dedicated) <| (← Core.wrapAsync (fun _ => do
-        let mut failures : Array (Nat × Name × MessageData) := #[]
-        repeat
-          let batch ← next.modifyGet fun batch => (batch, batch + 1)
-          let some (decls, begin, batchLinters) := batches[batch]? | break
-          let chunk := decls[begin:begin + 64]
-          for decl in chunk do
-            Core.checkInterrupted
-            let ignored := (nolintAttr.getParam? (← getEnv) decl).getD #[]
-            for (i, linter) in batchLinters do
-              if ignored.contains linter.name then continue
-              -- Keep name generators distinct and discard each check's Core/Meta state.
-              -- Give every check its own heartbeat budget, independent of the batch size.
-              let run ← Core.withCurrHeartbeats <| Core.wrapAsync (fun _ => do
-                let act : MetaM (Option MessageData) := do
-                  let result ← linter.test decl
-                  if inIO then printTraces
-                  return result
-                act.run' mkMetaContext) cancelTk?
-              let result ← run () |>.toBaseIO
-              let msg? ← match result with
-                | .ok msg? => pure msg?
-                | .error err =>
-                  if err.isInterrupt then throw err
-                  pure <| some m!"LINTER FAILED:\n{err.toMessageData}"
-              if let some msg := msg? then
-                failures := failures.push (i, decl, msg)
-        return failures) cancelTk?) ()
+      (Array.range ((decls.size + lintBatchSize - 1) / lintBatchSize)).map fun i =>
+        (decls[i * lintBatchSize:(i + 1) * lintBatchSize], linters)
+  let numWorkers := ((← IO.getEnv "LEAN_NUM_THREADS").bind String.toNat?).getD
+    (System.Platform.Internal.getHardwareConcurrency ()).toNat |>.max 1
+  -- Keep only failures, and look up `nolint` once per declaration for all linters.
+  let failures ← mapOnWorkers batches numWorkers fun (decls, linters) => do
+    let mut failures := #[]
+    for decl in decls do
+      Core.checkInterrupted
+      let ignored := (nolintAttr.getParam? (← getEnv) decl).getD #[]
+      for (linter, i) in linters do
+        unless ignored.contains linter.name do
+          if let some msg ← lintDecl linter decl inIO then
+            failures := failures.push (i, decl, msg)
+    return failures
 
   let mut messages : Array (Std.HashMap Name MessageData) := .replicate linters.size {}
-  for task in tasks do
-    for (i, decl, msg) in ← ofExcept task.get do
-      messages := messages.modify i (·.insert decl msg)
+  for (i, decl, msg) in failures.flatten do
+    messages := messages.modify i (·.insert decl msg)
 
   let result ← (linters.zip messages).mapM fun (linter, msgs) => do
     traceLint "(1/2) Getting..." inIO currentModule linter.name
