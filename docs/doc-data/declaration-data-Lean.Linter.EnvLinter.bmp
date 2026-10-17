@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Linter.EnvLinter.Basic","Lean.Linter.EnvLinter.Frontend"],"instances":[],"name":"Lean.Linter.EnvLinter"}
