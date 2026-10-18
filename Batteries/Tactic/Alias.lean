@@ -136,7 +136,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:iden
     -- Whether we may access private `name`s here depends on whether it is a theorem, so first
     -- resolve in private scope always
     let name ← withoutExporting <| realizeGlobalConstNoOverloadWithInfo nameStx
-    let cinfo ← withoutExporting <| getConstInfo name
+    let cinfo ← withoutExporting <| getAsyncConstInfo name
     let declMods ← elabModifiers mods
     Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
     unless wasOriginallyTheorem (← getEnv) name do
@@ -146,8 +146,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:iden
     let env ← getEnv
     let declMods := { declMods with
       computeKind :=
-        if isNoncomputable env name then .noncomputable
-        else if isMarkedMeta env name then .meta
+        if isMarkedMeta env name then .meta
         else declMods.computeKind
       isUnsafe := declMods.isUnsafe || cinfo.isUnsafe
       attrs
@@ -161,7 +160,7 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:iden
     else
       .defnDecl { cinfo.toConstantVal with
         name := declName
-        value := mkConst name (cinfo.levelParams.map mkLevelParam)
+        value := mkConst name (cinfo.toConstantVal.levelParams.map mkLevelParam)
         hints := .regular 0 -- FIXME
         safety := if declMods.isUnsafe then .unsafe else .safe
       }
@@ -170,7 +169,10 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:iden
     if !declMods.isNoncomputable then
       if declMods.isMeta then
         modifyEnv (markMeta · declName)
-      compileDecl decl
+      -- If the target has no executable code, this silently marks the alias as noncomputable.
+      compileDecl decl (logErrors := false)
+    else
+      modifyEnv (addNoncomputable · declName)
     addDeclarationRangesFromSyntax declName (← getRef) alias
     Term.addTermInfo' alias (← mkConstWithLevelParams declName) (isBinder := true)
     if let some doc := declMods.docString? then
@@ -194,7 +196,7 @@ def mkIffMpApp (mp : Bool) (ty prf : Expr) : MetaM Expr := do
     Meta.mkLambdaFVars xs <|
       mkApp3 (mkConst (if mp then ``Iff.mp else ``Iff.mpr)) lhs rhs (mkAppN prf xs)
 
-private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : ConstantInfo) :
+private def addSide (mp : Bool) (declName : Name) (declMods : Modifiers) (thm : ConstantVal) :
     TermElabM Unit := do
   checkNotAlreadyDeclared declName
   let value ← mkIffMpApp mp thm.type (mkConst thm.name (thm.levelParams.map mkLevelParam))
@@ -220,7 +222,7 @@ elab (name := aliasLR) mods:declModifiers "alias "
     -- The target of an iff alias is always a theorem, so resolve in non-exporting mode to
     -- support private theorem targets even when the aliases themselves are public.
     let name ← withoutExporting <| realizeGlobalConstNoOverloadWithInfo name
-    let thm ← withoutExporting <| getConstInfo name
+    let thm ← withoutExporting <| getConstVal name
     let declMods ← elabModifiers mods
     let declMods := { declMods with attrs := (setDeprecatedTarget name declMods.attrs).1 }
     -- Now enter scope where we want to put the new decls
