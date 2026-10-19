@@ -5,9 +5,8 @@ Authors: Leonardo de Moura
 -/
 
 module
-public import Batteries.Tactic.Alias
 
-@[expose] public section
+public section
 
 namespace List
 
@@ -15,14 +14,14 @@ namespace List
 
 /-- Get the maximum element of a list.
 If the given list is empty, returns `(default : α)` and produces a panic error message. -/
-def max! {α} [Inhabited α] [Max α] (xs : List α) : α :=
+@[expose] def max! {α} [Inhabited α] [Max α] (xs : List α) : α :=
   match xs.max? with
   | none => panic! "List.max! called on empty list"
   | some x => x
 
 /-- Get the minimum element of a list.
 If the given list is empty, returns `(default : α)` and produces a panic error message. -/
-def min! {α} [Inhabited α] [Min α] (xs : List α) : α :=
+@[expose] def min! {α} [Inhabited α] [Min α] (xs : List α) : α :=
   match xs.min? with
   | none => panic! "List.min! called on empty list"
   | some x => x
@@ -32,20 +31,20 @@ Computes the "bag intersection" of `l₁` and `l₂`, that is,
 the collection of elements of `l₁` which are also in `l₂`. As each element
 is identified, it is removed from `l₂`, so elements are counted with multiplicity.
 -/
-protected def bagInter {α} [BEq α] : List α → List α → List α
+@[expose] protected def bagInter {α} [BEq α] : List α → List α → List α
   | [], _ => []
   | _, [] => []
   | a :: l₁, l₂ => if l₂.elem a then a :: List.bagInter l₁ (l₂.erase a) else List.bagInter l₁ l₂
 
 /-- Computes the difference of `l₁` and `l₂`, by removing each element in `l₂` from `l₁`. -/
-protected def diff {α} [BEq α] : List α → List α → List α
+@[expose] protected def diff {α} [BEq α] : List α → List α → List α
   | l, [] => l
   | l₁, a :: l₂ => if l₁.elem a then List.diff (l₁.erase a) l₂ else List.diff l₁ l₂
 
 open Option Nat
 
 /-- Get the head and tail of a list, if it is nonempty. -/
-@[inline] def next? : List α → Option (α × List α)
+@[expose, inline] def next? : List α → Option (α × List α)
   | [] => none
   | a :: l => some (a, l)
 
@@ -62,7 +61,7 @@ drop_while (· != 1) [0, 1, 2, 3] = [1, 2, 3]
   | x :: xs => bif p x then xs else after p xs
 
 /-- Replaces the first element of the list for which `f` returns `some` with the returned value. -/
-@[simp] def replaceF (f : α → Option α) : List α → List α
+@[expose, simp] def replaceF (f : α → Option α) : List α → List α
   | [] => []
   | x :: xs => match f x with
     | none => x :: replaceF f xs
@@ -91,7 +90,7 @@ Constructs the union of two lists, by inserting the elements of `l₁` in revers
 As a result, `l₂` will always be a suffix, but only the last occurrence of each element in `l₁`
 will be retained (but order will otherwise be preserved).
 -/
-@[inline] protected def union [BEq α] (l₁ l₂ : List α) : List α := foldr .insert l₂ l₁
+@[expose, inline] protected def union [BEq α] (l₁ l₂ : List α) : List α := foldr .insert l₂ l₁
 
 instance [BEq α] : Union (List α) := ⟨List.union⟩
 
@@ -99,7 +98,7 @@ instance [BEq α] : Union (List α) := ⟨List.union⟩
 Constructs the intersection of two lists, by filtering the elements of `l₁` that are in `l₂`.
 Unlike `bagInter` this does not preserve multiplicity: `[1, 1].inter [1]` is `[1, 1]`.
 -/
-@[inline] protected def inter [BEq α] (l₁ l₂ : List α) : List α := filter (elem · l₂) l₁
+@[expose, inline] protected def inter [BEq α] (l₁ l₂ : List α) : List α := filter (elem · l₂) l₁
 
 instance [BEq α] : Inter (List α) := ⟨List.inter⟩
 
@@ -120,7 +119,7 @@ def splitAtD (n : Nat) (l : List α) (dflt : α) : List α × List α := go n l 
   | n, [], acc => (acc.reverseAux (replicate n dflt), [])
 
 /-- Apply `f` to the last element of `l`, if it exists. -/
-@[inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
+@[expose, inline] def modifyLast (f : α → α) (l : List α) : List α := go l #[] where
   /-- Auxiliary for `modifyLast`: `modifyLast.go f l acc = acc.toList ++ modifyLast f l`. -/
   @[specialize] go : List α → Array α → List α
   | [], _ => []
@@ -133,7 +132,7 @@ theorem headD_eq_head? (l) (a : α) : headD l a = (head? l).getD a := by cases l
 Take `n` elements from a list `l`. If `l` has less than `n` elements, append `n - length l`
 elements `x`.
 -/
-def takeD : Nat → List α → α → List α
+@[expose] def takeD : Nat → List α → α → List α
   | 0, _, _ => []
   | n+1, l, x => l.headD x :: takeD n l.tail x
 
@@ -145,7 +144,7 @@ def takeD : Nat → List α → α → List α
   induction n <;> simp [*, replicate_succ]
 
 /-- Tail-recursive version of `takeD`. -/
-def takeDTR (n : Nat) (l : List α) (dflt : α) : List α := go n l #[] where
+@[expose] def takeDTR (n : Nat) (l : List α) (dflt : α) : List α := go n l #[] where
   /-- Auxiliary for `takeDTR`: `takeDTR.go dflt n l acc = acc.toList ++ takeD n l dflt`. -/
   go : Nat → List α → Array α → List α
   | n+1, x :: xs, acc => go n xs (acc.push x)
@@ -177,7 +176,7 @@ also receives each element's index added to an optional parameter `start`
 (i.e. the numbers that `f` takes as its first argument will be greater than or equal to `start` and
 less than `start + l.length`).
 -/
-@[specialize] def foldlIdx (f : Nat → α → β → α) (init : α) :
+@[expose, specialize] def foldlIdx (f : Nat → α → β → α) (init : α) :
     List β → (start : Nat := 0) → α
   | [], _ => init
   | b :: l, s => foldlIdx f (f s init b) l (s + 1)
@@ -188,7 +187,7 @@ also receives each element's index added to an optional parameter `start`
 (i.e. the numbers that `f` takes as its first argument will be greater than or equal to `start` and
 less than `start + l.length`).
 -/
-def foldrIdx {α : Type u} {β : Type v} (f : Nat → α → β → β) (init : β) :
+@[expose] def foldrIdx {α : Type u} {β : Type v} (f : Nat → α → β → β) (init : β) :
     (l : List α) → (start : Nat := 0) → β
   | [], _ => init
   | a :: l, s => f s a (foldrIdx f init l (s + 1))
@@ -206,7 +205,7 @@ def foldrIdx {α : Type u} {β : Type v} (f : Nat → α → β → β) (init : 
 /-- `findIdxs p l s` is the list of indexes of elements of `l` that satisfy `p`, added to an
 optional parameter `s` (so that the members of `findIdxs p l s` will be greater than or
 equal to `s` and less than `l.length + s`).  -/
-@[inline] def findIdxs (p : α → Bool) (l : List α) (start : Nat := 0) : List Nat :=
+@[expose, inline] def findIdxs (p : α → Bool) (l : List α) (start : Nat := 0) : List Nat :=
   foldrIdx (fun i a is => bif p a then i :: is else is) [] l start
 
 /--
@@ -214,7 +213,8 @@ Returns the elements of `l` that satisfy `p` together with their indexes in
 `l` added to an optional parameter `start`. The returned list is ordered by index.
 We have `l.findIdxsValues p s = (l.findIdxs p s).zip (l.filter p)`.
 -/
-@[inline] def findIdxsValues (p : α → Bool) (l : List α) (start : Nat := 0) : List (Nat × α) :=
+@[expose, inline]
+def findIdxsValues (p : α → Bool) (l : List α) (start : Nat := 0) : List (Nat × α) :=
   foldrIdx (fun i a l => if p a then (i, a) :: l else l) [] l start
 
 /-- `findIdxNth p xs n` returns the index of the `n`th element for which `p` returns `true`.
@@ -223,7 +223,7 @@ For example:
 findIdxNth (· < 3) [5, 1, 3, 2, 4, 0, 1, 4] 2 = 5
 ```
 -/
-@[inline] def findIdxNth (p : α → Bool) (xs : List α) (n : Nat) : Nat := go xs n 0 where
+@[expose, inline] def findIdxNth (p : α → Bool) (xs : List α) (n : Nat) : Nat := go xs n 0 where
   /-- Auxiliary for `findIdxNth`: `findIdxNth.go p l n acc = findIdxNth p l n + acc`. -/
   @[specialize] go : (xs : List α) → (n : Nat) → (s : Nat) → Nat
   | [], _, s => s
@@ -238,7 +238,7 @@ idxsOf b [a, b, a, a] = [1]
 idxsOf a [a, b, a, a] 5 = [5, 7, 8]
 ```
 -/
-@[inline] def idxsOf [BEq α] (a : α) (xs : List α) (start : Nat := 0) : List Nat :=
+@[expose, inline] def idxsOf [BEq α] (a : α) (xs : List α) (start : Nat := 0) : List Nat :=
   xs.findIdxs (· == a) start
 
 /-- `idxOfNth a xs n` returns the index of the `n`th instance of `a` in `xs`, counting from `0`.
@@ -248,7 +248,7 @@ For example:
 idxOfNth 1 [5, 1, 3, 2, 4, 0, 1, 4] 1 = 6
 ```
 -/
-def idxOfNth [BEq α] (a : α) (xs : List α) (n : Nat) : Nat :=
+@[expose] def idxOfNth [BEq α] (a : α) (xs : List α) (n : Nat) : Nat :=
   xs.findIdxNth (· == a) n
 
 /-- `countPBefore p xs i hip` counts the number of `x` in `xs` before the `i`th index for
@@ -259,7 +259,7 @@ For example:
 countPBefore (· < 3) [5, 1, 3, 2, 4, 0, 1, 4] 5 = 2
 ```
 -/
-def countPBefore (p : α → Bool) (xs : List α) (i : Nat) : Nat := go xs i 0 where
+@[expose] def countPBefore (p : α → Bool) (xs : List α) (i : Nat) : Nat := go xs i 0 where
   /-- Auxiliary for `countPBefore`: `countPBefore.go p l i acc = countPBefore p l i + acc`. -/
   @[specialize] go : (xs : List α) → (i : Nat) → (s : Nat) → Nat
   | _ :: _, 0, s => s
@@ -274,7 +274,7 @@ For example:
 countBefore 1 [5, 1, 3, 2, 4, 0, 1, 4] 6 = 1
 ```
 -/
-def countBefore [BEq α] (a : α) : List α → Nat → Nat :=
+@[expose] def countBefore [BEq α] (a : α) : List α → Nat → Nat :=
   countPBefore (· == a)
 
 /--
@@ -282,7 +282,7 @@ def countBefore [BEq α] (a : α) : List α → Nat → Nat :=
 `lookmap f l` will apply `f : α → Option α` to each element of the list,
 replacing `a → b` at the first value `a` in the list such that `f a = some b`.
 -/
-@[inline] def lookmap (f : α → Option α) (l : List α) : List α := go l #[] where
+@[expose, inline] def lookmap (f : α → Option α) (l : List α) : List α := go l #[] where
   /-- Auxiliary for `lookmap`: `lookmap.go f l acc = acc.toList ++ lookmap f l`. -/
   @[specialize] go : List α → Array α → List α
   | [], acc => acc.toList
@@ -296,7 +296,7 @@ replacing `a → b` at the first value `a` in the list such that `f a = some b`.
 inits [1, 2, 3] = [[], [1], [1, 2], [1, 2, 3]]
 ```
 -/
-@[simp] def inits : List α → List (List α)
+@[expose, simp] def inits : List α → List (List α)
   | [] => [[]]
   | a :: l => [] :: map (fun t => a :: t) (inits l)
 
@@ -313,7 +313,7 @@ def initsTR (l : List α) : List (List α) :=
 tails [1, 2, 3] = [[1, 2, 3], [2, 3], [3], []]
 ```
 -/
-@[simp] def tails : List α → List (List α)
+@[expose, simp] def tails : List α → List (List α)
   | [] => [[]]
   | a :: l => (a :: l) :: tails l
 
@@ -340,7 +340,7 @@ It differs from `sublists` only in the order of appearance of the sublists;
 sublists' [1, 2, 3] = [[], [3], [2], [2, 3], [1], [1, 3], [1, 2], [1, 2, 3]]
 ```
 -/
-def sublists' (l : List α) : List (List α) :=
+@[expose] def sublists' (l : List α) : List (List α) :=
   let f a arr := arr.foldl (init := arr) fun r l => r.push (a :: l)
   (l.foldr f #[[]]).toList
 
@@ -351,7 +351,7 @@ for a different ordering.
 sublists [1, 2, 3] = [[], [1], [2], [1, 2], [3], [1, 3], [2, 3], [1, 2, 3]]
 ```
 -/
-def sublists (l : List α) : List (List α) :=
+@[expose] def sublists (l : List α) : List (List α) :=
   l.foldr (fun a acc => acc.flatMap fun x => [x, a :: x]) [[]]
 
 /-- A version of `List.sublists` that has faster runtime performance but worse kernel performance -/
@@ -447,7 +447,7 @@ List of all sections through a list of lists. A section
 of `[L₁, L₂, ..., Lₙ]` is a list whose first element comes from
 `L₁`, whose second element comes from `L₂`, and so on.
 -/
-@[simp] def sections : List (List α) → List (List α)
+@[expose, simp] def sections : List (List α) → List (List α)
   | [] => [[]]
   | l :: L => (sections L).flatMap fun s => l.map fun a => a :: s
 
@@ -480,7 +480,7 @@ theorem sections_eq_nil_of_isEmpty : ∀ {L}, L.any isEmpty → @sections α L =
 `extractP p l` returns a pair of an element `a` of `l` satisfying the predicate
 `p`, and `l`, with `a` removed. If there is no such element `a` it returns `(none, l)`.
 -/
-def extractP (p : α → Bool) (l : List α) : Option α × List α := go l #[] where
+@[expose] def extractP (p : α → Bool) (l : List α) : Option α × List α := go l #[] where
   /-- Auxiliary for `extractP`:
   `extractP.go p l xs acc = (some a, acc.toList ++ out)` if `extractP p xs = (some a, out)`,
   and `extractP.go p l xs acc = (none, l)` if `extractP p xs = (none, _)`. -/
@@ -495,7 +495,7 @@ with the elements of `l` in reverse order.
 revzip [1, 2, 3, 4, 5] = [(1, 5), (2, 4), (3, 3), (4, 2), (5, 1)]
 ```
 -/
-def revzip (l : List α) : List (α × α) := zip l l.reverse
+@[expose] def revzip (l : List α) : List (α × α) := zip l l.reverse
 
 /--
 `product l₁ l₂` is the list of pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂`.
@@ -503,6 +503,7 @@ def revzip (l : List α) : List (α × α) := zip l l.reverse
 product [1, 2] [5, 6] = [(1, 5), (1, 6), (2, 5), (2, 6)]
 ```
 -/
+@[expose]
 def product (l₁ : List α) (l₂ : List β) : List (α × β) := l₁.flatMap fun a => l₂.map (Prod.mk a)
 
 /-- Optimized version of `product`. -/
@@ -518,6 +519,7 @@ def productTR (l₁ : List α) (l₂ : List β) : List (α × β) :=
 ```
 sigma [1, 2] (λ_, [(5 : Nat), 6]) = [(1, 5), (1, 6), (2, 5), (2, 6)]
 ``` -/
+@[expose]
 protected def sigma {σ : α → Type _} (l₁ : List α) (l₂ : ∀ a, List (σ a)) : List (Σ a, σ a) :=
   l₁.flatMap fun a => (l₂ a).map (Sigma.mk a)
 
@@ -535,7 +537,7 @@ def ofFnNthVal {n} (f : Fin n → α) (i : Nat) : Option α :=
   if h : i < n then some (f ⟨i, h⟩) else none
 
 /-- `Disjoint l₁ l₂` means that `l₁` and `l₂` have no elements in common. -/
-def Disjoint (l₁ l₂ : List α) : Prop :=
+@[expose] def Disjoint (l₁ l₂ : List α) : Prop :=
   ∀ ⦃a⦄, a ∈ l₁ → a ∈ l₂ → False
 
 /--
@@ -544,7 +546,7 @@ Returns the longest initial prefix of two lists such that they are pairwise rela
 takeWhile₂ (· < ·) [1, 2, 4, 5] [5, 4, 3, 6] = ([1, 2], [5, 4])
 ```
 -/
-def takeWhile₂ (R : α → β → Bool) : List α → List β → List α × List β
+@[expose] def takeWhile₂ (R : α → β → Bool) : List α → List β → List α × List β
   | a::as, b::bs => if R a b then
       let (as', bs') := takeWhile₂ R as bs
       (a::as', b::bs')
@@ -579,7 +581,7 @@ a maximal increasing subsequence in `l`. For example,
 pwFilter (·<·) [0, 1, 5, 2, 6, 3, 4] = [0, 1, 2, 3, 4]
 ```
 -/
-def pwFilter (R : α → α → Prop) [DecidableRel R] (l : List α) : List α :=
+@[expose] def pwFilter (R : α → α → Prop) [DecidableRel R] (l : List α) : List α :=
   l.foldr (fun x IH => if ∀ y ∈ IH, R x y then x :: IH else IH) []
 
 /--
@@ -620,12 +622,12 @@ abbrev eraseDup [BEq α] : List α → List α := pwFilter (· != ·)
 rotate [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1]
 ```
 -/
-@[inline] def rotate (l : List α) (n : Nat) : List α :=
+@[expose, inline] def rotate (l : List α) (n : Nat) : List α :=
   let (l₁, l₂) := List.splitAt (n % l.length) l
   l₂ ++ l₁
 
 /-- `rotate'` is the same as `rotate`, but slower. Used for proofs about `rotate` -/
-@[simp] def rotate' : List α → Nat → List α
+@[expose, simp] def rotate' : List α → Nat → List α
   | [], _ => []
   | l, 0 => l
   | a :: l, n+1 => rotate' (l ++ [a]) n
@@ -656,7 +658,7 @@ for each `e'` that appears after `e` in `l`.
 forDiagM f [1, 2, 3] = do f 1 1; f 1 2; f 1 3; f 2 2; f 2 3; f 3 3
 ```
 -/
-@[simp] def forDiagM [Monad m] (f : α → α → m PUnit) : List α → m PUnit
+@[expose, simp] def forDiagM [Monad m] (f : α → α → m PUnit) : List α → m PUnit
   | [] => pure ⟨⟩
   | x :: xs => do f x x; xs.forM (f x); xs.forDiagM f
 
@@ -668,7 +670,7 @@ def getRest [DecidableEq α] : List α → List α → Option (List α)
   | x :: l, y :: l₁ => if x = y then getRest l l₁ else none
 
 /-- `List.dropSlice n m xs` removes a slice of length `m` at index `n` in list `xs`. -/
-@[simp] def dropSlice : Nat → Nat → List α → List α
+@[expose, simp] def dropSlice : Nat → Nat → List α → List α
   | _, _, [] => []
   | 0, m, xs => xs.drop m
   | n+1, m, x :: xs => x :: dropSlice n m xs
@@ -711,7 +713,7 @@ zipWithLeft' prod.mk [1, 2] ['a'] = ([(1, some 'a'), (2, none)], [])
 zipWithLeft' prod.mk [1] ['a', 'b'] = ([(1, some 'a')], ['b'])
 ```
 -/
-@[simp] def zipWithLeft' (f : α → Option β → γ) : List α → List β → List γ × List β
+@[expose, simp] def zipWithLeft' (f : α → Option β → γ) : List α → List β → List γ × List β
   | [], bs => ([], bs)
   | a :: as, [] => ((a :: as).map fun a => f a none, [])
   | a :: as, b :: bs => let r := zipWithLeft' f as bs; (f a (some b) :: r.1, r.2)
@@ -744,7 +746,8 @@ zipWithRight' prod.mk [1] ['a', 'b'] = ([(some 1, 'a'), (none, 'b')], [])
 zipWithRight' prod.mk [1, 2] ['a'] = ([(some 1, 'a')], [2])
 ```
 -/
-@[inline] def zipWithRight' (f : Option α → β → γ) (as : List α) (bs : List β) : List γ × List α :=
+@[expose, inline]
+def zipWithRight' (f : Option α → β → γ) (as : List α) (bs : List β) : List γ × List α :=
   zipWithLeft' (flip f) bs as
 
 /--
@@ -757,7 +760,8 @@ zipLeft' [1] ['a', 'b'] = ([(1, some 'a')], ['b'])
 zipLeft' = zipWithLeft' prod.mk
 ```
 -/
-@[inline] def zipLeft' : List α → List β → List (α × Option β) × List β := zipWithLeft' Prod.mk
+@[expose, inline]
+def zipLeft' : List α → List β → List (α × Option β) × List β := zipWithLeft' Prod.mk
 
 /--
 Right-biased version of `List.zip`. `zipRight' as bs` returns the list of
@@ -769,7 +773,8 @@ zipRight' [1, 2] ['a'] = ([(some 1, 'a')], [2])
 zipRight' = zipWithRight' prod.mk
 ```
 -/
-@[inline] def zipRight' : List α → List β → List (Option α × β) × List α := zipWithRight' Prod.mk
+@[expose, inline]
+def zipRight' : List α → List β → List (Option α × β) × List α := zipWithRight' Prod.mk
 
 /--
 Left-biased version of `List.zipWith`. `zipWithLeft f as bs` applies `f` to each pair
@@ -781,7 +786,7 @@ zipWithLeft prod.mk [1] ['a', 'b'] = [(1, some 'a')]
 zipWithLeft f as bs = (zipWithLeft' f as bs).fst
 ```
 -/
-@[simp] def zipWithLeft (f : α → Option β → γ) : List α → List β → List γ
+@[expose, simp] def zipWithLeft (f : α → Option β → γ) : List α → List β → List γ
   | [], _ => []
   | a :: as, [] => (a :: as).map fun a => f a none
   | a :: as, b :: bs => f a (some b) :: zipWithLeft f as bs
@@ -813,7 +818,7 @@ zipWithRight prod.mk [1] ['a', 'b'] = [(some 1, 'a'), (none, 'b')]
 zipWithRight f as bs = (zipWithRight' f as bs).fst
 ```
 -/
-@[inline] def zipWithRight (f : Option α → β → γ) (as : List α) (bs : List β) : List γ :=
+@[expose, inline] def zipWithRight (f : Option α → β → γ) (as : List α) (bs : List β) : List γ :=
   zipWithLeft (flip f) bs as
 
 /--
@@ -826,7 +831,7 @@ zipLeft [1] ['a', 'b'] = [(1, some 'a')]
 zipLeft = zipWithLeft prod.mk
 ```
 -/
-@[inline] def zipLeft : List α → List β → List (α × Option β) := zipWithLeft Prod.mk
+@[expose, inline] def zipLeft : List α → List β → List (α × Option β) := zipWithLeft Prod.mk
 
 /--
 Right-biased version of `List.zip`. `zipRight as bs` returns the list of pairs
@@ -838,7 +843,7 @@ zipRight [1] ['a', 'b'] = [(some 1, 'a'), (none, 'b')]
 zipRight = zipWithRight prod.mk
 ```
 -/
-@[inline] def zipRight : List α → List β → List (Option α × β) := zipWithRight Prod.mk
+@[expose, inline] def zipRight : List α → List β → List (Option α × β) := zipWithRight Prod.mk
 
 /--
 If all elements of `xs` are `some xᵢ`, `allSome xs` returns the `xᵢ`. Otherwise
@@ -982,7 +987,7 @@ def mapWithComplement {α β} (f : α → List α → β) : List α → List β 
 Map each element of a `List` to an action, evaluate these actions in order,
 and collect the results.
 -/
-protected def traverse [Applicative F] (f : α → F β) : List α → F (List β)
+@[expose] protected def traverse [Applicative F] (f : α → F β) : List α → F (List β)
   | [] => pure []
   | x :: xs => List.cons <$> f x <*> List.traverse f xs
 
@@ -991,7 +996,7 @@ protected def traverse [Applicative F] (f : α → F β) : List α → F (List �
 a permutation of `l₂`. This is an analogue of `l₁ ⊆ l₂` which respects
 multiplicities of elements, and is used for the `≤` relation on multisets.
 -/
-def Subperm (l₁ l₂ : List α) : Prop := ∃ l, l ~ l₁ ∧ l <+ l₂
+@[expose] def Subperm (l₁ l₂ : List α) : Prop := ∃ l, l ~ l₁ ∧ l <+ l₂
 
 @[inherit_doc] scoped infixl:50 " <+~ " => Subperm
 
@@ -999,13 +1004,13 @@ def Subperm (l₁ l₂ : List α) : Prop := ∃ l, l ~ l₁ ∧ l <+ l₂
 `O(|l₁| * (|l₁| + |l₂|))`. Computes whether `l₁` is a sublist of a permutation of `l₂`.
 See `isSubperm_iff` for a characterization in terms of `List.Subperm`.
 -/
-def isSubperm [BEq α] (l₁ l₂ : List α) : Bool := ∀ x ∈ l₁, count x l₁ ≤ count x l₂
+@[expose] def isSubperm [BEq α] (l₁ l₂ : List α) : Bool := ∀ x ∈ l₁, count x l₁ ≤ count x l₂
 
 /--
 `O(|l|)`. Inserts `a` in `l` right before the first element such that `p` is true, or at the end of
 the list if `p` always false on `l`.
 -/
-def insertP (p : α → Bool) (a : α) (l : List α) : List α :=
+@[expose] def insertP (p : α → Bool) (a : α) (l : List α) : List α :=
   loop l []
 where
   /-- Inner loop for `insertP`. Tail recursive. -/
@@ -1016,7 +1021,7 @@ where
 /-- `dropPrefix? l p` returns
 `some r` if `l = p' ++ r` for some `p'` which is paiwise `==` to `p`,
 and `none` otherwise. -/
-def dropPrefix? [BEq α] : List α → List α → Option (List α)
+@[expose] def dropPrefix? [BEq α] : List α → List α → Option (List α)
   | list, [] => some list
   | [], _ :: _ => none
   | a :: as, b :: bs => if a == b then dropPrefix? as bs else none
@@ -1024,7 +1029,7 @@ def dropPrefix? [BEq α] : List α → List α → Option (List α)
 /-- `dropSuffix? l s` returns
 `some r` if `l = r ++ s'` for some `s'` which is paiwise `==` to `s`,
 and `none` otherwise. -/
-def dropSuffix? [BEq α] (l s : List α) : Option (List α) :=
+@[expose] def dropSuffix? [BEq α] (l s : List α) : Option (List α) :=
   let (r, s') := l.splitAt (l.length - s.length)
   if s' == s then some r else none
 
@@ -1035,7 +1040,7 @@ and `none` otherwise.
 Note that this is an inefficient implementation, and if computation time is a concern you should be
 using the Knuth-Morris-Pratt algorithm as implemented in `Batteries.Data.List.Matcher`.
 -/
-def dropInfix? [BEq α] (l i : List α) : Option (List α × List α) :=
+@[expose] def dropInfix? [BEq α] (l i : List α) : Option (List α × List α) :=
   go l []
 where
   /-- Inner loop for `dropInfix?`. -/
@@ -1053,7 +1058,7 @@ Examples:
 `[a, b, c].partialSums = [0, 0 + a, (0 + a) + b, ((0 + a) + b) + c]`
 `[1, 2, 3].partialSums = [0, 1, 3, 6]`
 -/
-def partialSums [Add α] [Zero α] (l : List α) : List α :=
+@[expose] def partialSums [Add α] [Zero α] (l : List α) : List α :=
   l.scanl (· + ·) 0
 
 /--
@@ -1064,12 +1069,12 @@ Examples:
 `[a, b, c].partialProds = [1, 1 * a, (1 * a) * b, ((1 * a) * b) * c]`
 `[2, 3, 5].partialProds = [1, 2, 6, 30]`
 -/
-def partialProds [Mul α] [One α] (l : List α) : List α :=
+@[expose] def partialProds [Mul α] [One α] (l : List α) : List α :=
   l.scanl (· * ·) 1
 
 /-- `swapAt xs i v` sets position `i` of `xs` to `v` and returns the displaced
 element, or `v` itself (with `xs` unchanged) if `i` is out of bounds. -/
-def swapAt (xs : List α) (i : Nat) (v : α) : α × List α := (xs[i]?.getD v, xs.set i v)
+@[expose] def swapAt (xs : List α) (i : Nat) (v : α) : α × List α := (xs[i]?.getD v, xs.set i v)
 
 /-- Tail-recursive version of `swapAt`. -/
 @[inline] def swapAtTR (l : List α) (i : Nat) (v : α) : α × List α := go l i #[] where
@@ -1089,7 +1094,7 @@ def swapAt (xs : List α) (i : Nat) (v : α) : α × List α := (xs[i]?.getD v, 
 
 /-- `l.swap i j` exchanges the elements at positions `i` and `j` of `l`.
 If either index is out of bounds, `l` is returned unchanged. -/
-def swap : List α → Nat → Nat → List α
+@[expose] def swap : List α → Nat → Nat → List α
   | [], _, _ => [] | a :: xs, 0, 0 => a :: xs
   | a :: xs, 0, i + 1 | a :: xs, i + 1, 0 => xs[i]?.getD a :: xs.set i a
   | a :: xs, i + 1, j + 1 => a :: swap xs i j

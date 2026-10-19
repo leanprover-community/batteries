@@ -5,9 +5,9 @@ Authors: Leonardo de Moura, Jeremy Avigad, Floris van Doorn, Mario Carneiro
 -/
 module
 
-public import Batteries.Tactic.Alias
+import Batteries.Tactic.Alias
 
-@[expose] public section
+public section
 
 instance {f : α → β} [DecidablePred p] : DecidablePred (p ∘ f) :=
   inferInstanceAs <| DecidablePred fun x => p (f x)

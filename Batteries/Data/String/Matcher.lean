@@ -8,7 +8,7 @@ module
 public import Batteries.Data.Array.Match
 public import Batteries.Data.String.Basic
 
-@[expose] public section
+public section
 
 namespace String
 

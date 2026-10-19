@@ -7,7 +7,7 @@ module
 
 public import Std.Data.HashMap.Basic
 
-@[expose] public section
+public section
 namespace Std.HashMap
 
 variable [BEq α] [Hashable α]

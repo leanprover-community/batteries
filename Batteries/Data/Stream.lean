@@ -5,12 +5,12 @@ Authors: François G. Dorais
 -/
 module
 
-@[expose] public section
+public section
 
 namespace Std.Stream
 
 /-- Drop up to `n` values from the stream `s`. -/
-def drop [Stream σ α] (s : σ) : Nat → σ
+@[expose] def drop [Stream σ α] (s : σ) : Nat → σ
   | 0 => s
   | n+1 =>
     match next? s with
@@ -18,7 +18,7 @@ def drop [Stream σ α] (s : σ) : Nat → σ
     | some (_, s) => drop s n
 
 /-- Read up to `n` values from the stream `s` as a list from first to last. -/
-def take [Stream σ α] (s : σ) : Nat → List α × σ
+@[expose] def take [Stream σ α] (s : σ) : Nat → List α × σ
   | 0 => ([], s)
   | n+1 =>
     match next? s with
@@ -45,7 +45,7 @@ theorem fst_take_succ [Stream σ α] (s : σ) :
     split <;> simp [ih]
 
 /-- Tail recursive version of `Stream.take`. -/
-def takeTR [Stream σ α] (s : σ) (n : Nat) : List α × σ :=
+@[expose] def takeTR [Stream σ α] (s : σ) (n : Nat) : List α × σ :=
   loop s [] n
 where
   /-- Inner loop for `Stream.takeTR`. -/

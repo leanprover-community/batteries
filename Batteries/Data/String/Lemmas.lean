@@ -6,8 +6,7 @@ Authors: Bulhwi Cha, Mario Carneiro
 module
 
 public import Batteries.Data.String.Basic
-public import Batteries.Tactic.Lint.Misc
-public import Batteries.Tactic.SeqFocus
+import Batteries.Tactic.Lint.Misc
 public import Batteries.Classes.Order
 public import Batteries.Data.List.Basic
 public import Batteries.Data.String.Legacy
@@ -20,23 +19,20 @@ import all Init.Data.String.Modify  -- for unfolding `String.mapAux`
 import all Init.Data.Ord.String  -- for unfolding `String.compare`
 import all Batteries.Data.String.Legacy -- for unfolding `String.Legacy.map`
 import all Init.Data.String.Legacy -- for unfolding `String.splitOnAux`
+import Batteries.Tactic.SeqFocus
 
-@[expose] public section
+public section
 
 set_option linter.deprecated false
 
 namespace String
 
--- TODO(kmill): add `@[ext]` attribute to `String.ext` in core.
-attribute [ext (iff := false)] ext
-
 theorem lt_antisymm {s₁ s₂ : String} (h₁ : ¬s₁ < s₂) (h₂ : ¬s₂ < s₁) : s₁ = s₂ := by
-  simp at h₁ h₂
+  simp [Std.not_lt] at h₁ h₂
   exact String.le_antisymm h₂ h₁
 
-instance : Std.LawfulLTOrd String :=
-  .compareOfLessAndEq_of_irrefl_of_trans_of_antisymm
-    String.lt_irrefl String.lt_trans String.lt_antisymm
+instance : Std.LawfulLTOrd String where
+  eq_lt_iff_lt := Std.compare_eq_lt
 
 theorem Pos.Raw.offsetBy_eq {p q : Pos.Raw} : p.offsetBy q = ⟨q.byteIdx + p.byteIdx⟩ := by
   ext
@@ -52,7 +48,7 @@ private theorem ne_self_add_add_utf8Size : i ≠ i + (n + Char.utf8Size c) :=
   Nat.ne_of_lt (Nat.lt_add_of_pos_right add_utf8Size_pos)
 
 /-- The UTF-8 byte length of a list of characters. (This is intended for specification purposes.) -/
-@[inline] def utf8Len : List Char → Nat
+@[expose, inline] def utf8Len : List Char → Nat
   | []    => 0
   | c::cs => utf8Len cs + c.utf8Size
 
