@@ -1,4 +1,4 @@
-import Batteries.Tactic.Lint
+import Batteries.Linter
 
 /-!
 This test file runs the environment linters set up in Batteries on the core Lean4 repository.

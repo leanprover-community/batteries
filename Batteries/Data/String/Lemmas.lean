@@ -6,7 +6,7 @@ Authors: Bulhwi Cha, Mario Carneiro
 module
 
 public import Batteries.Data.String.Basic
-import Batteries.Tactic.Lint.Misc
+import Batteries.Linter.Misc
 public import Batteries.Classes.Order
 public import Batteries.Data.List.Basic
 public import Batteries.Data.String.Legacy

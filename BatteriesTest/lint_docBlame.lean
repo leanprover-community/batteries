@@ -1,6 +1,6 @@
 module
 
-import Batteries.Tactic.Lint
+import Batteries.Linter
 
 set_option linter.missingDocs false
 
