@@ -129,6 +129,9 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
   of an iff theorem. Use `_` if only one direction is required.
 
   These commands accept all modifiers and attributes that `def` and `theorem` do.
+
+  If the target has no executable code — for example because it is `noncomputable`, possibly via an
+  enclosing `noncomputable section` — the alias is silently marked `noncomputable` as well.
  -/
 elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:ident : command => do
   Lean.withExporting (isExporting := (← Command.getScope).isPublic) do
