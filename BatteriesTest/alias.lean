@@ -179,14 +179,14 @@ instead of
 
 Note: The updated constant is in a different namespace. Dot notation may need to be changed (e.g., from `x.mpId` to `Iff.rfl x`).
 ---
-warning: `A.mprId'` has been deprecated: Use `Iff.rfl` instead
+warning: `A.mprId` has been deprecated: Use `Iff.rfl` instead
 
 Note: The updated constant has a different type:
   ∀ {a : Prop}, a ↔ a
 instead of
   ∀ {a : Prop}, a → a
 
-Note: The updated constant is in a different namespace. Dot notation may need to be changed (e.g., from `x.mprId'` to `Iff.rfl x`).
+Note: The updated constant is in a different namespace. Dot notation may need to be changed (e.g., from `x.mprId` to `Iff.rfl x`).
 -/
 #guard_msgs in example := And.intro @mpId @mprId
 
