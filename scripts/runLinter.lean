@@ -47,8 +47,8 @@ structure LinterConfig where
   /-- Whether to enable tracing. Default is `false`; set to `true` with `--trace` or `-v`. -/
   trace := false
   /-- If set (with `--only-modules=FILE`), a file listing module names, one per line. Local linters
-  (`Linter.isLocal`) then lint only the declarations defined in those modules; the other linters
-  still lint everything. -/
+  (`Linter.isLocal`) then lint only the declarations defined in those modules. The other linters
+  lint everything, except when `--baseline-global-fingerprint` matches. -/
   onlyModules : Option System.FilePath := none
   /-- If set (with `--write-global-fingerprint=FILE`), write the global-input fingerprint of the
   imported environment to `FILE` before linting. -/
@@ -119,12 +119,16 @@ def determineModulesToLint (specifiedModules : List Name) : IO (Array Name) := d
 /-!
 ## Global-input fingerprint
 
-The lint verdict of a declaration depends on its own module and the modules that it imports, and on
-global tables that any module can extend: the `simp` set, the instances, and the other tables below.
-Every module that imports a changed module is changed too. So when every global table is unchanged,
-the verdicts of the declarations in unchanged modules are unchanged, and all linters can be
-restricted to the changed modules. The fingerprint hashes each global table over all imported
-modules, in import order. A linter that reads another global table must add that table here.
+The lint verdict of a declaration depends on its own module and its import closure, on the code of
+the linters, and on global tables that any module can extend: the `simp` set, the instances, and
+the other tables below. Every module whose import closure contains a changed module is changed too.
+So when every global table and the linter code are unchanged, the verdicts of the declarations in
+unchanged modules are unchanged, and all linters can be restricted to the changed modules. The
+fingerprint hashes each global table over all imported modules, in import order, including the
+lookup keys of the `simp` and instance entries. It holds only the names of the linters, not their
+code. Definition values outside these tables are not hashed: `simpNF` can unfold a definition of a
+changed module only after a rewrite or an instance from the tables brings it into a term. A linter
+that reads another global table must add that table here.
 -/
 
 open Meta
@@ -189,6 +193,25 @@ def digestEntries [Inhabited σ] (env : Environment) (ext : PersistentEnvExtensi
       d := d.push (f e)
   return d
 
+/-- Hashes `f e` for every exported entry `e` of `ext` for which `f e` is not `none`, over all
+imported modules in import order. -/
+def digestSomeEntries [Inhabited σ] (env : Environment) (ext : PersistentEnvExtension α β σ)
+    (f : α → Option UInt64) : TableDigest := Id.run do
+  let mut d : TableDigest := {}
+  for i in [:env.header.moduleNames.size] do
+    for e in ext.getModuleEntries env i do
+      if let some h := f e then d := d.push h
+  return d
+
+/-- Hashes a parser of the `tactic` category: its declaration, priority and parser value. -/
+def tacticParserHash (env : Environment) :
+    ScopedEnvExtension.Entry Parser.ParserExtension.OLeanEntry → Option UInt64
+  | .global (.parser `tactic declName prio) =>
+    some (mixAll [0, hash declName, hash prio, valueHash env declName])
+  | .scoped ns (.parser `tactic declName prio) =>
+    some (mixAll [hash ns, hash declName, hash prio, valueHash env declName])
+  | _ => none
+
 /-- Hashes an entry of a scoped extension, including the namespace of a scoped entry. -/
 def scopedEntryHash (f : α → UInt64) : ScopedEnvExtension.Entry α → UInt64
   | .global a => mixHash 0 (f a)
@@ -201,7 +224,7 @@ def simpEntryHash (env : Environment) : SimpEntry → UInt64
       | .decl n .. => typeHash env n
       | _ => t.proof.hash
     mixAll [1, hash t.origin, hash t.priority, hash t.post, hash t.perm, hash t.rfl,
-      hash t.backwardRfl, stmt]
+      hash t.backwardRfl, hash t.keys, stmt]
   | .toUnfold n => mixAll [2, hash n, valueHash env n]
   | .toUnfoldThms n thms => mixAll [3, hash n, valueHash env n, hash thms]
 
@@ -226,7 +249,7 @@ def globalFingerprint (linters : Array NamedLinter) (nolints : String) :
         typeHash env t.theoremName]),
     ("instances", digestEntries env instanceExtension.ext <| scopedEntryHash fun e =>
       mixAll [hash e.globalName?, hash e.priority, hash e.synthOrder, hash (toString e.attrKind),
-        e.val.hash, e.globalName?.elim 0 (typeHash env), e.globalName?.elim 0 (valueHash env)]),
+        hash e.keys, e.val.hash, e.globalName?.elim 0 (typeHash env), e.globalName?.elim 0 (valueHash env)]),
     ("defaultInstances", digestEntries env defaultInstanceExtension fun e =>
       mixAll [hash e.className, hash e.instanceName, hash e.priority]),
     ("classes", digestEntries env classExtension fun e =>
@@ -240,7 +263,8 @@ def globalFingerprint (linters : Array NamedLinter) (nolints : String) :
       mixAll [hash n, hash docs]),
     ("tacticAlternatives", digestEntries env tacticAlternativeExt fun (n, alt) =>
       mixAll [hash n, hash alt]),
-    ("tacticNames", digestEntries env tacticNameExt fun (n, name) => mixAll [hash n, hash name])]
+    ("tacticNames", digestEntries env tacticNameExt fun (n, name) => mixAll [hash n, hash name]),
+    ("tacticParsers", digestSomeEntries env Parser.parserExtension.ext (tacticParserHash env))]
   return {
     lean := Lean.githash
     linters := linters.map (·.name.toString)
@@ -276,6 +300,10 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
   if updateNoLints && onlyModules.isSome then
     IO.eprintln "--update cannot be combined with --only-modules: \
       it would rewrite the nolints file from a partial run"
+    IO.Process.exit 1
+  if updateNoLints && writeFingerprint.isSome then
+    IO.eprintln "--update cannot be combined with --write-global-fingerprint: \
+      the fingerprint would hold the hash of the nolints file before the update"
     IO.Process.exit 1
   if baselineFingerprint.isSome && onlyModules.isNone then
     IO.eprintln "--baseline-global-fingerprint requires --only-modules"
@@ -428,17 +456,22 @@ the files a pull request changed; the other linters, such as `simpNF`, still lin
 declaration. Listed modules that are not in the environment are skipped and reported.
 `--only-modules` cannot be combined with `--update`. It is only sound for changes to ordinary
 modules: a caller must lint everything when a linter's own code or `nolints.json` changes.
+With a matching `--baseline-global-fingerprint`, the other linters are restricted too.
 
 If `--write-global-fingerprint=FILE` is set, `runLinter` writes to `FILE` a fingerprint of the
 global inputs of the linters before it lints: the toolchain, the linters that run, the `nolints`
 file, and the global tables that any module can extend, such as the `simp` set and the instances.
-It combines with every other option, for example to record a baseline during a full lint.
+It combines with every other option except `--update`, for example to record a baseline during a
+full lint.
 
 If `--baseline-global-fingerprint=FILE` is set together with `--only-modules`, `runLinter` compares
 the fingerprint of the environment with the one in `FILE`. When they are equal, every linter, the
 non-local ones included, lints only the declarations of the listed modules. This is sound when the
-listed modules include every module whose content or imports differ from the baseline's
-environment. When the fingerprints differ, `--only-modules` restricts only the local linters.
+baseline's environment passed the full lint, when the listed modules include every module whose
+content or import closure differs from the baseline's environment, and when the code of the
+linters is unchanged: a caller must lint everything when a module that defines a linter, or its
+import closure, changes. When the fingerprints differ, `--only-modules` restricts only the local
+linters.
 Each fingerprint option takes exactly one module.
 -/
 unsafe def main (args : List String) : IO Unit := do
