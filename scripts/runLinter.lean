@@ -50,6 +50,13 @@ structure LinterConfig where
   (`Linter.isLocal`) then lint only the declarations defined in those modules; the other linters
   still lint everything. -/
   onlyModules : Option System.FilePath := none
+  /-- If set (with `--write-global-fingerprint=FILE`), write the global-input fingerprint of the
+  imported environment to `FILE` before linting. -/
+  writeFingerprint : Option System.FilePath := none
+  /-- If set (with `--baseline-global-fingerprint=FILE`), compare the global-input fingerprint of
+  the imported environment with the one in `FILE`. When they are equal, every linter lints only the
+  declarations of the modules listed with `--only-modules`. -/
+  baselineFingerprint : Option System.FilePath := none
 
 @[always_inline, inline]
 private def Except.consError (e : ε) : Except (List ε) α → Except (List ε) α
@@ -86,6 +93,11 @@ where
     | arg =>
       if let some file := arg.dropPrefix? "--only-modules=" then
         if file.isEmpty then none else some { parsed with onlyModules := some file.toString }
+      else if let some file := arg.dropPrefix? "--write-global-fingerprint=" then
+        if file.isEmpty then none else some { parsed with writeFingerprint := some file.toString }
+      else if let some file := arg.dropPrefix? "--baseline-global-fingerprint=" then
+        if file.isEmpty then none else
+          some { parsed with baselineFingerprint := some file.toString }
       else none
 
 /--
@@ -104,6 +116,154 @@ def determineModulesToLint (specifiedModules : List Name) : IO (Array Name) := d
     println!"Running linter on specified modules: {modules}"
     return modules.toArray
 
+/-!
+## Global-input fingerprint
+
+The lint verdict of a declaration depends on its own module and the modules that it imports, and on
+global tables that any module can extend: the `simp` set, the instances, and the other tables below.
+Every module that imports a changed module is changed too. So when every global table is unchanged,
+the verdicts of the declarations in unchanged modules are unchanged, and all linters can be
+restricted to the changed modules. The fingerprint hashes each global table over all imported
+modules, in import order. A linter that reads another global table must add that table here.
+-/
+
+open Meta
+
+/-- The number of entries of a table and a hash over them, in order. -/
+structure TableDigest where
+  /-- The number of entries. -/
+  count : Nat := 0
+  /-- The hash over the entries, in order. -/
+  hash : UInt64 := 7
+
+/-- Adds the hash of one entry to `d`. -/
+def TableDigest.push (d : TableDigest) (h : UInt64) : TableDigest :=
+  { count := d.count + 1, hash := mixHash d.hash h }
+
+/-- The digest of one global table, as written to the fingerprint file. -/
+structure TableFingerprint where
+  /-- The name of the table. -/
+  name : String
+  /-- The number of entries. -/
+  count : Nat
+  /-- The hash over the entries, in decimal. -/
+  hash : String
+  deriving BEq, ToJson, FromJson
+
+/-- The global inputs of the environment linters: the toolchain, the linters that run, the
+`nolints` file and one digest per global table. -/
+structure GlobalFingerprint where
+  /-- The git hash of the Lean toolchain. -/
+  lean : String
+  /-- The names of the linters that run, in order. -/
+  linters : Array String
+  /-- The hash of the contents of the `nolints` file, in decimal. -/
+  nolints : String
+  /-- The digests of the global tables. -/
+  tables : Array TableFingerprint
+  deriving BEq, ToJson, FromJson
+
+/-- Combines the hashes `hs` in order. -/
+def mixAll (hs : List UInt64) : UInt64 := hs.foldl mixHash 7
+
+/-- The hash of the type of the constant `n`, or `0` if the environment does not contain it. -/
+def typeHash (env : Environment) (n : Name) : UInt64 :=
+  match env.find? n with
+  | some ci => ci.type.hash
+  | none => 0
+
+/-- The hash of the value of the constant `n`, or `0` if the environment holds no value for it. -/
+def valueHash (env : Environment) (n : Name) : UInt64 :=
+  match env.find? n with
+  | some ci => match ci.value? (allowOpaque := true) with
+    | some v => v.hash
+    | none => 0
+  | none => 0
+
+/-- Hashes `f e` for every exported entry `e` of `ext`, over all imported modules in import order. -/
+def digestEntries [Inhabited σ] (env : Environment) (ext : PersistentEnvExtension α β σ)
+    (f : α → UInt64) : TableDigest := Id.run do
+  let mut d : TableDigest := {}
+  for i in [:env.header.moduleNames.size] do
+    for e in ext.getModuleEntries env i do
+      d := d.push (f e)
+  return d
+
+/-- Hashes an entry of a scoped extension, including the namespace of a scoped entry. -/
+def scopedEntryHash (f : α → UInt64) : ScopedEnvExtension.Entry α → UInt64
+  | .global a => mixHash 0 (f a)
+  | .scoped ns a => mixHash (hash ns) (f a)
+
+/-- Hashes a `simp` set entry: its attributes and the statement that it rewrites with. -/
+def simpEntryHash (env : Environment) : SimpEntry → UInt64
+  | .thm t =>
+    let stmt := match t.origin with
+      | .decl n .. => typeHash env n
+      | _ => t.proof.hash
+    mixAll [1, hash t.origin, hash t.priority, hash t.post, hash t.perm, hash t.rfl,
+      hash t.backwardRfl, stmt]
+  | .toUnfold n => mixAll [2, hash n, valueHash env n]
+  | .toUnfoldThms n thms => mixAll [3, hash n, valueHash env n, hash thms]
+
+/-- Hashes a reducibility entry. The value of a definition that unfolds at reducible or instance
+transparency is part of the entry. -/
+def reducibilityHash (env : Environment) : Name × ReducibilityStatus → UInt64
+  | (n, s) =>
+    let value := match s with
+      | .semireducible | .irreducible => 0
+      | _ => valueHash env n
+    mixAll [hash n, hash s.toAttrString, value]
+
+open Lean.Parser.Tactic.Doc in
+/-- Computes the global-input fingerprint of the current environment. -/
+def globalFingerprint (linters : Array NamedLinter) (nolints : String) :
+    CoreM GlobalFingerprint := do
+  let env ← getEnv
+  let tables : Array (String × TableDigest) := #[
+    ("simp", digestEntries env simpExtension.ext (scopedEntryHash (simpEntryHash env))),
+    ("congr", digestEntries env congrExtension.ext <| scopedEntryHash fun t =>
+      mixAll [hash t.theoremName, hash t.funName, hash t.hypothesesPos, hash t.priority,
+        typeHash env t.theoremName]),
+    ("instances", digestEntries env instanceExtension.ext <| scopedEntryHash fun e =>
+      mixAll [hash e.globalName?, hash e.priority, hash e.synthOrder, hash (toString e.attrKind),
+        e.val.hash, e.globalName?.elim 0 (typeHash env), e.globalName?.elim 0 (valueHash env)]),
+    ("defaultInstances", digestEntries env defaultInstanceExtension fun e =>
+      mixAll [hash e.className, hash e.instanceName, hash e.priority]),
+    ("classes", digestEntries env classExtension fun e =>
+      mixAll [hash e.name, hash e.outParams, hash e.outLevelParams]),
+    ("reducibility", digestEntries env reducibilityCoreExt (reducibilityHash env)),
+    ("reducibilityExtra",
+      digestEntries env reducibilityExtraExt.ext (scopedEntryHash (reducibilityHash env))),
+    ("unificationHints", digestEntries env unificationHintExtension.ext <| scopedEntryHash fun e =>
+      mixAll [hash e.val, valueHash env e.val]),
+    ("tacticDocExtensions", digestEntries env tacticDocExtExt fun (n, docs) =>
+      mixAll [hash n, hash docs]),
+    ("tacticAlternatives", digestEntries env tacticAlternativeExt fun (n, alt) =>
+      mixAll [hash n, hash alt]),
+    ("tacticNames", digestEntries env tacticNameExt fun (n, name) => mixAll [hash n, hash name])]
+  return {
+    lean := Lean.githash
+    linters := linters.map (·.name.toString)
+    nolints := toString (hash nolints)
+    tables := tables.map fun (name, d) =>
+      { name, count := d.count, hash := toString d.hash } }
+
+/-- The names of the parts of `current` that differ from `baseline`, or the reason why `baseline`
+cannot be read. An empty array means that the two fingerprints are equal. -/
+def fingerprintDifferences (baseline : FilePath) (current : GlobalFingerprint) :
+    IO (Array String) := do
+  let base ← try readJsonFile GlobalFingerprint baseline catch e =>
+    return #[s!"the baseline cannot be read ({e})"]
+  let mut diffs := #[]
+  if base.lean != current.lean then diffs := diffs.push "lean"
+  if base.linters != current.linters then diffs := diffs.push "linters"
+  if base.nolints != current.nolints then diffs := diffs.push "nolints"
+  for t in current.tables do
+    unless base.tables.contains t do diffs := diffs.push t.name
+  for t in base.tables do
+    unless current.tables.any (·.name == t.name) do diffs := diffs.push t.name
+  return diffs
+
 /--
 Run the Batteries linter on `module`. If `cfg.updateNoLints` is `true`, update the nolints file.
 
@@ -112,10 +272,13 @@ environment, so set `leakEnv` only when the process exits after the lint.
 -/
 unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
     (leakEnv := false) : IO Unit := do
-  let { updateNoLints, noBuild, trace, onlyModules } := cfg
+  let { updateNoLints, noBuild, trace, onlyModules, writeFingerprint, baselineFingerprint } := cfg
   if updateNoLints && onlyModules.isSome then
     IO.eprintln "--update cannot be combined with --only-modules: \
       it would rewrite the nolints file from a partial run"
+    IO.Process.exit 1
+  if baselineFingerprint.isSome && onlyModules.isNone then
+    IO.eprintln "--baseline-global-fingerprint requires --only-modules"
     IO.Process.exit 1
   initSearchPath (← findSysroot)
   let rec
@@ -148,10 +311,9 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
   let lintModule := `Batteries.Tactic.Lint
   buildIfNeeded lintModule
   let nolintsFile : FilePath := "scripts/nolints.json"
-  let nolints ← if ← nolintsFile.pathExists then
+  let nolintsText ← if ← nolintsFile.pathExists then IO.FS.readFile nolintsFile else pure ""
+  let nolints ← if nolintsText.isEmpty then pure #[] else
     readJsonFile NoLints nolintsFile
-  else
-    pure #[]
   unsafe Lean.enableInitializersExecution
   let env ← importModules #[module, lintModule] {} (trustLevel := 1024)
     (loadExts := true) (leakEnv := leakEnv)
@@ -168,8 +330,18 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
     traceLint s!"Starting lint..." (inIO := true) (currentModule := module)
     let decls ← getDeclsInPackage module.getRoot
     let linters ← getChecks (slow := true) (runAlways := none) (runOnly := none)
-    let localDecls ← match onlyModules with
-      | none => pure none
+    let fingerprint ← if writeFingerprint.isSome || baselineFingerprint.isSome then
+      some <$> globalFingerprint linters nolintsText
+    else
+      pure none
+    if let (some file, some fp) := (writeFingerprint, fingerprint) then
+      writeJsonFile file fp
+      IO.println s!"[{module}] Wrote the global-input fingerprint to {file}."
+    -- `lintDecls` are the declarations that the linters lint. When the global-input fingerprint
+    -- matches the baseline, these are the declarations of the listed modules; otherwise only the
+    -- local linters lint `localDecls`.
+    let (lintDecls, localDecls, scope) ← match onlyModules with
+      | none => pure (decls, none, "")
       | some file =>
         let env ← getEnv
         let listed := (← IO.FS.lines file).map (·.trimAscii.copy) |>.filter (!·.isEmpty)
@@ -182,12 +354,29 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
             environment and are skipped: {missing.toList}"
         let idxs := listed.filterMap env.getModuleIdx?
         let restricted := decls.filter fun d => (env.getModuleIdxFor? d).any idxs.contains
-        let nLocal := (linters.filter (·.isLocal)).size
-        IO.println s!"[{module}] --only-modules: {nLocal} local linters lint the \
-          {restricted.size} declarations of {idxs.size} listed modules; the other \
-          {linters.size - nLocal} lint all {decls.size} declarations."
-        pure (some restricted)
-    let results ← lintCore decls linters (inIO := true) (currentModule := module)
+        let diffs ← match baselineFingerprint, fingerprint with
+          | some base, some fp => do
+            let diffs ← fingerprintDifferences base fp
+            if diffs.isEmpty then
+              IO.println s!"[{module}] The global-input fingerprint matches the baseline {base}."
+            else
+              IO.println s!"[{module}] The global-input fingerprint differs from the baseline \
+                {base} in: {", ".intercalate diffs.toList}."
+            pure diffs
+          | _, _ => pure #["no baseline"]
+        if diffs.isEmpty then
+          IO.println s!"[{module}] --only-modules: all {linters.size} linters lint the \
+            {restricted.size} declarations of {idxs.size} listed modules."
+          pure (restricted, none,
+            s!" (all linters: only the {restricted.size} declarations of the listed modules)")
+        else
+          let nLocal := (linters.filter (·.isLocal)).size
+          IO.println s!"[{module}] --only-modules: {nLocal} local linters lint the \
+            {restricted.size} declarations of {idxs.size} listed modules; the other \
+            {linters.size - nLocal} lint all {decls.size} declarations."
+          pure (decls, some restricted,
+            s!" (local linters: only the {restricted.size} declarations of the listed modules)")
+    let results ← lintCore lintDecls linters (inIO := true) (currentModule := module)
       (localDecls := localDecls)
     if updateNoLints then
       traceLint s!"Updating nolints file at {nolintsFile}" (inIO := true) (currentModule := module)
@@ -210,11 +399,8 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
     let failed := results.any (!·.2.isEmpty)
     if failed then
       let fmtResults ←
-        formatLinterResults results decls (groupByFilename := true) (useErrorFormat := true)
-          s!"in {module}{match localDecls with
-            | some ds => s!" (local linters: only the {ds.size} declarations of the listed modules)"
-            | none => ""}"
-          (runSlowLinters := true) .medium linters.size
+        formatLinterResults results lintDecls (groupByFilename := true) (useErrorFormat := true)
+          s!"in {module}{scope}" (runSlowLinters := true) .medium linters.size
       IO.print (← fmtResults.toString)
       IO.Process.exit 1
     else
@@ -222,6 +408,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
 
 /--
 Usage: `runLinter [--update] [--trace | -v] [--no-build] [--only-modules=FILE]
+  [--baseline-global-fingerprint=FILE] [--write-global-fingerprint=FILE]
   [Batteries.Data.Nat.Basic]...`
 
 Runs the linters on all declarations in the given modules
@@ -241,6 +428,18 @@ the files a pull request changed; the other linters, such as `simpNF`, still lin
 declaration. Listed modules that are not in the environment are skipped and reported.
 `--only-modules` cannot be combined with `--update`. It is only sound for changes to ordinary
 modules: a caller must lint everything when a linter's own code or `nolints.json` changes.
+
+If `--write-global-fingerprint=FILE` is set, `runLinter` writes to `FILE` a fingerprint of the
+global inputs of the linters before it lints: the toolchain, the linters that run, the `nolints`
+file, and the global tables that any module can extend, such as the `simp` set and the instances.
+It combines with every other option, for example to record a baseline during a full lint.
+
+If `--baseline-global-fingerprint=FILE` is set together with `--only-modules`, `runLinter` compares
+the fingerprint of the environment with the one in `FILE`. When they are equal, every linter, the
+non-local ones included, lints only the declarations of the listed modules. This is sound when the
+listed modules include every module whose content or imports differ from the baseline's
+environment. When the fingerprints differ, `--only-modules` restricts only the local linters.
+Each fingerprint option takes exactly one module.
 -/
 unsafe def main (args : List String) : IO Unit := do
   let linterArgs := parseLinterArgs args
@@ -250,10 +449,15 @@ unsafe def main (args : List String) : IO Unit := do
       IO.eprintln s!"Error parsing args:\n  {"\n  ".intercalate msgs}"
       IO.eprintln "Usage: \
         runLinter [--update] [--trace | -v] [--no-build] [--only-modules=FILE] \
+        [--baseline-global-fingerprint=FILE] [--write-global-fingerprint=FILE] \
         [Batteries.Data.Nat.Basic]..."
       IO.Process.exit 1
 
   let modulesToLint ← determineModulesToLint mods
+  if (cfg.writeFingerprint.isSome || cfg.baselineFingerprint.isSome) && modulesToLint.size != 1 then
+    IO.eprintln s!"--write-global-fingerprint and --baseline-global-fingerprint take exactly one \
+      module, not {modulesToLint.size}"
+    IO.Process.exit 1
 
   -- With one module, the imported environment stays in memory until the process exits. Mark it
   -- as persistent to avoid atomic reference-count updates when the lint tasks share it.
