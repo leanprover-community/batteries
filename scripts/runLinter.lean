@@ -48,8 +48,11 @@ structure LinterConfig where
   trace := false
   /-- If set (with `--only-modules=FILE`), a file listing module names, one per line. Local linters
   (`Linter.isLocal`) then lint only the declarations defined in those modules; the other linters
-  still lint everything. -/
+  still lint everything, unless `restrictAll` is set. -/
   onlyModules : Option System.FilePath := none
+  /-- Whether `--only-modules` also restricts the non-local linters. Default is `false`; set to
+  `true` with `--restrict-all-linters`. -/
+  restrictAll : Bool := false
 
 @[always_inline, inline]
 private def Except.consError (e : ε) : Except (List ε) α → Except (List ε) α
@@ -81,6 +84,7 @@ where
   parseArg (parsed : LinterConfig) : String → Option LinterConfig
     | "--update"   => some { parsed with updateNoLints := true }
     | "--no-build" => some { parsed with noBuild := true }
+    | "--restrict-all-linters" => some { parsed with restrictAll := true }
     | "--trace"
     | "-v"         => some { parsed with trace := true }
     | arg =>
@@ -112,10 +116,13 @@ environment, so set `leakEnv` only when the process exits after the lint.
 -/
 unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
     (leakEnv := false) : IO Unit := do
-  let { updateNoLints, noBuild, trace, onlyModules } := cfg
+  let { updateNoLints, noBuild, trace, onlyModules, restrictAll } := cfg
   if updateNoLints && onlyModules.isSome then
     IO.eprintln "--update cannot be combined with --only-modules: \
       it would rewrite the nolints file from a partial run"
+    IO.Process.exit 1
+  if restrictAll && onlyModules.isNone then
+    IO.eprintln "--restrict-all-linters requires --only-modules"
     IO.Process.exit 1
   initSearchPath (← findSysroot)
   let rec
@@ -182,13 +189,21 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
             environment and are skipped: {missing.toList}"
         let idxs := listed.filterMap env.getModuleIdx?
         let restricted := decls.filter fun d => (env.getModuleIdxFor? d).any idxs.contains
-        let nLocal := (linters.filter (·.isLocal)).size
-        IO.println s!"[{module}] --only-modules: {nLocal} local linters lint the \
-          {restricted.size} declarations of {idxs.size} listed modules; the other \
-          {linters.size - nLocal} lint all {decls.size} declarations."
+        if restrictAll then
+          IO.println s!"[{module}] --only-modules --restrict-all-linters: all {linters.size} \
+            linters lint the {restricted.size} declarations of {idxs.size} listed modules."
+        else
+          let nLocal := (linters.filter (·.isLocal)).size
+          IO.println s!"[{module}] --only-modules: {nLocal} local linters lint the \
+            {restricted.size} declarations of {idxs.size} listed modules; the other \
+            {linters.size - nLocal} lint all {decls.size} declarations."
         pure (some restricted)
-    let results ← lintCore decls linters (inIO := true) (currentModule := module)
-      (localDecls := localDecls)
+    let results ← match restrictAll, localDecls with
+      | true, some restricted =>
+        lintCore restricted linters (inIO := true) (currentModule := module)
+      | _, _ =>
+        lintCore decls linters (inIO := true) (currentModule := module)
+          (localDecls := localDecls)
     if updateNoLints then
       traceLint s!"Updating nolints file at {nolintsFile}" (inIO := true) (currentModule := module)
       writeJsonFile (α := NoLints) nolintsFile <|
@@ -212,7 +227,9 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
       let fmtResults ←
         formatLinterResults results decls (groupByFilename := true) (useErrorFormat := true)
           s!"in {module}{match localDecls with
-            | some ds => s!" (local linters: only the {ds.size} declarations of the listed modules)"
+            | some ds => if restrictAll then
+                s!" (all linters: only the {ds.size} declarations of the listed modules)"
+              else s!" (local linters: only the {ds.size} declarations of the listed modules)"
             | none => ""}"
           (runSlowLinters := true) .medium linters.size
       IO.print (← fmtResults.toString)
@@ -222,7 +239,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
 
 /--
 Usage: `runLinter [--update] [--trace | -v] [--no-build] [--only-modules=FILE]
-  [Batteries.Data.Nat.Basic]...`
+  [--restrict-all-linters] [Batteries.Data.Nat.Basic]...`
 
 Runs the linters on all declarations in the given modules
 (or all root modules of Lake `lean_lib` and `lean_exe` default targets if no module is specified).
@@ -241,6 +258,12 @@ the files a pull request changed; the other linters, such as `simpNF`, still lin
 declaration. Listed modules that are not in the environment are skipped and reported.
 `--only-modules` cannot be combined with `--update`. It is only sound for changes to ordinary
 modules: a caller must lint everything when a linter's own code or `nolints.json` changes.
+
+If `--restrict-all-linters` is set together with `--only-modules`, every linter, the non-local
+ones included, lints only the declarations of the listed modules. This is not sound: a change in a
+listed module can change the verdict of a non-local linter, such as `simpNF`, on a declaration of
+another module. It gives fast feedback on a change; a caller must also run the full lint, for
+example before a merge.
 -/
 unsafe def main (args : List String) : IO Unit := do
   let linterArgs := parseLinterArgs args
@@ -250,7 +273,7 @@ unsafe def main (args : List String) : IO Unit := do
       IO.eprintln s!"Error parsing args:\n  {"\n  ".intercalate msgs}"
       IO.eprintln "Usage: \
         runLinter [--update] [--trace | -v] [--no-build] [--only-modules=FILE] \
-        [Batteries.Data.Nat.Basic]..."
+        [--restrict-all-linters] [Batteries.Data.Nat.Basic]..."
       IO.Process.exit 1
 
   let modulesToLint ← determineModulesToLint mods
