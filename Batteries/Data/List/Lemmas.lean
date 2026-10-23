@@ -1290,6 +1290,24 @@ theorem sum_flatten [Add α] [Zero α] [Std.LawfulIdentity (α := α) (· + ·) 
     l.flatten.sum = (l.map sum).sum := by
   induction l with simp [*]
 
+theorem sum_dropLast_add_getLast {α : Type u} [Add α] [Zero α]
+    [Std.LawfulIdentity (α := α) (· + ·) 0]
+    [Std.Associative (α := α) (· + ·)] :
+    ∀ (xs : List α) (h : xs ≠ []),
+      xs.dropLast.sum + xs.getLast h = xs.sum := by
+  intro xs h
+  simpa only [sum_append, sum_singleton] using
+    congrArg List.sum (dropLast_concat_getLast h)
+
+theorem prod_dropLast_mul_getLast {α : Type u} [Mul α] [One α]
+    [Std.LawfulIdentity (α := α) (· * ·) 1]
+    [Std.Associative (α := α) (· * ·)] :
+    ∀ (xs : List α) (h : xs ≠ []),
+      xs.dropLast.prod * xs.getLast h = xs.prod := by
+  intro xs h
+  simpa only [prod_append, prod_singleton] using
+    congrArg List.prod (dropLast_concat_getLast h)
+
 theorem take_succ_drop {l : List α} {n stop : Nat}
     (h : n < l.length - stop) :
     (l.drop stop |>.take (n + 1)) = (l.drop stop |>.take n) ++ [l[stop + n]'(by omega)] := by
