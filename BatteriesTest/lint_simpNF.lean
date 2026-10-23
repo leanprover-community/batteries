@@ -97,4 +97,32 @@ theorem Bundle.of_op {X : Type} [MyClass X] :
 
 end BackwardDefEqRespectTransparency
 
+section dsimpable
+
+opaque foo : Nat
+
+def bar := foo
+
+@[simp]
+theorem foo_eq : foo = bar := rfl
+
+@[simp] -- This lemma used to not be flagged by the linter
+theorem foo_add_foo_eq : foo + foo = bar + bar := by simp
+
+end dsimpable
+
+/--
+error: /- The `simpNF` linter reports:
+SOME SIMP LEMMAS ARE NOT IN SIMP-NORMAL FORM.
+Please change the lemma to make sure their left-hand sides are in simp normal form.
+To learn about simp normal forms, see
+https://leanprover-community.github.io/extras/simp.html#simp-normal-form
+and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/.
+This linter can be disabled with `@[nolint simpNF]`. -/
+#check foo_add_foo_eq /- simp can prove this:
+  by simp only [*, foo_eq]
+One of the lemmas above could be a duplicate.
+If that's not the case try reordering lemmas or adding @[priority]. -/
+-/
+#guard_msgs in
 #lint- only simpNF
