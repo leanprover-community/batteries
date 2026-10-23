@@ -128,8 +128,8 @@ def lintBatchSize : Nat := 64
 
 /--
 Maps `f` over `jobs` on at most `numWorkers` workers (at least one), and returns the results in
-the order of `jobs`. Each worker takes the next job that no worker has taken, until no jobs
-remain. Changes that `f` makes to the Core state are discarded.
+no fixed order. Each worker takes the next job that no worker has taken, until no jobs remain.
+Changes that `f` makes to the Core state are discarded.
 -/
 def mapOnWorkers (jobs : Array α) (numWorkers : Nat) (f : α → CoreM β) : CoreM (Array β) := do
   let next ← IO.mkRef 0
@@ -144,13 +144,9 @@ def mapOnWorkers (jobs : Array α) (numWorkers : Nat) (f : α → CoreM β) : Co
       repeat
         let i ← next.modifyGet fun i => (i, i + 1)
         let some job := jobs[i]? | break
-        done := done.push (i, ← f job)
+        done := done.push (← f job)
       return done) ()
-  let mut results : Array (Option β) := .replicate jobs.size none
-  for task in tasks do
-    for (i, result) in ← ofExcept task.get do
-      results := results.set! i result
-  return results.filterMap id
+  tasks.flatMapM (MonadExcept.ofExcept ·.get)
 
 /--
 Runs `linter` on `decl` with separate Core and Meta state, a distinct name generator, and its own
@@ -164,6 +160,10 @@ def lintDecl (linter : NamedLinter) (decl : Name) (inIO : Bool) : CoreM (Option 
       -- Ensure any trace messages are propagated to stdout
       printTraces
     return result
+  -- `Core.wrapAsync` gives the check a child name generator and a copy of the state, and the check
+  -- runs at once on this thread. `Core.wrapAsync` also gives the check the heartbeats used since
+  -- `initHeartbeats`, so `Core.withCurrHeartbeats` first sets `initHeartbeats` to the current
+  -- count.
   let run ← Core.withCurrHeartbeats <|
     -- We use the context used by `Command.liftTermElabM`
     Core.wrapAsync (fun _ => act.run' mkMetaContext) (← read).cancelTk?
@@ -189,9 +189,6 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
   traceLint
       s!"Running linters:\n  {"\n  ".intercalate <| linters.map (s!"{·.name}") |>.toList}"
       inIO currentModule
-
-  for linter in linters do
-    traceLint "(0/2) Starting..." inIO currentModule linter.name
 
   -- Each batch pairs a slice of declarations with the linters (and their indices) to run on it.
   let indexed := linters.zipIdx
@@ -223,9 +220,8 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
     messages := messages.modify i (·.insert decl msg)
 
   let result ← (linters.zip messages).mapM fun (linter, msgs) => do
-    traceLint "(1/2) Getting..." inIO currentModule linter.name
     traceLint
-      s!"(2/2) {if msgs.isEmpty then "Passed!" else
+      s!"{if msgs.isEmpty then "Passed!" else
         s!"Failed with {msgs.size} messages\
         {if inIO then ", but these may include declarations in `nolints.json`" else ""}."}"
       inIO currentModule linter.name

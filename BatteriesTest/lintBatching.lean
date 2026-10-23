@@ -7,7 +7,7 @@ open Lean Meta Batteries.Tactic.Lint
 -- A worker count of zero (for example from `LEAN_NUM_THREADS=0`) still runs every job.
 run_meta do
   let results ← mapOnWorkers (Array.range 10) 0 fun i => return i
-  unless results == Array.range 10 do throwError "jobs dropped: {results}"
+  unless results.qsort (· < ·) == Array.range 10 do throwError "jobs dropped: {results}"
 
 -- Each check sees fresh Core and Meta state and a fresh name generator. Every check runs once,
 -- and an exception becomes `LINTER FAILED`.
