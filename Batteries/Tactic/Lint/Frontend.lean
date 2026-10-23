@@ -202,8 +202,9 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
         (decls[i * lintBatchSize:(i + 1) * lintBatchSize], linters)
   let numWorkers := ((← IO.getEnv "LEAN_NUM_THREADS").bind String.toNat?).getD
     (System.Platform.Internal.getHardwareConcurrency ()).toNat
-  -- Progress is traced at about every tenth of the batches. Only `inIO` shows it, because the
-  -- workers discard their Core state and the `trace[...]` messages in it.
+  -- Progress is traced after every `step` batches, which gives about ten lines for a large run.
+  -- Only `inIO` shows it, because the workers discard their Core state and the `trace[...]`
+  -- messages in it.
   -- The counters are finished batches, linted declarations, and messages.
   let progress ← IO.mkRef (0, 0, 0)
   let step := max 1 (batches.size / 10)
