@@ -382,7 +382,7 @@ Fold a monadic function `f` over the subarray from the right, returning the list
 -/
 @[expose, inline]
 def scanrM [Monad m] (f : α → β → m β) (init : β) (as : Subarray α) : m (Array β) :=
-  as.array.scanrM f init (start := as.start) (stop := as.stop)
+  as.array.scanrM f init (start := as.stop) (stop := as.start)
 
 /--
 Fold a function `f` over the subarray from the left, returning the list of partial results.
@@ -396,7 +396,7 @@ Fold a function `f` over the subarray from the right, returning the list of part
 -/
 @[expose, inline]
 def scanr (f : α → β → β) (init : β) (as : Subarray α) : Array β :=
-  as.array.scanr f init (start := as.start) (stop := as.stop)
+  as.array.scanr f init (start := as.stop) (stop := as.start)
 
 /--
 Check whether a subarray is empty.
