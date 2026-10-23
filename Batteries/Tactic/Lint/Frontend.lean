@@ -120,25 +120,24 @@ def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Na
 /--
 The number of declarations that a lint worker takes at a time. A larger batch means fewer updates
 to the shared job counter. A smaller batch spreads the work more evenly across the workers at the
-end of the run. The value 64 is not fine-tuned, but one counter update is cheap next to the lint
-checks on 64 declarations, and a large library such as Mathlib still gives each worker many
-batches.
+end of the run. The value 64 is not tuned. One counter update costs little next to the checks on
+64 declarations, and a large library still gives each worker many batches.
 -/
 def lintBatchSize : Nat := 64
 
 /--
 Maps `f` over `jobs` on at most `numWorkers` workers (at least one), and returns the results in
 no fixed order. Each worker takes the next job that no worker has taken, until no jobs remain.
-Changes that `f` makes to the Core state are discarded.
+The workers use the cancellation token of the caller. An exception from `f` stops its worker and
+propagates. Changes that `f` makes to the Core state are discarded.
 -/
 def mapOnWorkers (jobs : Array α) (numWorkers : Nat) (f : α → CoreM β) : CoreM (Array β) := do
   let next ← IO.mkRef 0
   let cancelTk? := (← read).cancelTk?
   let numWorkers := min (max numWorkers 1) jobs.size
   let tasks ← (Array.range numWorkers).mapM fun _ => do
-    -- Each worker runs until no jobs remain. Lean recommends dedicated threads for long-running
-    -- tasks: as pool tasks, the workers would by default occupy every pool thread for the whole
-    -- run.
+    -- Each worker runs until no jobs remain. Lean recommends a dedicated thread for a long-running
+    -- task, because the task pool has by default one thread per core.
     EIO.asTask (prio := .dedicated) <| (← Core.wrapAsync (cancelTk? := cancelTk?) fun _ => do
       let mut done := #[]
       repeat
@@ -162,10 +161,10 @@ def lintDecl (linter : NamedLinter) (decl : Name) (inIO : Bool) : CoreM (Option 
     return result
   -- `Core.wrapAsync` gives the check a child name generator and a copy of the state, and the check
   -- runs at once on this thread. `Core.wrapAsync` also gives the check the heartbeats used since
-  -- `initHeartbeats`, so `Core.withCurrHeartbeats` first sets `initHeartbeats` to the current
-  -- count.
+  -- `initHeartbeats`, so `Core.withCurrHeartbeats` sets `initHeartbeats` to the current count
+  -- before the call.
   let run ← Core.withCurrHeartbeats <|
-    -- We use the context used by `Command.liftTermElabM`
+    -- `mkMetaContext` is the context that `Command.liftTermElabM` uses.
     Core.wrapAsync (fun _ => act.run' mkMetaContext) (← read).cancelTk?
   match ← (run ()).toBaseIO with
   | .ok msg? => return msg?
@@ -174,9 +173,10 @@ def lintDecl (linter : NamedLinter) (decl : Name) (inIO : Bool) : CoreM (Option 
     return some m!"LINTER FAILED:\n{err.toMessageData}"
 
 /--
-Runs all the specified linters on all the specified declarations in parallel,
-producing a list of results. `LEAN_NUM_THREADS` sets the number of workers (by default, the
-hardware concurrency). Each worker lints batches of `lintBatchSize` declarations.
+Runs the linters on the declarations in parallel, and returns the failures of each linter as a map
+from declaration to message. A linter skips a declaration whose `nolint` attribute names it.
+`LEAN_NUM_THREADS` sets the number of workers (by default, the hardware concurrency). Each worker
+lints batches of `lintBatchSize` declarations.
 
 If `localDecls` is given, linters with `isLocal` lint only those declarations (for example, the
 declarations of the modules a change touched), while the other linters still lint all of `decls`.

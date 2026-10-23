@@ -49,6 +49,7 @@ run_meta do
         throwError "unexpected result for {decls[i]}: {actual?}"
   unless (← names.get).size == 2 * decls.size do throwError "checks were skipped"
 
+-- A `nolint` attribute skips the linter that it names.
 @[nolint docBlame]
 def batchingIgnored := 1
 
