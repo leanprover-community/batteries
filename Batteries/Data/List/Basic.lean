@@ -853,7 +853,7 @@ allSome [some 1, some 2] = some [1, 2]
 allSome [some 1, none  ] = none
 ```
 -/
-@[inline] def allSome (l : List (Option α)) : Option (List α) := l.mapM id
+@[expose, inline] def allSome (l : List (Option α)) : Option (List α) := l.mapM id
 
 /--
 `takeList as ns` extracts successive sublists from `as`. For `ns = n₁ ... nₘ`,
