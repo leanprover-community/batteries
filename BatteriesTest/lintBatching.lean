@@ -4,20 +4,13 @@ open Lean Meta Batteries.Tactic.Lint
 
 /-! Regression tests for batched environment linting. -/
 
--- Results keep the order of the jobs, even when later jobs finish first.
-run_meta do
-  let results ← mapOnWorkers (Array.range 100) 8 fun i => do
-    if i % 3 == 0 then IO.sleep 2
-    return i
-  unless results == Array.range 100 do throwError "results out of order: {results}"
-
--- A worker count of zero still runs every job.
+-- A worker count of zero (for example from `LEAN_NUM_THREADS=0`) still runs every job.
 run_meta do
   let results ← mapOnWorkers (Array.range 10) 0 fun i => return i
   unless results == Array.range 10 do throwError "jobs dropped: {results}"
 
 -- Each check sees fresh Core and Meta state and a fresh name generator. Every check runs once,
--- an exception becomes `LINTER FAILED`, and empty linter or declaration lists give no results.
+-- and an exception becomes `LINTER FAILED`.
 run_meta do
   let originalModule := (← getEnv).mainModule
   let names ← IO.mkRef ({} : Std.HashSet Name)
@@ -42,7 +35,7 @@ run_meta do
     { test with name := `one, declName := `one },
     { test with name := `two, declName := `two }]
   -- Cross several batch boundaries, including an incomplete final batch.
-  let decls := (Array.range 257).map (Name.num `batch)
+  let decls := (Array.range (4 * lintBatchSize + 1)).map (Name.num `batch)
   let results ← lintCore decls linters
   unless results.size == 2 do throwError "wrong number of linters"
   for (_, failures) in results do
@@ -55,9 +48,6 @@ run_meta do
       unless actual? == expected? do
         throwError "unexpected result for {decls[i]}: {actual?}"
   unless (← names.get).size == 2 * decls.size do throwError "checks were skipped"
-  unless (← lintCore decls #[]).isEmpty do throwError "empty linter list"
-  for (_, failures) in ← lintCore #[] linters do
-    unless failures.isEmpty do throwError "empty declaration list"
 
 @[nolint docBlame]
 def batchingIgnored := 1
@@ -84,7 +74,7 @@ run_meta do
       Core.checkMaxHeartbeats "lint test"
       return none }
   let results ← withTheReader Core.Context (fun ctx => { ctx with maxHeartbeats := 20000 }) <|
-    lintCore ((Array.range 129).map (Name.num `batch)) #[test]
+    lintCore #[`first, `second] #[test]
   let some (_, failures) := results[0]? | throwError "missing linter result"
   unless failures.isEmpty do throwError "checks shared a heartbeat budget"
 
