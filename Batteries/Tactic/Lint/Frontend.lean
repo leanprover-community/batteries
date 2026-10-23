@@ -204,8 +204,11 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
     (System.Platform.Internal.getHardwareConcurrency ()).toNat
   -- Progress is traced at about every tenth of the batches. Only `inIO` shows it, because the
   -- workers discard their Core state and the `trace[...]` messages in it.
-  let finished ← IO.mkRef 0
+  -- The counters are finished batches, linted declarations, and messages.
+  let progress ← IO.mkRef (0, 0, 0)
   let step := max 1 (batches.size / 10)
+  let totalDecls := batches.foldl (· + ·.1.size) 0
+  let start ← IO.monoMsNow
   -- Keep only failures, and look up `nolint` once per declaration for all linters.
   let failures ← mapOnWorkers batches numWorkers fun (decls, linters) => do
     let mut failures := #[]
@@ -217,9 +220,12 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
           if let some msg ← lintDecl linter decl inIO then
             failures := failures.push (i, decl, msg)
     if inIO then
-      let n ← finished.modifyGet fun n => (n + 1, n + 1)
+      let (n, done, msgs) ← progress.modifyGet fun (n, done, msgs) =>
+        let p := (n + 1, done + decls.size, msgs + failures.size); (p, p)
       if n % step == 0 then
-        traceLint s!"Linted {n}/{batches.size} batches" inIO currentModule
+        let secs := ((← IO.monoMsNow) - start) / 1000
+        traceLint s!"Linted {done}/{totalDecls} declarations ({done * 100 / totalDecls}%), \
+          {msgs} messages, {secs} s" inIO currentModule
     return failures
 
   -- A batch runs only some of the linters, so each failure records its linter's index.
