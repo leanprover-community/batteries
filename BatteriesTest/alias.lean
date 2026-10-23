@@ -85,6 +85,23 @@ protected alias Foo.barbaz := trivial
 #guard_msgs in example : True := barbaz
 example : True := Foo.barbaz
 
+/- Test that the namespace of the alias name is open when resolving the target, as for `def` -/
+
+def Ns.ns1 : Nat := 7
+alias Ns.ns2 := ns1
+example : Ns.ns2 = 7 := rfl
+alias Ns.Inner.ns3 := ns1
+example : Ns.Inner.ns3 = 7 := rfl
+
+-- the ambient scope takes precedence
+def ns4 : Nat := 1
+def Ns.ns4 : Nat := 2
+alias Ns.ns5 := ns4
+example : Ns.ns5 = 1 := rfl
+
+/-- error: Unknown constant `ns1` -/
+#guard_msgs in alias _root_.Ns.ns6 := ns1
+
 /- Test noncomputable -/
 
 /-- doc string for foobaz -/
