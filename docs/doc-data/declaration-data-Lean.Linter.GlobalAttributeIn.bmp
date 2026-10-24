@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.Command","Lean.Linter.Basic"],"instances":[],"name":"Lean.Linter.GlobalAttributeIn"}

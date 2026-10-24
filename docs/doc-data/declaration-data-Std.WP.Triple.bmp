@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Std.WP.Triple.Basic","Std.WP.Triple.Conjunctive","Std.WP.Triple.Monad","Std.WP.Triple.SpecLemmas"],"instances":[],"name":"Std.WP.Triple"}

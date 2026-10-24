@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Prelude","Lake.Config.Package","Lake.DSL.Attributes","Lake.DSL.Syntax"],"instances":[],"name":"Lake.DSL.Script"}
