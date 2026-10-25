@@ -94,7 +94,7 @@ def toListTR (as : AssocList α β) : List (α × β) :=
   | cons k v t => cons k (f k v) (mapVal f t)
 
 /-- `O(n)`. Map a function `f` over the values of the list, dropping `none`. -/
-def filterMapVal (f : α → β → Option δ) : AssocList α β → AssocList α δ
+@[expose] def filterMapVal (f : α → β → Option δ) : AssocList α β → AssocList α δ
   | nil        => nil
   | cons k v t => match f k v with
     | none => filterMapVal f t
