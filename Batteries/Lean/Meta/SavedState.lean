@@ -8,7 +8,7 @@ module
 public import Batteries.Lean.Meta.Basic
 public import Batteries.Lean.MonadBacktrack
 
-@[expose] public section
+public section
 
 namespace Lean.Meta.SavedState
 

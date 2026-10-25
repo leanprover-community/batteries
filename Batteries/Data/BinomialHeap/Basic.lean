@@ -8,7 +8,7 @@ module
 public import Batteries.Classes.Order
 public import Batteries.Control.ForInStep.Basic
 
-@[expose] public section
+public section
 
 namespace Batteries
 namespace BinomialHeap
@@ -39,7 +39,7 @@ The "real size" of the node, counting up how many values of type `α` are stored
 This is `O(n)` and is intended mainly for specification purposes.
 For a well formed `HeapNode` the size is always `2^n - 1` where `n` is the depth.
 -/
-@[simp] def HeapNode.realSize : HeapNode α → Nat
+@[expose, simp] def HeapNode.realSize : HeapNode α → Nat
   | .nil => 0
   | .node _ c s => c.realSize + 1 + s.realSize
 
@@ -85,12 +85,12 @@ inductive Heap (α : Type u) where
 This is intended mainly for specification purposes.
 Prefer `Heap.size`, which is the same for well formed heaps.
 -/
-@[simp] def Heap.realSize : Heap α → Nat
+@[expose, simp] def Heap.realSize : Heap α → Nat
   | .nil => 0
   | .cons _ _ c s => c.realSize + 1 + s.realSize
 
 /-- `O(log n)`. The number of elements in the heap. -/
-def Heap.size : Heap α → Nat
+@[expose] def Heap.size : Heap α → Nat
   | .nil => 0
   | .cons r _ _ s => 1 <<< r + s.size
 
@@ -103,7 +103,7 @@ def Heap.size : Heap α → Nat
 @[inline] def Heap.singleton (a : α) : Heap α := .cons 0 a .nil .nil
 
 /-- `O(1)`. Auxiliary for `Heap.merge`: Is the minimum rank in `Heap` strictly larger than `n`? -/
-def Heap.rankGT : Heap α → Nat → Prop
+@[expose] def Heap.rankGT : Heap α → Nat → Prop
   | .nil, _ => True
   | .cons r .., n => n < r
 
@@ -113,7 +113,7 @@ instance : Decidable (Heap.rankGT s n) :=
   | .cons .. => inferInstanceAs (Decidable (_ < _))
 
 /-- `O(log n)`. The number of trees in the forest. -/
-@[simp] def Heap.length : Heap α → Nat
+@[expose, simp] def Heap.length : Heap α → Nat
   | .nil => 0
   | .cons _ _ _ r => r.length + 1
 
@@ -156,12 +156,12 @@ def HeapNode.toHeap (s : HeapNode α) : Heap α := go s s.rank .nil where
   | .node a c s, n, res => go s (n - 1) (.cons (n - 1) a c res)
 
 /-- `O(log n)`. Get the smallest element in the heap, including the passed in value `a`. -/
-@[specialize] def Heap.headD (le : α → α → Bool) (a : α) : Heap α → α
+@[expose, specialize] def Heap.headD (le : α → α → Bool) (a : α) : Heap α → α
   | .nil => a
   | .cons _ b _ hs => headD le (if le a b then a else b) hs
 
 /-- `O(log n)`. Get the smallest element in the heap, if it has an element. -/
-@[inline] def Heap.head? (le : α → α → Bool) : Heap α → Option α
+@[expose, inline] def Heap.head? (le : α → α → Bool) : Heap α → Option α
   | .nil => none
   | .cons _ h _ hs => some <| headD le h hs
 
@@ -183,7 +183,7 @@ structure FindMin (α) where
 `O(log n)`. Find the minimum element, and return a data structure `FindMin` with information
 needed to reconstruct the rest of the binomial heap.
 -/
-@[specialize] def Heap.findMin (le : α → α → Bool) (k : Heap α → Heap α) :
+@[expose, specialize] def Heap.findMin (le : α → α → Bool) (k : Heap α → Heap α) :
     Heap α → FindMin α → FindMin α
   | .nil, res => res
   | .cons r a c s, res =>
@@ -193,7 +193,7 @@ needed to reconstruct the rest of the binomial heap.
     findMin le (k ∘ .cons r a c) s <| if le res.val a then res else ⟨k, a, c, s⟩
 
 /-- `O(log n)`. Find and remove the the minimum element from the binomial heap. -/
-def Heap.deleteMin (le : α → α → Bool) : Heap α → Option (α × Heap α)
+@[expose] def Heap.deleteMin (le : α → α → Bool) : Heap α → Option (α × Heap α)
   | .nil => none
   | .cons r a c s =>
     let { before, val, node, next } := findMin le (.cons r a c) s ⟨id, a, c, s⟩
@@ -333,7 +333,7 @@ It asserts that:
 * When interpreting `child` and `sibling` as left and right children of a binary tree,
   it is a perfect binary tree with depth `r`
 -/
-def HeapNode.WF (le : α → α → Bool) (a : α) : HeapNode α → Nat → Prop
+@[expose] def HeapNode.WF (le : α → α → Bool) (a : α) : HeapNode α → Nat → Prop
   | .nil, r => r = 0
   | .node b c s, r => ∃ r', r = r' + 1 ∧ (∀ [TotalBLE le], le a b) ∧ c.WF le b r' ∧ s.WF le a r'
 
@@ -343,7 +343,7 @@ It asserts that:
 * It consists of a list of well formed trees with the specified ranks
 * The ranks are in strictly increasing order, and all are at least `n`
 -/
-def Heap.WF (le : α → α → Bool) (n : Nat) : Heap α → Prop
+@[expose] def Heap.WF (le : α → α → Bool) (n : Nat) : Heap α → Prop
   | .nil => True
   | .cons r a c s => n ≤ r ∧ c.WF le a r ∧ s.WF le (r+1)
 
@@ -492,7 +492,7 @@ a "mergeable priority queue". The standard choice for a priority queue is a bina
 which supports `insert` and `deleteMin` in `O(log n)`, but `merge` is `O(n)`.
 With a `BinomialHeap`, all three operations are `O(log n)`.
 -/
-def BinomialHeap (α : Type u) (le : α → α → Bool) :=
+@[expose] def BinomialHeap (α : Type u) (le : α → α → Bool) :=
   { h : Heap α // h.WF le 0 }
 
 /-- `O(1)`. Make a new empty binomial heap. -/

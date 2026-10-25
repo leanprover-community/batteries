@@ -5,10 +5,12 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 module
 
-public import Batteries.Control.ForInStep.Lemmas
 public import Batteries.Data.List.Basic
+public import Batteries.Control.ForInStep.Basic
+import Batteries.Control.ForInStep.Lemmas
+import Batteries.Tactic.Alias
 
-@[expose] public section
+public section
 
 namespace List
 

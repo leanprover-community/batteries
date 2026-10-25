@@ -7,7 +7,7 @@ module
 
 public import Batteries.Classes.Order
 
-@[expose] public section
+public section
 
 namespace Batteries.PairingHeapImp
 
@@ -295,7 +295,7 @@ With a `PairingHeap`, `insert` and `merge` are `O(1)`, `deleteMin` is amortized 
 Note that `deleteMin` may be `O(n)` in a single operation. So if you need an efficient
 persistent priority queue, you should use other data structures with better worst-case time.
 -/
-def PairingHeap (α : Type u) (le : α → α → Bool) :=
+@[expose] def PairingHeap (α : Type u) (le : α → α → Bool) :=
   { h : Heap α // h.WF le }
 
 /-- `O(1)`. Make a new empty pairing heap. -/

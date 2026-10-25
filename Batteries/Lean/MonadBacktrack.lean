@@ -7,7 +7,7 @@ module
 
 public import Lean.Util.MonadBacktrack
 
-@[expose] public section
+public section
 
 namespace Lean
 

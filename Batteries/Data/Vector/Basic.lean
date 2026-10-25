@@ -7,7 +7,7 @@ module
 
 import Batteries.Data.UInt
 
-@[expose] public section
+public section
 
 /-!
 # Vectors
@@ -71,7 +71,7 @@ private unsafe def scanlMUnsafe [Monad m] (f : β → α → m β) (init : β) (
 /--
 Fold an effectful function `f` over the array from the left, returning the list of partial results.
 -/
-@[implemented_by scanlMUnsafe]
+@[expose, implemented_by scanlMUnsafe]
 def scanlM [Monad m] (f : β → α → m β) (init : β) (as : Vector α n)
     : m (Vector β (n + 1)) :=
   loop init 0 (Nat.zero_le n) #v[]
@@ -116,7 +116,7 @@ private unsafe def scanrMUnsafe [Monad m] (f : α → β → m β) (init : β) (
 /--
 Fold an effectful function `f` over the array from the right, returning the list of partial results.
 -/
-@[implemented_by scanrMUnsafe]
+@[expose, implemented_by scanrMUnsafe]
 def scanrM [Monad m] (f : α → β → m β) (init : β) (as : Vector α n) :
     m (Vector β (n + 1)) :=
   loop init n (Nat.le_refl n) (#v[].cast (by omega))
@@ -133,13 +133,13 @@ where
 /--
 Fold a function `f` over the list from the left, returning the vector of partial results.
 -/
-@[inline]
+@[expose, inline]
 def scanl (f : β → α → β) (init : β) (as : Vector α n) : Vector β (n + 1) :=
   Id.run <| as.scanlM (pure <| f · ·) init
 
 /--
 Fold a function `f` over the list from the right, returning the vector of partial results.
 -/
-@[inline]
+@[expose, inline]
 def scanr (f : α → β → β) (init : β) (as : Vector α n) : Vector β (n + 1) :=
   Id.run <| as.scanrM (pure <| f · ·) init

@@ -6,9 +6,9 @@ Authors: Chad Sharp
 module
 
 public import Batteries.Data.Array.Basic
-public import Batteries.Data.Array.Lemmas
-import Batteries.Data.List.Scan
 import Batteries.Data.List.Lemmas
+import Batteries.Data.Array.Lemmas
+import Batteries.Tactic.Alias
 
 public section
 
@@ -369,7 +369,7 @@ theorem scanlM_eq_scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m 
 
 @[simp]
 theorem scanrM_eq_scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Subarray α} :
-    as.scanrM f init = (as.array.extract as.stop as.start).scanrM f init := by
+    as.scanrM f init = (as.array.extract as.start as.stop).scanrM f init := by
   simp only [scanrM, Array.scanrM_extract]
 
 @[simp]
@@ -379,6 +379,6 @@ theorem scanl_eq_scanl_extract {f : β → α → β} {as : Subarray α} :
 
 @[simp]
 theorem scanr_eq_scanr_extract {f : α → β → β} {as : Subarray α} :
-    as.scanr f init = (as.array.extract as.stop as.start).scanr f init := by
+    as.scanr f init = (as.array.extract as.start as.stop).scanr f init := by
   simp only [scanr, Array.scanr_extract]
 end Subarray
