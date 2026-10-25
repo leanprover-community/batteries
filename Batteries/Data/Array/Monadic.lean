@@ -1,4 +1,4 @@
-module
+module -- shake: keep-all
 
 public import Batteries.Recycling.MonadSatisfying.Array
 

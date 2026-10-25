@@ -5,19 +5,13 @@ Authors: François G. Dorais
 -/
 module
 
-public import Batteries.Tactic.Alias
 public import Batteries.Data.BitVec.Basic
 public import Batteries.Data.Fin.OfBits
-public import Batteries.Data.Nat.Lemmas
 public import Batteries.Data.Int
 
-@[expose] public section
+public section
 
 namespace BitVec
-
-@[simp]
-theorem toNat_pow (b : BitVec w) (n : Nat) : (b ^ n).toNat = (b.toNat ^ n) % (2 ^ w) := by
-  induction n <;> simp_all [Lean.Grind.Semiring.pow_succ]
 
 @[simp]
 theorem ofNat_pow (w x n : Nat) : BitVec.ofNat w (x ^ n) = BitVec.ofNat w x ^ n := by

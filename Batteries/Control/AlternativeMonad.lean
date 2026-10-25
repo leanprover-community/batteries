@@ -5,15 +5,13 @@ Authors: Devon Tuma
 -/
 module
 
-public import Batteries.Control.Lemmas
-public import Batteries.Control.OptionT
 import all Init.Control.Option
 import all Init.Control.State
 import all Init.Control.Reader
 import all Init.Control.StateRef
-public import Lean.Meta.Basic
+import Batteries.Control.Lemmas
 
-@[expose] public section
+public section
 
 
 /-!
@@ -204,5 +202,3 @@ instance [AlternativeMonad m] : LawfulAlternativeLift m (StateRefT' ω σ m) :=
   inferInstanceAs (LawfulAlternativeLift m (ReaderT (ST.Ref ω σ) m))
 
 end StateRefT'
-
-instance : AlternativeMonad Lean.Meta.MetaM where

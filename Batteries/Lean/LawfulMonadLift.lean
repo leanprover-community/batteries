@@ -11,7 +11,7 @@ import all Init.System.IO  -- for unfolding `BaseIO.toEIO`
 import all Init.Control.StateRef  -- for unfolding `StateRefT'.lift`
 import all Init.System.ST
 
-@[expose] public section
+public section
 
 /-!
 # Lawful instances of `MonadLift` for the Lean monad stack.
