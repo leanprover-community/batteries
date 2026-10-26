@@ -343,7 +343,7 @@ def getDeclsInPackage (pkg : Name) : CoreM (Array Name) := do
   let mut decls ← getDeclsInCurrModule
   let modules := env.header.moduleNames.map (pkg.isPrefixOf ·)
   return env.constants.map₁.fold (init := decls) fun decls declName _ =>
-    if modules[env.const2ModIdx[declName]?.get!]! then
+    if modules[(env.getModuleIdxFor? declName).get!]! then
       decls.push declName
     else decls
 
