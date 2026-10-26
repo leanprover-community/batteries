@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Std.WP.Monad.Basic","Std.WP.Monad.Conjunctive","Std.WP.Monad.Frame","Std.WP.Monad.Instances","Std.WP.Monad.Lemmas","Std.WP.Monad.Sound"],"instances":[],"name":"Std.WP.Monad"}
