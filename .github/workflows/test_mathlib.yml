@@ -168,19 +168,20 @@ jobs:
           app-id: ${{ secrets.MATHLIB_NIGHTLY_TESTING_APP_ID }}
           private-key: ${{ secrets.MATHLIB_NIGHTLY_TESTING_PRIVATE_KEY }}
           owner: leanprover-community
-          repositories: mathlib4,mathlib4-nightly-testing
+          repositories: mathlib4-nightly-testing
           # Workflows too, as merging master can bring in `.github/workflows` changes.
           permission-contents: write
           permission-workflows: write
 
-      # The token is persisted (the default) so that the push below authenticates.
+      # Read public Mathlib with the job's read-only token; the App token is only
+      # for pushing to nightly-testing.
       - name: Checkout mathlib4
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: leanprover-community/mathlib4
-          token: ${{ steps.app-token.outputs.token }}
           ref: ${{ needs.pr-info.outputs.mathlib-sha }}
           fetch-depth: 0
+          persist-credentials: false
 
       - *cut_branch
 
@@ -214,6 +215,7 @@ jobs:
 
       - name: Commit and push
         env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_NUMBER: ${{ needs.pr-info.outputs.pr-number }}
           BRANCH_SHA: ${{ needs.pr-info.outputs.branch-sha }}
         run: |
@@ -227,4 +229,5 @@ jobs:
           fi
           # Not forced: if the branch moved after `pr-info` pinned it, this fails
           # instead of overwriting it.
+          gh auth setup-git --hostname github.com
           git push nightly-testing "batteries-pr-testing-$PR_NUMBER"
