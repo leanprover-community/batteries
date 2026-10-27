@@ -49,11 +49,12 @@ jobs:
             exit 0
           fi
 
-          # The fork's repository and branch names go into `lakefile.lean` and git
-          # commands in the later jobs, so accept only plain names. A PR from a
+          # Accept only plain fork repository and branch names. The repository
+          # name goes into `lakefile.lean` in the later jobs. A PR from a
           # branch with any other name is not tested automatically (a maintainer
           # can bump it by hand).
           grep -qE '^[0-9]+$'                          <<<"$PR_NUMBER"   || { echo "::error::bad PR number"; exit 1; }
+          grep -qE '^[0-9a-f]{40}$'                    <<<"$SHA"         || { echo "::error::bad Batteries commit"; exit 1; }
           grep -qE '^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$' <<<"$HEAD_REPO"   || { echo "::error::bad head repository '$HEAD_REPO'"; exit 1; }
           grep -qE "^[A-Za-z0-9][A-Za-z0-9._/'!-]*\$"   <<<"$HEAD_BRANCH" || { echo "::error::unsupported head branch name '$HEAD_BRANCH'"; exit 1; }
           case "$HEAD_BRANCH" in *..*|*/) echo "::error::unsupported head branch name '$HEAD_BRANCH'"; exit 1;; esac
@@ -110,7 +111,7 @@ jobs:
           MATHLIB_SHA: ${{ needs.pr-info.outputs.mathlib-sha }}
           BRANCH_SHA: ${{ needs.pr-info.outputs.branch-sha }}
           HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
-          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          BATTERIES_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
           git config user.name "mathlib-nightly-testing[bot]"
@@ -120,18 +121,21 @@ jobs:
           if [ -z "$BRANCH_SHA" ]; then
             echo "Creating batteries-pr-testing-$PR_NUMBER from master."
             git switch -c "batteries-pr-testing-$PR_NUMBER" "$MATHLIB_SHA"
-            # Point Mathlib's Batteries dependency at the PR's fork and branch.
-            # `pr-info` checked that both names are plain, so they are safe here.
-            sed -i "s,require \"leanprover-community\" / \"batteries\" @ git \".\+\",require \"leanprover-community\" / \"batteries\" from git \"https://github.com/$HEAD_REPO\" @ \"$HEAD_BRANCH\",g" lakefile.lean
-            if ! grep -qF "from git \"https://github.com/$HEAD_REPO\" @ \"$HEAD_BRANCH\"" lakefile.lean; then
-              echo "::error::could not point lakefile.lean at the PR's Batteries"
-              exit 1
-            fi
           else
             echo "Merging master into batteries-pr-testing-$PR_NUMBER."
             git fetch nightly-testing "$BRANCH_SHA"
             git switch -c "batteries-pr-testing-$PR_NUMBER" "$BRANCH_SHA"
             git merge "$MATHLIB_SHA" --strategy-option ours --no-commit --allow-unrelated-histories
+          fi
+
+          # Pin the commit whose CI succeeded, even if the PR branch has since
+          # advanced. Refresh existing testing branches as well as new ones.
+          # `pr-info` checked the repository name and the commit's hex format.
+          BATTERIES_REQUIRE="require \"leanprover-community\" / \"batteries\" from git \"https://github.com/$HEAD_REPO\" @ \"$BATTERIES_SHA\""
+          sed -i "s,^require \"leanprover-community\" / \"batteries\" .*$,$BATTERIES_REQUIRE," lakefile.lean
+          if ! grep -qxF "$BATTERIES_REQUIRE" lakefile.lean; then
+            echo "::error::could not pin lakefile.lean to the PR's Batteries commit"
+            exit 1
           fi
 
       - name: Install elan
@@ -218,11 +222,10 @@ jobs:
           BRANCH_SHA: ${{ needs.pr-info.outputs.branch-sha }}
         run: |
           set -euo pipefail
+          git add lakefile.lean lake-manifest.json
           if [ -z "$BRANCH_SHA" ]; then
-            git add lakefile.lean lake-manifest.json
             git commit -m "Update Batteries branch for testing https://github.com/leanprover-community/batteries/pull/$PR_NUMBER"
           else
-            git add lake-manifest.json
             git commit --allow-empty -m "Trigger CI for https://github.com/leanprover-community/batteries/pull/$PR_NUMBER"
           fi
           # Not forced: if the branch moved after `pr-info` pinned it, this fails
