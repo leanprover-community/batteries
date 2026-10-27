@@ -7,27 +7,161 @@ on:
     workflows: [ci]
     types: [completed]
 
+# One run at a time per PR branch, so that a run never moves the testing branch
+# between another run's `pr-info` and `push`.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
 jobs:
-  on-success:
+  pr-info:
+    name: Find the PR and pin the commits
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' && github.repository == 'leanprover-community/batteries'
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      pr-number: ${{ steps.pr.outputs.number }}
+      mathlib-sha: ${{ steps.pin.outputs.mathlib_sha }}
+      # Empty when the testing branch does not exist yet.
+      branch-sha: ${{ steps.pin.outputs.branch_sha }}
     steps:
-      - name: Checkout PR
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          fetch-depth: 0
-
-      - name: Get PR info
-        id: pr-info
-        run: |
-          echo "pullRequestNumber=$(gh pr list --search $SHA --json number -q '.[0].number' || echo '')" >> $GITHUB_OUTPUT
-          echo "targetBranch=$(gh pr list --search $SHA --json baseRefName -q '.[0].baseRefName' || echo '')" >> $GITHUB_OUTPUT
+      - name: Find the PR
+        id: pr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }} # no checkout for `gh` to read the repository from
           SHA: ${{ github.event.workflow_run.head_sha }}
+          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          set -euo pipefail
+          # The search also matches PRs that merely contain this commit, so keep
+          # only the PR whose head is the branch this run was triggered for.
+          PR_NUMBER="$(gh pr list --search "$SHA" \
+            --json number,baseRefName,headRefName,headRepository,headRepositoryOwner \
+            --jq '[.[] | select(.baseRefName == "main" and .headRefName == env.HEAD_BRANCH
+                    and (.headRepositoryOwner.login + "/" + .headRepository.name) == env.HEAD_REPO)]
+                  | if length == 1 then .[0].number else empty end')"
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No open PR from this branch into main has this commit; nothing to test."
+            exit 0
+          fi
 
+          # The fork's repository and branch names go into `lakefile.lean` and git
+          # commands in the later jobs, so accept only plain names. A PR from a
+          # branch with any other name is not tested automatically (a maintainer
+          # can bump it by hand).
+          grep -qE '^[0-9]+$'                          <<<"$PR_NUMBER"   || { echo "::error::bad PR number"; exit 1; }
+          grep -qE '^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$' <<<"$HEAD_REPO"   || { echo "::error::bad head repository '$HEAD_REPO'"; exit 1; }
+          grep -qE "^[A-Za-z0-9][A-Za-z0-9._/'!-]*\$"   <<<"$HEAD_BRANCH" || { echo "::error::unsupported head branch name '$HEAD_BRANCH'"; exit 1; }
+          case "$HEAD_BRANCH" in *..*|*/) echo "::error::unsupported head branch name '$HEAD_BRANCH'"; exit 1;; esac
+
+          echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Pin the commits
+        id: pin
+        if: steps.pr.outputs.number != ''
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          set -euo pipefail
+          # `prepare` and `push` each cut the testing branch and must cut the same
+          # tree, so both start from the commits pinned here.
+          head_sha() {
+            git ls-remote "https://github.com/leanprover-community/$1.git" "refs/heads/$2" |
+              awk -v ref="refs/heads/$2" '$2 == ref { print $1 }'
+          }
+          MATHLIB_SHA="$(head_sha mathlib4 master)"
+          BRANCH_SHA="$(head_sha mathlib4-nightly-testing "batteries-pr-testing-$PR_NUMBER")"
+          if ! grep -qE '^[0-9a-f]{40}$' <<<"$MATHLIB_SHA"; then
+            echo "::error::could not resolve mathlib4 master"
+            exit 1
+          fi
+          echo "mathlib_sha=$MATHLIB_SHA" >> "$GITHUB_OUTPUT"
+          echo "branch_sha=$BRANCH_SHA" >> "$GITHUB_OUTPUT"
+
+  prepare:
+    name: Update the manifest
+    needs: pr-info
+    if: needs.pr-info.outputs.pr-number != ''
+    runs-on: ubuntu-latest
+    # `lake update batteries` runs the lakefile code of the PR's Batteries, so this
+    # job gets no write-capable token, no secret and no cache. `push` takes only
+    # its manifest, as data.
+    permissions:
+      contents: read
+    cache-mode: none
+    steps:
+      - name: Checkout mathlib4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: leanprover-community/mathlib4
+          ref: ${{ needs.pr-info.outputs.mathlib-sha }}
+          fetch-depth: 0
+          persist-credentials: false # nothing pushes from this job
+
+      # `push` repeats this step (`*cut_branch`), so both jobs cut the same tree.
+      - &cut_branch
+        name: Cut the testing branch
+        env:
+          PR_NUMBER: ${{ needs.pr-info.outputs.pr-number }}
+          MATHLIB_SHA: ${{ needs.pr-info.outputs.mathlib-sha }}
+          BRANCH_SHA: ${{ needs.pr-info.outputs.branch-sha }}
+          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          set -euo pipefail
+          git config user.name "mathlib-nightly-testing[bot]"
+          git config user.email "mathlib-nightly-testing[bot]@users.noreply.github.com"
+          git remote add nightly-testing https://github.com/leanprover-community/mathlib4-nightly-testing.git
+
+          if [ -z "$BRANCH_SHA" ]; then
+            echo "Creating batteries-pr-testing-$PR_NUMBER from master."
+            git switch -c "batteries-pr-testing-$PR_NUMBER" "$MATHLIB_SHA"
+            # Point Mathlib's Batteries dependency at the PR's fork and branch.
+            # `pr-info` checked that both names are plain, so they are safe here.
+            sed -i "s,require \"leanprover-community\" / \"batteries\" @ git \".\+\",require \"leanprover-community\" / \"batteries\" from git \"https://github.com/$HEAD_REPO\" @ \"$HEAD_BRANCH\",g" lakefile.lean
+            if ! grep -qF "from git \"https://github.com/$HEAD_REPO\" @ \"$HEAD_BRANCH\"" lakefile.lean; then
+              echo "::error::could not point lakefile.lean at the PR's Batteries"
+              exit 1
+            fi
+          else
+            echo "Merging master into batteries-pr-testing-$PR_NUMBER."
+            git fetch nightly-testing "$BRANCH_SHA"
+            git switch -c "batteries-pr-testing-$PR_NUMBER" "$BRANCH_SHA"
+            git merge "$MATHLIB_SHA" --strategy-option ours --no-commit --allow-unrelated-histories
+          fi
+
+      - name: Install elan
+        run: |
+          set -o pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.0.0/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "${GITHUB_PATH}"
+
+      - name: Update Batteries
+        run: lake update batteries
+
+      - name: Upload the updated manifest
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: lake-update-result
+          path: lake-manifest.json
+          if-no-files-found: error
+          retention-days: 3
+
+  push:
+    name: Push the testing branch
+    needs: [pr-info, prepare]
+    runs-on: ubuntu-latest
+    # Holds the App token. It cuts the branch from the commits `pr-info` pinned
+    # and takes only the manifest from `prepare`, which it checks as data.
+    permissions:
+      contents: read
+    steps:
       - name: Generate app token
-        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
         id: app-token
         uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         with:
@@ -35,70 +169,62 @@ jobs:
           private-key: ${{ secrets.MATHLIB_NIGHTLY_TESTING_PRIVATE_KEY }}
           owner: leanprover-community
           repositories: mathlib4,mathlib4-nightly-testing
+          # Workflows too, as merging master can bring in `.github/workflows` changes.
+          permission-contents: write
+          permission-workflows: write
 
-      - name: Checkout mathlib4 repository
-        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
+      # The token is persisted (the default) so that the push below authenticates.
+      - name: Checkout mathlib4
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: leanprover-community/mathlib4
           token: ${{ steps.app-token.outputs.token }}
-          ref: master
+          ref: ${{ needs.pr-info.outputs.mathlib-sha }}
           fetch-depth: 0
 
-      - name: Add nightly-testing remote
-        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
-        run: |
-          git remote add nightly-testing https://github.com/leanprover-community/mathlib4-nightly-testing.git
-          git fetch nightly-testing
+      - *cut_branch
 
-      - name: Install elan
-        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
-        run: |
-          set -o pipefail
-          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.0.0/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
-          ./elan-init -y --default-toolchain none
-          echo "$HOME/.elan/bin" >> "${GITHUB_PATH}"
+      - name: Download the updated manifest
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: lake-update-result
+          path: ${{ runner.temp }}/lake-update-result
 
-      - name: Check if branch exists
-        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
-        id: check_mathlib_tag
+      - name: Check and apply the manifest
         env:
-          PR_NUMBER: ${{ steps.pr-info.outputs.pullRequestNumber }}
-          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
-          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          RESULT: ${{ runner.temp }}/lake-update-result/lake-manifest.json
         run: |
-          git config user.name "mathlib-nightly-testing[bot]"
-          git config user.email "mathlib-nightly-testing[bot]@users.noreply.github.com"
+          set -euo pipefail
+          if [ ! -f "$RESULT" ] || [ -L "$RESULT" ]; then
+            echo "::error::lake-manifest.json is missing from the artifact or is not a regular file"
+            exit 1
+          fi
+          # No closer check (such as a comparison with the branch's previous
+          # manifest): Mathlib CI on the branch builds the PR's Batteries anyway,
+          # and a stricter check would stop legitimate PRs from being tested, such
+          # as one that adds a dependency to Batteries.
+          if ! jq -e '.packages | type == "array" and all(.[]; .type == "git"
+                and (.rev | type == "string" and test("^[0-9a-f]{40}$"))
+                and (.url | type == "string" and startswith("https://"))
+                and (.inputRev | . == null or type == "string"))' "$RESULT" > /dev/null; then
+            echo "::error::the lake-manifest.json from prepare does not look like a Lake manifest"
+            exit 1
+          fi
+          cp "$RESULT" lake-manifest.json
 
-          echo "PR info: $HEAD_REPO $HEAD_BRANCH"
-
-          BASE=master
-          echo "Using base tag: $BASE"
-
-          EXISTS="$(git ls-remote --heads nightly-testing batteries-pr-testing-$PR_NUMBER | wc -l)"
-          echo "Branch exists: $EXISTS"
-          if [ "$EXISTS" = "0" ]; then
-            echo "Branch does not exist, creating it."
-            git switch -c batteries-pr-testing-$PR_NUMBER "$BASE"
-
-            # Modify the lakefile.lean with the fork and branch name
-            sed -i "s,require \"leanprover-community\" / \"batteries\" @ git \".\+\",require \"leanprover-community\" / \"batteries\" from git \"https://github.com/$HEAD_REPO\" @ \"$HEAD_BRANCH\",g" lakefile.lean
-
-            lake update batteries
+      - name: Commit and push
+        env:
+          PR_NUMBER: ${{ needs.pr-info.outputs.pr-number }}
+          BRANCH_SHA: ${{ needs.pr-info.outputs.branch-sha }}
+        run: |
+          set -euo pipefail
+          if [ -z "$BRANCH_SHA" ]; then
             git add lakefile.lean lake-manifest.json
             git commit -m "Update Batteries branch for testing https://github.com/leanprover-community/batteries/pull/$PR_NUMBER"
           else
-            echo "Branch already exists, merging $BASE and bumping Batteries."
-            git switch batteries-pr-testing-$PR_NUMBER
-            git merge "$BASE" --strategy-option ours --no-commit --allow-unrelated-histories
-            lake update batteries
             git add lake-manifest.json
             git commit --allow-empty -m "Trigger CI for https://github.com/leanprover-community/batteries/pull/$PR_NUMBER"
           fi
-
-      - name: Push changes
-        if: steps.pr-info.outputs.pullRequestNumber != '' && steps.pr-info.outputs.targetBranch == 'main'
-        env:
-          PR_NUMBER: ${{ steps.pr-info.outputs.pullRequestNumber }}
-        run: |
-          git push nightly-testing batteries-pr-testing-$PR_NUMBER
+          # Not forced: if the branch moved after `pr-info` pinned it, this fails
+          # instead of overwriting it.
+          git push nightly-testing "batteries-pr-testing-$PR_NUMBER"
