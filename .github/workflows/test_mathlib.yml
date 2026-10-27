@@ -53,15 +53,11 @@ jobs:
             exit 0
           fi
 
-          # Accept only plain fork repository and branch names. The repository
-          # name goes into `lakefile.lean` in the later jobs. A PR from a
-          # branch with any other name is not tested automatically (a maintainer
-          # can bump it by hand).
+          # The repository name goes into `lakefile.lean` in the later jobs, so
+          # accept only plain names. The branch name is only used for PR lookup.
           grep -qE '^[0-9]+$'                          <<<"$PR_NUMBER"   || { echo "::error::bad PR number"; exit 1; }
           grep -qE '^[0-9a-f]{40}$'                    <<<"$SHA"         || { echo "::error::bad Batteries commit"; exit 1; }
           grep -qE '^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$' <<<"$HEAD_REPO"   || { echo "::error::bad head repository '$HEAD_REPO'"; exit 1; }
-          grep -qE "^[A-Za-z0-9][A-Za-z0-9._/'!-]*\$"   <<<"$HEAD_BRANCH" || { echo "::error::unsupported head branch name '$HEAD_BRANCH'"; exit 1; }
-          case "$HEAD_BRANCH" in *..*|*/) echo "::error::unsupported head branch name '$HEAD_BRANCH'"; exit 1;; esac
 
           echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
