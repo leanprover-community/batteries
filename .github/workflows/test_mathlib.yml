@@ -181,6 +181,7 @@ jobs:
           repository: leanprover-community/mathlib4
           ref: ${{ needs.pr-info.outputs.mathlib-sha }}
           fetch-depth: 0
+          # A persisted checkout header would override the push's credential helper.
           persist-credentials: false
 
       - *cut_branch
