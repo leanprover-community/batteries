@@ -35,3 +35,25 @@ run_cmd liftCoreM do
     ← getLinter `flagAllLocal ``flagAllLocal]
   let results ← lintCore #[``Nat.add, ``Nat.mul] linters
   logInfo m!"{results.toList.map fun (l, msgs) => (l.name, msgs.size)}"
+
+-- The local declaration array need not be a subset of the full array.
+/-- info: [(flagAllGlobal, 1), (flagAllLocal, 1)] -/
+#guard_msgs in
+run_cmd liftCoreM do
+  let linters := #[← getLinter `flagAllGlobal ``flagAllGlobal,
+    ← getLinter `flagAllLocal ``flagAllLocal]
+  let results ← lintCore #[``Nat.add] linters (localDecls := some #[``Nat.mul])
+  let some (_, globalMsgs) := results[0]? | throwError "missing global result"
+  let some (_, localMsgs) := results[1]? | throwError "missing local result"
+  unless globalMsgs.contains ``Nat.add && localMsgs.contains ``Nat.mul do
+    throwError "wrong declaration set"
+  logInfo m!"{results.toList.map fun (l, msgs) => (l.name, msgs.size)}"
+
+-- An empty local declaration array runs the local linters on no declarations.
+/-- info: [(flagAllGlobal, 1), (flagAllLocal, 0)] -/
+#guard_msgs in
+run_cmd liftCoreM do
+  let linters := #[← getLinter `flagAllGlobal ``flagAllGlobal,
+    ← getLinter `flagAllLocal ``flagAllLocal]
+  let results ← lintCore #[``Nat.add] linters (localDecls := some #[])
+  logInfo m!"{results.toList.map fun (l, msgs) => (l.name, msgs.size)}"
