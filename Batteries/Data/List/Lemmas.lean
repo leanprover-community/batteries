@@ -17,6 +17,12 @@ namespace List
 instance instNeZeroNatLengthCons {a : α} {l : List α} : NeZero (a :: l).length :=
   ⟨Nat.succ_ne_zero _⟩
 
+/-! ### isEmpty -/
+
+@[simp] theorem isEmpty_append {xs ys : List α} :
+    (xs ++ ys).isEmpty = (xs.isEmpty && ys.isEmpty) := by
+  cases xs <;> simp
+
 /-! ### count -/
 
 theorem count_getElem_take_succ [BEq α] [EquivBEq α] {xs : List α}
@@ -28,6 +34,12 @@ theorem count_getElem_take_lt_count [BEq α] [EquivBEq α] {xs : List α}
   Nat.lt_of_succ_le (Nat.le_trans (Nat.le_of_eq count_getElem_take_succ.symm) <|
     (take_sublist _ _).count_le _)
 
+/-! ### any -/
+
+theorem any_congr_mem {xs : List α} {p q : α → Bool} (h : ∀ a ∈ xs, p a = q a) :
+    xs.any p = xs.any q := by
+  induction xs with grind
+
 /-! ### zip -/
 
 attribute [grind =] zip_nil_left zip_nil_right zip_cons_cons
@@ -35,6 +47,17 @@ attribute [grind =] zip_nil_left zip_nil_right zip_cons_cons
 /-! ### zipIdx -/
 
 attribute [grind =] zipIdx_nil zipIdx_cons
+
+theorem find?_zipIdx {xs : List α} {p : α → Bool} {k : Nat} :
+    (xs.zipIdx k).find? (fun ⟨x, _⟩ => p x) =
+      (xs.findIdx? p).bind fun i => xs[i]?.map (·, i + k) := by
+  induction xs generalizing k with
+  | nil => rfl
+  | cons a xs ih =>
+    simp only [zipIdx_cons, find?_cons, findIdx?_cons, ih]
+    cases p a
+    · cases xs.findIdx? p <;> simp [Nat.add_assoc, Nat.add_comm 1]
+    · simp
 
 /-! ### next? -/
 
@@ -424,6 +447,14 @@ theorem isChain_range' (s : Nat) : ∀ n step : Nat,
 theorem isChain_lt_range' (s n : Nat) (h : 0 < step) :
     IsChain (· < ·) (range' s n step) :=
   (isChain_range' s n step).imp fun | _, _, rfl => Nat.lt_add_of_pos_right h
+
+theorem filterMap_range_getElem? {xs : List α} :
+    (range xs.length).filterMap (xs[·]?) = xs := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih =>
+    rw [length_cons, range_succ_eq_map, filterMap_cons, filterMap_map]
+    simpa [Function.comp_def] using ih
 
 /-! ### foldrIdx -/
 
