@@ -119,6 +119,10 @@ abbrev LawfulBOrd (α) [LE α] [LT α] [BEq α] [Ord α] := LawfulBCmp (α := α
 /-- Class for types where the ordering function is compatible with the `LE`, `LT` and `Eq`. -/
 abbrev LawfulOrd (α) [LE α] [LT α] [Ord α] := LawfulCmp (α := α) compare
 
+instance : Std.TransCmp fun (_ _ : α) => Ordering.eq where
+  eq_swap := rfl
+  isLE_trans _ _ := rfl
+
 instance [inst : Std.OrientedCmp cmp] : Std.OrientedCmp (flip cmp) where
   eq_swap := inst.eq_swap
 
