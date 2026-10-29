@@ -41,6 +41,11 @@ A merged Batteries PR uses `batteries @ main` and its current revision when Lake
 Dependency-only updates remain useful Mathlib PRs and are published normally.
 The bot closes a Mathlib PR if its branch has no changes relative to `master`.
 
+Each Batteries PR has its own adaptation branch.
+For `batteries @ main`, Mathlib CI requires a pin that includes the current pin on Mathlib `master`.
+If another adaptation merges first, CI can reject the older pin.
+Run `lake update batteries` on the adaptation branch and commit the manifest.
+
 The bot creates each adaptation branch from Mathlib `master`.
 Later updates preserve the branch history and merge Mathlib `master`.
 The bot uses non-forced pushes to preserve concurrent contributor commits.
