@@ -76,7 +76,8 @@ When Batteries changes in a significant way, Mathlib must adapt promptly.
 When necessary, Batteries contributors are expected to either create an adaptation PR, or ask for assistance for and to collaborate with this necessary process.
 
 Every Batteries PR has an automatically created [Mathlib Nightly Testing](https://github.com/leanprover-community/mathlib4-nightly-testing/) branch called `batteries-pr-testing-N` where `N` is the number of the Batteries PR.
-This is a clone of Mathlib where the Batteries requirement points to the Batteries PR branch instead of the main branch.
+This is a clone of Mathlib where the Batteries requirement is pinned to the PR commit whose
+Batteries CI succeeded, instead of following the main branch.
 Batteries uses this branch to check whether the Batteries PR needs Mathlib adaptations.
 A tag `builds-mathlib` will be issued when this branch needs no adaptation; a tag `breaks-mathlib` will be issued when the branch does need an adaptation.
 
