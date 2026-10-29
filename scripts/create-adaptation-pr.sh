@@ -19,6 +19,9 @@ IFS=$'\n\t'
 
 # Default values
 AUTO="no"
+BUMPVERSION=""
+NIGHTLYDATE=""
+NIGHTLYSHA="origin/nightly-testing"
 
 # Function to display usage
 usage() {
