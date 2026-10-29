@@ -80,6 +80,8 @@ Its branch is `batteries-pr-testing-N` in
 where `N` is the Batteries PR number.
 The bot pins the Batteries dependency to the commit that passed CI and updates it after subsequent successful runs.
 Mathlib's normal fork CI checks the draft PR. Read its checks for the results.
+Mathlib also posts a status comment on the Batteries PR and maintains its `builds-mathlib` and `breaks-mathlib` labels.
+With `awaiting-mathlib`, each report creates a fresh comment; a successful result removes that label.
 
 To supply adaptations:
 

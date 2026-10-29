@@ -13,6 +13,10 @@ It has Contents, Workflows, and Pull requests write permissions.
 The workflow uses the Batteries Actions secrets `MATHLIB_ADAPTATIONS_APP_ID` and `MATHLIB_ADAPTATIONS_PRIVATE_KEY`.
 The App's private key is available only to Batteries.
 
+The separate `mathlib-batteries-status` App has Pull requests write access to Batteries.
+Mathlib uses it through the secrets `BATTERIES_STATUS_APP_ID` and `BATTERIES_STATUS_PRIVATE_KEY`.
+This App reports CI results and has no access to write adaptation branches.
+
 ## Branch access
 
 [Branch rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
@@ -51,3 +55,10 @@ Then rerun successful Batteries CI.
 Only the preparation job runs Lake. That job has no secrets, write token, or cache.
 The other jobs treat its manifest as data.
 The push token can write to the fork. A separate token can change PRs in Mathlib.
+
+After the Mathlib build, tests, and lint finish, a separate GitHub-hosted job reports the results on the Batteries PR.
+It maintains `builds-mathlib` and `breaks-mathlib` and appends results to its status comment, with links to the Mathlib PR and CI log.
+An incomplete result clears both status labels.
+If `awaiting-mathlib` is present, the job posts a fresh comment to notify subscribers; success removes that label.
+The job skips superseded Mathlib commits and outdated Batteries pins.
+It reads the manifest as data and runs no PR code with the reporting token.
