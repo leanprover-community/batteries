@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 module
 
-public import Batteries.Tactic.Basic -- shake: keep
+import Batteries.Tactic.Init
 import Batteries.Tactic.SeqFocus
 
 public section
