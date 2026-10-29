@@ -94,7 +94,7 @@ jobs:
               awk -v ref="refs/heads/$2" '$2 == ref { print $1 }'
           }
           MATHLIB_SHA="$(head_sha mathlib4 master)"
-          BRANCH_SHA="$(head_sha mathlib4-batteries-adaptations "batteries-pr-testing-$PR_NUMBER")"
+          BRANCH_SHA="$(head_sha mathlib4-adaptations "batteries-pr-testing-$PR_NUMBER")"
           if ! grep -qE '^[0-9a-f]{40}$' <<<"$MATHLIB_SHA"; then
             echo "::error::could not resolve mathlib4 master"
             exit 1
@@ -134,9 +134,9 @@ jobs:
           PR_STATE: ${{ needs.pr-info.outputs.state }}
         run: |
           set -euo pipefail
-          git config user.name "mathlib-nightly-testing[bot]"
-          git config user.email "mathlib-nightly-testing[bot]@users.noreply.github.com"
-          git remote add adaptations https://github.com/leanprover-community/mathlib4-batteries-adaptations.git
+          git config user.name "batteries-mathlib-adaptations[bot]"
+          git config user.email "batteries-mathlib-adaptations[bot]@users.noreply.github.com"
+          git remote add adaptations https://github.com/leanprover-community/mathlib4-adaptations.git
 
           if [ -z "$BRANCH_SHA" ]; then
             echo "Creating batteries-pr-testing-$PR_NUMBER from master."
@@ -201,10 +201,10 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         with:
-          app-id: ${{ secrets.MATHLIB_NIGHTLY_TESTING_APP_ID }}
-          private-key: ${{ secrets.MATHLIB_NIGHTLY_TESTING_PRIVATE_KEY }}
+          app-id: ${{ secrets.MATHLIB_ADAPTATIONS_APP_ID }}
+          private-key: ${{ secrets.MATHLIB_ADAPTATIONS_PRIVATE_KEY }}
           owner: leanprover-community
-          repositories: mathlib4-batteries-adaptations
+          repositories: mathlib4-adaptations
           # Workflows too, as merging master can bring in `.github/workflows` changes.
           permission-contents: write
           permission-workflows: write
@@ -307,8 +307,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         with:
-          app-id: ${{ secrets.MATHLIB_NIGHTLY_TESTING_APP_ID }}
-          private-key: ${{ secrets.MATHLIB_NIGHTLY_TESTING_PRIVATE_KEY }}
+          app-id: ${{ secrets.MATHLIB_ADAPTATIONS_APP_ID }}
+          private-key: ${{ secrets.MATHLIB_ADAPTATIONS_PRIVATE_KEY }}
           owner: leanprover-community
           repositories: mathlib4
           permission-pull-requests: write
@@ -325,7 +325,7 @@ jobs:
           script: |
             const owner = 'leanprover-community';
             const repo = 'mathlib4';
-            const fork = 'mathlib4-batteries-adaptations';
+            const fork = 'mathlib4-adaptations';
             const number = Number(process.env.PR_NUMBER);
             const branch = `batteries-pr-testing-${number}`;
             const { data: source } = await github.rest.pulls.get({ owner, repo: 'batteries', pull_number: number });
@@ -336,7 +336,7 @@ jobs:
             const prs = await github.paginate(github.rest.pulls.list, {
               owner, repo, head: `${owner}:${branch}`, base: 'master', state: 'all', per_page: 100,
             });
-            // The organization also owns nightly-testing, which can have the same branch name.
+            // Other forks in the organization can have the same branch name.
             const pr = prs.find(pr => pr.head.repo?.full_name === `${owner}/${fork}`);
             // Bors can close a merged PR without setting GitHub's merged_at field.
             if (pr?.state === 'closed') return;

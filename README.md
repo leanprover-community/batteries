@@ -76,14 +76,14 @@ Ask a Batteries maintainer for help if you need it.
 
 After a Batteries PR to `main` passes CI, the bot opens a draft PR against Mathlib's `master`.
 Its branch is `batteries-pr-testing-N` in
-[mathlib4-batteries-adaptations](https://github.com/leanprover-community/mathlib4-batteries-adaptations),
+[mathlib4-adaptations](https://github.com/leanprover-community/mathlib4-adaptations),
 where `N` is the Batteries PR number.
 The bot pins the Batteries dependency to the commit that passed CI and updates it after subsequent successful runs.
 Mathlib's normal fork CI checks the draft PR. Read its checks for the results.
 
 To supply adaptations:
 
-1. Ask a Batteries maintainer for push access to `mathlib4-batteries-adaptations` if you need it.
+1. Ask a Batteries maintainer for push access to the `batteries-*` branches in `mathlib4-adaptations` if you need it.
 2. Push your Mathlib changes to `batteries-pr-testing-N` in that repository.
    If you do not have push access, open a PR from your Mathlib fork to that branch.
 3. Check the Mathlib PR's CI and tell the Batteries maintainer when the adaptations are ready.
@@ -99,4 +99,4 @@ It also closes the Mathlib PR if the Batteries PR closes without a merge.
 If the Batteries PR reopens, ask a maintainer to reopen its Mathlib PR.
 Then rerun successful Batteries CI.
 
-The [CI setup notes](docs/ci/mathlib-adaptations.md) describe the fork, App permissions, and migration from nightly-testing.
+The [CI setup notes](docs/ci/mathlib-adaptations.md) describe the fork, App permissions, branch rules, and migration.
