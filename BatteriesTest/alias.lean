@@ -198,3 +198,32 @@ Note: The updated constant is in a different namespace. Dot notation may need to
   match ← Batteries.Tactic.Alias.getAliasInfo? `A.foo1 with
   | some i => IO.println i.toString
   | none => IO.println "alias not found"
+
+/- Test `noncomputable section` (issue #1097) -/
+
+noncomputable section
+
+/-- doc string for ncfoo -/
+def ncfoo : Nat := Classical.choice ⟨0⟩
+
+/-- doc string for ncbar -/
+def ncbar : Nat := 21
+
+-- `alias` of a target that is noncomputable via `noncomputable section` works
+alias ncfoo1 := ncfoo
+
+-- a computable target inside a `noncomputable section` still gets executable code
+alias ncbar1 := ncbar
+
+end
+
+/-- info: 42 -/
+#guard_msgs in #eval ncbar1 * 2
+
+example : ncfoo1 = ncfoo := rfl
+
+-- the alias is noncomputable: a computable definition depending on it fails
+/--
+error: failed to compile definition, consider marking it as 'noncomputable' because it depends on 'ncfoo1', which is 'noncomputable'
+-/
+#guard_msgs in def ncfoo2 : Nat := ncfoo1 + 1
