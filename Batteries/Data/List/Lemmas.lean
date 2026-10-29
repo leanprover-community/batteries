@@ -255,13 +255,52 @@ theorem mapM_eq_ok_iff_forall₂ {f : α → Except ε β} {l : List α} {bs : L
     l.mapM f = .ok bs ↔ Forall₂ (fun a b => f a = .ok b) l bs := by
   induction l generalizing bs <;> simp [pure, Except.pure, bind, Except.bind] <;> grind [Forall₂]
 
+theorem exists_mapM_eq_ok_iff {f : α → Except ε β} {l : List α} :
+    (∃ bs, l.mapM f = .ok bs) ↔ ∀ a ∈ l, ∃ b, f a = .ok b := by
+  induction l <;> simp [pure, Except.pure, bind, Except.bind] <;> grind
+
+/-- `mapM f` fails with `e` iff some element `a` fails with `e` and every element before it
+succeeds; `a` is the first failing element, since `mapM` stops at the first error. -/
+theorem mapM_eq_error_iff {f : α → Except ε β} {l : List α} {e : ε} :
+    l.mapM f = .error e ↔
+      ∃ l₁ a l₂, l = l₁ ++ a :: l₂ ∧ (∀ x ∈ l₁, ∃ b, f x = .ok b) ∧ f a = .error e := by
+  induction l with
+  | nil => simp [pure, Except.pure]
+  | cons a l ih =>
+    cases ha : f a <;> cases hl : l.mapM f <;>
+      simp [ha, hl, bind, Except.bind, pure, Except.pure, cons_eq_append_iff, exists_or,
+        or_and_right, and_assoc] at ih ⊢ <;>
+      grind [mem_cons_self]
+
 theorem mapM_eq_some_iff_forall₂ {f : α → Option β} {l : List α} {bs : List β} :
     l.mapM f = some bs ↔ Forall₂ (fun a b => f a = some b) l bs := by
   induction l generalizing bs <;> simp [Option.bind_eq_some_iff] <;> grind [Forall₂]
 
+theorem exists_mapM_eq_some_iff {f : α → Option β} {l : List α} :
+    (∃ bs, l.mapM f = some bs) ↔ ∀ a ∈ l, ∃ b, f a = some b := by
+  induction l <;> simp [Option.bind_eq_some_iff] <;> grind
+
+@[simp] theorem isSome_mapM {f : α → Option β} {l : List α} :
+    (l.mapM f).isSome ↔ ∀ a ∈ l, (f a).isSome := by
+  simp [Option.isSome_iff_exists, exists_mapM_eq_some_iff]
+
+@[simp] theorem mapM_eq_none_iff {f : α → Option β} {l : List α} :
+    l.mapM f = none ↔ ∃ a ∈ l, f a = none := by
+  rw [← Option.not_isSome_iff_eq_none, isSome_mapM]; simp
+
 theorem allSome_eq_some_iff_forall₂ {l : List (Option α)} {as : List α} :
     l.allSome = some as ↔ Forall₂ (fun o a => o = some a) l as :=
   mapM_eq_some_iff_forall₂
+
+theorem exists_allSome_eq_some_iff {l : List (Option α)} :
+    (∃ as, l.allSome = some as) ↔ ∀ o ∈ l, ∃ a, o = some a :=
+  exists_mapM_eq_some_iff
+
+@[simp] theorem isSome_allSome {l : List (Option α)} : l.allSome.isSome ↔ ∀ o ∈ l, o.isSome :=
+  isSome_mapM
+
+@[simp] theorem allSome_eq_none_iff {l : List (Option α)} : l.allSome = none ↔ none ∈ l := by
+  simp [allSome, mapM_eq_none_iff]
 
 /-! ### diff -/
 
