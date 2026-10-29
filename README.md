@@ -99,4 +99,4 @@ It also closes the Mathlib PR if the Batteries PR closes without a merge.
 If the Batteries PR reopens, ask a maintainer to reopen its Mathlib PR.
 Then rerun successful Batteries CI.
 
-The [CI setup notes](docs/ci/mathlib-adaptations.md) describe the fork, App permissions, branch rules, and migration.
+The [workflow reference](docs/ci/mathlib-adaptations.md) describes the fork, App permissions, branch rules, and recovery procedures.
