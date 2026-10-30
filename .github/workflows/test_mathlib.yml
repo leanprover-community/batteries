@@ -330,6 +330,7 @@ jobs:
           PR_STATE: ${{ needs.pr-info.outputs.state }}
           BATTERIES_SHA: ${{ github.event.workflow_run.head_sha }}
           HAS_CHANGES: ${{ needs.push.outputs.has-changes }}
+          BRANCH_SHA: ${{ needs.pr-info.outputs.branch-sha }}
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
@@ -350,7 +351,7 @@ jobs:
                 ref(qualifiedName: $ref) {
                   associatedPullRequests(last: 100, states: [OPEN, CLOSED, MERGED]) {
                     nodes {
-                      id number state isDraft body baseRefName headRefName
+                      id number state isDraft body baseRefName headRefName headRefOid
                       baseRepository { nameWithOwner }
                       headRepository { nameWithOwner }
                     }
@@ -366,6 +367,8 @@ jobs:
             if (pr && pr.state !== 'OPEN') return;
             if (state === 'closed' || process.env.HAS_CHANGES === 'false') {
               if (pr) {
+                // An empty update must not close over new contributor commits.
+                if (state !== 'closed' && pr.headRefOid !== process.env.BRANCH_SHA) return;
                 await github.rest.pulls.update({ owner, repo, pull_number: pr.number, state: 'closed' });
               }
               return;
