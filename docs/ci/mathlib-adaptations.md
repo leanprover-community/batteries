@@ -29,6 +29,8 @@ control branch creation, updates, and deletion. Each row is a separate ruleset:
 | All branches except `batteries-*` | Restrict creations and updates | Fork maintainers |
 | All branches | Restrict deletions and block force pushes | Fork maintainers |
 
+Fork maintainers can delete adaptation branches after their Mathlib PRs close.
+
 Other Mathlib dependencies can share this fork with their own prefix, team, and App.
 Each prefix has its own creation and update rulesets and is excluded from the rule for other branches.
 Rules identify the App, not the repository that ran its workflow; each upstream holds only its own App's private key.
@@ -53,7 +55,8 @@ The bot creates each adaptation branch from Mathlib `master`.
 Later updates preserve the branch history and merge Mathlib `master`.
 The bot uses non-forced pushes to preserve concurrent contributor commits.
 After a rejected push or an API failure, rerun all jobs in Test Mathlib to fetch the current branch commits.
-For a merge conflict, resolve it on the adaptation branch first.
+Lake regenerates the manifest after a conflict in that file.
+Resolve conflicts in the lakefile or source files on the adaptation branch first.
 
 Reruns reuse the same open Mathlib PR.
 Closed Mathlib PRs remain closed, including those merged by Bors.

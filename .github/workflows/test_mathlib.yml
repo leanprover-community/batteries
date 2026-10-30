@@ -145,7 +145,16 @@ jobs:
             echo "Merging master into batteries-pr-testing-$PR_NUMBER."
             git fetch adaptations "$BRANCH_SHA"
             git switch -c "batteries-pr-testing-$PR_NUMBER" "$BRANCH_SHA"
-            git merge "$MATHLIB_SHA" --strategy-option ours --no-commit
+            if ! git merge "$MATHLIB_SHA" --no-commit; then
+              # Lake regenerates the manifest from the merged lakefile.
+              if [ -n "$(git ls-files --unmerged -- lake-manifest.json)" ]; then
+                git checkout "$MATHLIB_SHA" -- lake-manifest.json
+              fi
+              if [ -n "$(git ls-files --unmerged)" ]; then
+                echo "::error::Resolve the merge conflicts on the adaptation branch, then rerun this workflow."
+                exit 1
+              fi
+            fi
           fi
 
           # Pin the commit whose CI succeeded, even if the PR branch has since
@@ -285,9 +294,9 @@ jobs:
           git commit --allow-empty -m "chore: update Batteries for leanprover-community/batteries#$PR_NUMBER"
           if git diff --quiet "$MATHLIB_SHA" HEAD; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
           # Not forced: if the branch moved after `pr-info` pinned it, this fails
           # instead of overwriting it.
           gh auth setup-git --hostname github.com
@@ -299,7 +308,8 @@ jobs:
     needs: [pr-info, push]
     if: >-
       always() && needs.pr-info.result == 'success' && needs.pr-info.outputs.pr-number != '' &&
-      (needs.pr-info.outputs.state == 'closed' || needs.push.outputs.pushed == 'true')
+      (needs.pr-info.outputs.state == 'closed' || needs.push.outputs.pushed == 'true' ||
+       needs.push.outputs.has-changes == 'false')
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -333,13 +343,27 @@ jobs:
             if (source.base.ref !== 'main' || state !== process.env.PR_STATE ||
                 (state === 'open' && source.head.sha !== process.env.BATTERIES_SHA)) return;
 
-            const prs = await github.paginate(github.rest.pulls.list, {
-              owner, repo, head: `${owner}:${branch}`, base: 'master', state: 'all', per_page: 100,
-            });
-            // Other forks in the organization can have the same branch name.
-            const pr = prs.find(pr => pr.head.repo?.full_name === `${owner}/${fork}`);
+            // REST's owner:branch filter misses same-organization fork PRs.
+            // The Mathlib-scoped token can read the public Batteries and fork repositories.
+            const { repository } = await github.graphql(`query($owner: String!, $fork: String!, $ref: String!) {
+              repository(owner: $owner, name: $fork) {
+                ref(qualifiedName: $ref) {
+                  associatedPullRequests(last: 100, states: [OPEN, CLOSED, MERGED]) {
+                    nodes {
+                      id number state isDraft body baseRefName headRefName
+                      baseRepository { nameWithOwner }
+                      headRepository { nameWithOwner }
+                    }
+                  }
+                }
+              }
+            }`, { owner, fork, ref: `refs/heads/${branch}` });
+            const pr = repository.ref?.associatedPullRequests.nodes
+              .filter(pr => pr.baseRepository.nameWithOwner === `${owner}/${repo}` && pr.baseRefName === 'master' &&
+                pr.headRepository?.nameWithOwner === `${owner}/${fork}` && pr.headRefName === branch)
+              .sort((a, b) => b.number - a.number)[0];
             // Bors can close a merged PR without setting GitHub's merged_at field.
-            if (pr?.state === 'closed') return;
+            if (pr && pr.state !== 'OPEN') return;
             if (state === 'closed' || process.env.HAS_CHANGES === 'false') {
               if (pr) {
                 await github.rest.pulls.update({ owner, repo, pull_number: pr.number, state: 'closed' });
@@ -388,7 +412,7 @@ jobs:
             if (!pr) {
               await github.rest.pulls.create({
                 owner, repo, head: `${owner}:${branch}`, head_repo: fork, base: 'master',
-                title: `chore: adapt to Batteries #${number}`,
+                title: `chore: adapt to ${owner}/batteries#${number}`,
                 body,
                 draft: state === 'open',
               });
@@ -397,12 +421,12 @@ jobs:
             if (body !== pr.body) {
               await github.rest.pulls.update({ owner, repo, pull_number: pr.number, body });
             }
-            if (state === 'merged' && pr.draft) {
+            if (state === 'merged' && pr.isDraft) {
               await github.graphql(`mutation($id: ID!) {
                 markPullRequestReadyForReview(input: {pullRequestId: $id}) { pullRequest { id } }
-              }`, { id: pr.node_id });
-            } else if (state === 'open' && !pr.draft) {
+              }`, { id: pr.id });
+            } else if (state === 'open' && !pr.isDraft) {
               await github.graphql(`mutation($id: ID!) {
                 convertPullRequestToDraft(input: {pullRequestId: $id}) { pullRequest { id } }
-              }`, { id: pr.node_id });
+              }`, { id: pr.id });
             }
