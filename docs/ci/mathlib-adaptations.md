@@ -56,7 +56,8 @@ Later updates preserve the branch history and merge Mathlib `master`.
 The bot uses non-forced pushes to preserve concurrent contributor commits.
 After a rejected push or an API failure, rerun all jobs in Test Mathlib to fetch the current branch commits.
 Lake regenerates the manifest after a conflict in that file.
-Resolve conflicts in the lakefile or source files on the adaptation branch first.
+After a lakefile conflict, the bot uses master's lakefile if the branch changed only the Batteries `require` line.
+Resolve other conflicts on the adaptation branch first.
 
 Reruns reuse the same open Mathlib PR.
 Closed Mathlib PRs remain closed, including those merged by Bors.

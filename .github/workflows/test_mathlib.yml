@@ -150,6 +150,17 @@ jobs:
               if [ -n "$(git ls-files --unmerged -- lake-manifest.json)" ]; then
                 git checkout "$MATHLIB_SHA" -- lake-manifest.json
               fi
+              # The pin below rewrites the Batteries line. Take master's lakefile
+              # if the branch changed no other line since its last merge of master.
+              if [ -n "$(git ls-files --unmerged -- lakefile.lean)" ]; then
+                MERGE_BASE="$(git merge-base HEAD "$MATHLIB_SHA")"
+                LAKEFILE_DIFF="$(git diff --unified=0 "$MERGE_BASE" HEAD -- lakefile.lean)"
+                OTHER_CHANGES="$(awk '/^@@/ { hunk = 1; next } hunk && /^[-+]/' <<<"$LAKEFILE_DIFF" |
+                  grep -vE '^[-+]require "leanprover-community" / "batteries" ' || true)"
+                if [ -z "$OTHER_CHANGES" ]; then
+                  git checkout "$MATHLIB_SHA" -- lakefile.lean
+                fi
+              fi
               if [ -n "$(git ls-files --unmerged)" ]; then
                 echo "::error::Resolve the merge conflicts on the adaptation branch, then rerun this workflow."
                 exit 1
