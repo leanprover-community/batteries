@@ -95,6 +95,8 @@ It manages only the Batteries dependency. Coordinate other dependency changes an
 
 After the Batteries PR merges, the bot restores `batteries @ main` and updates the manifest.
 It then marks the open Mathlib PR ready for review, including PRs that only update the dependency.
+The PR description links to other open adaptations with earlier Batteries pins.
+Merge those first to avoid refreshing their pins after a newer adaptation merges.
 If no changes remain relative to Mathlib's `master`, the bot closes the Mathlib PR instead.
 It also closes the Mathlib PR if the Batteries PR closes without a merge.
 

@@ -348,17 +348,54 @@ jobs:
             }
 
             const url = `https://github.com/${owner}/batteries/pull/${number}`;
+            let body = (pr?.body ?? `Adaptations for ${url}.\n\n` +
+              'The bot updates the Batteries dependency after successful Batteries CI.\n' +
+              'Push Mathlib adaptations to this branch.\n' +
+              'After the Batteries PR merges, the bot restores the main dependency and marks this PR ready for review.')
+              .replace(/\n*<!-- batteries-merge-order -->[\s\S]*?<!-- \/batteries-merge-order -->/g, '');
+            if (state === 'merged') {
+              const batteriesPin = async ref => {
+                const { data: file } = await github.rest.repos.getContent({
+                  owner, repo: fork, path: 'lake-manifest.json', ref,
+                });
+                const manifest = JSON.parse(Buffer.from(file.content, 'base64').toString());
+                const pin = manifest.packages.find(p => p.name === 'batteries');
+                return pin.url === `https://github.com/${owner}/batteries` && pin.inputRev === 'main' ? pin.rev : null;
+              };
+              const pin = await batteriesPin(branch);
+              const openPRs = await github.paginate(github.rest.pulls.list, {
+                owner, repo, base: 'master', state: 'open', per_page: 100,
+              });
+              const earlier = [];
+              for (const other of openPRs) {
+                if (other.head.repo?.full_name !== `${owner}/${fork}` ||
+                    !/^batteries-pr-testing-[0-9]+$/.test(other.head.ref) || other.head.ref === branch) continue;
+                const otherPin = await batteriesPin(other.head.sha);
+                if (!otherPin || otherPin === pin) continue;
+                const { data: comparison } = await github.rest.repos.compareCommits({
+                  owner, repo: 'batteries', base: otherPin, head: pin,
+                });
+                if (comparison.status === 'ahead') earlier.push(`#${other.number}`);
+              }
+              if (earlier.length) {
+                body += '\n\n<!-- batteries-merge-order -->\n' +
+                  `Other open adaptations pin earlier Batteries revisions: ${earlier.join(', ')}.\n` +
+                  'Merge them first, or refresh their pins if this PR merges first.\n' +
+                  'This list reflects the manifests at the last bot update.\n' +
+                  '<!-- /batteries-merge-order -->';
+              }
+            }
             if (!pr) {
               await github.rest.pulls.create({
                 owner, repo, head: `${owner}:${branch}`, head_repo: fork, base: 'master',
                 title: `chore: adapt to Batteries #${number}`,
-                body: `Adaptations for ${url}.\n\n` +
-                  'The bot updates the Batteries dependency after successful Batteries CI.\n' +
-                  'Push Mathlib adaptations to this branch.\n' +
-                  'After the Batteries PR merges, the bot restores the main dependency and marks this PR ready for review.',
+                body,
                 draft: state === 'open',
               });
               return;
+            }
+            if (body !== pr.body) {
+              await github.rest.pulls.update({ owner, repo, pull_number: pr.number, body });
             }
             if (state === 'merged' && pr.draft) {
               await github.graphql(`mutation($id: ID!) {
