@@ -70,7 +70,7 @@ protected abbrev count := Char.max - Char.maxSurrogate + Char.minSurrogate
   | .inr ⟨h, _⟩ => simp only [toNat_val] at h; grind
 
 /-- Checks whether a character is in the ASCII range, that is, its code point is less than 128. -/
-@[inline] def isAscii (c : Char) : Bool := c.val < 128
+@[inline, expose] def isAscii (c : Char) : Bool := c.val < 128
 
 theorem isAscii_iff_toNat_lt {c : Char} : c.isAscii ↔ c.toNat < 128 := by
   simp [isAscii, UInt32.lt_iff_toNat_lt]
