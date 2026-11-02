@@ -10,13 +10,19 @@ on:
     branches: [main]
     types: [closed]
 
-# One run at a time per PR branch, so that a run never moves the testing branch
-# between another run's `pr-info` and `push`.
+# One run at a time per PR branch, so that a run never moves the adaptation branch
+# between another run's `pr-info` and `push`. Runs start in event order, so a
+# later event always corrects the result of an earlier one.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name || github.event.pull_request.head.repo.full_name }}-${{ github.event.workflow_run.head_branch || github.event.pull_request.head.ref }}
   cancel-in-progress: false
   # A stale event must not replace a queued run for the current PR head.
   queue: max
+
+# The Batteries commit whose CI succeeded. Both are empty on close events.
+env:
+  HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
+  BATTERIES_SHA: ${{ github.event.workflow_run.head_sha }}
 
 jobs:
   pr-info:
@@ -31,9 +37,12 @@ jobs:
       pull-requests: read
     outputs:
       pr-number: ${{ steps.pr.outputs.number }}
+      # `open`, `merged` or `closed` (closed without a merge).
       state: ${{ steps.pr.outputs.state }}
+      # `close` when the PR closed without a merge.
+      action: ${{ steps.pr.outputs.action }}
       mathlib-sha: ${{ steps.pin.outputs.mathlib_sha }}
-      # Empty when the testing branch does not exist yet.
+      # Empty when the adaptation branch does not exist yet.
       branch-sha: ${{ steps.pin.outputs.branch_sha }}
     steps:
       - name: Find the PR
@@ -41,8 +50,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }} # no checkout for `gh` to read the repository from
-          SHA: ${{ github.event.workflow_run.head_sha }}
-          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
@@ -54,16 +61,21 @@ jobs:
               exit 0
             fi
             echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
-            echo "state=$(jq -r 'if .merged then "merged" else "closed" end' <<<"$PR")" >> "$GITHUB_OUTPUT"
+            if jq -e '.merged' <<<"$PR" > /dev/null; then
+              echo "state=merged" >> "$GITHUB_OUTPUT"
+            else
+              echo "state=closed" >> "$GITHUB_OUTPUT"
+              echo "action=close" >> "$GITHUB_OUTPUT"
+            fi
             exit 0
           fi
           # The search also matches PRs that merely contain this commit, so keep
           # only the PR whose head is the branch and commit this run was triggered
           # for. An older CI run finishing late must not replace a newer pin.
-          PR_NUMBER="$(gh pr list --search "$SHA" \
+          PR_NUMBER="$(gh pr list --search "$BATTERIES_SHA" \
             --json number,baseRefName,headRefName,headRefOid,headRepository,headRepositoryOwner \
             --jq '[.[] | select(.baseRefName == "main" and .headRefName == env.HEAD_BRANCH
-                    and .headRefOid == env.SHA
+                    and .headRefOid == env.BATTERIES_SHA
                     and (.headRepositoryOwner.login + "/" + .headRepository.name) == env.HEAD_REPO)]
                   | if length == 1 then .[0].number else empty end')"
           if [ -z "$PR_NUMBER" ]; then
@@ -73,9 +85,9 @@ jobs:
 
           # The repository name goes into `lakefile.lean` in the later jobs, so
           # accept only plain names. The branch name is only used for PR lookup.
-          grep -qE '^[0-9]+$'                          <<<"$PR_NUMBER"   || { echo "::error::bad PR number"; exit 1; }
-          grep -qE '^[0-9a-f]{40}$'                    <<<"$SHA"         || { echo "::error::bad Batteries commit"; exit 1; }
-          grep -qE '^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$' <<<"$HEAD_REPO"   || { echo "::error::bad head repository '$HEAD_REPO'"; exit 1; }
+          grep -qE '^[0-9]+$'                          <<<"$PR_NUMBER"     || { echo "::error::bad PR number"; exit 1; }
+          grep -qE '^[0-9a-f]{40}$'                    <<<"$BATTERIES_SHA" || { echo "::error::bad Batteries commit"; exit 1; }
+          grep -qE '^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$' <<<"$HEAD_REPO"     || { echo "::error::bad head repository '$HEAD_REPO'"; exit 1; }
 
           echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "state=open" >> "$GITHUB_OUTPUT"
@@ -87,7 +99,7 @@ jobs:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
         run: |
           set -euo pipefail
-          # `prepare` and `push` each cut the testing branch and must cut the same
+          # `prepare` and `push` each cut the adaptation branch and must cut the same
           # tree, so both start from the commits pinned here.
           head_sha() {
             git ls-remote "https://github.com/leanprover-community/$1.git" "refs/heads/$2" |
@@ -113,6 +125,11 @@ jobs:
     permissions:
       contents: read
     cache-mode: none
+    env: &pinned
+      PR_NUMBER: ${{ needs.pr-info.outputs.pr-number }}
+      PR_STATE: ${{ needs.pr-info.outputs.state }}
+      MATHLIB_SHA: ${{ needs.pr-info.outputs.mathlib-sha }}
+      BRANCH_SHA: ${{ needs.pr-info.outputs.branch-sha }}
     steps:
       - name: Checkout mathlib4
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -124,14 +141,7 @@ jobs:
 
       # `push` repeats this step (`*cut_branch`), so both jobs cut the same tree.
       - &cut_branch
-        name: Cut the testing branch
-        env:
-          PR_NUMBER: ${{ needs.pr-info.outputs.pr-number }}
-          MATHLIB_SHA: ${{ needs.pr-info.outputs.mathlib-sha }}
-          BRANCH_SHA: ${{ needs.pr-info.outputs.branch-sha }}
-          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
-          BATTERIES_SHA: ${{ github.event.workflow_run.head_sha }}
-          PR_STATE: ${{ needs.pr-info.outputs.state }}
+        name: Cut the adaptation branch
         run: |
           set -euo pipefail
           git config user.name "batteries-mathlib-adaptations[bot]"
@@ -153,11 +163,11 @@ jobs:
               # The pin below rewrites the Batteries line. Take master's lakefile
               # if the branch changed no other line since its last merge of master.
               if [ -n "$(git ls-files --unmerged -- lakefile.lean)" ]; then
+                without_batteries() {
+                  git show "$1:lakefile.lean" | grep -v '^require "leanprover-community" / "batteries" '
+                }
                 MERGE_BASE="$(git merge-base HEAD "$MATHLIB_SHA")"
-                LAKEFILE_DIFF="$(git diff --unified=0 "$MERGE_BASE" HEAD -- lakefile.lean)"
-                OTHER_CHANGES="$(awk '/^@@/ { hunk = 1; next } hunk && /^[-+]/' <<<"$LAKEFILE_DIFF" |
-                  grep -vE '^[-+]require "leanprover-community" / "batteries" ' || true)"
-                if [ -z "$OTHER_CHANGES" ]; then
+                if [ "$(without_batteries "$MERGE_BASE")" = "$(without_batteries HEAD)" ]; then
                   git checkout "$MATHLIB_SHA" -- lakefile.lean
                 fi
               fi
@@ -169,13 +179,14 @@ jobs:
           fi
 
           # Pin the commit whose CI succeeded, even if the PR branch has since
-          # advanced. Refresh existing testing branches as well as new ones.
+          # advanced. Refresh existing adaptation branches as well as new ones.
           # `pr-info` checked the repository name and the commit's hex format.
           BATTERIES_REQUIRE="require \"leanprover-community\" / \"batteries\" from git \"https://github.com/$HEAD_REPO\" @ \"$BATTERIES_SHA\""
           if [ "$PR_STATE" = merged ]; then
             BATTERIES_REQUIRE='require "leanprover-community" / "batteries" @ git "main"'
           fi
-          # The fork's files are data, including in the job that holds the token.
+          # Contributor commits control these files. Refuse symlinks, so that `sed -i`
+          # here and `cp` in `push` write only inside the checkout.
           if [ -L lakefile.lean ] || [ -L lake-manifest.json ]; then
             echo "::error::the lakefile and manifest must be regular files"
             exit 1
@@ -205,7 +216,7 @@ jobs:
           retention-days: 3
 
   push:
-    name: Push the testing branch
+    name: Push the adaptation branch
     needs: [pr-info, prepare]
     runs-on: ubuntu-latest
     # Holds the App token. It cuts the branch from the commits `pr-info` pinned
@@ -213,9 +224,10 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+    env: *pinned
     outputs:
-      pushed: ${{ steps.push.outputs.pushed }}
-      has-changes: ${{ steps.push.outputs.has_changes }}
+      # `sync` after a push; `close` when no adaptations remain after the merge.
+      action: ${{ steps.push.outputs.action }}
     steps:
       - name: Generate app token
         id: app-token
@@ -230,7 +242,7 @@ jobs:
           permission-workflows: write
 
       # Read public Mathlib with the job's read-only token; the App token is only
-      # for pushing to the adaptation fork.
+      # for pushing to `mathlib4-adaptations`.
       - name: Checkout mathlib4
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -251,9 +263,6 @@ jobs:
       - name: Check and apply the manifest
         env:
           RESULT: ${{ runner.temp }}/lake-update-result/lake-manifest.json
-          PR_STATE: ${{ needs.pr-info.outputs.state }}
-          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
-          BATTERIES_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
           if [ ! -f "$RESULT" ] || [ -L "$RESULT" ]; then
@@ -286,14 +295,12 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           READ_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ needs.pr-info.outputs.pr-number }}
-          PR_STATE: ${{ needs.pr-info.outputs.state }}
-          BATTERIES_SHA: ${{ github.event.workflow_run.head_sha }}
-          MATHLIB_SHA: ${{ needs.pr-info.outputs.mathlib-sha }}
         run: |
           set -euo pipefail
           # Preparation can take time. Do not publish a superseded revision or
           # change a branch back to a PR dependency after the Batteries PR merges.
+          # The queued run for the newer event would correct the branch, but this
+          # check avoids a needless Mathlib CI run.
           PR="$(GH_TOKEN="$READ_TOKEN" gh api "repos/leanprover-community/batteries/pulls/$PR_NUMBER")"
           if ! jq -e '(.base.ref == "main") and
                 (if env.PR_STATE == "merged" then .merged
@@ -303,24 +310,24 @@ jobs:
           fi
           git add lakefile.lean lake-manifest.json
           git commit --allow-empty -m "chore: update Batteries for leanprover-community/batteries#$PR_NUMBER"
-          if git diff --quiet "$MATHLIB_SHA" HEAD; then
-            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          # Before the merge, the lakefile pins the PR and always differs from master.
+          # After the merge, it requires Batteries `main` as master does. Then a branch
+          # that differs from master only in the manifest has no adaptations left.
+          if git diff --quiet "$MATHLIB_SHA" HEAD -- ':(exclude)lake-manifest.json'; then
+            echo "action=close" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          echo "has_changes=true" >> "$GITHUB_OUTPUT"
           # Not forced: if the branch moved after `pr-info` pinned it, this fails
           # instead of overwriting it.
           gh auth setup-git --hostname github.com
           git push adaptations "batteries-pr-testing-$PR_NUMBER"
-          echo "pushed=true" >> "$GITHUB_OUTPUT"
+          echo "action=sync" >> "$GITHUB_OUTPUT"
 
   pull-request:
-    name: Update the Mathlib PR
+    name: Update the adaptation PR
     needs: [pr-info, push]
-    if: >-
-      always() && needs.pr-info.result == 'success' && needs.pr-info.outputs.pr-number != '' &&
-      (needs.pr-info.outputs.state == 'closed' || needs.push.outputs.pushed == 'true' ||
-       needs.push.outputs.has-changes == 'false')
+    # `push` is skipped on close events, so run whenever either job asks for an action.
+    if: always() && (needs.pr-info.outputs.action == 'close' || needs.push.outputs.action != '')
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -334,13 +341,12 @@ jobs:
           repositories: mathlib4
           permission-pull-requests: write
 
-      - name: Synchronize the Mathlib PR
+      - name: Close, open or update the adaptation PR
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
+          ACTION: ${{ needs.push.outputs.action || needs.pr-info.outputs.action }}
           PR_NUMBER: ${{ needs.pr-info.outputs.pr-number }}
           PR_STATE: ${{ needs.pr-info.outputs.state }}
-          BATTERIES_SHA: ${{ github.event.workflow_run.head_sha }}
-          HAS_CHANGES: ${{ needs.push.outputs.has-changes }}
           BRANCH_SHA: ${{ needs.pr-info.outputs.branch-sha }}
         with:
           github-token: ${{ steps.app-token.outputs.token }}
@@ -350,19 +356,16 @@ jobs:
             const fork = 'mathlib4-adaptations';
             const number = Number(process.env.PR_NUMBER);
             const branch = `batteries-pr-testing-${number}`;
-            const { data: source } = await github.rest.pulls.get({ owner, repo: 'batteries', pull_number: number });
-            const state = source.merged ? 'merged' : source.state;
-            if (source.base.ref !== 'main' || state !== process.env.PR_STATE ||
-                (state === 'open' && source.head.sha !== process.env.BATTERIES_SHA)) return;
+            const merged = process.env.PR_STATE === 'merged';
 
             // REST's owner:branch filter misses same-organization fork PRs.
-            // The Mathlib-scoped token can read the public Batteries and fork repositories.
+            // The Mathlib-scoped token can read the public fork.
             const { repository } = await github.graphql(`query($owner: String!, $fork: String!, $ref: String!) {
               repository(owner: $owner, name: $fork) {
                 ref(qualifiedName: $ref) {
                   associatedPullRequests(last: 100, states: [OPEN, CLOSED, MERGED]) {
                     nodes {
-                      id number state isDraft body baseRefName headRefName headRefOid
+                      id number state isDraft baseRefName headRefName headRefOid
                       baseRepository { nameWithOwner }
                       headRepository { nameWithOwner }
                     }
@@ -374,74 +377,42 @@ jobs:
               .filter(pr => pr.baseRepository.nameWithOwner === `${owner}/${repo}` && pr.baseRefName === 'master' &&
                 pr.headRepository?.nameWithOwner === `${owner}/${fork}` && pr.headRefName === branch)
               .sort((a, b) => b.number - a.number)[0];
-            // Bors can close a merged PR without setting GitHub's merged_at field.
+            // Never open a second adaptation PR for the same branch: a closed one
+            // stays closed. Bors can also close a merged PR without setting
+            // GitHub's merged_at field.
             if (pr && pr.state !== 'OPEN') return;
-            if (state === 'closed' || process.env.HAS_CHANGES === 'false') {
-              if (pr) {
-                // An empty update must not close over new contributor commits.
-                if (state !== 'closed' && pr.headRefOid !== process.env.BRANCH_SHA) return;
+
+            if (process.env.ACTION === 'close') {
+              // An empty update must not close over new contributor commits.
+              if (pr && (!merged || pr.headRefOid === process.env.BRANCH_SHA)) {
                 await github.rest.pulls.update({ owner, repo, pull_number: pr.number, state: 'closed' });
               }
               return;
             }
 
-            const url = `https://github.com/${owner}/batteries/pull/${number}`;
-            let body = (pr?.body ?? `Adaptations for ${url}.\n\n` +
-              'The bot updates the Batteries dependency after successful Batteries CI.\n' +
-              'To contribute adaptations, open a PR against this branch from a fork of ' +
-              `\`${owner}/${fork}\`, as described in the ` +
-              `[Batteries contributor guide](https://github.com/${owner}/batteries#mathlib-adaptations).\n` +
-              'After the Batteries PR merges, the bot restores the main dependency and marks this PR ready for review.')
-              .replace(/\n*<!-- batteries-merge-order -->[\s\S]*?<!-- \/batteries-merge-order -->/g, '');
-            if (state === 'merged') {
-              const batteriesPin = async ref => {
-                const { data: file } = await github.rest.repos.getContent({
-                  owner, repo: fork, path: 'lake-manifest.json', ref,
-                });
-                const manifest = JSON.parse(Buffer.from(file.content, 'base64').toString());
-                const pin = manifest.packages.find(p => p.name === 'batteries');
-                return pin.url === `https://github.com/${owner}/batteries` && pin.inputRev === 'main' ? pin.rev : null;
-              };
-              const pin = await batteriesPin(branch);
-              const openPRs = await github.paginate(github.rest.pulls.list, {
-                owner, repo, base: 'master', state: 'open', per_page: 100,
-              });
-              const earlier = [];
-              for (const other of openPRs) {
-                if (other.head.repo?.full_name !== `${owner}/${fork}` ||
-                    !/^batteries-pr-testing-[0-9]+$/.test(other.head.ref) || other.head.ref === branch) continue;
-                const otherPin = await batteriesPin(other.head.sha);
-                if (!otherPin || otherPin === pin) continue;
-                const { data: comparison } = await github.rest.repos.compareCommits({
-                  owner, repo: 'batteries', base: otherPin, head: pin,
-                });
-                if (comparison.status === 'ahead') earlier.push(`#${other.number}`);
-              }
-              if (earlier.length) {
-                body += '\n\n<!-- batteries-merge-order -->\n' +
-                  `Other open adaptations pin earlier Batteries revisions: ${earlier.join(', ')}.\n` +
-                  'Merge them first, or refresh their pins if this PR merges first.\n' +
-                  'This list reflects the manifests at the last bot update.\n' +
-                  '<!-- /batteries-merge-order -->';
-              }
-            }
             if (!pr) {
+              const url = `https://github.com/${owner}/batteries/pull/${number}`;
               await github.rest.pulls.create({
+                // `head_repo` selects the fork, which has the same owner as Mathlib.
                 owner, repo, head: `${owner}:${branch}`, head_repo: fork, base: 'master',
                 title: `chore: adapt to ${owner}/batteries#${number}`,
-                body,
-                draft: state === 'open',
+                body: `Adaptations for ${url}.\n\n` +
+                  'The bot updates the Batteries dependency after successful Batteries CI.\n' +
+                  'To contribute adaptations, open a PR against this branch from a fork of ' +
+                  `\`${owner}/${fork}\`, as described in the ` +
+                  `[Batteries contributor guide](https://github.com/${owner}/batteries#mathlib-adaptations).\n` +
+                  'After the Batteries PR merges, the bot restores the main dependency and marks this PR ready for review.',
+                draft: !merged,
               });
               return;
             }
-            if (body !== pr.body) {
-              await github.rest.pulls.update({ owner, repo, pull_number: pr.number, body });
-            }
-            if (state === 'merged' && pr.isDraft) {
+            // Keep the PR a draft while it pins a Batteries PR, so that Mathlib
+            // cannot merge it before the Batteries PR merges.
+            if (merged && pr.isDraft) {
               await github.graphql(`mutation($id: ID!) {
                 markPullRequestReadyForReview(input: {pullRequestId: $id}) { pullRequest { id } }
               }`, { id: pr.id });
-            } else if (state === 'open' && !pr.isDraft) {
+            } else if (!merged && !pr.isDraft) {
               await github.graphql(`mutation($id: ID!) {
                 convertPullRequestToDraft(input: {pullRequestId: $id}) { pullRequest { id } }
               }`, { id: pr.id });

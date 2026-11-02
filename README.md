@@ -79,6 +79,7 @@ Every Batteries PR has an automatically created [Mathlib Adaptations](https://gi
 This is a clone of Mathlib where the Batteries requirement is pinned to the PR commit whose
 Batteries CI succeeded, instead of following the main branch.
 A draft adaptation PR from this branch to Mathlib is opened automatically, and Mathlib CI tests it like any other Mathlib PR.
+It stays a draft until the Batteries PR is merged.
 Batteries uses this PR to check whether the Batteries PR needs Mathlib adaptations.
 A tag `builds-mathlib` will be issued when this PR needs no adaptation; a tag `breaks-mathlib` will be issued when the PR does need an adaptation.
 
