@@ -353,6 +353,8 @@ jobs:
           BRANCH_SHA: ${{ needs.pr-info.outputs.branch-sha }}
         with:
           github-token: ${{ steps.app-token.outputs.token }}
+          # Retry transient API errors. The default exempt codes skip errors that a retry cannot fix.
+          retries: 3
           script: |
             const owner = 'leanprover-community';
             const repo = 'mathlib4';
@@ -391,8 +393,13 @@ jobs:
             if (process.env.ACTION === 'close') {
               // After a close without a merge, close the adaptation PR. After a merge, close
               // it only if its head is still the commit that `pr-info` pinned. A newer head
-              // holds contributor commits that need review.
-              if (pr && (!merged || pr.headRefOid === process.env.BRANCH_SHA)) {
+              // holds contributor commits that `push` must compare with master again, so
+              // fail the job and let a maintainer rerun it.
+              if (pr && merged && pr.headRefOid !== process.env.BRANCH_SHA) {
+                core.setFailed('The adaptation branch moved after pr-info pinned it; rerun this workflow.');
+                return;
+              }
+              if (pr) {
                 await github.rest.pulls.update({ owner, repo, pull_number: pr.number, state: 'closed' });
               }
               return;
