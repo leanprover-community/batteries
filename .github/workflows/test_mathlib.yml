@@ -432,3 +432,24 @@ jobs:
                 convertPullRequestToDraft(input: {pullRequestId: $id}) { pullRequest { id } }
               }`, { id: pr.id });
             }
+
+  report-failure:
+    name: Report a failed update
+    needs: [pr-info, prepare, push, pull-request]
+    # GitHub sends one close event per merge or close, so a failed run needs a maintainer
+    # to rerun it. CI events repeat with each push to the PR, so report only close events.
+    if: failure() && github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Comment on the Batteries PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh pr comment "$PR_NUMBER" --body "The Test Mathlib workflow failed to update the Mathlib adaptation after this PR was closed: $RUN_URL
+
+          Resolve any merge conflicts on \`batteries-pr-testing-$PR_NUMBER\` first. Then a Batteries maintainer can rerun all jobs of that run."

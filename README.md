@@ -100,6 +100,7 @@ It can then be merged using the regular Mathlib process. You may need to ping a 
 If the Batteries PR is closed without being merged, or the adaptation PR changes only the Batteries version, the adaptation PR is closed.
 
 If the bot fails to update the branch or the adaptation PR after a rejected push or an API error, a Batteries maintainer can rerun all jobs of the Test Mathlib workflow.
+After a merge or a close, the bot posts a comment on the Batteries PR when the update fails.
 If a closed Batteries PR is reopened, a Mathlib maintainer must reopen its adaptation PR before the next Batteries CI run.
 
 Please ask questions to Batteries maintainers if you run into issues with this process.
