@@ -345,6 +345,7 @@ jobs:
           permission-pull-requests: write
 
       - name: Close, open or update the adaptation PR
+        id: sync
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           ACTION: ${{ needs.push.outputs.action || needs.pr-info.outputs.action }}
@@ -407,7 +408,7 @@ jobs:
 
             if (!pr) {
               const url = `https://github.com/${owner}/batteries/pull/${number}`;
-              await github.rest.pulls.create({
+              const { data: created } = await github.rest.pulls.create({
                 // `head_repo` selects the fork, which has the same owner as Mathlib.
                 owner, repo, head: `${owner}:${branch}`, head_repo: fork, base: 'master',
                 title: `chore: adapt to ${owner}/batteries#${number}`,
@@ -419,8 +420,10 @@ jobs:
                   'After the Batteries PR is merged, the bot restores the main dependency and marks this PR ready for review.',
                 draft: !merged,
               });
+              core.setOutput('number', created.number);
               return;
             }
+            core.setOutput('number', pr.number);
             // Keep the PR a draft while it pins a Batteries PR, so that Mathlib
             // maintainers merge it only after the Batteries merge.
             if (merged && pr.isDraft) {
@@ -431,6 +434,70 @@ jobs:
               await github.graphql(`mutation($id: ID!) {
                 convertPullRequestToDraft(input: {pullRequestId: $id}) { pullRequest { id } }
               }`, { id: pr.id });
+            }
+
+      # After the Batteries merge, each adaptation PR pins a commit of Batteries `main`.
+      # A later pin includes the earlier Batteries PRs. If Mathlib merges an adaptation
+      # PR with an earlier pin after this one, that PR moves Mathlib back to its older
+      # Batteries commit. List those PRs in this PR's description.
+      - name: List adaptation PRs with earlier Batteries pins
+        if: steps.sync.outputs.number != '' && needs.pr-info.outputs.state == 'merged'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR_NUMBER: ${{ needs.pr-info.outputs.pr-number }}
+          ADAPTATION_PR: ${{ steps.sync.outputs.number }}
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          retries: 3
+          script: |
+            const owner = 'leanprover-community';
+            const repo = 'mathlib4';
+            const fork = 'mathlib4-adaptations';
+            const branch = `batteries-pr-testing-${process.env.PR_NUMBER}`;
+            const pull_number = Number(process.env.ADAPTATION_PR);
+
+            // The Batteries `main` commit that a branch or commit of the fork pins,
+            // or null if it still pins a Batteries PR.
+            const batteriesPin = async ref => {
+              const { data: file } = await github.rest.repos.getContent({
+                owner, repo: fork, path: 'lake-manifest.json', ref,
+              });
+              const manifest = JSON.parse(Buffer.from(file.content, 'base64').toString());
+              const pin = manifest.packages.find(p => p.name === 'batteries');
+              return pin?.url === `https://github.com/${owner}/batteries` && pin.inputRev === 'main' ? pin.rev : null;
+            };
+            const pin = await batteriesPin(branch);
+            // Compare this pin with the pin of every other open adaptation PR.
+            const openPRs = await github.paginate(github.rest.pulls.list, {
+              owner, repo, base: 'master', state: 'open', per_page: 100,
+            });
+            const earlier = [];
+            for (const other of openPRs) {
+              if (other.head.repo?.full_name !== `${owner}/${fork}` ||
+                  !/^batteries-pr-testing-[0-9]+$/.test(other.head.ref) || other.head.ref === branch) continue;
+              const otherPin = await batteriesPin(other.head.sha);
+              // Skip PRs that still pin a Batteries PR, or that pin the same commit.
+              if (!otherPin || otherPin === pin) continue;
+              const { data: comparison } = await github.rest.repos.compareCommits({
+                owner, repo: 'batteries', base: otherPin, head: pin,
+              });
+              // `ahead`: this pin descends from the other pin, so the other pin is earlier.
+              if (comparison.status === 'ahead') earlier.push(`#${other.number}`);
+            }
+
+            // Replace the list from the previous bot update, and keep the rest of the description.
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number });
+            const oldBody = pr.body ?? '';
+            let body = oldBody.replace(/\n*<!-- batteries-merge-order -->[\s\S]*?<!-- \/batteries-merge-order -->/g, '');
+            if (earlier.length) {
+              body += '\n\n<!-- batteries-merge-order -->\n' +
+                `Other open adaptations pin earlier Batteries commits: ${earlier.join(', ')}.\n` +
+                'Merge them first, or refresh their pins if this PR is merged first.\n' +
+                'This list reflects the manifests at the last bot update.\n' +
+                '<!-- /batteries-merge-order -->';
+            }
+            if (body !== oldBody) {
+              await github.rest.pulls.update({ owner, repo, pull_number, body });
             }
 
   report-failure:
