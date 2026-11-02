@@ -79,7 +79,7 @@ Every Batteries PR has an automatically created [Mathlib Adaptations](https://gi
 This is a clone of Mathlib where the Batteries requirement is pinned to the PR commit whose
 Batteries CI succeeded, instead of following the main branch.
 A draft adaptation PR from this branch to Mathlib is opened automatically, and Mathlib CI tests it like any other Mathlib PR.
-It stays a draft until the Batteries PR is merged.
+It is kept as a draft until the Batteries PR is merged.
 Batteries uses this PR to check whether the Batteries PR needs Mathlib adaptations.
 A tag `builds-mathlib` will be issued when this PR needs no adaptation; a tag `breaks-mathlib` will be issued when the PR does need an adaptation.
 
@@ -91,15 +91,15 @@ To adapt Mathlib:
 3. Post a comment on your original Batteries PR that your PR is ready for review.
 
 A Batteries maintainer will then review your PR and merge it into `batteries-pr-testing-N`.
-CI does not run on PRs to the branch. It runs on the adaptation PR after your changes are merged.
+CI runs only on the adaptation PR, after your changes are merged into the branch.
 Changes to the Batteries PR will be integrated automatically, and merged adaptation commits are kept.
 If the branch conflicts with Mathlib `master`, merge `master` in your PR and resolve the conflicts there.
 
 Once the Batteries PR is merged, the Batteries requirement is repointed to the main branch and the adaptation PR is marked ready for review.
 It can then be merged using the regular Mathlib process. You may need to ping a Mathlib maintainer to review the PR.
-If the Batteries PR is closed without being merged, or the adaptation PR no longer changes anything except the Batteries version, the adaptation PR is closed.
+If the Batteries PR is closed without being merged, or the adaptation PR changes only the Batteries version, the adaptation PR is closed.
 
-If an update fails after a rejected push or an API error, a Batteries maintainer can rerun all jobs of the Test Mathlib workflow.
+If the bot fails to update the branch or the adaptation PR after a rejected push or an API error, a Batteries maintainer can rerun all jobs of the Test Mathlib workflow.
 If a closed Batteries PR is reopened, a Mathlib maintainer must reopen its adaptation PR before the next Batteries CI run.
 
 Please ask questions to Batteries maintainers if you run into issues with this process.

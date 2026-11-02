@@ -10,9 +10,9 @@ on:
     branches: [main]
     types: [closed]
 
-# One run at a time per PR branch, so that a run never moves the adaptation branch
-# between another run's `pr-info` and `push`. Runs start in event order, so a
-# later event always corrects the result of an earlier one.
+# One run at a time per PR branch, so that each run's `push` finds the adaptation
+# branch that its `pr-info` pinned. Runs start in event order, so a later event
+# always corrects the result of an earlier one.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name || github.event.pull_request.head.repo.full_name }}-${{ github.event.workflow_run.head_branch || github.event.pull_request.head.ref }}
   cancel-in-progress: false
@@ -38,12 +38,12 @@ jobs:
       pull-requests: read
     outputs:
       pr-number: ${{ steps.pr.outputs.number }}
-      # `open`, `merged` or `closed` (closed without a merge).
+      # `open`, `merged` or `closed` (a close without a merge).
       state: ${{ steps.pr.outputs.state }}
-      # `close` when the PR closed without a merge, otherwise empty.
+      # `close` for a close without a merge, otherwise empty.
       action: ${{ steps.pr.outputs.action }}
       mathlib-sha: ${{ steps.pin.outputs.mathlib_sha }}
-      # Empty when the adaptation branch does not exist yet.
+      # Empty until the first push creates the adaptation branch.
       branch-sha: ${{ steps.pin.outputs.branch_sha }}
     steps:
       - name: Find the PR
@@ -57,7 +57,7 @@ jobs:
           set -euo pipefail
           if [ "$GITHUB_EVENT_NAME" = pull_request_target ]; then
             PR="$(gh api "repos/$GH_REPO/pulls/$PR_NUMBER")"
-            # Ignore a delayed close event if the PR has since reopened.
+            # Ignore a delayed close event if someone reopened the PR after it.
             if ! jq -e '.state == "closed" and .base.ref == "main"' <<<"$PR" > /dev/null; then
               exit 0
             fi
@@ -163,7 +163,7 @@ jobs:
                 git checkout "$MATHLIB_SHA" -- lake-manifest.json
               fi
               # The pin below rewrites the Batteries line. Take master's lakefile
-              # if the branch changed no other line since its last merge of master.
+              # if the branch changes only that line since its last merge of master.
               if [ -n "$(git ls-files --unmerged -- lakefile.lean)" ]; then
                 without_batteries() {
                   git show "$1:lakefile.lean" | grep -v '^require "leanprover-community" / "batteries" '
@@ -228,8 +228,8 @@ jobs:
       pull-requests: read
     env: *pinned
     outputs:
-      # `sync` after a push, `close` when no adaptations remain after the merge,
-      # and empty when this run skips the update.
+      # `sync` after a push, `close` after the merge when the branch differs from
+      # master only in the manifest, and empty when this run skips the push.
       action: ${{ steps.push.outputs.action }}
     steps:
       - name: Generate app token
@@ -300,9 +300,9 @@ jobs:
           READ_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          # Preparation can take time. Skip the push if the PR has a newer head or
-          # merged since `pr-info`. The queued run for that event updates the branch,
-          # so this check only avoids a needless Mathlib CI run.
+          # Preparation can take time. Skip the push if the PR has a newer head commit,
+          # or if a maintainer merged the PR after `pr-info`. The queued run for that
+          # event updates the branch, so this check only avoids a needless Mathlib CI run.
           PR="$(GH_TOKEN="$READ_TOKEN" gh api "repos/leanprover-community/batteries/pulls/$PR_NUMBER")"
           if ! jq -e '(.base.ref == "main") and
                 (if env.PR_STATE == "merged" then .merged
@@ -312,9 +312,10 @@ jobs:
           fi
           git add lakefile.lean lake-manifest.json
           git commit --allow-empty -m "chore: update Batteries for leanprover-community/batteries#$PR_NUMBER"
-          # While the Batteries PR is open, the lakefile pins it and differs from master.
-          # After the merge, the lakefile requires Batteries `main`, as master does, so a
-          # branch that differs from master only in the manifest has no adaptations left.
+          # While the Batteries PR is open, the lakefile pins the PR and differs from master.
+          # After the merge, the lakefile requires Batteries `main`, as master does. Then a
+          # branch that differs from master only in the manifest holds only a Batteries
+          # update, and `pull-request` closes its adaptation PR.
           if git diff --quiet "$MATHLIB_SHA" HEAD -- ':(exclude)lake-manifest.json'; then
             echo "action=close" >> "$GITHUB_OUTPUT"
             exit 0
@@ -377,19 +378,20 @@ jobs:
               }
             }`, { owner, fork, ref: `refs/heads/${branch}` });
             // Keep the PRs from this branch into Mathlib `master`, and take the newest.
-            // `ref` is null when the branch does not exist yet.
+            // `ref` is null until the first push creates the branch.
             const pr = repository.ref?.associatedPullRequests.nodes
               .filter(pr => pr.baseRepository.nameWithOwner === `${owner}/${repo}` && pr.baseRefName === 'master' &&
                 pr.headRepository?.nameWithOwner === `${owner}/${fork}` && pr.headRefName === branch)
               .sort((a, b) => b.number - a.number)[0];
-            // A closed adaptation PR stays closed, and the bot opens no second PR for
-            // the branch. This also covers bors, which can close a merged PR without
-            // setting GitHub's merged_at field.
+            // Stop if the newest adaptation PR is closed. The bot opens one adaptation PR
+            // per branch, and only a Mathlib maintainer can reopen it. This also covers
+            // bors, which can close a merged PR and leave GitHub's merged_at field empty.
             if (pr && pr.state !== 'OPEN') return;
 
             if (process.env.ACTION === 'close') {
-              // A Batteries PR closed without a merge closes the adaptation PR. After a
-              // merge, close only if no contributor commits arrived after `pr-info`.
+              // After a close without a merge, close the adaptation PR. After a merge, close
+              // it only if its head is still the commit that `pr-info` pinned. A newer head
+              // holds contributor commits that need review.
               if (pr && (!merged || pr.headRefOid === process.env.BRANCH_SHA)) {
                 await github.rest.pulls.update({ owner, repo, pull_number: pr.number, state: 'closed' });
               }
@@ -407,13 +409,13 @@ jobs:
                   'To contribute adaptations, open a PR against this branch from a fork of ' +
                   `\`${owner}/${fork}\`, as described in the ` +
                   `[Batteries contributor guide](https://github.com/${owner}/batteries#mathlib-adaptations).\n` +
-                  'After the Batteries PR merges, the bot restores the main dependency and marks this PR ready for review.',
+                  'After the Batteries PR is merged, the bot restores the main dependency and marks this PR ready for review.',
                 draft: !merged,
               });
               return;
             }
             // Keep the PR a draft while it pins a Batteries PR, so that Mathlib
-            // cannot merge it before the Batteries PR merges.
+            // maintainers merge it only after the Batteries merge.
             if (merged && pr.isDraft) {
               await github.graphql(`mutation($id: ID!) {
                 markPullRequestReadyForReview(input: {pullRequestId: $id}) { pullRequest { id } }
