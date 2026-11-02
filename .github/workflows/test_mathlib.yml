@@ -19,7 +19,8 @@ concurrency:
   # A stale event must not replace a queued run for the current PR head.
   queue: max
 
-# The Batteries commit whose CI succeeded. Both are empty on close events.
+# The repository and commit of the Batteries PR head whose CI succeeded.
+# Both are empty on close events.
 env:
   HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
   BATTERIES_SHA: ${{ github.event.workflow_run.head_sha }}
@@ -39,7 +40,7 @@ jobs:
       pr-number: ${{ steps.pr.outputs.number }}
       # `open`, `merged` or `closed` (closed without a merge).
       state: ${{ steps.pr.outputs.state }}
-      # `close` when the PR closed without a merge.
+      # `close` when the PR closed without a merge, otherwise empty.
       action: ${{ steps.pr.outputs.action }}
       mathlib-sha: ${{ steps.pin.outputs.mathlib_sha }}
       # Empty when the adaptation branch does not exist yet.
@@ -156,7 +157,8 @@ jobs:
             git fetch adaptations "$BRANCH_SHA"
             git switch -c "batteries-pr-testing-$PR_NUMBER" "$BRANCH_SHA"
             if ! git merge "$MATHLIB_SHA" --no-commit; then
-              # Lake regenerates the manifest from the merged lakefile.
+              # Take master's manifest. `lake update batteries` then updates it from
+              # the merged lakefile.
               if [ -n "$(git ls-files --unmerged -- lake-manifest.json)" ]; then
                 git checkout "$MATHLIB_SHA" -- lake-manifest.json
               fi
@@ -226,7 +228,8 @@ jobs:
       pull-requests: read
     env: *pinned
     outputs:
-      # `sync` after a push; `close` when no adaptations remain after the merge.
+      # `sync` after a push, `close` when no adaptations remain after the merge,
+      # and empty when this run skips the update.
       action: ${{ steps.push.outputs.action }}
     steps:
       - name: Generate app token
@@ -297,10 +300,9 @@ jobs:
           READ_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          # Preparation can take time. Do not publish a superseded revision or
-          # change a branch back to a PR dependency after the Batteries PR merges.
-          # The queued run for the newer event would correct the branch, but this
-          # check avoids a needless Mathlib CI run.
+          # Preparation can take time. Skip the push if the PR has a newer head or
+          # merged since `pr-info`. The queued run for that event updates the branch,
+          # so this check only avoids a needless Mathlib CI run.
           PR="$(GH_TOKEN="$READ_TOKEN" gh api "repos/leanprover-community/batteries/pulls/$PR_NUMBER")"
           if ! jq -e '(.base.ref == "main") and
                 (if env.PR_STATE == "merged" then .merged
@@ -310,9 +312,9 @@ jobs:
           fi
           git add lakefile.lean lake-manifest.json
           git commit --allow-empty -m "chore: update Batteries for leanprover-community/batteries#$PR_NUMBER"
-          # Before the merge, the lakefile pins the PR and always differs from master.
-          # After the merge, it requires Batteries `main` as master does. Then a branch
-          # that differs from master only in the manifest has no adaptations left.
+          # While the Batteries PR is open, the lakefile pins it and differs from master.
+          # After the merge, the lakefile requires Batteries `main`, as master does, so a
+          # branch that differs from master only in the manifest has no adaptations left.
           if git diff --quiet "$MATHLIB_SHA" HEAD -- ':(exclude)lake-manifest.json'; then
             echo "action=close" >> "$GITHUB_OUTPUT"
             exit 0
@@ -326,7 +328,7 @@ jobs:
   pull-request:
     name: Update the adaptation PR
     needs: [pr-info, push]
-    # `push` is skipped on close events, so run whenever either job asks for an action.
+    # `push` skips close events, so run when either job gives an action.
     if: always() && (needs.pr-info.outputs.action == 'close' || needs.push.outputs.action != '')
     runs-on: ubuntu-latest
     permissions: {}
@@ -358,6 +360,7 @@ jobs:
             const branch = `batteries-pr-testing-${number}`;
             const merged = process.env.PR_STATE === 'merged';
 
+            // Find the adaptation PR through the PRs of the fork's branch, because
             // REST's owner:branch filter misses same-organization fork PRs.
             // The Mathlib-scoped token can read the public fork.
             const { repository } = await github.graphql(`query($owner: String!, $fork: String!, $ref: String!) {
@@ -373,17 +376,20 @@ jobs:
                 }
               }
             }`, { owner, fork, ref: `refs/heads/${branch}` });
+            // Keep the PRs from this branch into Mathlib `master`, and take the newest.
+            // `ref` is null when the branch does not exist yet.
             const pr = repository.ref?.associatedPullRequests.nodes
               .filter(pr => pr.baseRepository.nameWithOwner === `${owner}/${repo}` && pr.baseRefName === 'master' &&
                 pr.headRepository?.nameWithOwner === `${owner}/${fork}` && pr.headRefName === branch)
               .sort((a, b) => b.number - a.number)[0];
-            // Never open a second adaptation PR for the same branch: a closed one
-            // stays closed. Bors can also close a merged PR without setting
-            // GitHub's merged_at field.
+            // A closed adaptation PR stays closed, and the bot opens no second PR for
+            // the branch. This also covers bors, which can close a merged PR without
+            // setting GitHub's merged_at field.
             if (pr && pr.state !== 'OPEN') return;
 
             if (process.env.ACTION === 'close') {
-              // An empty update must not close over new contributor commits.
+              // A Batteries PR closed without a merge closes the adaptation PR. After a
+              // merge, close only if no contributor commits arrived after `pr-info`.
               if (pr && (!merged || pr.headRefOid === process.env.BRANCH_SHA)) {
                 await github.rest.pulls.update({ owner, repo, pull_number: pr.number, state: 'closed' });
               }

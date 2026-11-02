@@ -97,7 +97,7 @@ If the branch conflicts with Mathlib `master`, merge `master` in your PR and res
 
 Once the Batteries PR is merged, the Batteries requirement is repointed to the main branch and the adaptation PR is marked ready for review.
 It can then be merged using the regular Mathlib process. You may need to ping a Mathlib maintainer to review the PR.
-If the Batteries PR is closed without being merged, or the adaptation PR no longer changes anything, the adaptation PR is closed.
+If the Batteries PR is closed without being merged, or the adaptation PR no longer changes anything except the Batteries version, the adaptation PR is closed.
 
 If an update fails after a rejected push or an API error, a Batteries maintainer can rerun all jobs of the Test Mathlib workflow.
 If a closed Batteries PR is reopened, a Mathlib maintainer must reopen its adaptation PR before the next Batteries CI run.
