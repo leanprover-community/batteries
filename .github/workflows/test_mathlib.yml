@@ -388,7 +388,9 @@ jobs:
             const url = `https://github.com/${owner}/batteries/pull/${number}`;
             let body = (pr?.body ?? `Adaptations for ${url}.\n\n` +
               'The bot updates the Batteries dependency after successful Batteries CI.\n' +
-              'Push Mathlib adaptations to this branch.\n' +
+              'To contribute adaptations, open a PR against this branch from a fork of ' +
+              `\`${owner}/${fork}\`, as described in the ` +
+              `[Batteries contributor guide](https://github.com/${owner}/batteries#mathlib-adaptations).\n` +
               'After the Batteries PR merges, the bot restores the main dependency and marks this PR ready for review.')
               .replace(/\n*<!-- batteries-merge-order -->[\s\S]*?<!-- \/batteries-merge-order -->/g, '');
             if (state === 'merged') {

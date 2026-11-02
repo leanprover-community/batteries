@@ -71,36 +71,34 @@ been proven.
 
 ### Mathlib Adaptations
 
-Batteries contributors must help adapt Mathlib when their changes require it.
-Ask a Batteries maintainer for help if you need it.
+Batteries PRs often affect Mathlib, a key component of the Lean ecosystem.
+When Batteries changes in a significant way, Mathlib must adapt promptly.
+When necessary, Batteries contributors are expected to either create an adaptation PR, or ask for assistance for and to collaborate with this necessary process.
 
-After a Batteries PR to `main` passes CI, the bot opens a draft PR against Mathlib's `master`.
-Its branch is `batteries-pr-testing-N` in
-[mathlib4-adaptations](https://github.com/leanprover-community/mathlib4-adaptations),
-where `N` is the Batteries PR number.
-The bot pins the Batteries dependency to the commit that passed CI and updates it after subsequent successful runs.
-Mathlib's normal fork CI checks the draft PR. Read its checks for the results.
-Mathlib also posts a status comment on the Batteries PR and maintains its `builds-mathlib` and `breaks-mathlib` labels.
-With `awaiting-mathlib`, each report creates a fresh comment; a successful result removes that label.
+Every Batteries PR has an automatically created [Mathlib Adaptations](https://github.com/leanprover-community/mathlib4-adaptations/) branch called `batteries-pr-testing-N` where `N` is the number of the Batteries PR.
+This is a clone of Mathlib where the Batteries requirement is pinned to the PR commit whose
+Batteries CI succeeded, instead of following the main branch.
+A draft adaptation PR from this branch to Mathlib is opened automatically, and Mathlib CI tests it like any other Mathlib PR.
+Batteries uses this PR to check whether the Batteries PR needs Mathlib adaptations.
+A tag `builds-mathlib` will be issued when this PR needs no adaptation; a tag `breaks-mathlib` will be issued when the PR does need an adaptation.
 
-To supply adaptations:
+To adapt Mathlib:
 
-1. Ask a Batteries maintainer for push access to the `batteries-*` branches in `mathlib4-adaptations` if you need it.
-2. Push your Mathlib changes to `batteries-pr-testing-N` in that repository.
-   If you do not have push access, open a PR from your Mathlib fork to that branch.
-3. Check the Mathlib PR's CI and tell the Batteries maintainer when the adaptations are ready.
+1. Fork [Mathlib Adaptations](https://github.com/leanprover-community/mathlib4-adaptations/).
+2. From your fork, open a PR to the branch `batteries-pr-testing-N` where `N` is the number of the Batteries PR.
+   Do not change the Batteries requirement yourself.
+3. Post a comment on your original Batteries PR that your PR is ready for review.
 
-The bot preserves your commits when it updates the dependency.
-It manages only the Batteries dependency. Coordinate other dependency changes and review blockers with the maintainers.
+A Batteries maintainer will then review your PR and merge it into `batteries-pr-testing-N`.
+CI does not run on PRs to the branch. It runs on the adaptation PR after your changes are merged.
+Changes to the Batteries PR will be integrated automatically, and merged adaptation commits are kept.
+If the branch conflicts with Mathlib `master`, merge `master` in your PR and resolve the conflicts there.
 
-After the Batteries PR merges, the bot restores `batteries @ main` and updates the manifest.
-It then marks the open Mathlib PR ready for review, including PRs that only update the dependency.
-The PR description links to other open adaptations with earlier Batteries pins.
-Merge those first to avoid refreshing their pins after a newer adaptation merges.
-If no changes remain relative to Mathlib's `master`, the bot closes the Mathlib PR instead.
-It also closes the Mathlib PR if the Batteries PR closes without a merge.
+Once the Batteries PR is merged, the Batteries requirement is repointed to the main branch and the adaptation PR is marked ready for review.
+It can then be merged using the regular Mathlib process. You may need to ping a Mathlib maintainer to review the PR.
+If the Batteries PR is closed without being merged, or the adaptation PR no longer changes anything, the adaptation PR is closed.
 
-If the Batteries PR reopens, ask a maintainer to reopen its Mathlib PR.
-Then rerun successful Batteries CI.
+If an update fails after a rejected push or an API error, a Batteries maintainer can rerun all jobs of the Test Mathlib workflow.
+If a closed Batteries PR is reopened, a Mathlib maintainer must reopen its adaptation PR before the next Batteries CI run.
 
-The [workflow reference](docs/ci/mathlib-adaptations.md) describes the fork, App permissions, branch rules, and recovery procedures.
+Please ask questions to Batteries maintainers if you run into issues with this process.
