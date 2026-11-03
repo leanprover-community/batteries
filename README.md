@@ -106,3 +106,5 @@ After a merge or a close, the bot posts a comment on the Batteries PR when the u
 If a closed Batteries PR is reopened, a Mathlib maintainer must reopen its adaptation PR before the next Batteries CI run.
 
 Please ask questions to Batteries maintainers if you run into issues with this process.
+
+<!-- Test PR for the Mathlib adaptation close path. Do not merge. -->
