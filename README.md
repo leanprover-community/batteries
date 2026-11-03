@@ -86,6 +86,8 @@ A tag `builds-mathlib` will be issued when this PR needs no adaptation; a tag `b
 To adapt Mathlib:
 
 1. Fork [Mathlib Adaptations](https://github.com/leanprover-community/mathlib4-adaptations/).
+   If you already have a fork of Mathlib, use it instead.
+   GitHub allows one fork for each account in a fork network, and Mathlib Adaptations is in the Mathlib network.
 2. From your fork, open a PR to the branch `batteries-pr-testing-N` where `N` is the number of the Batteries PR.
    Do not change the Batteries requirement yourself.
 3. Post a comment on your original Batteries PR that your PR is ready for review.
@@ -94,6 +96,22 @@ A Batteries maintainer will then review your PR and merge it into `batteries-pr-
 CI runs only on the adaptation PR, after your changes are merged into the branch.
 Changes to the Batteries PR will be integrated automatically, and merged adaptation commits are kept.
 If the branch conflicts with Mathlib `master`, merge `master` in your PR and resolve the conflicts there.
+
+To build your adaptation locally, start from the branch `batteries-pr-testing-N` and get the Mathlib cache with this command:
+```sh
+lake exe cache get --repo=leanprover-community/mathlib4-adaptations --unsafe
+```
+Mathlib CI uploads the cache for the adaptation PR under `leanprover-community/mathlib4-adaptations`, separately for each commit that it builds.
+`--repo` selects that repository instead of your fork.
+`--unsafe` makes the cache tool use the cache of the most recent commit on your branch that Mathlib CI built.
+Lake then builds the files that your changes affect.
+
+The cache tool calls this flag unsafe because it cannot check that the cached files match the source of that commit, and it prints a security notice.
+With this flag, you trust the Mathlib CI build of a commit on `batteries-pr-testing-N`.
+Only the bot and Batteries maintainers can push to that branch, and your checkout contains the source of the commit.
+To choose the commit yourself, run `lake exe cache query --repo=leanprover-community/mathlib4-adaptations`.
+Then run the `cache get` command above with `--scope=<SHA>` instead of `--unsafe`, where `<SHA>` is the commit that the query prints.
+Keep `--repo`, because the command that the query suggests does not include it.
 
 Once the Batteries PR is merged, the Batteries requirement is repointed to the main branch and the adaptation PR is marked ready for review.
 The bot then comments on both PRs and mentions the Batteries maintainer who merged the Batteries PR.
