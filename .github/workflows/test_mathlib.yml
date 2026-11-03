@@ -400,6 +400,13 @@ jobs:
             // bors, which can close a merged PR and leave GitHub's merged_at field empty.
             if (pr && pr.state !== 'OPEN') return;
 
+            // After the merge, comment on the adaptation PR. The next step posts
+            // `batteries` as a comment on the Batteries PR.
+            const comment = async (adaptation, mathlib, batteries) => {
+              await github.rest.issues.createComment({ owner, repo, issue_number: adaptation, body: mathlib });
+              core.setOutput('batteries-comment', batteries);
+            };
+
             if (process.env.ACTION === 'close') {
               // After a close without a merge, close the adaptation PR. After a merge, close
               // it only if its head is still the commit that `pr-info` pinned. A newer head
@@ -410,6 +417,14 @@ jobs:
                 return;
               }
               if (pr) {
+                // Nobody needs to act on a closed adaptation PR, so mention nobody.
+                if (merged) {
+                  await comment(pr.number,
+                    `The bot closes this PR because ${owner}/batteries#${number} is merged ` +
+                      'and no adaptations were pushed to this branch.',
+                    `The bot closed the adaptation PR ${owner}/${repo}#${pr.number} ` +
+                      'because no adaptations were pushed to its branch.');
+                }
                 await github.rest.pulls.update({ owner, repo, pull_number: pr.number, state: 'closed' });
               }
               return;
@@ -417,15 +432,10 @@ jobs:
 
             // After the merge, mention the maintainer who merged the Batteries PR,
             // so that they follow the adaptation PR to its merge.
-            // The next step posts the same mention on the Batteries PR.
             // TODO: Should we also add the reviewers here?
-            const mention = async (adaptation) => {
-              await github.rest.issues.createComment({
-                owner, repo, issue_number: adaptation,
-                body: `@${process.env.MERGER}, this is the adaptation PR for ${owner}/batteries#${number}.`,
-              });
-              core.setOutput('adaptation-pr', adaptation);
-            };
+            const mention = (adaptation) => comment(adaptation,
+              `@${process.env.MERGER}, this is the adaptation PR for ${owner}/batteries#${number}.`,
+              `@${process.env.MERGER}, ${owner}/${repo}#${adaptation} is the adaptation PR for this PR.`);
 
             if (!pr) {
               const url = `https://github.com/${owner}/batteries/pull/${number}`;
@@ -458,15 +468,13 @@ jobs:
             }
 
       - name: Comment on the Batteries PR
-        if: steps.update.outputs.adaptation-pr != ''
+        if: steps.update.outputs.batteries-comment != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           PR_NUMBER: ${{ needs.pr-info.outputs.pr-number }}
-          ADAPTATION_PR: ${{ steps.update.outputs.adaptation-pr }}
-          MERGER: ${{ needs.pr-info.outputs.merger }}
-        run: |
-          gh pr comment "$PR_NUMBER" --body "@$MERGER, leanprover-community/mathlib4#$ADAPTATION_PR is the adaptation PR for this PR."
+          BODY: ${{ steps.update.outputs.batteries-comment }}
+        run: gh pr comment "$PR_NUMBER" --body "$BODY"
 
   report-failure:
     name: Report a failed update

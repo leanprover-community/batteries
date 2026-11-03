@@ -99,6 +99,7 @@ Once the Batteries PR is merged, the Batteries requirement is repointed to the m
 The bot then comments on both PRs and mentions the Batteries maintainer who merged the Batteries PR.
 It can then be merged using the regular Mathlib process. You may need to ping a Mathlib maintainer to review the PR.
 If the Batteries PR is closed without being merged, or the adaptation PR changes only the Batteries version, the adaptation PR is closed.
+In the second case, the bot comments on both PRs that no adaptations were pushed.
 
 If the bot fails to update the branch or the adaptation PR after a rejected push or an API error, a Batteries maintainer can rerun all jobs of the Test Mathlib workflow.
 After a merge or a close, the bot posts a comment on the Batteries PR when the update fails.
