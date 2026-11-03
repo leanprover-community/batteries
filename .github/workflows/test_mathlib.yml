@@ -450,7 +450,8 @@ jobs:
               const url = `https://github.com/${owner}/batteries/pull/${number}`;
               const { data: created } = await github.rest.pulls.create({
                 // `head_repo` (`owner/repo`) selects the fork, which has the same owner as Mathlib.
-                // The token cannot push to the fork, so it cannot let maintainers modify the PR.
+                // This token covers Mathlib only, so it cannot let maintainers push to the fork.
+                // The fork's rulesets decide who can push to the branch.
                 owner, repo, head: branch, head_repo: `${owner}/${fork}`, base: 'master',
                 maintainer_can_modify: false,
                 title: `chore: adapt to ${owner}/batteries#${number}`,
