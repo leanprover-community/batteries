@@ -229,6 +229,13 @@ jobs:
     runs-on: ubuntu-latest
     # Holds the App token. It cuts the branch from the commits `pr-info` pinned
     # and takes only the manifest from `prepare`, which it checks as data.
+    # The App secrets are in this environment, which only `main` can use. Both
+    # events of this workflow run on `main`, but a workflow on another branch
+    # cannot read the App key. The job creates no deployment, so runs do not
+    # appear as deployments in Batteries.
+    environment: &adaptations_environment
+      name: mathlib-adaptations
+      deployment: false
     permissions:
       contents: read
       pull-requests: read
@@ -338,6 +345,8 @@ jobs:
     # `push` skips close events, so run when either job gives an action.
     if: always() && (needs.pr-info.outputs.action == 'close' || needs.push.outputs.action != '')
     runs-on: ubuntu-latest
+    # The App secrets are in this environment, as for `push`.
+    environment: *adaptations_environment
     # The workflow token only comments on the Batteries PR. The App token updates Mathlib.
     permissions:
       pull-requests: write
