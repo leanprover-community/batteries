@@ -450,7 +450,10 @@ jobs:
               const url = `https://github.com/${owner}/batteries/pull/${number}`;
               const { data: created } = await github.rest.pulls.create({
                 // `head_repo` selects the fork, which has the same owner as Mathlib.
-                owner, repo, head: `${owner}:${branch}`, head_repo: fork, base: 'master',
+                // GitHub accepts only `owner/repo` here, and a bare name makes `head` invalid.
+                // The token cannot push to the fork, so it cannot let maintainers modify the PR.
+                owner, repo, head: branch, head_repo: `${owner}/${fork}`, base: 'master',
+                maintainer_can_modify: false,
                 title: `chore: adapt to ${owner}/batteries#${number}`,
                 body: `Adaptations for ${url}.\n\n` +
                   'The bot updates the Batteries dependency after successful Batteries CI.\n' +
