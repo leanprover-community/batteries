@@ -96,6 +96,7 @@ Changes to the Batteries PR will be integrated automatically, and merged adaptat
 If the branch conflicts with Mathlib `master`, merge `master` in your PR and resolve the conflicts there.
 
 Once the Batteries PR is merged, the Batteries requirement is repointed to the main branch and the adaptation PR is marked ready for review.
+The bot then comments on both PRs and mentions the Batteries maintainer who merged the Batteries PR.
 It can then be merged using the regular Mathlib process. You may need to ping a Mathlib maintainer to review the PR.
 If the Batteries PR is closed without being merged, or the adaptation PR changes only the Batteries version, the adaptation PR is closed.
 

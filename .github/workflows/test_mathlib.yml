@@ -42,6 +42,8 @@ jobs:
       state: ${{ steps.pr.outputs.state }}
       # `close` for a close without a merge, otherwise empty.
       action: ${{ steps.pr.outputs.action }}
+      # After a merge, the login of the maintainer who merged the PR. Otherwise empty.
+      merger: ${{ steps.pr.outputs.merger }}
       mathlib-sha: ${{ steps.pin.outputs.mathlib_sha }}
       # Empty until the first push creates the adaptation branch.
       branch-sha: ${{ steps.pin.outputs.branch_sha }}
@@ -64,6 +66,10 @@ jobs:
             echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
             if jq -e '.merged' <<<"$PR" > /dev/null; then
               echo "state=merged" >> "$GITHUB_OUTPUT"
+              # `pull-request` mentions the maintainer who merged the PR.
+              MERGER="$(jq -r '.merged_by.login' <<<"$PR")"
+              grep -qE '^[A-Za-z0-9-]+$' <<<"$MERGER" || { echo "::error::bad merger login"; exit 1; }
+              echo "merger=$MERGER" >> "$GITHUB_OUTPUT"
             else
               echo "state=closed" >> "$GITHUB_OUTPUT"
               echo "action=close" >> "$GITHUB_OUTPUT"
@@ -332,7 +338,9 @@ jobs:
     # `push` skips close events, so run when either job gives an action.
     if: always() && (needs.pr-info.outputs.action == 'close' || needs.push.outputs.action != '')
     runs-on: ubuntu-latest
-    permissions: {}
+    # The workflow token only comments on the Batteries PR. The App token updates Mathlib.
+    permissions:
+      pull-requests: write
     steps:
       - name: Generate PR token
         id: app-token
@@ -345,12 +353,14 @@ jobs:
           permission-pull-requests: write
 
       - name: Close, open or update the adaptation PR
+        id: update
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           ACTION: ${{ needs.push.outputs.action || needs.pr-info.outputs.action }}
           PR_NUMBER: ${{ needs.pr-info.outputs.pr-number }}
           PR_STATE: ${{ needs.pr-info.outputs.state }}
           BRANCH_SHA: ${{ needs.pr-info.outputs.branch-sha }}
+          MERGER: ${{ needs.pr-info.outputs.merger }}
         with:
           github-token: ${{ steps.app-token.outputs.token }}
           # Retry transient API errors. The default exempt codes skip errors that a retry cannot fix.
@@ -405,9 +415,21 @@ jobs:
               return;
             }
 
+            // After the merge, mention the maintainer who merged the Batteries PR,
+            // so that they follow the adaptation PR to its merge.
+            // The next step posts the same mention on the Batteries PR.
+            // TODO: Should we also add the reviewers here?
+            const mention = async (adaptation) => {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: adaptation,
+                body: `@${process.env.MERGER}, this is the adaptation PR for ${owner}/batteries#${number}.`,
+              });
+              core.setOutput('adaptation-pr', adaptation);
+            };
+
             if (!pr) {
               const url = `https://github.com/${owner}/batteries/pull/${number}`;
-              await github.rest.pulls.create({
+              const { data: created } = await github.rest.pulls.create({
                 // `head_repo` selects the fork, which has the same owner as Mathlib.
                 owner, repo, head: `${owner}:${branch}`, head_repo: fork, base: 'master',
                 title: `chore: adapt to ${owner}/batteries#${number}`,
@@ -419,6 +441,7 @@ jobs:
                   'After the Batteries PR is merged, the bot restores the main dependency and marks this PR ready for review.',
                 draft: !merged,
               });
+              if (merged) await mention(created.number);
               return;
             }
             // Keep the PR a draft while it pins a Batteries PR, so that Mathlib
@@ -427,11 +450,23 @@ jobs:
               await github.graphql(`mutation($id: ID!) {
                 markPullRequestReadyForReview(input: {pullRequestId: $id}) { pullRequest { id } }
               }`, { id: pr.id });
+              await mention(pr.number);
             } else if (!merged && !pr.isDraft) {
               await github.graphql(`mutation($id: ID!) {
                 convertPullRequestToDraft(input: {pullRequestId: $id}) { pullRequest { id } }
               }`, { id: pr.id });
             }
+
+      - name: Comment on the Batteries PR
+        if: steps.update.outputs.adaptation-pr != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ needs.pr-info.outputs.pr-number }}
+          ADAPTATION_PR: ${{ steps.update.outputs.adaptation-pr }}
+          MERGER: ${{ needs.pr-info.outputs.merger }}
+        run: |
+          gh pr comment "$PR_NUMBER" --body "@$MERGER, leanprover-community/mathlib4#$ADAPTATION_PR is the adaptation PR for this PR."
 
   report-failure:
     name: Report a failed update
