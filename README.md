@@ -97,21 +97,14 @@ CI runs only on the adaptation PR, after your changes are merged into the branch
 Changes to the Batteries PR will be integrated automatically, and merged adaptation commits are kept.
 If the branch conflicts with Mathlib `master`, merge `master` in your PR and resolve the conflicts there.
 
-To build your adaptation locally, start from the branch `batteries-pr-testing-N` and get the Mathlib cache with this command:
+To build your adaptation locally, check out `batteries-pr-testing-N` from Mathlib Adaptations and get the Mathlib cache before you make changes:
 ```sh
-lake exe cache get --repo=leanprover-community/mathlib4-adaptations --unsafe
+lake exe cache get --repo=leanprover-community/mathlib4-adaptations
 ```
-Mathlib CI uploads the cache for the adaptation PR under `leanprover-community/mathlib4-adaptations`, separately for each commit that it builds.
-`--repo` selects that repository instead of your fork.
-`--unsafe` makes the cache tool use the cache of the most recent commit on your branch that Mathlib CI built.
-Lake then builds the files that your changes affect.
-
-The cache tool calls this flag unsafe because it cannot check that the cached files match the source of that commit, and it prints a security notice.
-With this flag, you trust the Mathlib CI build of a commit on `batteries-pr-testing-N`.
-Only the bot and Batteries maintainers can push to that branch, and your checkout contains the source of the commit.
-To choose the commit yourself, run `lake exe cache query --repo=leanprover-community/mathlib4-adaptations`.
-Then run the `cache get` command above with `--scope=<SHA>` instead of `--unsafe`, where `<SHA>` is the commit that the query prints.
-Keep `--repo`, because the command that the query suggests does not include it.
+Mathlib CI uploads the cache for each commit of the adaptation PR under `leanprover-community/mathlib4-adaptations`.
+`--repo` selects that repository instead of your fork, and the cache tool prints a notice because of this.
+If Mathlib CI has not finished on the latest commit of the branch, wait for it and run the command again.
+After you make changes, Lake builds only the files that your changes affect.
 
 Once the Batteries PR is merged, the Batteries requirement is repointed to the main branch and the adaptation PR is marked ready for review.
 The bot then comments on both PRs and mentions the Batteries maintainer who merged the Batteries PR.
