@@ -97,14 +97,18 @@ CI runs only on the adaptation PR, after your changes are merged into the branch
 Changes to the Batteries PR will be integrated automatically, and merged adaptation commits are kept.
 If the branch conflicts with Mathlib `master`, merge `master` in your PR and resolve the conflicts there.
 
-To build your adaptation locally, check out `batteries-pr-testing-N` from Mathlib Adaptations and get the Mathlib cache before you make changes:
+To build your adaptation locally, create a branch that tracks `batteries-pr-testing-N` in Mathlib Adaptations, and get the Mathlib cache before you make changes:
 ```sh
-lake exe cache get --repo=leanprover-community/mathlib4-adaptations
+git remote add adaptations https://github.com/leanprover-community/mathlib4-adaptations.git
+git fetch adaptations batteries-pr-testing-N
+git switch -c my-adaptation --track adaptations/batteries-pr-testing-N
+lake exe cache get
 ```
 Mathlib CI uploads the cache for each commit of the adaptation PR under `leanprover-community/mathlib4-adaptations`.
-`--repo` selects that repository instead of your fork, and the cache tool prints a notice because of this.
-If Mathlib CI has not finished on the latest commit of the branch, wait for it and run the command again.
+The cache tool reads the cache of the repository that your branch tracks.
+If Mathlib CI has not finished on the latest commit of the branch, wait for it and run `lake exe cache get` again.
 After you make changes, Lake builds only the files that your changes affect.
+Your branch tracks Mathlib Adaptations, so push it to your fork with `git push origin my-adaptation`.
 
 Once the Batteries PR is merged, the Batteries requirement is repointed to the main branch and the adaptation PR is marked ready for review.
 The bot then comments on both PRs and mentions the Batteries maintainer who merged the Batteries PR.
