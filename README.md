@@ -86,21 +86,18 @@ A tag `builds-mathlib` will be issued when this PR needs no adaptation; a tag `b
 To adapt Mathlib:
 
 1. Fork [Mathlib Adaptations](https://github.com/leanprover-community/mathlib4-adaptations/).
-   If you already have a fork of Mathlib, use it instead.
-   GitHub allows one fork for each account in a fork network, and Mathlib Adaptations is in the Mathlib network.
-2. In your local Mathlib checkout, create a branch that tracks `batteries-pr-testing-N` in Mathlib Adaptations, where `N` is the number of the Batteries PR.
-   Then get the Mathlib cache:
+   If you already have a fork of Mathlib, you can use it, because both repositories are in the same fork network.
+2. In your Mathlib checkout, create a branch from `batteries-pr-testing-N`, where `N` is the number of the Batteries PR, and get the Mathlib cache:
    ```sh
    git remote add adaptations https://github.com/leanprover-community/mathlib4-adaptations.git
    git fetch adaptations batteries-pr-testing-N
    git switch -c my-adaptation --track adaptations/batteries-pr-testing-N
    lake exe cache get
    ```
-   Mathlib CI uploads the cache for each commit of the adaptation PR under `leanprover-community/mathlib4-adaptations`.
-   The cache tool reads the cache of the repository that your branch tracks.
-   If Mathlib CI has not finished on the latest commit of the branch, wait for it and run `lake exe cache get` again.
-3. Make your changes. Lake builds only the files that your changes affect.
-   Your branch tracks Mathlib Adaptations, so name your fork when you push, for example `git push origin my-adaptation`.
+   The branch tracks Mathlib Adaptations, so `lake exe cache get` downloads the files that Mathlib CI built for the adaptation PR.
+   If Mathlib CI has not finished on the latest commit, run the command again after it finishes.
+3. Commit your changes and push the branch to your fork with `git push origin my-adaptation`, where `origin` is your fork.
+   You will need this invocation because your branch tracks Mathlib Adaptations, so a plain `git push` will try to push there, and you cannot push to Mathlib Adaptations.
 4. From your fork, open a PR to the branch `batteries-pr-testing-N`.
    Do not change the Batteries requirement yourself.
 5. Post a comment on your original Batteries PR that your PR is ready for review.
