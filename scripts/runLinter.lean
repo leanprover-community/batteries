@@ -104,8 +104,14 @@ def determineModulesToLint (specifiedModules : List Name) : IO (Array Name) := d
     println!"Running linter on specified modules: {modules}"
     return modules.toArray
 
-/-- Run the Batteries linter on a given module and update the linter if `update` is `true`. -/
-unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := do
+/--
+Run the Batteries linter on `module`. If `cfg.updateNoLints` is `true`, update the nolints file.
+
+If `leakEnv` is `true`, mark the imported environment as persistent. Lean then never frees the
+environment, so set `leakEnv` only when the process exits after the lint.
+-/
+unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
+    (leakEnv := false) : IO Unit := do
   let { updateNoLints, noBuild, trace, onlyModules } := cfg
   if updateNoLints && onlyModules.isSome then
     IO.eprintln "--update cannot be combined with --only-modules: \
@@ -147,7 +153,8 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name) : IO Unit := d
   else
     pure #[]
   unsafe Lean.enableInitializersExecution
-  let env ← importModules #[module, lintModule] {} (trustLevel := 1024) (loadExts := true)
+  let env ← importModules #[module, lintModule] {} (trustLevel := 1024)
+    (loadExts := true) (leakEnv := leakEnv)
   let mut opts : Options := {}
   -- Propagate `trace` to `CoreM`
   if trace then
@@ -248,7 +255,12 @@ unsafe def main (args : List String) : IO Unit := do
 
   let modulesToLint ← determineModulesToLint mods
 
-  modulesToLint.forM <| runLinterOnModule cfg
+  -- With one module, the imported environment stays in memory until the process exits. Mark it
+  -- as persistent to avoid atomic reference-count updates when the lint tasks share it.
+  -- With several modules, keep the default so that each environment is freed before the next
+  -- import.
+  let leakEnv := modulesToLint.size == 1
+  modulesToLint.forM fun module => runLinterOnModule cfg module (leakEnv := leakEnv)
   -- TODO: Remove manual Process.exit
   -- We are doing this to shortcut around a race in Lean's IO finalizers that we have observed in Mathlib CI
   -- (https://leanprover.zulipchat.com/#narrow/channel/287929-mathlib4/topic/slow.20linting.20step.20CI.3F/with/568830914)
