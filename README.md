@@ -86,9 +86,21 @@ A tag `builds-mathlib` will be issued when this PR needs no adaptation; a tag `b
 To adapt Mathlib:
 
 1. Fork [Mathlib Adaptations](https://github.com/leanprover-community/mathlib4-adaptations/).
-2. From your fork, open a PR to the branch `batteries-pr-testing-N` where `N` is the number of the Batteries PR.
+   If you already have a fork of Mathlib, you can use it, because both repositories are in the same fork network.
+2. In your Mathlib checkout, create a branch from `batteries-pr-testing-N`, where `N` is the number of the Batteries PR, and get the Mathlib cache:
+   ```sh
+   git remote add adaptations https://github.com/leanprover-community/mathlib4-adaptations.git
+   git fetch adaptations batteries-pr-testing-N
+   git switch -c my-adaptation --track adaptations/batteries-pr-testing-N
+   lake exe cache get
+   ```
+   The branch tracks Mathlib Adaptations, so `lake exe cache get` downloads the files that Mathlib CI built for the adaptation PR.
+   If Mathlib CI has not finished on the latest commit, run the command again after it finishes.
+3. Commit your changes and push the branch to your fork with `git push origin my-adaptation`, where `origin` is your fork.
+   You will need this invocation because your branch tracks Mathlib Adaptations, so a plain `git push` will try to push there, and you cannot push to Mathlib Adaptations.
+4. From your fork, open a PR to the branch `batteries-pr-testing-N`.
    Do not change the Batteries requirement yourself.
-3. Post a comment on your original Batteries PR that your PR is ready for review.
+5. Post a comment on your original Batteries PR that your PR is ready for review.
 
 A Batteries maintainer will then review your PR and merge it into `batteries-pr-testing-N`.
 CI runs only on the adaptation PR, after your changes are merged into the branch.
