@@ -7,7 +7,7 @@ module
 
 public import Batteries.Data.Array.Match
 
-@[expose] public section
+public section
 
 namespace List
 

@@ -7,7 +7,7 @@ module
 
 public meta import Batteries.Util.LibraryNote
 
-@[expose] public section
+public section
 
 library_note «coercion into rings» /--
 Coercions such as `Nat.castCoe` that go from a concrete structure such as

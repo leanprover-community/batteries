@@ -8,7 +8,7 @@ module
 public import Batteries.Data.Nat.Basic
 import Batteries.Data.Nat.Lemmas
 
-@[expose] public section
+public section
 
 namespace Int
 
@@ -16,7 +16,7 @@ namespace Int
 `testBit m n` returns whether the `(n+1)` least significant bit is `1` or `0`, using the two's
 complement convention for negative `m`.
 -/
-def testBit : Int → Nat → Bool
+@[expose] def testBit : Int → Nat → Bool
   | ofNat m, n => Nat.testBit m n
   | negSucc m, n => !(Nat.testBit m n)
 
@@ -26,7 +26,7 @@ Construct an integer from a sequence of bits using little endian convention.
 The sign is determined using the two's complement convention: the result is negative if and only if
 `n > 0` and `f (n-1) = true`.
 -/
-def ofBits (f : Fin n → Bool) :=
+@[expose] def ofBits (f : Fin n → Bool) :=
   if 2 * Nat.ofBits f < 2 ^ n then
     ofNat (Nat.ofBits f)
   else

@@ -5,7 +5,7 @@ Authors: Chad Sharp
 -/
 module
 
-@[expose] public section
+public section
 
 /-!
 This file contains `WellFoundedRelation` instances `Bool`.

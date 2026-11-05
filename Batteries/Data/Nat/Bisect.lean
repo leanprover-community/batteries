@@ -7,7 +7,7 @@ module
 
 import Batteries.Tactic.Init
 
-@[expose] public section
+public section
 
 namespace Nat
 

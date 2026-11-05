@@ -6,7 +6,7 @@ Authors: François G. Dorais
 
 module
 
-@[expose] public section
+public section
 
 /-! # Bitwise Lemmas
 

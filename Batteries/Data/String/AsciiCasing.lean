@@ -8,7 +8,7 @@ module
 public import Batteries.Data.Char
 public import Batteries.Data.Char.AsciiCasing
 
-@[expose] public section
+public section
 
 namespace String
 

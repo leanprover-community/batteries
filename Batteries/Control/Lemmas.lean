@@ -7,7 +7,7 @@ module
 import all Init.Control.Reader
 import all Init.Control.State
 
-@[expose] public section
+public section
 
 namespace ReaderT
 

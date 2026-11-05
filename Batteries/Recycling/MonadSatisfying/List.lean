@@ -7,7 +7,7 @@ module
 
 public import Batteries.Recycling.MonadSatisfying.Basic
 
-@[expose] public section
+public section
 
 /-!
 # Results about monadic operations on `List`, in terms of `SatisfiesM`.

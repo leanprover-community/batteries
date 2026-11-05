@@ -10,7 +10,7 @@ public import Batteries.Data.Vector.Basic
 import Batteries.Data.Array.Lemmas
 import Batteries.Data.Array.Scan
 
-@[expose] public section
+public section
 
 namespace Vector
 
@@ -66,6 +66,23 @@ theorem getElem_tail {v : Vector α n} {i : Nat} (hi : i < n - 1) :
 /-! ### get lemmas -/
 
 theorem get_eq_getElem (v : Vector α n) (i : Fin n) : v.get i = v[(i : Nat)] := rfl
+
+@[simp]
+theorem swap_same {v : Vector α n} {i : Nat} (hi : i < n) : v.swap i i hi hi = v := by
+  ext k hk
+  simp_all [getElem_swap]
+
+theorem last_cons_pop_perm {v : Vector α (n+1)} : (v[n] :: v.pop.toList).Perm v.toList := by
+  have hne : v.toList ≠ [] := by simp
+  have := (List.perm_append_singleton v[n] v.pop.toList).symm
+  grind [List.dropLast_concat_getLast]
+
+theorem swap_last_pop_perm {v : Vector α (n+1)} {i : Fin (n+1)} (hi : i.val < n) :
+    (v[i] :: (v.swap i n (by omega) (by omega) |>.pop).toList).Perm v.toList := by
+  simp only [Fin.getElem_fin]
+  rw [← getElem_swap_right]
+  apply last_cons_pop_perm.trans
+  exact swap_perm (by omega) (by omega) |>.toList
 
 @[simp] theorem get_push_last (v : Vector α n) (a : α) :
     (v.push a).get (Fin.last n) = a :=

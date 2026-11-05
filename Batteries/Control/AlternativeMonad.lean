@@ -11,7 +11,7 @@ import all Init.Control.Reader
 import all Init.Control.StateRef
 import Batteries.Control.Lemmas
 
-@[expose] public section
+public section
 
 
 /-!

@@ -10,7 +10,7 @@ public import Batteries.Control.ForInStep.Basic
 import Batteries.Control.ForInStep.Lemmas
 import Batteries.Tactic.Alias
 
-@[expose] public section
+public section
 
 namespace List
 
@@ -250,6 +250,18 @@ theorem forIn_eq_bindList [Monad m] [LawfulMonad m]
     forIn l init f = ForInStep.run <$> (ForInStep.yield init).bindList f l := by
   induction l generalizing init <;> simp [*]
   congr; ext (b | b) <;> simp
+
+theorem mapM_eq_ok_iff_forall₂ {f : α → Except ε β} {l : List α} {bs : List β} :
+    l.mapM f = .ok bs ↔ Forall₂ (fun a b => f a = .ok b) l bs := by
+  induction l generalizing bs <;> simp [pure, Except.pure, bind, Except.bind] <;> grind [Forall₂]
+
+theorem mapM_eq_some_iff_forall₂ {f : α → Option β} {l : List α} {bs : List β} :
+    l.mapM f = some bs ↔ Forall₂ (fun a b => f a = some b) l bs := by
+  induction l generalizing bs <;> simp [Option.bind_eq_some_iff] <;> grind [Forall₂]
+
+theorem allSome_eq_some_iff_forall₂ {l : List (Option α)} {as : List α} :
+    l.allSome = some as ↔ Forall₂ (fun o a => o = some a) l as :=
+  mapM_eq_some_iff_forall₂
 
 /-! ### diff -/
 

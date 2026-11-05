@@ -6,7 +6,7 @@ Authors: Kim Morrison
 -/
 module
 
-@[expose] public section
+public section
 
 /-!
 While this file is currently empty, it is intended as a home for any lemmas which are required for

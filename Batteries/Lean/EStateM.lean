@@ -6,7 +6,7 @@ Authors: Kim Morrison
 module
 import all Init.Control.EState
 
-@[expose] public section
+public section
 
 namespace EStateM
 
@@ -15,7 +15,7 @@ open Backtrackable
 namespace Result
 
 /-- Map a function over an `EStateM.Result`, preserving states and errors. -/
-def map {ε σ α β} (f : α → β) (x : Result ε σ α) : Result ε σ β :=
+@[expose] def map {ε σ α β} (f : α → β) (x : Result ε σ α) : Result ε σ β :=
   match x with
   | .ok a s' => .ok (f a) s'
   | .error e s' => .error e s'

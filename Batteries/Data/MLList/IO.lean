@@ -7,7 +7,7 @@ module
 
 public import Batteries.Data.MLList.Basic
 
-@[expose] public section
+public section
 
 /-!
 # IO operations using monadic lazy lists.

@@ -7,7 +7,7 @@ module
 
 public import Lean.Data.NameMap.Basic
 
-@[expose] public section
+public section
 
 
 namespace Lean.NameSet

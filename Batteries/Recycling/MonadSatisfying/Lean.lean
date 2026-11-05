@@ -10,7 +10,7 @@ public import Batteries.Lean.LawfulMonad
 public import Lean.Elab.Command
 import all Init.System.ST
 
-@[expose] public section
+public section
 
 /-!
 # Construct `MonadSatisfying` instances for the Lean monad stack.

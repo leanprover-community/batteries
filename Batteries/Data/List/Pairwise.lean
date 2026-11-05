@@ -7,7 +7,7 @@ module
 
 public import Batteries.Data.List.Basic
 
-@[expose] public section
+public section
 
 /-!
 # Pairwise relations on a list

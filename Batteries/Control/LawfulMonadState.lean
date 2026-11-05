@@ -6,7 +6,7 @@ Authors: Devon Tuma, Quang Dao
 module
 import all Init.Control.StateRef
 
-@[expose] public section
+public section
 
 /-!
 # Laws for Monads with State
