@@ -1,10 +1,10 @@
 on:
   push:
-    branches-ignore:
-      # ignore tmp branches used by bors
-      - 'staging.tmp*'
-      - 'trying.tmp*'
-      - 'staging*.tmp'
+    # Other branches are built by `pull_request` when they have a PR.
+    branches:
+      - main
+      - nightly-testing
+      - 'lean-pr-testing-*'
   pull_request:
 
 name: ci
