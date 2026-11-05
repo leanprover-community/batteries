@@ -69,6 +69,36 @@ protected abbrev count := Char.max - Char.maxSurrogate + Char.minSurrogate
   | .inl h => simp only [toNat_val] at h; grind
   | .inr ⟨h, _⟩ => simp only [toNat_val] at h; grind
 
+/-- Checks whether a character is in the ASCII range, that is, its code point is less than 128. -/
+@[inline, expose, implicit_reducible] def isAscii (c : Char) : Bool := c.val < 128
+
+theorem isAscii_iff_toNat_lt {c : Char} : c.isAscii ↔ c.toNat < 128 := by
+  simp [isAscii, UInt32.lt_iff_toNat_lt]
+
+theorem isAscii_of_isUpper {c : Char} (h : c.isUpper) : c.isAscii := by
+  simp [isUpper, UInt32.le_iff_toNat_le] at h
+  simp [isAscii, UInt32.lt_iff_toNat_lt]; grind
+
+theorem isAscii_of_isLower {c : Char} (h : c.isLower) : c.isAscii := by
+  simp [isLower, UInt32.le_iff_toNat_le] at h
+  simp [isAscii, UInt32.lt_iff_toNat_lt]; grind
+
+theorem isAscii_of_isAlpha {c : Char} (h : c.isAlpha) : c.isAscii := by
+  simp only [isAlpha, Bool.or_eq_true] at h
+  exact h.elim isAscii_of_isUpper isAscii_of_isLower
+
+theorem isAscii_of_isDigit {c : Char} (h : c.isDigit) : c.isAscii := by
+  simp [isDigit, UInt32.le_iff_toNat_le] at h
+  simp [isAscii, UInt32.lt_iff_toNat_lt]; grind
+
+theorem isAscii_of_isAlphanum {c : Char} (h : c.isAlphanum) : c.isAscii := by
+  simp only [isAlphanum, Bool.or_eq_true] at h
+  exact h.elim isAscii_of_isAlpha isAscii_of_isDigit
+
+theorem isAscii_of_isWhitespace {c : Char} (h : c.isWhitespace) : c.isAscii := by
+  simp only [isWhitespace, Bool.or_eq_true, decide_eq_true_eq] at h
+  rcases h with ((h | h) | h) | h <;> subst h <;> rfl
+
 /-- Returns `true` if `p` returns true for every `Char`. -/
 protected def all (p : Char → Bool) : Bool :=
   Nat.all Char.minSurrogate (fun c h₁ => p <| Char.ofNatAux c <| .inl h₁) &&
