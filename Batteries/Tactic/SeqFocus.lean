@@ -6,7 +6,7 @@ Authors: Jeremy Avigad
 module
 
 public meta import Lean.Elab.Tactic.Basic
-import Lean.Exception
+meta import Lean.Exception
 
 public meta section
 
