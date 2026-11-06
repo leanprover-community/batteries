@@ -197,7 +197,7 @@ set_option backward.proofsInPublic true in  -- for `rw [root]`
 @[nolint unusedHavesSuffices]
 theorem parent_root (self : UnionFind) (x : Fin self.size) :
     (self.arr[(self.root x).1]).parent = self.root x := by
-  rw [root]; split <;> [assumption; skip]
+  rw [root]; dsimp only; split <;> [assumption; skip]
   have := Nat.sub_lt_sub_left (self.lt_rankMax x) (self.rank'_lt _ _ ‹_›)
   apply parent_root
 termination_by self.rankMax - self.rank x
@@ -214,7 +214,7 @@ theorem rootD_parent (self : UnionFind) (x : Nat) : self.rootD (self.parent x) =
   simp only [rootD, parent_lt]
   split
   · simp only [parentD, ↓reduceDIte, *]
-    (conv => rhs; rw [root]); split
+    (conv => rhs; rw [root]); dsimp only; split
     · rw [root, dite_eq_left] <;> simp_all
     · simp
   · simp only [not_false_eq_true, parentD_of_not_lt, *]
@@ -290,7 +290,7 @@ theorem findAux_s {self : UnionFind} {x : Fin self.size} :
       (self.findAux ⟨_, self.parent'_lt x x.2⟩).s.modify x fun s =>
         { s with parent := self.rootD x } := by
   rw [show self.rootD _ = (self.findAux ⟨_, self.parent'_lt x x.2⟩).root from _]
-  · rw [findAux]; split <;> rfl
+  · rw [findAux]; dsimp only; split <;> rfl
   · rw [← rootD_parent, parent, parentD_eq (Fin.is_lt _)]
     simp only [rootD, findAux_root]
     apply dite_eq_left
