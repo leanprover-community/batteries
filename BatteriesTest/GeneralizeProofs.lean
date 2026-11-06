@@ -1,8 +1,9 @@
 import Batteries.Tactic.GeneralizeProofs
 
+universe u
+
 private axiom test_sorry : ∀ {α}, α
-set_option autoImplicit true
-noncomputable def List.nthLe (l : List α) (n) (_h : n < l.length) : α := test_sorry
+noncomputable def List.nthLe {α} (l : List α) (n) (_h : n < l.length) : α := test_sorry
 
 -- For debugging `generalize_proofs`
 -- set_option trace.Tactic.generalize_proofs true
@@ -45,6 +46,18 @@ example (x : Nat) (h h' : x < 2) :
   generalize_proofs a
   guard_target =ₛ Classical.choose a = Classical.choose a
   rfl
+
+/--
+trace: x : Nat
+h : x < 2
+⊢ True
+-/
+#guard_msgs in
+example (x : Nat) (h : x < 2) : True := by
+  let h' := h
+  generalize_proofs at h'
+  trace_state
+  trivial
 
 example (x : Nat) (h : x < 2) :
     Classical.choose (⟨x, h⟩ : ∃ x, x < 2)
@@ -172,14 +185,14 @@ example : True := by
   guard_hyp p :ₛ 0 < 1
   trivial
 
-example (P : Sort _) (p : P) : True := by
+example (P : Sort u) (p : P) : True := by
   let p' : P := p
   generalize_proofs at *
   guard_hyp p :ₛ P
   guard_hyp p' :=ₛ p
   trivial
 
-example (P : True → Sort _) (p : True → P (by decide)) : True := by
+example (P : True → Sort u) (p : True → P (by decide)) : True := by
   let p' := p (by decide)
   generalize_proofs h at *
   guard_hyp h :ₛ True
@@ -192,6 +205,7 @@ end
 /-!
 Extracting proofs from under let bindings
 -/
+
 /--
 trace: pf✝ : ∀ (n : Nat), 0 < n + 1
 ⊢ have n := 0;
@@ -202,13 +216,100 @@ example : have n := 0; (⟨0, id (by simp)⟩ : Fin (n + 1)).val = 0 := by
   generalize_proofs
   trace_state
   rfl
+
 /--
-trace: pf✝ : ∀ (n : Nat), 0 < n + 1
-⊢ have n := 0;
-  ↑⟨0, ⋯⟩ = 0
+trace: pf✝ : 0 < 1
+⊢ let n := 1;
+  ↑⟨0, pf✝⟩ = 0
 -/
 #guard_msgs in
-example : have n := 0; (⟨0, id (by simp)⟩ : Fin (n + 1)).val = 0 := by
+example : let n := 1; (⟨0, id (by simp [n])⟩ : Fin n).val = 0 := by
   generalize_proofs
   trace_state
   rfl
+
+/--
+trace: l : List Nat
+h : 1 < l.length
+⊢ let x := 2;
+  l.get ⟨1, h⟩ = 0
+-/
+#guard_msgs in
+example (l : List Nat) (h : 1 < l.length) : let _ := 2; l.get ⟨1, id h⟩ = 0 := by
+  generalize_proofs
+  trace_state
+  exact test_sorry
+
+/--
+trace: l : List Nat
+h : 1 < l.length
+⊢ let h' := h;
+  l.get ⟨1, h'⟩ = 0
+-/
+#guard_msgs in
+example (l : List Nat) (h : 1 < l.length) : let h' := id h; l.get ⟨1, h'⟩ = 0 := by
+  generalize_proofs
+  trace_state
+  exact test_sorry
+
+/--
+trace: l : List Nat
+h : 1 < l.length
+⊢ let h' := h;
+  l.get ⟨1, h⟩ = 0
+-/
+#guard_msgs in
+example (l : List Nat) (h : 1 < l.length) : let h' := id h; l.get ⟨1, id h'⟩ = 0 := by
+  generalize_proofs
+  trace_state
+  exact test_sorry
+
+/--
+trace: l : List Nat
+h : 1 < l.length
+⊢ let x := h;
+  l.get ⟨1, h⟩ = 0
+-/
+#guard_msgs in
+example (l : List Nat) (h : 1 < l.length) : let _ := id h; l.get ⟨1, id h⟩ = 0 := by
+  generalize_proofs
+  trace_state
+  exact test_sorry
+
+/--
+trace: l : List Nat
+h : 1 < l.length
+⊢ have h' := h;
+  l.get ⟨1, h'⟩ = 0
+-/
+#guard_msgs in
+example (l : List Nat) (h : 1 < l.length) : have h' := id h; l.get ⟨1, h'⟩ = 0 := by
+  generalize_proofs
+  trace_state
+  exact test_sorry
+
+/--
+trace: l : List Nat
+h : 1 < l.length
+pf✝ : 1 < l.length → 1 < l.length
+⊢ have h' := h;
+  l.get ⟨1, ⋯⟩ = 0
+-/
+#guard_msgs in
+example (l : List Nat) (h : 1 < l.length) : have h' := id h; l.get ⟨1, id h'⟩ = 0 := by
+  generalize_proofs
+  -- todo: can we make this better?
+  trace_state
+  exact test_sorry
+
+/--
+trace: l : List Nat
+h : 1 < l.length
+⊢ have x := h;
+  l.get ⟨1, h⟩ = 0
+-/
+#guard_msgs in
+example (l : List Nat) (h : 1 < l.length) : have _ := id h; l.get ⟨1, id h⟩ = 0 := by
+  generalize_proofs
+  trace_state
+  exact test_sorry
