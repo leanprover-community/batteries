@@ -1,5 +1,5 @@
 module -- shake: keep-all
 
-public import Batteries.Recycling.MonadSatisfying.List
-
-deprecated_module "it is recommended to use Std.Do.Triple instead" (since := "2026-05-10")
+deprecated_module
+  "This module has been moved to `leanprover-community/batteries-recycling`"
+  (since := "2026-10-05")
