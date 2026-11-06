@@ -27,6 +27,7 @@ public import Batteries.Data.Bool
 public import Batteries.Data.ByteArray
 public import Batteries.Data.ByteSlice
 public import Batteries.Data.Char
+public import Batteries.Data.DArray
 public import Batteries.Data.DList
 public import Batteries.Data.Except
 public import Batteries.Data.Fin
