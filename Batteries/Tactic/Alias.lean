@@ -122,6 +122,11 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
         else pure s
       else pure s
 
+/-- Whether `attr` is one of the attributes that set the reducibility status of a definition. -/
+def isReducibilityAttr (attr : Name) : Bool :=
+  attr matches `reducible | `semireducible | `irreducible | `implicit_reducible
+    | `instance_reducible
+
 /--
   The command `alias name := target` creates a synonym of `target` with the given name.
 
@@ -129,6 +134,10 @@ def setDeprecatedTarget (target : Name) (arr : Array Attribute) : Array Attribut
   of an iff theorem. Use `_` if only one direction is required.
 
   These commands accept all modifiers and attributes that `def` and `theorem` do.
+
+  An alias of a definition has the same reducibility status as its target, so an alias of an
+  `abbrev` is reducible. A reducibility attribute on the alias, such as `@[irreducible]`, sets its
+  status instead.
  -/
 elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:ident : command => do
   Lean.withExporting (isExporting := (← Command.getScope).isPublic) do
@@ -161,11 +170,17 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:iden
       .defnDecl { cinfo.toConstantVal with
         name := declName
         value := mkConst name (cinfo.toConstantVal.levelParams.map mkLevelParam)
-        hints := .regular 0 -- FIXME
+        hints := .regular (getMaxHeight env (mkConst name) + 1)
         safety := if declMods.isUnsafe then .unsafe else .safe
       }
     checkNotAlreadyDeclared declName
     addDecl decl
+    -- An alias of a definition has the reducibility status of its target, unless the alias sets
+    -- its own with an attribute.
+    if (decl matches .defnDecl _) && !declMods.attrs.any (isReducibilityAttr ·.name) then
+      let status ← getReducibilityStatus name
+      unless status matches .semireducible do
+        setReducibilityStatus declName status
     if !declMods.isNoncomputable then
       if declMods.isMeta then
         modifyEnv (markMeta · declName)

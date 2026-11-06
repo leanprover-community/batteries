@@ -114,6 +114,35 @@ unsafe alias barbaz3 := id
 /-- error: (kernel) invalid declaration, it uses unsafe declaration 'A.barbaz3' -/
 #guard_msgs in def barbaz4 (n : Nat) := barbaz3 n
 
+/- Test reducibility -/
+
+abbrev redfoo : Nat := 5
+alias redfoo1 := redfoo
+example : redfoo1 = 5 := by with_reducible rfl
+run_meta guard ((← getReducibilityStatus ``redfoo1) matches .reducible)
+
+-- an explicit reducibility attribute on the alias overrides the target's status
+@[irreducible] alias redfoo2 := redfoo
+run_meta guard ((← getReducibilityStatus ``redfoo2) matches .irreducible)
+
+-- an explicit `@[reducible]` is still accepted on an alias of a reducible target
+@[reducible] alias redfoo3 := redfoo
+run_meta guard ((← getReducibilityStatus ``redfoo3) matches .reducible)
+
+@[irreducible] def redbar : Nat := 5
+alias redbar1 := redbar
+run_meta guard ((← getReducibilityStatus ``redbar1) matches .irreducible)
+
+def redbaz : Nat := 5
+alias redbaz1 := redbaz
+run_meta guard ((← getReducibilityStatus ``redbaz1) matches .semireducible)
+
+-- the alias is higher than its target, so lazy delta reduction unfolds the alias first
+run_meta do
+  let .regular h := (← getConstInfo ``redbaz).hints | failure
+  let .regular h' := (← getConstInfo ``redbaz1).hints | failure
+  guard (h' == h + 1)
+
 /- iff version -/
 
 /--
