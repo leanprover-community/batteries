@@ -148,7 +148,8 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
             simpTheorems ← simpTheorems.add (.fvar h.fvarId!) #[] h
             if !higherOrder then
               higherOrder ← forallTelescope (← inferType h) fun hyps _ => hyps.anyM isCondition
-        let ctx ← Simp.mkContext (config := { contextual := higherOrder })
+        let ctx ← Simp.mkContext
+          (config := { contextual := higherOrder, implicitDefEqProofs := false })
           (simpTheorems := #[simpTheorems]) (congrTheorems := ← getSimpCongrTheorems)
         let isRfl ← isRflTheorem declName
         let simplify (e : Expr) (ctx : Simp.Context) (stats : Simp.Stats := {}) :
@@ -171,7 +172,8 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
         let lhsInNF ← isSimpEq lhs' lhs
         let simpName := if !isRfl then "simp" else "dsimp"
         if lhs'EqRhs' then
-          if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
+          -- TODO: remove this check for `prf1.isNone`, and remove `implicitDefEqProofs := false`
+          if prf1.isNone then return none
           return m!"\
             {simpName} can prove this:\
             \n  by {← formatLemmas stats.usedTheorems simpName higherOrder}\
