@@ -96,13 +96,10 @@ example : Ns.Inner.ns3 = 7 := rfl
 /-- error: Unknown constant `ns1` -/
 #guard_msgs in alias _root_.Ns.ns6 := ns1
 
--- a target that resolves differently in the current scope and in the namespace of the alias name
--- is ambiguous
+-- the current scope takes precedence
 def ns4 : Nat := 1
 def Ns.ns4 : Nat := 2
-/-- error: ambiguous alias target `ns4`, it could refer to `ns4`, `Ns.ns4` -/
-#guard_msgs in alias Ns.ns5 := ns4
-alias Ns.ns5 := _root_.A.ns4
+alias Ns.ns5 := ns4
 example : Ns.ns5 = 1 := rfl
 alias Ns.ns7 := Ns.ns4
 example : Ns.ns7 = 2 := rfl
@@ -111,9 +108,10 @@ theorem Ns.ns_iff : True ↔ True := Iff.rfl
 alias ⟨Ns.ns_mp, _⟩ := ns_iff
 alias ⟨_, Ns.Inner.ns_mpr⟩ := ns_iff
 
-theorem ns_iff : 1 = 1 ↔ True := ⟨fun _ => trivial, fun _ => rfl⟩
-/-- error: ambiguous alias target `ns_iff`, it could refer to `ns_iff`, `Ns.ns_iff` -/
-#guard_msgs in alias ⟨Ns.ns_mp', _⟩ := ns_iff
+-- the namespaces of the two names of an iff alias must agree
+theorem Ns'.ns_iff : 1 = 1 ↔ True := ⟨fun _ => trivial, fun _ => rfl⟩
+/-- error: ambiguous alias target `ns_iff`, it could refer to `Ns.ns_iff`, `Ns'.ns_iff` -/
+#guard_msgs in alias ⟨Ns.ns_mp', Ns'.ns_mpr'⟩ := ns_iff
 
 /- Test noncomputable -/
 

@@ -31,9 +31,7 @@ public alias def_alias := priv_def
 def leak : Nat := 5
 public def Foo.leak : Nat := 7
 
--- A target that resolves to a private definition in the current scope and to a public one in the
--- namespace of the alias name is ambiguous, so a public alias cannot pick up the private one.
-/-- error: ambiguous alias target `leak`, it could refer to `leak`, `Foo.leak` -/
+-- A public alias cannot reach a private definition through the namespace of the alias name either.
+/-- error: Unknown constant `leak` -/
 #guard_msgs in
 public alias Foo.leak2 := leak
-

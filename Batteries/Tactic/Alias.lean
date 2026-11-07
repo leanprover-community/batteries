@@ -139,29 +139,32 @@ def declNamespace? (declName : Name) : Option Name :=
   | _ => none
 
 /--
-Resolves the target `target` of aliases named `aliasNames`. The target is resolved in the ambient
-scope and, for each alias name, with the namespace of that alias name open, as `def` would do. If
-these resolutions find more than one constant, the target is ambiguous and this is an error.
+Resolves the target `target` of aliases named `aliasNames`. If `target` cannot be resolved in the
+ambient scope, it is resolved again, for each alias name, with the namespace of that alias name
+open, as `def` would do. The ambient scope is tried first so that existing aliases keep resolving
+to the same constants. It is an error if the namespaces of the alias names give different
+constants.
 -/
 def realizeAliasTarget (aliasNames : List Name) (target : Ident) : TermElabM Name := do
-  let resolve : TermElabM (Except Exception Name) :=
-    try return .ok (← realizeGlobalConstNoOverload target) catch ex => return .error ex
-  let ambient ← resolve
-  let mut found := match ambient with | .ok n => [n] | .error _ => []
-  for ns in aliasNames.filterMap declNamespace? do
-    let r ← withTheReader Core.Context
-      (fun ctx => { ctx with currNamespace := ctx.currNamespace ++ ns }) resolve
-    if let .ok n := r then
-      unless found.contains n do found := found ++ [n]
-  match found, ambient with
-  | [], .error ex => throw ex
-  | [], .ok _ => unreachable!
-  | [n], _ =>
-    if (← getInfoState).enabled then addConstInfo target n
-    return n
-  | ns, _ =>
-    throwErrorAt target "ambiguous alias target `{target.getId}`, it could refer to {
-      MessageData.joinSep (ns.map (m!"`{.ofConstName ·}`")) ", "}"
+  try
+    realizeGlobalConstNoOverloadWithInfo target
+  catch ex =>
+    let mut found := #[]
+    for ns in aliasNames.filterMap declNamespace? do
+      try
+        let n ← withTheReader Core.Context
+          (fun ctx => { ctx with currNamespace := ctx.currNamespace ++ ns })
+          (realizeGlobalConstNoOverload target)
+        unless found.contains n do found := found.push n
+      catch _ => pure ()
+    match found with
+    | #[] => throw ex
+    | #[n] =>
+      if (← getInfoState).enabled then addConstInfo target n
+      return n
+    | ns =>
+      throwErrorAt target "ambiguous alias target `{target.getId}`, it could refer to {
+        MessageData.joinSep (ns.toList.map (m!"`{.ofConstName ·}`")) ", "}"
 
 /--
   The command `alias name := target` creates a synonym of `target` with the given name.
@@ -171,9 +174,8 @@ def realizeAliasTarget (aliasNames : List Name) (target : Ident) : TermElabM Nam
 
   These commands accept all modifiers and attributes that `def` and `theorem` do.
 
-  The target is resolved both in the current scope and, as for `def`, with the namespace of the
-  alias name open. It is an error if these give different constants: write `_root_.target` or
-  the full name of the target instead.
+  If the target cannot be resolved in the current scope, it is resolved with the namespace of the
+  alias name open, as for `def`.
 
   An alias of a definition has the same reducibility status as its target, so an alias of an
   `abbrev` is reducible. A reducibility attribute on the alias, such as `@[irreducible]`, sets its
