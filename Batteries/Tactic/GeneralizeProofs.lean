@@ -82,7 +82,7 @@ structure AContext where
   fvars : Array Expr := #[]
   /-- A copy of `propToFVar` from `GState`. -/
   propToFVar : ExprMap Expr
-  /-- The recursion depth, for how many times `visit` is called from within `visitProof. -/
+  /-- The recursion depth, for how many times `visit` is called from within `visitProof`. -/
   depth : Nat := 0
   /-- The initial local context, for resetting when recursing. -/
   initLCtx : LocalContext
@@ -199,10 +199,10 @@ Does `mkLambdaFVars fvars e` but
 def mkLambdaFVarsUsedOnly (fvars : Array Expr) (e : Expr) : MetaM (Array Expr × Expr) := do
   let mut e := e
   let mut fvars' : List Expr := []
-  for i' in [0:fvars.size] do
+  for hi : i' in [0:fvars.size] do
     let i := fvars.size - i' - 1
-    let fvar := fvars[i]!
-    e ← mkLambdaFVars #[fvar] e
+    let fvar := fvars[i]'(by grind [hi.upper])
+    e ← mkLambdaFVars #[fvar] e (usedOnly := false) (usedLetOnly := false)
     match e with
     | .letE _ _ v b _ =>
       e := b.instantiate1 v
@@ -265,8 +265,8 @@ where
               mkLambdaFVars #[x] (← visit (b.instantiate1 x) ty'?)
           | .letE n t v b nondep =>
             let t' ← visit t none
-            mapLetDecl n t' (← visit v t') (nondep := nondep) fun x => MAbs.withLocal x do
-              visit (b.instantiate1 x) ty?
+            mapLetDecl n t' (← visit v t') (nondep := nondep) (usedLetOnly := false)
+              fun x => MAbs.withLocal x <| visit (b.instantiate1 x) ty?
           | .app .. =>
             e.withApp fun f args => do
               let f' ← visit f none
@@ -298,9 +298,9 @@ where
         if (← read).config.debug then
           unless ← isDefEq ty (← inferType e) do
             throwError m!"visitProof: incorrectly propagated type{indentD ty}\nfor{indentD e}"
-        mkExpectedTypeHint e ty
+        pure <| mkExpectedPropHint e ty
       else pure e
-    trace[Tactic.generalize_proofs] "before mkLambdaFVarsUsedOnly, e = {e}\nfvars={fvars}"
+    trace[Tactic.generalize_proofs] "before mkLambdaFVarsUsedOnly, e = {e}\nfvars = {fvars}"
     if (← read).config.debug then
       unless ← Lean.MetavarContext.isWellFormed (← getLCtx) e do
         throwError m!"visitProof: proof{indentD e}\nis not well-formed in the current context\n\
@@ -309,7 +309,7 @@ where
     if !(← read).config.abstract && !fvars'.isEmpty then
       trace[Tactic.generalize_proofs] "'abstract' is false and proof uses fvars, not abstracting"
       return eOrig
-    trace[Tactic.generalize_proofs] "after mkLambdaFVarsUsedOnly, pf = {pf}\nfvars'={fvars'}"
+    trace[Tactic.generalize_proofs] "after mkLambdaFVarsUsedOnly, pf = {pf}\nfvars' = {fvars'}"
     if (← read).config.debug then
       unless ← Lean.MetavarContext.isWellFormed (← read).initLCtx pf do
         throwError m!"visitProof: proof{indentD pf}\nis not well-formed in the initial context\n\
@@ -349,7 +349,7 @@ This continuation `k` is passed
 
 The `propToFVar` map is updated with the new proposition fvars.
 -/
-partial def withGeneralizedProofs {α : Type} [Nonempty α] (e : Expr) (ty? : Option Expr)
+partial def withGeneralizedProofs {α : Type} (e : Expr) (ty? : Option Expr)
     (k : Array Expr → Array Expr → Expr → MGen α) :
     MGen α := do
   let propToFVar := (← get).propToFVar
@@ -359,11 +359,11 @@ partial def withGeneralizedProofs {α : Type} [Nonempty α] (e : Expr) (ty? : Op
     post-abstracted{indentD e}\nnew generalizations: {generalizations}"
   let rec
     /-- Core loop for `withGeneralizedProofs`, adds generalizations one at a time. -/
-    go [Nonempty α] (i : Nat) (fvars pfs : Array Expr)
+    go (i : Nat) (fvars pfs : Array Expr)
         (proofToFVar propToFVar : ExprMap Expr) : MGen α := do
       if h : i < generalizations.size then
         let (ty, pf) := generalizations[i]
-        let ty := (← instantiateMVars (ty.replace proofToFVar.get?)).cleanupAnnotations
+        let ty := ty.cleanupAnnotations
         withLocalDeclD (← mkFreshUserName `pf) ty fun fvar => do
           go (i + 1) (fvars := fvars.push fvar) (pfs := pfs.push pf)
             (proofToFVar := proofToFVar.insert pf fvar)
@@ -381,6 +381,8 @@ Main loop for `Lean.MVarId.generalizeProofs`.
 The `fvars` array is the array of fvars to generalize proofs for,
 and `rfvars` is the array of fvars that have been reverted.
 The `g` metavariable has all of these fvars reverted.
+Returns the array of fvars corresponding to the generalized proofs,
+and a new goal in which the proofs have been generalized.
 -/
 partial def generalizeProofsCore
     (g : MVarId) (fvars rfvars : Array FVarId) (target : Bool) :
