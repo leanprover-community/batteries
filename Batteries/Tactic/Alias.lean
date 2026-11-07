@@ -139,19 +139,32 @@ def declNamespace? (declName : Name) : Option Name :=
   | _ => none
 
 /--
-Resolves the target of an alias named `aliasName`. If `target` cannot be resolved in the ambient
-scope, it is resolved again with the namespace of `aliasName` open, as `def` would do. The ambient
-scope is tried first so that existing aliases keep resolving to the same constants.
+Resolves the target `target` of aliases named `aliasNames`. If `target` cannot be resolved in the
+ambient scope, it is resolved again, for each alias name, with the namespace of that alias name
+open, as `def` would do. The ambient scope is tried first so that existing aliases keep resolving
+to the same constants. It is an error if the namespaces of the alias names give different
+constants.
 -/
-def realizeAliasTarget (aliasName : Name) (target : Ident) : TermElabM Name := do
+def realizeAliasTarget (aliasNames : List Name) (target : Ident) : TermElabM Name := do
   try
     realizeGlobalConstNoOverloadWithInfo target
   catch ex =>
-    let some ns := declNamespace? aliasName | throw ex
-    try
-      withTheReader Core.Context (fun ctx => { ctx with currNamespace := ctx.currNamespace ++ ns })
-        (realizeGlobalConstNoOverloadWithInfo target)
-    catch _ => throw ex
+    let mut found := #[]
+    for ns in aliasNames.filterMap declNamespace? do
+      try
+        let n ← withTheReader Core.Context
+          (fun ctx => { ctx with currNamespace := ctx.currNamespace ++ ns })
+          (realizeGlobalConstNoOverload target)
+        unless found.contains n do found := found.push n
+      catch _ => pure ()
+    match found with
+    | #[] => throw ex
+    | #[n] =>
+      if (← getInfoState).enabled then addConstInfo target n
+      return n
+    | ns =>
+      throwErrorAt target "ambiguous alias target `{target.getId}`, it could refer to {
+        MessageData.joinSep (ns.toList.map (m!"`{.ofConstName ·}`")) ", "}"
 
 /--
   The command `alias name := target` creates a synonym of `target` with the given name.
@@ -160,6 +173,9 @@ def realizeAliasTarget (aliasName : Name) (target : Ident) : TermElabM Name := d
   of an iff theorem. Use `_` if only one direction is required.
 
   These commands accept all modifiers and attributes that `def` and `theorem` do.
+
+  If the target cannot be resolved in the current scope, it is resolved with the namespace of the
+  alias name open, as for `def`.
 
   An alias of a definition has the same reducibility status as its target, so an alias of an
   `abbrev` is reducible. A reducibility attribute on the alias, such as `@[irreducible]`, sets its
@@ -170,13 +186,14 @@ elab (name := alias) mods:declModifiers "alias " alias:ident " := " nameStx:iden
   Command.liftTermElabM do
     -- Whether we may access private `name`s here depends on whether it is a theorem, so first
     -- resolve in private scope always
-    let name ← withoutExporting <| realizeAliasTarget alias.getId nameStx
+    let name ← withoutExporting <| realizeAliasTarget [alias.getId] nameStx
     let cinfo ← withoutExporting <| getAsyncConstInfo name
     let declMods ← elabModifiers mods
     Lean.withExporting (isExporting := declMods.isInferredPublic (← getEnv)) do
     unless wasOriginallyTheorem (← getEnv) name do
       -- Now check again in correct scope for defs
-      discard <| realizeAliasTarget alias.getId nameStx
+      unless (← realizeAliasTarget [alias.getId] nameStx) == name do
+        throwErrorAt nameStx "Unknown constant `{nameStx.getId}`"
     let (attrs, machineApplicable) := setDeprecatedTarget name declMods.attrs
     let env ← getEnv
     let declMods := { declMods with
@@ -262,7 +279,11 @@ elab (name := aliasLR) mods:declModifiers "alias "
   Command.liftTermElabM do
     -- The target of an iff alias is always a theorem, so resolve in non-exporting mode to
     -- support private theorem targets even when the aliases themselves are public.
-    let name ← withoutExporting <| realizeGlobalConstNoOverloadWithInfo name
+    let aliasNames := [aliasFwd, aliasRev].filterMap fun (b : TSyntax ``binderIdent) =>
+      match b with
+      | `(binderIdent| $id:ident) => some id.getId
+      | _ => none
+    let name ← withoutExporting <| realizeAliasTarget aliasNames name
     let thm ← withoutExporting <| getConstVal name
     let declMods ← elabModifiers mods
     let declMods := { declMods with attrs := (setDeprecatedTarget name declMods.attrs).1 }
