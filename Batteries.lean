@@ -38,6 +38,7 @@ public import Batteries.Data.List
 public import Batteries.Data.MLList
 public import Batteries.Data.NameSet
 public import Batteries.Data.Nat
+public import Batteries.Data.OrderedAssocList
 public import Batteries.Data.PairingHeap
 public import Batteries.Data.RBMap
 public import Batteries.Data.Random
@@ -83,17 +84,7 @@ public import Batteries.Linter.UnnecessarySeqFocus
 public import Batteries.Linter.UnreachableTactic
 public import Batteries.Logic
 public import Batteries.Recycling.MonadSatisfying
-public import Batteries.Recycling.MonadSatisfying.Array
-public import Batteries.Recycling.MonadSatisfying.Basic
-public meta import Batteries.Recycling.MonadSatisfying.Lean
-public import Batteries.Recycling.MonadSatisfying.List
-public import Batteries.Recycling.MonadSatisfying.Vector
 public import Batteries.Recycling.RBTree
-public import Batteries.Recycling.RBTree.Alter
-public import Batteries.Recycling.RBTree.Basic
-public import Batteries.Recycling.RBTree.Depth
-public import Batteries.Recycling.RBTree.Lemmas
-public import Batteries.Recycling.RBTree.WF
 public import Batteries.Tactic.Alias
 public import Batteries.Tactic.Basic
 public import Batteries.Tactic.Case
