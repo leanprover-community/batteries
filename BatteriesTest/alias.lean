@@ -85,6 +85,36 @@ protected alias Foo.barbaz := trivial
 #guard_msgs in example : True := barbaz
 example : True := Foo.barbaz
 
+/- Test that the target is resolved with the namespace of the alias name open, as for `def` -/
+
+def Ns.ns1 : Nat := 7
+alias Ns.ns2 := ns1
+example : Ns.ns2 = 7 := rfl
+alias Ns.Inner.ns3 := ns1
+example : Ns.Inner.ns3 = 7 := rfl
+
+/-- error: Unknown constant `ns1` -/
+#guard_msgs in alias _root_.Ns.ns6 := ns1
+
+-- a target that resolves differently in the current scope and in the namespace of the alias name
+-- is ambiguous
+def ns4 : Nat := 1
+def Ns.ns4 : Nat := 2
+/-- error: ambiguous alias target `ns4`, it could refer to `ns4`, `Ns.ns4` -/
+#guard_msgs in alias Ns.ns5 := ns4
+alias Ns.ns5 := _root_.A.ns4
+example : Ns.ns5 = 1 := rfl
+alias Ns.ns7 := Ns.ns4
+example : Ns.ns7 = 2 := rfl
+
+theorem Ns.ns_iff : True ↔ True := Iff.rfl
+alias ⟨Ns.ns_mp, _⟩ := ns_iff
+alias ⟨_, Ns.Inner.ns_mpr⟩ := ns_iff
+
+theorem ns_iff : 1 = 1 ↔ True := ⟨fun _ => trivial, fun _ => rfl⟩
+/-- error: ambiguous alias target `ns_iff`, it could refer to `ns_iff`, `Ns.ns_iff` -/
+#guard_msgs in alias ⟨Ns.ns_mp', _⟩ := ns_iff
+
 /- Test noncomputable -/
 
 /-- doc string for foobaz -/
@@ -113,6 +143,35 @@ alias barbaz1 := barbaz
 unsafe alias barbaz3 := id
 /-- error: (kernel) invalid declaration, it uses unsafe declaration 'A.barbaz3' -/
 #guard_msgs in def barbaz4 (n : Nat) := barbaz3 n
+
+/- Test reducibility -/
+
+abbrev redfoo : Nat := 5
+alias redfoo1 := redfoo
+example : redfoo1 = 5 := by with_reducible rfl
+run_meta guard ((← getReducibilityStatus ``redfoo1) matches .reducible)
+
+-- an explicit reducibility attribute on the alias overrides the target's status
+@[irreducible] alias redfoo2 := redfoo
+run_meta guard ((← getReducibilityStatus ``redfoo2) matches .irreducible)
+
+-- an explicit `@[reducible]` is still accepted on an alias of a reducible target
+@[reducible] alias redfoo3 := redfoo
+run_meta guard ((← getReducibilityStatus ``redfoo3) matches .reducible)
+
+@[irreducible] def redbar : Nat := 5
+alias redbar1 := redbar
+run_meta guard ((← getReducibilityStatus ``redbar1) matches .irreducible)
+
+def redbaz : Nat := 5
+alias redbaz1 := redbaz
+run_meta guard ((← getReducibilityStatus ``redbaz1) matches .semireducible)
+
+-- the alias is higher than its target, so lazy delta reduction unfolds the alias first
+run_meta do
+  let .regular h := (← getConstInfo ``redbaz).hints | failure
+  let .regular h' := (← getConstInfo ``redbaz1).hints | failure
+  guard (h' == h + 1)
 
 /- iff version -/
 
