@@ -128,14 +128,14 @@ def isReducibilityAttr (attr : Name) : Bool :=
     | `instance_reducible
 
 /--
-The namespace that `def` opens while elaborating a declaration named `declName`: `Foo.Bar` for
-`Foo.Bar.baz`, and none for atomic names and for names that start with `_root_`.
+The namespace that `def` opens while elaborating a declaration named `declName`:
+`Foo.Bar` for `Foo.Bar.baz`, and none for atomic names and names starting with `_root_`.
 -/
 def declNamespace? (declName : Name) : Option Name :=
   if (`_root_).isPrefixOf declName then none else
   match (extractMacroScopes declName).name with
-  | .str pre@(.str ..) _ => some pre
-  | .str pre@(.num ..) _ => some pre
+  | .str .anonymous _ => none
+  | .str pre _ => some pre
   | _ => none
 
 /--
