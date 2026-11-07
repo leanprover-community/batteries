@@ -7,7 +7,7 @@ module
 
 public meta import Lean.Compiler.NoncomputableAttr
 public meta import Batteries.CodeAction.Deprecated
-import Lean.Elab.Attributes
+meta import Lean.Elab.Attributes
 
 public meta section
 
