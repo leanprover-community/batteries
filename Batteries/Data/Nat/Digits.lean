@@ -375,7 +375,7 @@ private theorem toFinDigitsFixed.loopSplit_eq [NeZero base] {acc : List (Fin bas
     loopSplit base n prec acc = Nat.toFinDigitsFixed n base prec ++ acc := by
   fun_induction loopSplit base n prec acc with
   | case1 => exact loopDigit_eq
-  | case2 n prec acc _ k ih₁ _ ih₂ =>
+  | case2 n prec acc _ k ih₁ ih₂ =>
     rw [ih₂, ih₁, ← List.append_assoc, ← toFinDigitsFixed_add,
       Nat.sub_add_cancel (Nat.div_le_self ..)]
 
