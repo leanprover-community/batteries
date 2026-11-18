@@ -89,6 +89,8 @@ with `rfl` in text-link color.
 #demo #[s,s,s,s]
 
 /--
+warning: `Lean.Meta.Tactic.TryThis.Suggestion.style?` has been deprecated: The `style?` property is not used anymore.
+---
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.value` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
 info: Try these:
@@ -116,6 +118,8 @@ Try these:
 #demo #[0.0, 1/6, 2/6, 3/6, 4/6, 5/6, 1.0].map fun t => {s with style? := some <| .value t}
 
 /--
+warning: `Lean.Meta.Tactic.TryThis.Suggestion.style?` has been deprecated: The `style?` property is not used anymore.
+---
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.error` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
 info: Try this:
@@ -126,6 +130,8 @@ info: Try this:
 #demo1 {s with style? := some <| .error (decorated := false)}
 
 /--
+warning: `Lean.Meta.Tactic.TryThis.Suggestion.style?` has been deprecated: The `style?` property is not used anymore.
+---
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
 info: Try this:
@@ -136,6 +142,8 @@ info: Try this:
 #demo1 {s with style? := some .warning}
 
 /--
+warning: `Lean.Meta.Tactic.TryThis.Suggestion.style?` has been deprecated: The `style?` property is not used anymore.
+---
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
 info: Try this:
@@ -146,6 +154,8 @@ info: Try this:
 #demo1 {s with style? := some <| .warning (decorated := false)}
 
 /--
+warning: `Lean.Meta.Tactic.TryThis.Suggestion.style?` has been deprecated: The `style?` property is not used anymore.
+---
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.success` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
 info: Try this:
@@ -156,6 +166,8 @@ info: Try this:
 #demo1 {s with style? := some .success}
 
 /--
+warning: `Lean.Meta.Tactic.TryThis.Suggestion.style?` has been deprecated: The `style?` property is not used anymore.
+---
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.asHypothesis` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
 info: Try this:
@@ -166,6 +178,8 @@ info: Try this:
 #demo1 {s with style? := some .asHypothesis}
 
 /--
+warning: `Lean.Meta.Tactic.TryThis.Suggestion.style?` has been deprecated: The `style?` property is not used anymore.
+---
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.asInaccessible` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
 info: Try this:
@@ -227,11 +241,19 @@ info: We've got everything here! Such as:
 #demo #[s,s,s,s] with_header "We've got everything here! Such as:"
 
 /--
+warning: `Lean.Meta.Tactic.TryThis.Suggestion.style?` has been deprecated: The `style?` property is not used anymore.
+---
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.error` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.Suggestion.style?` has been deprecated: The `style?` property is not used anymore.
 ---
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.warning` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
+warning: `Lean.Meta.Tactic.TryThis.Suggestion.style?` has been deprecated: The `style?` property is not used anymore.
+---
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.success` has been deprecated: `SuggestionStyle` is not used anymore.
+---
+warning: `Lean.Meta.Tactic.TryThis.Suggestion.style?` has been deprecated: The `style?` property is not used anymore.
 ---
 warning: `Lean.Meta.Tactic.TryThis.SuggestionStyle.value` has been deprecated: `SuggestionStyle` is not used anymore.
 ---
