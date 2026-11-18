@@ -15,7 +15,10 @@ def foo (n : α) := [n]
 section unnecessarySimpa
 
 /--
-warning: try 'simp' instead of 'simpa'
+warning: `simp` already closes the goal
+
+Hint: Use `simp` instead of `simpa`:
+  [apply] simp only [foo]
 
 Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
 -/
@@ -24,7 +27,10 @@ example : foo n = [n] := by
   simpa only [foo]
 
 /--
-warning: Try `simp at h` instead of `simpa using h`
+warning: `simp` already closes the goal
+
+Hint: Use `simp` instead of `simpa`:
+  [apply] simp [foo] at h
 
 Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
 -/

@@ -6,15 +6,14 @@ Authors: Mario Carneiro
 module
 
 public import Batteries.Lean.TagAttribute
-public import Std.Data.HashMap.Basic
 
-@[expose] public section
+public section
 
 open Lean
 
 namespace Lean
 
-open Std
+open _root_.Std
 
 /--
 `TagAttributeExtra` works around a limitation of `TagAttribute`, which is that definitions

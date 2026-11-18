@@ -5,14 +5,14 @@ Authors: Robert Y. Lewis, Keeley Hoek, Mario Carneiro, François G. Dorais, Quan
 -/
 module
 
-public import Batteries.Data.Nat.Lemmas
+public import Batteries.Data.Nat.Lemmas -- shake: keep
 
-@[expose] public section
+public section
 
 namespace Fin
 
 /-- `min n m` as an element of `Fin (m + 1)` -/
-def clamp (n m : Nat) : Fin (m + 1) := ⟨min n m, Nat.lt_succ_of_le (Nat.min_le_right ..)⟩
+@[expose] def clamp (n m : Nat) : Fin (m + 1) := ⟨min n m, Nat.lt_succ_of_le (Nat.min_le_right ..)⟩
 
 /-- Heterogeneous monadic fold over `Fin n` from right to left:
 ```
@@ -24,7 +24,7 @@ Fin.foldrM n f xₙ = do
   pure x₀
 ```
 This is the dependent version of `Fin.foldrM`. -/
-@[inline] def dfoldrM [Monad m] (n : Nat) (α : Fin (n + 1) → Type _)
+@[expose, inline] def dfoldrM [Monad m] (n : Nat) (α : Fin (n + 1) → Type _)
     (f : ∀ (i : Fin n), α i.succ → m (α i.castSucc)) (init : α (last n)) : m (α 0) :=
   loop n (Nat.lt_succ_self n) init where
   /--
@@ -47,7 +47,7 @@ This is the dependent version of `Fin.foldrM`. -/
 `f 2 : α 3 → α 2`, `f 1 : α 2 → α 1`, etc.
 
 This is the dependent version of `Fin.foldr`. -/
-@[inline] def dfoldr (n : Nat) (α : Fin (n + 1) → Type _)
+@[expose, inline] def dfoldr (n : Nat) (α : Fin (n + 1) → Type _)
     (f : ∀ (i : Fin n), α i.succ → α i.castSucc) (init : α (last n)) : α 0 :=
   dfoldrM (m := Id) n α f init
 
@@ -61,7 +61,7 @@ Fin.foldlM n f x₀ = do
   pure xₙ
 ```
 This is the dependent version of `Fin.foldlM`. -/
-@[inline] def dfoldlM [Monad m] (n : Nat) (α : Fin (n + 1) → Type _)
+@[expose, inline] def dfoldlM [Monad m] (n : Nat) (α : Fin (n + 1) → Type _)
     (f : ∀ (i : Fin n), α i.castSucc → m (α i.succ)) (init : α 0) : m (α (last n)) :=
   loop 0 (Nat.zero_lt_succ n) init where
   /-- Inner loop for `Fin.dfoldlM`.
@@ -84,34 +84,34 @@ This is the dependent version of `Fin.foldlM`. -/
 `f 0 : α 0 → α 1`, `f 1 : α 1 → α 2`, etc.
 
 This is the dependent version of `Fin.foldl`. -/
-@[inline] def dfoldl (n : Nat) (α : Fin (n + 1) → Type _)
+@[expose, inline] def dfoldl (n : Nat) (α : Fin (n + 1) → Type _)
     (f : ∀ (i : Fin n), α i.castSucc → α i.succ) (init : α 0) : α (last n) :=
   dfoldlM (m := Id) n α f init
 
 /-- Sum of a tuple indexed by `Fin n`. -/
-@[inline] protected def sum [Zero α] [Add α] (x : Fin n → α) : α :=
+@[expose, inline] protected def sum [Zero α] [Add α] (x : Fin n → α) : α :=
   foldr n (x · + ·) 0
 
 /-- Product of a tuple indexed by `Fin n`. -/
-@[inline] protected def prod [One α] [Mul α] (x : Fin n → α) : α :=
+@[expose, inline] protected def prod [One α] [Mul α] (x : Fin n → α) : α :=
   foldr n (x · * ·) 1
 
 /-- Count the number of true values of a decidable predicate on `Fin n`. -/
-@[inline] protected def countP (p : Fin n → Bool) : Nat :=
+@[expose, inline] protected def countP (p : Fin n → Bool) : Nat :=
   Fin.sum (p · |>.toNat)
 
 /--
 `findSome? f` returns `f i` for the first `i` for which `f i` is `some _`, or `none` if no such
 element is found. The function `f` is not evaluated on further inputs after the first `i` is found.
 -/
-@[inline] def findSome? (f : Fin n → Option α) : Option α :=
+@[expose, inline] def findSome? (f : Fin n → Option α) : Option α :=
   foldl n (fun r i => r <|> f i) none
 
 /--
 `findSomeRev? f` returns `f i` for the last `i` for which `f i` is `some _`, or `none` if no such
 element is found. The function `f` is not evaluated on further inputs after the first `i` is found.
 -/
-@[inline] def findSomeRev? (f : Fin n → Option α) : Option α :=
+@[expose, inline] def findSomeRev? (f : Fin n → Option α) : Option α :=
   findSome? (f ·.rev)
 
 
@@ -130,16 +130,16 @@ The function `p` is not evaluated on further inputs after the first `i` is found
   findSomeRev? <| Option.guard p
 
 /-- Compute `i / n`, where `n` is a `Nat` and inferred the type of `i`. -/
-def divNat (i : Fin (m * n)) : Fin m :=
+@[expose] def divNat (i : Fin (m * n)) : Fin m :=
   ⟨i / n, Nat.div_lt_of_lt_mul <| Nat.mul_comm m n ▸ i.is_lt⟩
 
 /-- Compute `i % n`, where `n` is a `Nat` and inferred the type of `i`. -/
-def modNat (i : Fin (m * n)) : Fin n :=
+@[expose] def modNat (i : Fin (m * n)) : Fin n :=
   ⟨i % n, Nat.mod_lt _ <| Nat.pos_of_mul_pos_left i.pos⟩
 
 /--
 Compute the element of `Fin (m * n)` with quotient `i : Fin m` and remainder `j : Fin n`
 when divided by `n`.
 -/
-def mkDivMod (i : Fin m) (j : Fin n) : Fin (m * n) :=
+@[expose] def mkDivMod (i : Fin m) (j : Fin n) : Fin (m * n) :=
   ⟨n * i + j, Nat.mul_add_lt_mul_of_lt_of_lt i.is_lt j.is_lt⟩

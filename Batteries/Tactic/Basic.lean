@@ -1,4 +1,4 @@
-module
+module -- shake: keep-all
 
 public meta import Lean.Elab.Tactic.ElabTerm
 public meta import Batteries.Linter

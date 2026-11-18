@@ -6,9 +6,8 @@ Authors: Jannis Limperg, François G. Dorais
 module
 
 public import Batteries.Classes.Order
-public import Batteries.Data.List.Lemmas
 
-@[expose] public section
+public section
 
 namespace Char
 
@@ -70,6 +69,36 @@ protected abbrev count := Char.max - Char.maxSurrogate + Char.minSurrogate
   | .inl h => simp only [toNat_val] at h; grind
   | .inr ⟨h, _⟩ => simp only [toNat_val] at h; grind
 
+/-- Checks whether a character is in the ASCII range, that is, its code point is less than 128. -/
+@[inline, expose, implicit_reducible] def isAscii (c : Char) : Bool := c.val < 128
+
+theorem isAscii_iff_toNat_lt {c : Char} : c.isAscii ↔ c.toNat < 128 := by
+  simp [isAscii, UInt32.lt_iff_toNat_lt]
+
+theorem isAscii_of_isUpper {c : Char} (h : c.isUpper) : c.isAscii := by
+  simp [isUpper, UInt32.le_iff_toNat_le] at h
+  simp [isAscii, UInt32.lt_iff_toNat_lt]; grind
+
+theorem isAscii_of_isLower {c : Char} (h : c.isLower) : c.isAscii := by
+  simp [isLower, UInt32.le_iff_toNat_le] at h
+  simp [isAscii, UInt32.lt_iff_toNat_lt]; grind
+
+theorem isAscii_of_isAlpha {c : Char} (h : c.isAlpha) : c.isAscii := by
+  simp only [isAlpha, Bool.or_eq_true] at h
+  exact h.elim isAscii_of_isUpper isAscii_of_isLower
+
+theorem isAscii_of_isDigit {c : Char} (h : c.isDigit) : c.isAscii := by
+  simp [isDigit, UInt32.le_iff_toNat_le] at h
+  simp [isAscii, UInt32.lt_iff_toNat_lt]; grind
+
+theorem isAscii_of_isAlphanum {c : Char} (h : c.isAlphanum) : c.isAscii := by
+  simp only [isAlphanum, Bool.or_eq_true] at h
+  exact h.elim isAscii_of_isAlpha isAscii_of_isDigit
+
+theorem isAscii_of_isWhitespace {c : Char} (h : c.isWhitespace) : c.isAscii := by
+  simp only [isWhitespace, Bool.or_eq_true, decide_eq_true_eq] at h
+  rcases h with ((h | h) | h) | h <;> subst h <;> rfl
+
 /-- Returns `true` if `p` returns true for every `Char`. -/
 protected def all (p : Char → Bool) : Bool :=
   Nat.all Char.minSurrogate (fun c h₁ => p <| Char.ofNatAux c <| .inl h₁) &&
@@ -84,13 +113,12 @@ private theorem of_all_eq_true_aux (h : Char.all p) (n : Nat) (hn : n.isValidCha
     have := h.1 ⟨n, by grind⟩
     grind
   | .inr ⟨hn, hn'⟩ =>
-    -- https://github.com/leanprover/lean4/issues/11059
-    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; omega ⟩
+    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; grind⟩
     grind
 
 theorem eq_true_of_all_eq_true (h : Char.all p) (c : Char) : p c := by
   have : c.toNat.isValidChar := c.valid
-  rw [← c.ofNat_toNat, ofNat, dif_pos this]
+  rw [← c.ofNat_toNat, ofNat, dite_eq_left this]
   exact of_all_eq_true_aux h c.toNat this
 
 theorem exists_eq_false_of_all_eq_false (h : Char.all p = false) :
@@ -130,14 +158,13 @@ private theorem of_any_eq_false_aux (h : Char.any p = false) (n : Nat) (hn : n.i
     have := h.1 ⟨n, hn⟩ (List.mem_finRange _)
     grind
   | .inr ⟨hn, hn'⟩ =>
-    -- https://github.com/leanprover/lean4/issues/11059
-    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; omega⟩
+    have := h.2 ⟨n - (Char.maxSurrogate + 1), by rw [Char.maxSurrogate, Char.max]; grind⟩
       (List.mem_finRange _)
     grind
 
 theorem eq_false_of_any_eq_false (h : Char.any p = false) (c : Char) : p c = false := by
   have : c.toNat.isValidChar := c.valid
-  rw [← c.ofNat_toNat, ofNat, dif_pos this]
+  rw [← c.ofNat_toNat, ofNat, dite_eq_left this]
   exact of_any_eq_false_aux h c.toNat this
 
 theorem any_eq_true_iff_exists_eq_true : Char.any p = true ↔ ∃ c, p c = true := by

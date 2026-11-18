@@ -6,7 +6,6 @@
 name: Label PR from status change
 
 permissions:
-  contents: read
   pull-requests: write
 
 on:
@@ -24,42 +23,37 @@ jobs:
   auto-label:
     if: github.repository_owner == 'leanprover-community'
     runs-on: ubuntu-latest
+    # Shared with `labels-from-comments.yml`; see the comment there.
+    concurrency:
+      group: pr-status-label-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+      queue: max
     steps:
 
-    - uses: actions/checkout@v4
+    - name: Update status label
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       with:
-        fetch-depth: 0
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        retries: 3
+        script: |
+          const { owner, repo } = context.repo;
+          const issue_number = context.payload.pull_request.number;
+          const statusLabels = ['awaiting-review', 'awaiting-author', 'WIP'];
 
-    - name: Unlabel closed PR
-      if: github.event.pull_request.state == 'closed'
-      uses: actions-ecosystem/action-remove-labels@v1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        labels: |
-          WIP
-          awaiting-author
-          awaiting-review
+          // Act on the current state of the PR rather than the event payload, which
+          // may be out of date by the time this run acquires the concurrency group.
+          const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: issue_number });
+          const present = pr.labels.map(label => label.name).filter(name => statusLabels.includes(name));
 
-    - name: Label unlabeled draft PR as WIP
-      if: |
-        github.event.pull_request.state == 'open' &&
-        github.event.pull_request.draft &&
-        ! contains(github.event.pull_request.labels.*.name, 'awaiting-author') &&
-        ! contains(github.event.pull_request.labels.*.name, 'awaiting-review') &&
-        ! contains(github.event.pull_request.labels.*.name, 'WIP')
-      uses: actions-ecosystem/action-add-labels@v1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        labels: WIP
-
-    - name: Label unlabeled other PR as awaiting-review
-      if: |
-        github.event.pull_request.state == 'open' &&
-        ! github.event.pull_request.draft &&
-        ! contains(github.event.pull_request.labels.*.name, 'awaiting-author') &&
-        ! contains(github.event.pull_request.labels.*.name, 'awaiting-review') &&
-        ! contains(github.event.pull_request.labels.*.name, 'WIP')
-      uses: actions-ecosystem/action-add-labels@v1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        labels: awaiting-review
+          if (pr.state === 'closed') {
+            for (const name of present) {
+              try {
+                await github.rest.issues.removeLabel({ owner, repo, issue_number, name });
+              } catch (error) {
+                if (error.status !== 404) throw error;
+              }
+            }
+          } else if (present.length === 0) {
+            const label = pr.draft ? 'WIP' : 'awaiting-review';
+            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: [label] });
+          }

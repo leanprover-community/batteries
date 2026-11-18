@@ -5,13 +5,12 @@ Authors: François G. Dorais
 -/
 module
 
-public import Batteries.Data.Char
 public import Batteries.Data.Fin.Lemmas
-public import Batteries.Tactic.Basic
-public import Batteries.Tactic.Trans
-public import Batteries.Tactic.Lint
+public import Batteries.Data.Char.Basic
+import Batteries.Tactic.Lint.Misc
+import Batteries.Tactic.Init
 
-@[expose] public section
+public section
 
 /-! # Low-level coding recipes for `Fin` types
 
@@ -240,7 +239,7 @@ def encodeSigma (f : Fin n → Nat) (x : (i : Fin n) × Fin (f i)) : Fin (Fin.su
       · contradiction
     | ⟨⟨i+1, hi⟩, ⟨x, hx⟩⟩ =>
       have : ¬ encodeSigma f ⟨⟨i+1, hi⟩, ⟨x, hx⟩⟩ < f 0 := by simp [encodeSigma]
-      rw [dif_neg this]
+      rw [dite_eq_right this]
       have : (encodeSigma f ⟨⟨i+1, hi⟩, ⟨x, hx⟩⟩).1 - f 0 =
           (encodeSigma (f ·.succ) ⟨⟨i, Nat.lt_of_succ_lt_succ hi⟩, ⟨x, hx⟩⟩).1 := by
         simp [encodeSigma, Nat.add_sub_cancel_left]
@@ -417,7 +416,7 @@ theorem encodeSubtype_succ_neg {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ 
     | zero => absurd x.val.is_lt; simp
     | succ n ih =>
       if h₀ : P 0 then
-        simp only [decodeSubtype, dif_pos h₀]
+        simp only [decodeSubtype, dite_eq_left h₀]
         cases i using Fin.cases with
         | zero => rw [encodeSubtype_zero_pos h₀]
         | succ i =>
@@ -426,7 +425,7 @@ theorem encodeSubtype_succ_neg {P : Fin (n+1) → Prop} [DecidablePred P] (h₀ 
           congr
           rw [ih (fun i => P i.succ) ⟨i, h⟩]
       else
-        simp only [decodeSubtype, dif_neg h₀]
+        simp only [decodeSubtype, dite_eq_right h₀]
         cases i using Fin.cases with
         | zero => contradiction
         | succ i =>

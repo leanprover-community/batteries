@@ -7,7 +7,7 @@ module
 
 public import Batteries.Control.ForInStep.Basic
 
-@[expose] public section
+public section
 
 /-! # Additional theorems on `ForInStep` -/
 

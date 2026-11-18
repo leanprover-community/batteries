@@ -7,7 +7,7 @@ module
 
 public import Lean.Syntax
 
-@[expose] public section
+public section
 
 /-!
 # Helper functions for working with typed syntaxes.

@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 module
 
-public meta import Batteries.Tactic.Alias
+public meta import Lean.Meta.Tactic.Util
 
 public meta section
 
@@ -21,6 +21,3 @@ def Lean.MVarId.assignIfDefEq (g : MVarId) (e : Expr) : MetaM Unit := do
   guard <| ← isDefEq (← g.getType) (← inferType e)
   g.checkNotAssigned `assignIfDefEq
   g.assign e
-
-@[deprecated (since := "2025-04-09")]
-alias Lean.MVarId.assignIfDefeq := Lean.MVarId.assignIfDefEq
