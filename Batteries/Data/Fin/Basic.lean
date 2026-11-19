@@ -142,4 +142,4 @@ Compute the element of `Fin (m * n)` with quotient `i : Fin m` and remainder `j 
 when divided by `n`.
 -/
 @[expose] def mkDivMod (i : Fin m) (j : Fin n) : Fin (m * n) :=
-  ⟨n * i + j, Nat.mul_add_lt_mul_of_lt_of_lt i.is_lt j.is_lt⟩
+  ⟨i.val.mkDivMod j, Nat.mkDivMod_lt_mul_of_lt i.is_lt j⟩

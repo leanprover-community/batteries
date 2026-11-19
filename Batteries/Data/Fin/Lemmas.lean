@@ -5,6 +5,8 @@ Authors: Mario Carneiro
 -/
 module
 
+meta import Batteries.Tactic.Alias
+
 public import Batteries.Data.Fin.Basic
 
 public section
@@ -407,13 +409,45 @@ theorem find?_eq_findRev?_iff {p : Fin n → Bool} : find? p = findRev? p ↔
 
 @[simp] theorem coe_modNat (i : Fin (m * n)) : (i.modNat : Nat) = i % n := rfl
 
-@[simp] theorem coe_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j : Nat) = n * i + j := rfl
+@[simp] theorem coe_mkDivMod (i : Fin m) (j : Fin n) :
+    (mkDivMod i j : Nat) = i.val.mkDivMod j := rfl
 
-@[simp] theorem divNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).divNat = i := by
-  ext; simp [Nat.mul_add_div (Nat.zero_lt_of_lt j.is_lt)]
+theorem ext_divNat_modNat {a b : Fin (m * n)} (h0 : a.divNat = b.divNat)
+    (h1 : a.modNat = b.modNat) : a = b :=
+  Fin.ext <| Nat.ext_div_mod (congrArg val h0) (congrArg val h1)
 
-@[simp] theorem modNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).modNat = j := by
-  ext; simp [Nat.mod_eq_of_lt]
+theorem ext_divNat_modNat_iff {a b : Fin (m * n)} :
+    a = b ↔ a.divNat = b.divNat ∧ a.modNat = b.modNat := by
+  simp [Fin.ext_iff, n.ext_div_mod_iff a]
 
-@[simp] theorem divNat_mkDivMod_modNat (k : Fin (m * n)) :
-    mkDivMod k.divNat k.modNat = k := by ext; simp [Nat.div_add_mod]
+theorem lt_divNat_modNat_iff {a b : Fin (m * n)} :
+    a < b ↔ a.divNat < b.divNat ∨ a.divNat = b.divNat ∧ a.modNat < b.modNat := by
+  simp [Fin.lt_def, Fin.ext_iff, n.lt_div_mod_iff a]
+
+theorem le_divNat_modNat_iff {a b : Fin (m * n)} :
+    a ≤ b ↔ a.divNat < b.divNat ∨ a.divNat = b.divNat ∧ a.modNat ≤ b.modNat := by
+  simp [Fin.lt_def, Fin.le_def, Fin.ext_iff, n.le_div_mod_iff a]
+
+@[simp] theorem divNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).divNat = i :=
+  Fin.ext <| Nat.div_mkDivMod _ _
+
+@[simp] theorem modNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).modNat = j :=
+  Fin.ext <| Nat.mod_mkDivMod _ _
+
+@[simp] theorem mkDivMod_divNat_modNat (k : Fin (m * n)) :
+    k.divNat.mkDivMod k.modNat = k :=
+  ext_divNat_modNat (divNat_mkDivMod ..) (modNat_mkDivMod ..)
+
+@[deprecated (since := "2026-11-19")] alias divNat_mkDivMod_modNat := mkDivMod_divNat_modNat
+
+@[simp] theorem mkDivMod_inj {i₁ i₂ : Fin m} {j₁ j₂ : Fin n} :
+    mkDivMod i₁ j₁ = mkDivMod i₂ j₂ ↔ i₁ = i₂ ∧ j₁ = j₂ := by
+  simp [ext_divNat_modNat_iff]
+
+@[simp] theorem mkDivMod_lt_mkDivMod_iff {i₁ i₂ : Fin m} {j₁ j₂ : Fin n} :
+    mkDivMod i₁ j₁ < mkDivMod i₂ j₂ ↔ i₁ < i₂ ∨ i₁ = i₂ ∧ j₁ < j₂ := by
+  simp [lt_divNat_modNat_iff]
+
+@[simp] theorem mkDivMod_le_mkDivMod_iff {i₁ i₂ : Fin m} {j₁ j₂ : Fin n} :
+    mkDivMod i₁ j₁ ≤ mkDivMod i₂ j₂ ↔ i₁ < i₂ ∨ i₁ = i₂ ∧ j₁ ≤ j₂ := by
+  simp [le_divNat_modNat_iff]
