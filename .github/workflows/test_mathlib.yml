@@ -57,7 +57,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }} # no checkout for `gh` to read the repository from
           EVENT_ACTION: ${{ github.event.action }}
-          SENDER: ${{ github.event.sender.login }}
           HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name || github.event.pull_request.head.repo.full_name }}
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch || github.event.pull_request.head.ref }}
           BATTERIES_SHA: ${{ github.event.workflow_run.head_sha }}
@@ -84,17 +83,6 @@ jobs:
             exit 0
           fi
           if [ "$EVENT_ACTION" = labeled ]; then
-            # Users with the triage role can also add labels, so check that the
-            # sender is a Batteries maintainer. The API gives `write` for the
-            # `write` and `maintain` roles.
-            if ! PERMISSION="$(gh api "repos/$GH_REPO/collaborators/$SENDER/permission" --jq .permission)"; then
-              echo "::warning::Could not read the permission of $SENDER; nothing to test."
-              exit 0
-            fi
-            if [ "$PERMISSION" != admin ] && [ "$PERMISSION" != write ]; then
-              echo "::warning::$SENDER is not a Batteries maintainer; nothing to test."
-              exit 0
-            fi
             # Test the current PR head only if its CI succeeded. While CI runs, its
             # success starts the test.
             PR="$(gh api "repos/$GH_REPO/pulls/$PR_NUMBER")"
