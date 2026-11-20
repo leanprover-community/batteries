@@ -47,6 +47,8 @@ jobs:
       # Both are empty on close events.
       head-repo: ${{ steps.pr.outputs.head_repo }}
       batteries-sha: ${{ steps.pr.outputs.batteries_sha }}
+      # Why the run tests nothing, if a `test-mathlib` label asked for a test.
+      skip-reason: ${{ steps.pr.outputs.skip_reason }}
       mathlib-sha: ${{ steps.pin.outputs.mathlib_sha }}
       # Empty until the first push creates the adaptation branch.
       branch-sha: ${{ steps.pin.outputs.branch_sha }}
@@ -82,38 +84,39 @@ jobs:
             fi
             exit 0
           fi
+          # Stop without a test. After a `test-mathlib` label, the `remove-label` job
+          # posts the reason on the PR.
+          skip() {
+            echo "::warning::$1"
+            echo "skip_reason=$1" >> "$GITHUB_OUTPUT"
+            exit 0
+          }
+
+          # Find the open PR from the head branch into main. GitHub allows only one.
+          # The workflow run of a fork PR has no PR number, and the head filter also
+          # finds fork PRs.
+          PR="$(gh api -X GET "repos/$GH_REPO/pulls" \
+            -f head="${HEAD_REPO%%/*}:$HEAD_BRANCH" -f base=main -f state=open \
+            --jq '[.[] | select(.head.repo.full_name == env.HEAD_REPO)] | if length == 1 then .[0] else empty end')"
+          if [ -z "$PR" ]; then
+            skip "The PR is not open into \`main\`."
+          fi
+          PR_NUMBER="$(jq -r '.number' <<<"$PR")"
           if [ "$EVENT_ACTION" = labeled ]; then
-            # Test the current PR head only if its CI succeeded. While CI runs, its
-            # success starts the test.
-            PR="$(gh api "repos/$GH_REPO/pulls/$PR_NUMBER")"
-            if ! jq -e '.state == "open" and .base.ref == "main" and
-                  .head.repo.full_name == env.HEAD_REPO and .head.ref == env.HEAD_BRANCH' <<<"$PR" > /dev/null; then
-              echo "::warning::The PR is not open into main from $HEAD_REPO:$HEAD_BRANCH; nothing to test."
-              exit 0
-            fi
+            # Test the current PR head only if the Batteries `ci` workflow succeeded
+            # on it. If that workflow is still running, its success starts Test Mathlib.
             BATTERIES_SHA="$(jq -r '.head.sha' <<<"$PR")"
             CI_SUCCEEDED="$(gh api "repos/$GH_REPO/actions/workflows/build.yml/runs" -X GET \
               -f event=pull_request -f head_sha="$BATTERIES_SHA" \
               --jq 'any(.workflow_runs[]; .conclusion == "success" and
                       .head_repository.full_name == env.HEAD_REPO and .head_branch == env.HEAD_BRANCH)')"
             if [ "$CI_SUCCEEDED" != true ]; then
-              echo "::warning::CI has not succeeded on the PR head $BATTERIES_SHA; nothing to test."
-              exit 0
+              skip "Batteries CI has not succeeded on the PR head $BATTERIES_SHA. If CI is still running, Test Mathlib starts when it succeeds."
             fi
-          else
-            # The search also matches PRs that merely contain this commit, so keep
-            # only the PR whose head is the branch and commit this run was triggered
-            # for. An older CI run finishing late must not replace a newer pin.
-            PR_NUMBER="$(gh pr list --search "$BATTERIES_SHA" \
-              --json number,baseRefName,headRefName,headRefOid,headRepository,headRepositoryOwner \
-              --jq '[.[] | select(.baseRefName == "main" and .headRefName == env.HEAD_BRANCH
-                      and .headRefOid == env.BATTERIES_SHA
-                      and (.headRepositoryOwner.login + "/" + .headRepository.name) == env.HEAD_REPO)]
-                    | if length == 1 then .[0].number else empty end')"
-            if [ -z "$PR_NUMBER" ]; then
-              echo "No open PR from this branch into main has this commit as its current head; nothing to test."
-              exit 0
-            fi
+          elif [ "$(jq -r '.head.sha' <<<"$PR")" != "$BATTERIES_SHA" ]; then
+            # An older CI run finishing late must not replace a newer pin.
+            echo "The PR has a newer head commit than $BATTERIES_SHA; nothing to test."
+            exit 0
           fi
 
           # The repository name goes into `lakefile.lean` in the later jobs, so
@@ -563,6 +566,17 @@ jobs:
     permissions:
       pull-requests: write
     steps:
+      - name: Tell the user why nothing was tested
+        if: needs.pr-info.outputs.skip-reason != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SENDER: ${{ github.event.sender.login }}
+          REASON: ${{ needs.pr-info.outputs.skip-reason }}
+        run: |
+          gh pr comment "$PR_NUMBER" --body "@$SENDER, the Test Mathlib workflow did not test this PR. $REASON"
+
       - name: Remove the label
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
