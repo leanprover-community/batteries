@@ -97,3 +97,7 @@ Construct a natural number from a sequence of bits using little endian conventio
 
 -- Forward port of lean4#10739
 instance {n : Nat} : NeZero (n^0) := ⟨Nat.one_ne_zero⟩
+
+/-- Compute the element of Nat with quotient `i : Nat` and remainder `j : Fin n` when
+divided by `n`.  -/
+@[expose] def mkDivMod (i : Nat) {n : Nat} (j : Fin n) : Nat := n * i + j
