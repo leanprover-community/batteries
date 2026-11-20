@@ -14,8 +14,10 @@ on:
 # One run at a time per PR branch, so that each run's `push` finds the adaptation
 # branch that its `pr-info` pinned. Runs start in event order, so a later event
 # always corrects the result of an earlier one.
+# A run for a label other than `test-mathlib` does nothing, so it gets its own group
+# and does not wait.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name || github.event.pull_request.head.repo.full_name }}-${{ github.event.workflow_run.head_branch || github.event.pull_request.head.ref }}
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name || github.event.pull_request.head.repo.full_name }}-${{ github.event.workflow_run.head_branch || github.event.pull_request.head.ref }}${{ github.event.action == 'labeled' && github.event.label.name != 'test-mathlib' && format('-{0}', github.run_id) || '' }}
   cancel-in-progress: false
   # A stale event must not replace a queued run for the current PR head.
   queue: max
@@ -30,6 +32,7 @@ jobs:
         (github.event.action == 'closed' || github.event.label.name == 'test-mathlib')) ||
        (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'))
     permissions:
+      actions: read # the label path reads the CI runs of the PR head
       contents: read
       pull-requests: read
     outputs:
@@ -92,8 +95,8 @@ jobs:
               echo "::warning::$SENDER is not a Batteries maintainer; nothing to test."
               exit 0
             fi
-            # Test the current PR head only if its CI succeeded. Otherwise the CI
-            # event of the current head starts the test.
+            # Test the current PR head only if its CI succeeded. While CI runs, its
+            # success starts the test.
             PR="$(gh api "repos/$GH_REPO/pulls/$PR_NUMBER")"
             if ! jq -e '.state == "open" and .base.ref == "main" and
                   .head.repo.full_name == env.HEAD_REPO and .head.ref == env.HEAD_BRANCH' <<<"$PR" > /dev/null; then
@@ -101,11 +104,11 @@ jobs:
               exit 0
             fi
             BATTERIES_SHA="$(jq -r '.head.sha' <<<"$PR")"
-            if ! gh api "repos/$GH_REPO/actions/workflows/build.yml/runs" -X GET \
-                  -f event=pull_request -f head_sha="$BATTERIES_SHA" \
-                  --jq 'any(.workflow_runs[]; .conclusion == "success" and
-                          .head_repository.full_name == env.HEAD_REPO and .head_branch == env.HEAD_BRANCH)' |
-                grep -qx true; then
+            CI_SUCCEEDED="$(gh api "repos/$GH_REPO/actions/workflows/build.yml/runs" -X GET \
+              -f event=pull_request -f head_sha="$BATTERIES_SHA" \
+              --jq 'any(.workflow_runs[]; .conclusion == "success" and
+                      .head_repository.full_name == env.HEAD_REPO and .head_branch == env.HEAD_BRANCH)')"
+            if [ "$CI_SUCCEEDED" != true ]; then
               echo "::warning::CI has not succeeded on the PR head $BATTERIES_SHA; nothing to test."
               exit 0
             fi
