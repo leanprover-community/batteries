@@ -128,10 +128,11 @@ CI runs only on the adaptation PR, after your changes are merged into the branch
 Changes to the Batteries PR will be integrated automatically, and merged adaptation commits are kept.
 If the branch conflicts with Mathlib `master`, merge `master` in your PR and resolve the conflicts there.
 
-To test the Batteries PR against Mathlib again, add the `test-mathlib` label to the Batteries PR.
+The bot updates the adaptation branch only after Batteries CI succeeds on a new commit of the PR.
+If Mathlib CI failed for a reason outside the PR, for example because Mathlib `master` did not yet use the Lean toolchain of Batteries, the bot does not test the PR again when that reason goes away.
+To test the PR again, add the `test-mathlib` label to the Batteries PR.
 Only users with the triage role or a higher role can add labels, so contributors can ask a Batteries maintainer to add it.
 The bot then merges Mathlib `master` into `batteries-pr-testing-N` and pushes a commit, and Mathlib CI tests the adaptation PR again.
-This is useful, for example, when Mathlib CI failed because Mathlib `master` did not yet use the Lean toolchain of Batteries.
 The bot tests only a PR head whose Batteries CI succeeded. If it tests nothing, it comments on the PR with the reason.
 The bot removes the label when it finishes.
 
