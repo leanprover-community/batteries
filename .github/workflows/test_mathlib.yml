@@ -8,22 +8,20 @@ on:
     types: [completed]
   pull_request_target:
     branches: [main]
-    types: [closed]
+    # A user with the triage role or a higher role adds the `test-mathlib` label to
+    # test the PR head again.
+    types: [closed, labeled]
 
 # One run at a time per PR branch, so that each run's `push` finds the adaptation
 # branch that its `pr-info` pinned. Runs start in event order, so a later event
 # always corrects the result of an earlier one.
+# A run for a label other than `test-mathlib` does nothing, so it gets its own group
+# and starts at once.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name || github.event.pull_request.head.repo.full_name }}-${{ github.event.workflow_run.head_branch || github.event.pull_request.head.ref }}
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name || github.event.pull_request.head.repo.full_name }}-${{ github.event.workflow_run.head_branch || github.event.pull_request.head.ref }}${{ github.event.action == 'labeled' && github.event.label.name != 'test-mathlib' && format('-{0}', github.run_id) || '' }}
   cancel-in-progress: false
   # A stale event must not replace a queued run for the current PR head.
   queue: max
-
-# The repository and commit of the Batteries PR head whose CI succeeded.
-# Both are empty on close events.
-env:
-  HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name }}
-  BATTERIES_SHA: ${{ github.event.workflow_run.head_sha }}
 
 jobs:
   pr-info:
@@ -31,9 +29,11 @@ jobs:
     runs-on: ubuntu-latest
     if: >-
       github.repository == 'leanprover-community/batteries' &&
-      (github.event_name == 'pull_request_target' ||
+      ((github.event_name == 'pull_request_target' &&
+        (github.event.action == 'closed' || github.event.label.name == 'test-mathlib')) ||
        (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'))
     permissions:
+      actions: read # the label path reads the Batteries CI runs of the PR head
       contents: read
       pull-requests: read
     outputs:
@@ -44,6 +44,13 @@ jobs:
       action: ${{ steps.pr.outputs.action }}
       # After a merge, the login of the maintainer who merged the PR. Otherwise empty.
       merger: ${{ steps.pr.outputs.merger }}
+      # The repository and commit of the Batteries PR head whose CI succeeded.
+      # Both are empty on close events.
+      head-repo: ${{ steps.pr.outputs.head_repo }}
+      batteries-sha: ${{ steps.pr.outputs.batteries_sha }}
+      # Why `pr-info` found nothing to test. Empty when the run tests the PR head
+      # and after a close event.
+      skip-reason: ${{ steps.pr.outputs.skip_reason }}
       mathlib-sha: ${{ steps.pin.outputs.mathlib_sha }}
       # Empty until the first push creates the adaptation branch.
       branch-sha: ${{ steps.pin.outputs.branch_sha }}
@@ -53,11 +60,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }} # no checkout for `gh` to read the repository from
-          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          EVENT_ACTION: ${{ github.event.action }}
+          HEAD_REPO: ${{ github.event.workflow_run.head_repository.full_name || github.event.pull_request.head.repo.full_name }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch || github.event.pull_request.head.ref }}
+          BATTERIES_SHA: ${{ github.event.workflow_run.head_sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
-          if [ "$GITHUB_EVENT_NAME" = pull_request_target ]; then
+          if [ "$EVENT_ACTION" = closed ]; then
             PR="$(gh api "repos/$GH_REPO/pulls/$PR_NUMBER")"
             # Ignore a delayed close event if someone reopened the PR after it.
             if ! jq -e '.state == "closed" and .base.ref == "main"' <<<"$PR" > /dev/null; then
@@ -76,18 +86,42 @@ jobs:
             fi
             exit 0
           fi
-          # The search also matches PRs that merely contain this commit, so keep
-          # only the PR whose head is the branch and commit this run was triggered
-          # for. An older CI run finishing late must not replace a newer pin.
-          PR_NUMBER="$(gh pr list --search "$BATTERIES_SHA" \
-            --json number,baseRefName,headRefName,headRefOid,headRepository,headRepositoryOwner \
-            --jq '[.[] | select(.baseRefName == "main" and .headRefName == env.HEAD_BRANCH
-                    and .headRefOid == env.BATTERIES_SHA
-                    and (.headRepositoryOwner.login + "/" + .headRepository.name) == env.HEAD_REPO)]
-                  | if length == 1 then .[0].number else empty end')"
-          if [ -z "$PR_NUMBER" ]; then
-            echo "No open PR from this branch into main has this commit as its current head; nothing to test."
+          # Stop without a test. After a `test-mathlib` label, the `remove-label` job
+          # posts the reason on the PR.
+          skip() {
+            echo "::warning::$1"
+            echo "skip_reason=$1" >> "$GITHUB_OUTPUT"
             exit 0
+          }
+
+          # Find the open PR from the head branch into main. GitHub allows only one.
+          # The head filter also finds fork PRs, whose CI runs carry no PR number.
+          PR="$(gh api -X GET "repos/$GH_REPO/pulls" \
+            -f head="${HEAD_REPO%%/*}:$HEAD_BRANCH" -f base=main -f state=open \
+            --jq '[.[] | select(.head.repo.full_name == env.HEAD_REPO)] | if length == 1 then .[0] else empty end')"
+          if [ -z "$PR" ]; then
+            skip "The PR is not open into \`main\`."
+          fi
+          PR_NUMBER="$(jq -r '.number' <<<"$PR")"
+          if [ "$EVENT_ACTION" = labeled ]; then
+            # Test the current PR head only if the Batteries `ci` workflow succeeded
+            # on it. If that workflow is still running, its success starts Test Mathlib.
+            BATTERIES_SHA="$(jq -r '.head.sha' <<<"$PR")"
+            CI_STATE="$(gh api "repos/$GH_REPO/actions/workflows/build.yml/runs" -X GET \
+              -f event=pull_request -f head_sha="$BATTERIES_SHA" \
+              --jq '[.workflow_runs[] | select(.head_repository.full_name == env.HEAD_REPO
+                                               and .head_branch == env.HEAD_BRANCH)]
+                    | if any(.[]; .conclusion == "success") then "success"
+                      elif any(.[]; .status != "completed") then "running"
+                      else "failed" end')"
+            case "$CI_STATE" in
+              success) ;;
+              running) skip "Batteries CI is still running on the PR head $BATTERIES_SHA. The bot tests the PR when CI succeeds." ;;
+              *) skip "Batteries CI did not succeed on the PR head $BATTERIES_SHA." ;;
+            esac
+          elif [ "$(jq -r '.head.sha' <<<"$PR")" != "$BATTERIES_SHA" ]; then
+            # An older CI run finishing late must not replace a newer pin.
+            skip "The PR has a newer head commit than $BATTERIES_SHA."
           fi
 
           # The repository name goes into `lakefile.lean` in the later jobs, so
@@ -96,8 +130,12 @@ jobs:
           grep -qE '^[0-9a-f]{40}$'                    <<<"$BATTERIES_SHA" || { echo "::error::bad Batteries commit"; exit 1; }
           grep -qE '^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$' <<<"$HEAD_REPO"     || { echo "::error::bad head repository '$HEAD_REPO'"; exit 1; }
 
-          echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
-          echo "state=open" >> "$GITHUB_OUTPUT"
+          {
+            echo "number=$PR_NUMBER"
+            echo "state=open"
+            echo "head_repo=$HEAD_REPO"
+            echo "batteries_sha=$BATTERIES_SHA"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Pin the commits
         id: pin
@@ -137,6 +175,8 @@ jobs:
       PR_STATE: ${{ needs.pr-info.outputs.state }}
       MATHLIB_SHA: ${{ needs.pr-info.outputs.mathlib-sha }}
       BRANCH_SHA: ${{ needs.pr-info.outputs.branch-sha }}
+      HEAD_REPO: ${{ needs.pr-info.outputs.head-repo }}
+      BATTERIES_SHA: ${{ needs.pr-info.outputs.batteries-sha }}
     steps:
       - name: Checkout mathlib4
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -492,7 +532,8 @@ jobs:
     name: Report a failed update
     needs: [pr-info, prepare, push, pull-request]
     # GitHub sends one close event per merge or close, so a failed run needs a maintainer
-    # to rerun it. CI events repeat with each push to the PR, so report only close events.
+    # to rerun it. CI events repeat with each push to the PR, so report only close events
+    # and the runs that a user started with the `test-mathlib` label.
     if: failure() && github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     permissions:
@@ -504,9 +545,50 @@ jobs:
           GH_REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          # The maintainer who merged or closed the PR. They can rerun the workflow.
+          EVENT_ACTION: ${{ github.event.action }}
+          # The maintainer who merged or closed the PR, who can rerun the workflow,
+          # or the user who added the label.
           SENDER: ${{ github.event.sender.login }}
         run: |
-          gh pr comment "$PR_NUMBER" --body "@$SENDER, the Test Mathlib workflow failed to update the Mathlib adaptation after this PR was closed: $RUN_URL
+          if [ "$EVENT_ACTION" = labeled ]; then
+            WHEN="after the \`test-mathlib\` label was added"
+          else
+            WHEN="after this PR was closed"
+          fi
+          gh pr comment "$PR_NUMBER" --body "@$SENDER, the Test Mathlib workflow failed to update the Mathlib adaptation $WHEN: $RUN_URL
 
           The run log names the failed step. If it reports merge conflicts on \`batteries-pr-testing-$PR_NUMBER\`, resolve them first. Then a Batteries maintainer can rerun all jobs of that run."
+
+  remove-label:
+    name: Remove the test-mathlib label
+    needs: [pr-info, prepare, push, pull-request]
+    # The label stays on the PR while the run works. Remove it at the end, also after
+    # a failure or a skip, so that a user can add it again. If `pr-info` found nothing
+    # to test, comment with the reason first.
+    if: >-
+      always() && github.repository == 'leanprover-community/batteries' &&
+      github.event.action == 'labeled' && github.event.label.name == 'test-mathlib'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Tell the user why nothing was tested
+        if: needs.pr-info.outputs.skip-reason != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SENDER: ${{ github.event.sender.login }}
+          REASON: ${{ needs.pr-info.outputs.skip-reason }}
+        run: |
+          gh pr comment "$PR_NUMBER" --body "@$SENDER, the Test Mathlib workflow did not test this PR. $REASON"
+
+      - name: Remove the label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # GitHub gives 404 if someone already removed the label.
+          gh api -X DELETE "repos/$GH_REPO/issues/$PR_NUMBER/labels/test-mathlib" --silent ||
+            echo "The label is not on the PR."
