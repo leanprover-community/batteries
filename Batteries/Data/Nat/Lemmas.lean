@@ -158,8 +158,6 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 
 -- TODO div_core_congr, div_def
 
--- TODO cont_to_bool_mod_two
-
 theorem div_le_div_of_lt {a b : Nat} (n : Nat) (h : a < b) : a / n ≤ b / n :=
   Nat.div_le_div_right (Nat.le_of_lt h)
 

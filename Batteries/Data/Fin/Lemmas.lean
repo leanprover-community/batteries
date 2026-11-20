@@ -405,11 +405,11 @@ theorem find?_eq_findRev?_iff {p : Fin n → Bool} : find? p = findRev? p ↔
 
 /-! ### divNat / modNat / mkDivMod -/
 
-@[simp] theorem coe_divNat (i : Fin (m * n)) : (i.divNat : Nat) = i / n := rfl
+@[simp, grind =] theorem coe_divNat (i : Fin (m * n)) : (i.divNat : Nat) = i / n := rfl
 
-@[simp] theorem coe_modNat (i : Fin (m * n)) : (i.modNat : Nat) = i % n := rfl
+@[simp, grind =] theorem coe_modNat (i : Fin (m * n)) : (i.modNat : Nat) = i % n := rfl
 
-@[simp] theorem coe_mkDivMod (i : Fin m) (j : Fin n) :
+@[simp, grind =] theorem coe_mkDivMod (i : Fin m) (j : Fin n) :
     (mkDivMod i j : Nat) = i.val.mkDivMod j := rfl
 
 theorem ext_divNat_modNat {a b : Fin (m * n)} (h0 : a.divNat = b.divNat)
@@ -428,13 +428,13 @@ theorem le_divNat_modNat_iff {a b : Fin (m * n)} :
     a ≤ b ↔ a.divNat < b.divNat ∨ a.divNat = b.divNat ∧ a.modNat ≤ b.modNat := by
   simp [Fin.lt_def, Fin.le_def, Fin.ext_iff, n.le_div_mod_iff a]
 
-@[simp] theorem divNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).divNat = i :=
+@[simp, grind =] theorem divNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).divNat = i :=
   Fin.ext <| Nat.div_mkDivMod _ _
 
-@[simp] theorem modNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).modNat = j :=
+@[simp, grind =] theorem modNat_mkDivMod (i : Fin m) (j : Fin n) : (mkDivMod i j).modNat = j :=
   Fin.ext <| Nat.mod_mkDivMod _ _
 
-@[simp] theorem mkDivMod_divNat_modNat (k : Fin (m * n)) :
+@[simp, grind =] theorem mkDivMod_divNat_modNat (k : Fin (m * n)) :
     k.divNat.mkDivMod k.modNat = k :=
   ext_divNat_modNat (divNat_mkDivMod ..) (modNat_mkDivMod ..)
 
