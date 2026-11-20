@@ -128,11 +128,12 @@ CI runs only on the adaptation PR, after your changes are merged into the branch
 Changes to the Batteries PR will be integrated automatically, and merged adaptation commits are kept.
 If the branch conflicts with Mathlib `master`, merge `master` in your PR and resolve the conflicts there.
 
-To test the Batteries PR against Mathlib again, a Batteries maintainer can add the `test-mathlib` label to the Batteries PR.
+To test the Batteries PR against Mathlib again, add the `test-mathlib` label to the Batteries PR.
+Only users with the triage role or a higher role can add labels, so contributors can ask a Batteries maintainer to add it.
 The bot then merges Mathlib `master` into `batteries-pr-testing-N` and pushes a commit, and Mathlib CI tests the adaptation PR again.
 This is useful, for example, when Mathlib CI failed because Mathlib `master` did not yet use the Lean toolchain of Batteries.
 The bot tests only a PR head whose Batteries CI succeeded. If it tests nothing, it comments on the PR with the reason.
-It removes the label when it finishes.
+The bot removes the label when it finishes.
 
 Once the Batteries PR is merged, the Batteries requirement is repointed to the main branch and the adaptation PR is marked ready for review.
 The bot then comments on both PRs and mentions the Batteries maintainer who merged the Batteries PR.
@@ -141,7 +142,7 @@ If the Batteries PR is closed without being merged, or the adaptation PR changes
 In the second case, the bot comments on both PRs that no adaptations were pushed.
 
 If the bot fails to update the branch or the adaptation PR after a rejected push or an API error, a Batteries maintainer can rerun all jobs of the Test Mathlib workflow.
-After a merge or a close, the bot posts a comment on the Batteries PR when the update fails.
+After a merge, a close or a `test-mathlib` label, the bot posts a comment on the Batteries PR when the update fails.
 If a closed Batteries PR is reopened, a Mathlib maintainer must reopen its adaptation PR before the next Batteries CI run.
 
 Please ask questions to Batteries maintainers if you run into issues with this process.

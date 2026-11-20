@@ -8,14 +8,15 @@ on:
     types: [completed]
   pull_request_target:
     branches: [main]
-    # A Batteries maintainer adds the `test-mathlib` label to test the PR head again.
+    # A user with the triage role or a higher role adds the `test-mathlib` label to
+    # test the PR head again.
     types: [closed, labeled]
 
 # One run at a time per PR branch, so that each run's `push` finds the adaptation
 # branch that its `pr-info` pinned. Runs start in event order, so a later event
 # always corrects the result of an earlier one.
 # A run for a label other than `test-mathlib` does nothing, so it gets its own group
-# and does not wait.
+# and starts at once.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name || github.event.pull_request.head.repo.full_name }}-${{ github.event.workflow_run.head_branch || github.event.pull_request.head.ref }}${{ github.event.action == 'labeled' && github.event.label.name != 'test-mathlib' && format('-{0}', github.run_id) || '' }}
   cancel-in-progress: false
@@ -32,7 +33,7 @@ jobs:
         (github.event.action == 'closed' || github.event.label.name == 'test-mathlib')) ||
        (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'))
     permissions:
-      actions: read # the label path reads the CI runs of the PR head
+      actions: read # the label path reads the Batteries CI runs of the PR head
       contents: read
       pull-requests: read
     outputs:
@@ -47,7 +48,8 @@ jobs:
       # Both are empty on close events.
       head-repo: ${{ steps.pr.outputs.head_repo }}
       batteries-sha: ${{ steps.pr.outputs.batteries_sha }}
-      # Why the run tests nothing, if a `test-mathlib` label asked for a test.
+      # Why `pr-info` found nothing to test. Empty when the run tests the PR head
+      # and after a close event.
       skip-reason: ${{ steps.pr.outputs.skip_reason }}
       mathlib-sha: ${{ steps.pin.outputs.mathlib_sha }}
       # Empty until the first push creates the adaptation branch.
@@ -93,8 +95,7 @@ jobs:
           }
 
           # Find the open PR from the head branch into main. GitHub allows only one.
-          # The workflow run of a fork PR has no PR number, and the head filter also
-          # finds fork PRs.
+          # The head filter also finds fork PRs, whose CI runs carry no PR number.
           PR="$(gh api -X GET "repos/$GH_REPO/pulls" \
             -f head="${HEAD_REPO%%/*}:$HEAD_BRANCH" -f base=main -f state=open \
             --jq '[.[] | select(.head.repo.full_name == env.HEAD_REPO)] | if length == 1 then .[0] else empty end')"
@@ -115,8 +116,7 @@ jobs:
             fi
           elif [ "$(jq -r '.head.sha' <<<"$PR")" != "$BATTERIES_SHA" ]; then
             # An older CI run finishing late must not replace a newer pin.
-            echo "The PR has a newer head commit than $BATTERIES_SHA; nothing to test."
-            exit 0
+            skip "The PR has a newer head commit than $BATTERIES_SHA."
           fi
 
           # The repository name goes into `lakefile.lean` in the later jobs, so
@@ -528,7 +528,7 @@ jobs:
     needs: [pr-info, prepare, push, pull-request]
     # GitHub sends one close event per merge or close, so a failed run needs a maintainer
     # to rerun it. CI events repeat with each push to the PR, so report only close events
-    # and the runs that a maintainer asked for with the `test-mathlib` label.
+    # and the runs that a user started with the `test-mathlib` label.
     if: failure() && github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     permissions:
@@ -541,8 +541,8 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           EVENT_ACTION: ${{ github.event.action }}
-          # The maintainer who merged or closed the PR, or who added the label.
-          # They can rerun the workflow.
+          # The maintainer who merged or closed the PR, who can rerun the workflow,
+          # or the user who added the label.
           SENDER: ${{ github.event.sender.login }}
         run: |
           if [ "$EVENT_ACTION" = labeled ]; then
@@ -558,7 +558,8 @@ jobs:
     name: Remove the test-mathlib label
     needs: [pr-info, prepare, push, pull-request]
     # The label stays on the PR while the run works. Remove it at the end, also after
-    # a failure or a skip, so that a maintainer can add it again.
+    # a failure or a skip, so that a user can add it again. If `pr-info` found nothing
+    # to test, comment with the reason first.
     if: >-
       always() && github.repository == 'leanprover-community/batteries' &&
       github.event.action == 'labeled' && github.event.label.name == 'test-mathlib'
