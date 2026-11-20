@@ -1,7 +1,5 @@
 module
 
-public import Batteries.Recycling.MonadSatisfying.Array
-public import Batteries.Recycling.MonadSatisfying.Basic
-public meta import Batteries.Recycling.MonadSatisfying.Lean
-public import Batteries.Recycling.MonadSatisfying.List
-public import Batteries.Recycling.MonadSatisfying.Vector
+deprecated_module
+  "This module has been moved to `leanprover-community/batteries-recycling`"
+  (since := "2026-10-05")

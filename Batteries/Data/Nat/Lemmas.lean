@@ -5,10 +5,9 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 module
 
-public import Batteries.Tactic.Alias
 public import Batteries.Data.Nat.Basic
 
-@[expose] public section
+public section
 
 /-! # Basic lemmas about natural numbers
 
@@ -159,7 +158,82 @@ protected def sum_trichotomy (a b : Nat) : a < b ⊕' a = b ⊕' b < a :=
 
 -- TODO div_core_congr, div_def
 
--- TODO cont_to_bool_mod_two
+theorem div_le_div_of_lt {a b : Nat} (n : Nat) (h : a < b) : a / n ≤ b / n :=
+  Nat.div_le_div_right (Nat.le_of_lt h)
+
+theorem le_of_div_lt_div {n a b : Nat} (h : a / n < b / n) : a ≤ b :=
+  Nat.le_of_lt <| lt_of_div_lt_div h
+
+theorem mod_lt_mod_of_lt_of_div_eq {n a b : Nat} (h : a < b) (h0 : a / n = b / n) :
+    a % n < b % n := Nat.lt_of_add_lt_add_left (h0 ▸ div_add_mod b n ▸ div_add_mod a n ▸ h)
+
+theorem mod_le_mod_of_le_of_div_eq {n a b : Nat} (h : a ≤ b) (h0 : a / n = b / n) :
+    a % n ≤ b % n := Nat.le_of_add_le_add_left (h0 ▸ div_add_mod b n ▸ div_add_mod a n ▸ h)
+
+theorem lt_of_div_eq_of_mod_lt {n a b : Nat} (h0 : a / n = b / n) (h1 : a % n < b % n) : a < b :=
+  div_add_mod a n ▸ div_add_mod b n ▸ h0 ▸ Nat.add_lt_add_left h1 _
+
+theorem le_of_div_eq_of_mod_le {n a b : Nat} (h0 : a / n = b / n) (h1 : a % n ≤ b % n) : a ≤ b :=
+  div_add_mod a n ▸ div_add_mod b n ▸ h0 ▸ Nat.add_le_add_left h1 _
+
+theorem lt_div_mod_iff (n a b : Nat) :
+    a < b ↔ a / n < b / n ∨ a / n = b / n ∧ a % n < b % n :=
+  ⟨fun h => (Nat.lt_or_eq_of_le (Nat.div_le_div_of_lt n h)).imp_right <|
+    Iff.mpr ∘ and_iff_left_of_imp <| mod_lt_mod_of_lt_of_div_eq h,
+    (·.elim lt_of_div_lt_div <| And.elim lt_of_div_eq_of_mod_lt)⟩
+
+theorem le_div_mod_iff (n a b : Nat) :
+    a ≤ b ↔ a / n < b / n ∨ a / n = b / n ∧ a % n ≤ b % n :=
+  ⟨fun h => (Nat.lt_or_eq_of_le (Nat.div_le_div_right h)).imp_right <|
+      Iff.mpr ∘ and_iff_left_of_imp <| mod_le_mod_of_le_of_div_eq h,
+    (·.elim le_of_div_lt_div <| And.elim le_of_div_eq_of_mod_le)⟩
+
+/-! ### mkDivMod -/
+
+theorem mkDivMod_def (i : Nat) {n} (j : Fin n) : mkDivMod i j = n * i + j := rfl
+
+@[simp, grind =] theorem div_mkDivMod (i : Nat) {n} (j : Fin n) :
+    mkDivMod i j / n = i := ((Nat.mul_add_div j.pos ..)).trans
+  (Nat.add_eq_left.mpr <| Nat.div_eq_of_lt j.isLt)
+
+@[simp, grind =] theorem mod_mkDivMod (i : Nat) {n} (j : Fin n) :
+    mkDivMod i j % n = j := (Nat.mul_add_mod ..).trans (Nat.mod_eq_of_lt j.isLt)
+
+open Fin.NatCast in
+@[simp, grind =] theorem cast_mkDivMod (i : Nat) {n : Nat} (j : Fin n) :
+    haveI : NeZero n := ⟨Nat.ne_zero_of_lt j.isLt⟩
+    (mkDivMod i j : Fin n) = j := Fin.ext <| mod_mkDivMod ..
+
+theorem mkDivMod_div_add_mod (k : Nat) {n} (j : Fin n) :
+    mkDivMod (k / n) j + k % n = k + j :=
+  (Nat.add_right_comm ..).trans <| congrArg (· + j.val) (Nat.div_add_mod ..)
+
+theorem mkDivMod_div (k : Nat) {n} (j : Fin n) : mkDivMod (k / n) j = k + j - k % n :=
+  Nat.eq_sub_of_add_eq (k.mkDivMod_div_add_mod j)
+
+open Fin.NatCast in
+@[simp, grind =] theorem mkDivMod_div_cast (k : Nat) {n : Nat} [NeZero n] :
+    mkDivMod (k / n) (k : Fin n) = k := n.ext_div_mod (div_mkDivMod ..) (mod_mkDivMod ..)
+
+theorem mul_le_mkDivMod (i : Nat) {n} (j : Fin n) : n * i ≤ mkDivMod i j := Nat.le_add_right ..
+
+theorem mkDivMod_lt_mul_succ (i : Nat) {n} (j : Fin n) : mkDivMod i j < n * (i + 1) :=
+  Nat.add_lt_add_left j.isLt _
+
+theorem mkDivMod_lt_mul_of_lt {i m : Nat} {n} (h : i < m) (j : Fin n) : mkDivMod i j < m * n :=
+  Nat.lt_of_lt_of_le (mkDivMod_lt_mul_succ ..) <| Nat.mul_comm m n ▸ Nat.mul_le_mul_left _ h
+
+@[simp, grind =] theorem mkDivMod_inj {i₁ i₂ : Nat} {n} {j₁ j₂ : Fin n} :
+    mkDivMod i₁ j₁ = mkDivMod i₂ j₂ ↔ i₁ = i₂ ∧ j₁ = j₂ := by
+  simp [n.ext_div_mod_iff (mkDivMod i₁ j₁), Fin.ext_iff]
+
+@[simp, grind =] theorem mkDivMod_lt_mkDivMod_iff {i₁ i₂ : Nat} {n} {j₁ j₂ : Fin n} :
+    mkDivMod i₁ j₁ < mkDivMod i₂ j₂ ↔ i₁ < i₂ ∨ i₁ = i₂ ∧ j₁ < j₂ := by
+  simp [n.lt_div_mod_iff (mkDivMod i₁ j₁), Fin.lt_def]
+
+@[simp, grind =] theorem mkDivMod_le_mkDivMod_iff {i₁ i₂ : Nat} {n} {j₁ j₂ : Fin n} :
+    mkDivMod i₁ j₁ ≤ mkDivMod i₂ j₂ ↔ i₁ < i₂ ∨ i₁ = i₂ ∧ j₁ ≤ j₂ := by
+  simp [n.le_div_mod_iff (mkDivMod i₁ j₁), Fin.le_def]
 
 /-! ### ofBits -/
 
@@ -206,14 +280,33 @@ theorem testBit_ofBits (f : Fin n → Bool) :
 theorem ofBits_testBit (x n) : ofBits (fun i : Fin n => x.testBit i) = x % 2 ^ n := by
   apply eq_of_testBit_eq; simp [testBit_ofBits]
 
+/-! ### toString -/
+
+private theorem toDigits_append_toDigits_pow_length
+    (a b : Nat) (ha : a ≠ 0) :
+    Nat.toDigits 10 a ++ Nat.toDigits 10 b =
+      Nat.toDigits 10
+        (a * 10 ^ (Nat.toDigits 10 b).length + b) := by
+  induction b using Nat.base_induction 10 (by decide) with
+  | single b hb =>
+    simpa [Nat.toDigits_of_lt_base hb, Nat.mul_comm] using
+      Nat.toDigits_append_toDigits (by decide) (Nat.pos_of_ne_zero ha) hb
+  | digit m k hk hm ih =>
+    have hmk := Nat.toDigits_append_toDigits (by decide) hm hk
+    rw [← hmk, List.length_append, ← List.append_assoc, ih,
+      Nat.toDigits_append_toDigits (by decide) (Nat.add_pos_right _ hm) hk]
+    simp [Nat.toDigits_of_lt_base hk, Nat.pow_succ, Nat.mul_add]
+    ac_rfl
+
+theorem toString_append_toString (a b : Nat) (ha : a ≠ 0) :
+    toString a ++ toString b = toString (a * 10 ^ (toString b).length + b) := by
+  simpa only [Nat.toString_eq_ofList_toDigits, String.ofList_append, String.length_ofList] using
+    congrArg String.ofList (toDigits_append_toDigits_pow_length a b ha)
+
 /-! ### Misc -/
 
 theorem mul_add_lt_mul_of_lt_of_lt {m n x y : Nat} (hx : x < m) (hy : y < n) :
-    n * x + y < m * n := calc
-  _ < n * x + n := Nat.add_lt_add_left hy _
-  _ = n * (x + 1) := Nat.mul_add_one .. |>.symm
-  _ ≤ n * m := Nat.mul_le_mul_left _ hx
-  _ = m * n := Nat.mul_comm ..
+    n * x + y < m * n := mkDivMod_lt_mul_of_lt hx ⟨y, hy⟩
 
 theorem add_mul_lt_mul_of_lt_of_lt {m n x y : Nat} (hx : x < m) (hy : y < n) :
     x + m * y < m * n := by

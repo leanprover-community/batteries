@@ -5,11 +5,10 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 module
 
-public import Batteries.Tactic.Alias
-public import Batteries.Data.List.Count
-import Batteries.Util.ProofWanted
+public import Batteries.Data.List.Basic
+public import Batteries.Data.List.Lemmas -- shake: keep
 
-@[expose] public section
+public section
 
 /-!
 # List Permutations
@@ -347,6 +346,7 @@ one list into the other. For example:
 (by decide : [1, 0, 1] <+~ [5, 0, 1, 3, 1]).idxInj 1 = 1
 ```
 -/
+@[expose]
 def Subperm.idxInj [BEq α] [ReflBEq α] {xs ys : List α} (h : xs <+~ ys) (i : Fin xs.length) :
     Fin ys.length :=
   ⟨ys.idxOfNth xs[i.1] (xs.countBefore xs[i] i), idxOfNth_lt_length_of_lt_count <|
@@ -380,7 +380,7 @@ one list into the other. For example:
 (by decide : [0, 1, 1, 3, 5] ~ [5, 0, 1, 3, 1]).idxBij 2 = 4
 ```
 -/
-def Perm.idxBij [BEq α] [ReflBEq α] {xs ys : List α} (h : xs ~ ys) :
+@[expose] def Perm.idxBij [BEq α] [ReflBEq α] {xs ys : List α} (h : xs ~ ys) :
     Fin xs.length → Fin ys.length := h.subperm.idxInj
 
 @[simp, grind =]

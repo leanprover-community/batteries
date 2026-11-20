@@ -5,11 +5,11 @@ Authors: François G. Dorais
 -/
 module
 
-@[expose] public section
+public section
 
 namespace Batteries
 
 /-- Panic with a specific default value `v`. -/
-def panicWith (v : α) (msg : String) : α := @panic α ⟨v⟩ msg
+@[expose] def panicWith (v : α) (msg : String) : α := @panic α ⟨v⟩ msg
 
 @[simp] theorem panicWith_eq (v : α) (msg) : panicWith v msg = v := rfl

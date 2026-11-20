@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 module
 
 public meta import Lean.Elab.Tactic.Basic
+import Lean.Exception
 
 public meta section
 

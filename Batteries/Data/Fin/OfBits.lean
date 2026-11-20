@@ -7,7 +7,7 @@ module
 
 public import Batteries.Data.Nat.Lemmas
 
-@[expose] public section
+public section
 
 namespace Fin
 

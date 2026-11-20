@@ -6,9 +6,11 @@ Authors: Alex J. Best, Kyle Miller
 module
 
 public meta import Lean.Elab.Tactic.Location
-public meta import Lean.Elab.Tactic.Config
-public meta import Lean.Elab.ConfigEval
+public meta import Lean.Elab.ConfigEval -- shake: keep
 public meta import Batteries.Lean.Expr
+public meta import Lean.LocalContext
+import Lean.Elab.ConfigEval.Commands
+import Lean.Elab.Tactic.Location
 
 /-!
 # The `generalize_proofs` tactic

@@ -7,7 +7,7 @@ module
 
 public import Batteries.Lean.Meta.Basic
 
-@[expose] public section
+public section
 
 open Lean Lean.Meta
 

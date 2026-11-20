@@ -7,7 +7,7 @@ module
 
 public import Lean.Expr
 
-@[expose] public section
+public section
 
 namespace Lean.Literal
 

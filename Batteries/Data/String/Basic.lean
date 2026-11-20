@@ -5,7 +5,7 @@ Authors: Jannis Limperg, James Gallicchio, F. G. Dorais
 -/
 module
 
-@[expose] public section
+public section
 
 instance : Coe String Substring.Raw := ⟨String.toRawSubstring⟩
 

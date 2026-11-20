@@ -5,9 +5,7 @@ Authors: Kim Morrison
 -/
 module
 
-public import Init.Control.Except
-
-@[expose] public section
+public section
 
 deriving instance DecidableEq for Except
 
@@ -24,7 +22,16 @@ def emoji : Except ε α → String
 @[simp] theorem map_ok {ε : Type u} (f : α → β) (x : α) :
     f <$> (.ok x : Except ε α) = .ok (f x) := rfl
 
+@[simp] theorem map_eq_ok {ε : Type u} {f : α → β} {x : Except ε α} {b : β} :
+    f <$> x = .ok b ↔ ∃ a, x = .ok a ∧ b = f a := by
+  cases x <;> simp [eq_comm]
+
+@[simp] theorem map_eq_error {ε : Type u} (f : α → β) {x : Except ε α} {e : ε} :
+    f <$> x = .error e ↔ x = .error e := by
+  cases x <;> simp
+
 /-- Map a function over an `Except` value, using a proof that the value is `.ok`. -/
+@[expose]
 def pmap {ε : Type u} {α β : Type v} (x : Except ε α) (f : (a : α) → x = .ok a → β) : Except ε β :=
   match x with
   | .error e => .error e

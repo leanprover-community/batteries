@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
 module
-public import Batteries.Data.List.Lemmas
+public import Batteries.Data.List.Basic
+import Batteries.Data.List.Lemmas
 
-@[expose] public section
+public section
 
 /-!
 # Counting in lists
@@ -46,7 +47,7 @@ For example:
 idxToSigmaCount [5, 1, 3, 2, 4, 0, 1, 4] 5 = ⟨0, 0⟩
 ```
 -/
-def idxToSigmaCount [BEq α] [ReflBEq α] (xs : List α) (i : Fin xs.length) :
+@[expose] def idxToSigmaCount [BEq α] [ReflBEq α] (xs : List α) (i : Fin xs.length) :
     (x : α) × Fin (xs.count x) := ⟨xs[i.1], xs.countBefore xs[i.1] i, by grind⟩
 
 @[simp, grind =]
@@ -68,7 +69,7 @@ For example:
 sigmaCountToIdx [5, 1, 3, 2, 4, 0, 1, 4] ⟨0, 0⟩ = 5
 ```
 -/
-def sigmaCountToIdx [BEq α] (xs : List α) (xc : (x : α) × Fin (xs.count x)) :
+@[expose] def sigmaCountToIdx [BEq α] (xs : List α) (xc : (x : α) × Fin (xs.count x)) :
     Fin xs.length := ⟨xs.idxOfNth xc.1 xc.2, by grind⟩
 
 @[simp, grind =]

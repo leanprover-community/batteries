@@ -5,8 +5,9 @@ Authors: Kyle Miller
 -/
 module
 
-public meta import Lean.Elab.Tactic.BuiltinTactic
 public meta import Lean.Elab.Tactic.RenameInaccessibles
+public meta import Lean.Elab.Tactic.ElabTerm
+import Lean.Parser.Term.Basic
 
 public meta section
 

@@ -8,7 +8,7 @@ module
 public import Batteries.Data.MLList.Basic
 public import Lean.Util.Heartbeats
 
-@[expose] public section
+public section
 
 /-!
 # Truncate a `MLList` when running out of available heartbeats.

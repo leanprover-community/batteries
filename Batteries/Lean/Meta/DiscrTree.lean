@@ -5,12 +5,12 @@ Authors: Jannis Limperg, Kim Morrison
 -/
 module
 
-public import Lean.Meta.DiscrTree
 public import Batteries.Data.Array.Merge
 public import Batteries.Lean.Meta.Expr
 public import Batteries.Lean.PersistentHashMap
+public import Lean.Meta.DiscrTree.Util
 
-@[expose] public section
+public section
 
 namespace Lean.Meta.DiscrTree
 
@@ -38,9 +38,10 @@ namespace Trie
 /--
 Merge two `Trie`s. Duplicate values are preserved.
 -/
-partial def mergePreservingDuplicates : Trie α → Trie α → Trie α
-  | node vs₁ cs₁, node vs₂ cs₂ =>
-    node (vs₁ ++ vs₂) (mergeChildren cs₁ cs₂)
+partial def mergePreservingDuplicates (t₁ t₂ : Trie α) : Trie α :=
+  match (t₁.asNode, t₂.asNode) with
+  | ((vs₁, cs₁), (vs₂, cs₂)) =>
+    Trie.mkNode (vs₁ ++ vs₂) (mergeChildren cs₁ cs₂)
 where
   /-- Auxiliary definition for `mergePreservingDuplicates`. -/
   mergeChildren (cs₁ cs₂ : Array (Key × Trie α)) :
