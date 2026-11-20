@@ -8,7 +8,7 @@ module
 public import Batteries.Data.List.Basic
 public import Batteries.Control.ForInStep.Basic
 import Batteries.Control.ForInStep.Lemmas
-import Batteries.Tactic.Alias
+meta import Batteries.Tactic.Alias
 
 public section
 
