@@ -173,8 +173,7 @@ private def continuation (ref : IO.Ref (Option ContinuationResult))
     unless (← read).deadCode matches .alive do
       return ← mkPureApp (mkConst ``Data) (mkConst ``Data.empty)
     if (← ref.get).isSome then
-      logWarningAt outerRef "The continuation got run twice. This is probably due to \
-        https://github.com/leanprover/lean4/issues/13858"
+      logWarningAt outerRef "Bug in a do elaborator: The continuation got run twice!"
       -- empty returns get handled in a special way in `elabDoCommandCore`
       return ← mkPureApp (mkConst ``Data) (mkConst ``Data.empty)
     let lctx ← getLCtx
