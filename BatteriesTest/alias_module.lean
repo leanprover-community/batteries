@@ -27,3 +27,11 @@ alias priv_thm_alias := priv_thm
 /-- error: Unknown constant `priv_def` -/
 #guard_msgs in
 public alias def_alias := priv_def
+
+def leak : Nat := 5
+public def Foo.leak : Nat := 7
+
+-- A public alias cannot reach a private definition through the namespace of the alias name either.
+/-- error: Unknown constant `leak` -/
+#guard_msgs in
+public alias Foo.leak2 := leak
