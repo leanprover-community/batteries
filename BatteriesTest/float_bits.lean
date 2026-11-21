@@ -90,3 +90,13 @@ example : Float.signBit Float.nan = false := by decide +kernel
 example : Float.ulpDistance? 0 (-0) = some 0 := by decide +kernel
 example : Float32.nextUp 1 = .ofBits 0x3F800001 := by decide +kernel
 example : Float32.ulp (.ofBits 0x7F7FFFFF) = .ofBits 0x73800000 := by decide +kernel
+
+/-! `!` and precondition forms. -/
+
+#guard Float.toOrdinal! (-1) == -0x3FF0000000000000
+#guard Float.toOrdinal 2 rfl == 0x4000000000000000
+#guard Float.ulpDistance! 1 (Float.nextUp 1) == 1
+#guard Float.ulpDistance (-0) 0 rfl rfl == 0
+#guard Float32.toOrdinal! 1 == 0x3F800000
+#guard Float32.ulpDistance! (Float32.nextDown 1) 1 == 1
+example : Float.toOrdinal? 1 = some 0x3FF0000000000000 := by decide +kernel
