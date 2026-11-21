@@ -188,9 +188,11 @@ if git diff --name-only "bump/$BUMPVERSION" "bump/nightly-$NIGHTLYDATE" | grep -
   echo "### [auto] create a PR for the new branch"
   echo "Creating a pull request. Setting the base of the PR to 'bump/$BUMPVERSION'"
   echo "Running the following 'gh' command to do this:"
-  gh_command="gh pr create -t \"$pr_title\" -b '' -B bump/$BUMPVERSION"
-  echo "> $gh_command"
-  gh_output=$(eval "$gh_command")
+  gh_command=(gh pr create -t "$pr_title" -b '' -B "bump/$BUMPVERSION")
+  printf '> '
+  printf '%q ' "${gh_command[@]}"
+  printf '\n'
+  gh_output=$("${gh_command[@]}")
   # Extract the PR number from the output
   pr_number=$(echo "$gh_output" | sed 's/.*\/pull\/\([0-9]*\).*/\1/')
 
@@ -206,10 +208,12 @@ if git diff --name-only "bump/$BUMPVERSION" "bump/nightly-$NIGHTLYDATE" | grep -
   echo " Body: $zulip_body"
 
   if command -v zulip-send >/dev/null 2>&1; then
-    zulip_command="zulip-send --stream nightly-testing-batteries --subject \"$zulip_title\" --message \"$zulip_body\""
+    zulip_command=(zulip-send --stream nightly-testing-batteries --subject "$zulip_title" --message "$zulip_body")
     echo "Running the following 'zulip-send' command to do this:"
-    echo "> $zulip_command"
-    eval "$zulip_command"
+    printf '> '
+    printf '%q ' "${zulip_command[@]}"
+    printf '\n'
+    "${zulip_command[@]}"
   else
     echo "Zulip CLI is not installed. Install it to send messages automatically."
     if [ "$AUTO" = "yes" ]; then
