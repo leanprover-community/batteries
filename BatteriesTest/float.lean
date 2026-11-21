@@ -1,4 +1,63 @@
 import Batteries.Data.Float.Basic
+import Batteries.Data.Float.Rat
+
+#guard Rat.ofDecimalString? "1" == some (1)
+#guard Rat.ofDecimalString? "1." == some (1)
+#guard Rat.ofDecimalString? ".1" == some (mkRat 1 10)
+#guard Rat.ofDecimalString? "1.2" == some (mkRat 6 5)
+#guard Rat.ofDecimalString? "1.23" == some (mkRat 123 100)
+#guard Rat.ofDecimalString? "1.23e2" == some (123)
+#guard Rat.ofDecimalString? "1.23e+2" == some (123)
+#guard Rat.ofDecimalString? "1.23e-2" == some (mkRat 123 10000)
+#guard Rat.ofDecimalString? "-0" == some (0)
+#guard Rat.ofDecimalString? "-1" == some (-1)
+#guard Rat.ofDecimalString? "-1." == some (-1)
+#guard Rat.ofDecimalString? "-.1" == some (mkRat (-1) 10)
+#guard Rat.ofDecimalString? "-1.2" == some (mkRat (-6) 5)
+#guard Rat.ofDecimalString? "-1.23" == some (mkRat (-123) 100)
+#guard Rat.ofDecimalString? "-1.23e2" == some (-123)
+#guard Rat.ofDecimalString? "-1.23e+2" == some (-123)
+#guard Rat.ofDecimalString? "-1.23e-2" == some (mkRat (-123) 10000)
+
+#guard Rat.ofDecimalString? "" == none
+#guard Rat.ofDecimalString? "." == none
+#guard Rat.ofDecimalString? "-" == none
+#guard Rat.ofDecimalString? "+-1" == none
+#guard Rat.ofDecimalString? "1e" == none
+#guard Rat.ofDecimalString? "e5" == none
+#guard Rat.ofDecimalString? "1e5.5" == none
+#guard Rat.ofDecimalString? "1e+" == none
+#guard Rat.ofDecimalString? "1E2" == none
+#guard Rat.ofDecimalString? "a" == none
+#guard Rat.ofDecimalString? "1a23" == none
+#guard Rat.ofDecimalString? "1.23a" == none
+#guard Rat.ofDecimalString? "a1.23" == none
+
+#guard Rat.ofFractionString? "1" == some (1)
+#guard Rat.ofFractionString? "1/2" == some (mkRat 1 2)
+#guard Rat.ofFractionString? "2/4" == some (mkRat 1 2)
+#guard Rat.ofFractionString? "+1" == some (1)
+#guard Rat.ofFractionString? "+1/2" == some (mkRat 1 2)
+#guard Rat.ofFractionString? "+2/4" == some (mkRat 1 2)
+#guard Rat.ofFractionString? "-1" == some (-1)
+#guard Rat.ofFractionString? "-1/2" == some (mkRat (-1) 2)
+#guard Rat.ofFractionString? "-2/4" == some (mkRat (-1) 2)
+
+#guard Rat.ofFractionString? "" == none
+#guard Rat.ofFractionString? "a" == none
+#guard Rat.ofFractionString? "1a2" == none
+#guard Rat.ofFractionString? "a1/2" == none
+#guard Rat.ofFractionString? "1/2a" == none
+#guard Rat.ofFractionString? "1/0" == none
+
+#guard Rat.toFractionString (1) == "1"
+#guard Rat.toFractionString (mkRat 1 2) == "1/2"
+#guard Rat.toFractionString (-1) == "-1"
+#guard Rat.toFractionString (mkRat (-1) 2) == "-1/2"
+
+#guard Rat.ofFractionString? (Rat.toFractionString 1) == some 1
+#guard Rat.ofFractionString? (Rat.toFractionString (mkRat 1 2)) == some (mkRat 1 2)
+#guard Rat.ofFractionString? (Rat.toFractionString (mkRat (-1) 2)) == some (mkRat (-1) 2)
 
 #guard 0.0.toRatParts == some (0, -53)
 #guard (2^(-1000):Float).toRatParts == some (4503599627370496, -1052)
