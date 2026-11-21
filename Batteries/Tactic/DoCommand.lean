@@ -222,6 +222,7 @@ def elabDoCommandCore (m : Type → Type)
       ops := DoOps.toDoOpsRef .default
       mutVars := extData.mutVars
       mutVarDefs := extData.mutVarDefs
+      controlInfoCache := ← ControlInfoCache.new
     }
     let res ← ((elabDoSeq doSeq cont).run ctx)
     Term.synthesizeSyntheticMVarsNoPostponing
