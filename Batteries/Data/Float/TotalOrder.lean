@@ -17,9 +17,9 @@ types `TotalFloat` and `TotalFloat32` whose `Ord`, `BEq`, `Hashable` and `Decida
 all agree with it, so that floating-point numbers can be used as keys in ordered and hashed
 containers.
 
-The order is `-inf < … < -0 < 0 < … < inf < nan`. Since Lean's floats have a single `NaN` value, it is the
-largest element, as `+NaN` is in IEEE 754-2019. This matches Julia's `isless`, and Rust's
-`total_cmp` on non-negative `NaN`s.
+The order is `-inf < … < -0 < 0 < … < inf < nan`. Since Lean's floats have a
+single `NaN` value, it is the largest element, as `+NaN` is in IEEE 754-2019. This
+matches Julia's `isless`, and Rust's `total_cmp` on non-negative `NaN`s.
 -/
 
 namespace Float
