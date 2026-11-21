@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Data.String.Slice.Basic","Init.Data.String.Slice.Numeric","Init.Data.String.Slice.Pattern"],"instances":[],"name":"Init.Data.String.Slice"}

@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.Tactic.Grind.Config","Lean.Meta.Tactic.Grind.Main","Lean.Meta.Tactic.Grind.NormSym"],"instances":[],"name":"Lean.Elab.Tactic.Grind.Norm"}
