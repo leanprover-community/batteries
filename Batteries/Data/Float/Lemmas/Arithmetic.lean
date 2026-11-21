@@ -19,7 +19,7 @@ namespace Float.Model.UnpackedFloat
 
 namespace Sign
 
-@[simp] theorem neg_neg (s : Sign) : - -s = s := by cases s <;> rfl
+@[simp] protected theorem neg_neg (s : Sign) : - -s = s := by cases s <;> rfl
 
 @[simp] protected theorem neg_mul (s t : Sign) : -s * t = -(s * t) := by cases s <;> cases t <;> rfl
 
@@ -33,7 +33,7 @@ protected theorem mul_comm (s t : Sign) : s * t = t * s := by cases s <;> cases 
 
 end Sign
 
-@[simp] theorem neg_neg (u : UnpackedFloat) : u.neg.neg = u := by
+@[simp] protected theorem neg_neg (u : UnpackedFloat) : u.neg.neg = u := by
   cases u <;> simp [neg]
 
 theorem unpack_packComponents_neg {spec : Format} (s e m) :
@@ -136,7 +136,7 @@ theorem neg_pack (u : UnpackedFloat) : -(pack u) = pack u.neg := by
         UnpackedFloat.unpack_flipSign]
     rw [this, pack_unpack]
 
-@[simp] theorem neg_neg (a : Float.Model) : - -a = a := by
+@[simp] protected theorem neg_neg (a : Float.Model) : - -a = a := by
   change pack (pack a.unpack.neg).unpack.neg = a
   rw [unpack_pack_neg_unpack, UnpackedFloat.neg_neg, pack_unpack]
 
@@ -168,7 +168,7 @@ end Float.Model
 
 namespace Float
 
-@[simp] theorem neg_neg (x : Float) : - -x = x := by
+@[simp] protected theorem neg_neg (x : Float) : - -x = x := by
   change ofModel (- -x.toModel) = x
   rw [Model.neg_neg]
 
@@ -225,7 +225,7 @@ theorem neg_pack (u : UnpackedFloat) : -(pack u) = pack u.neg := by
         UnpackedFloat.unpack_flipSign]
     rw [this, pack_unpack]
 
-@[simp] theorem neg_neg (a : Float32.Model) : - -a = a := by
+@[simp] protected theorem neg_neg (a : Float32.Model) : - -a = a := by
   change pack (pack a.unpack.neg).unpack.neg = a
   rw [unpack_pack_neg_unpack, UnpackedFloat.neg_neg, pack_unpack]
 
@@ -257,7 +257,7 @@ end Float32.Model
 
 namespace Float32
 
-@[simp] theorem neg_neg (x : Float32) : - -x = x := by
+@[simp] protected theorem neg_neg (x : Float32) : - -x = x := by
   change ofModel (- -x.toModel) = x
   rw [Model.neg_neg]
 

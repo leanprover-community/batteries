@@ -262,13 +262,13 @@ theorem Float32.beq_self_eq_false_iff {f : Float32} : (f == f) = false ↔ f = n
 This theorem is true for all types but most other types have `LawfulBEq` where
 `bne_self_eq_false` or `bne_iff_ne` apply.
 -/
-@[simp] theorem Float.bne_eq {f : Float} : (f != f) = (!f == f) := (rfl)
+@[simp] protected theorem Float.bne_eq {f : Float} : (f != f) = (!f == f) := (rfl)
 
 /--
 This theorem is true for all types but most other types have `LawfulBEq` where
 `bne_self_eq_false` or `bne_iff_ne` apply.
 -/
-@[simp] theorem Float32.bne_eq {f : Float32} : (f != f) = (!f == f) := (rfl)
+@[simp] protected theorem Float32.bne_eq {f : Float32} : (f != f) = (!f == f) := (rfl)
 
 /--
 Boolean equality on `Float`s is symmetric and transitive, but not reflexive, as demonstrated

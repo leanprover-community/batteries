@@ -38,7 +38,7 @@ attribute [local simp] Sign.compare_def UnpackedFloat.compare UnpackedFloat.lt U
   Nat.compare_eq_eq Ordering.isLE_iff_eq_lt_or_eq_eq Ordering.isGE_iff_eq_gt_or_eq_eq
   Ordering.swap_eq_eq Ordering.then_eq_eq Ordering.swap_then Int.compare_swap Nat.compare_swap
 
-theorem compare_swap (a b : UnpackedFloat) :
+protected theorem compare_swap (a b : UnpackedFloat) :
     b.compare a = (a.compare b).map Ordering.swap := by
   cases_uf a <;> cases_uf b <;> simp
 
@@ -78,10 +78,10 @@ protected theorem not_le {a b : UnpackedFloat} (ha : a ≠ notANumber) (hb : b �
 @[simp] theorem notANumber_lt (a : UnpackedFloat) : notANumber.lt a = false := rfl
 @[simp] theorem lt_notANumber (a : UnpackedFloat) : a.lt notANumber = false := by cases a <;> rfl
 
-theorem neg_lt_neg (a b : UnpackedFloat) : a.neg.lt b.neg = b.lt a := by
+protected theorem neg_lt_neg (a b : UnpackedFloat) : a.neg.lt b.neg = b.lt a := by
   cases_uf a <;> cases_uf b <;> simp [neg] <;> lia
 
-theorem neg_le_neg (a b : UnpackedFloat) : a.neg.le b.neg = b.le a := by
+protected theorem neg_le_neg (a b : UnpackedFloat) : a.neg.le b.neg = b.le a := by
   cases_uf a <;> cases_uf b <;> simp [neg] <;> lia
 
 theorem minimum_comm (a b : UnpackedFloat) : a.minimum b = b.minimum a := by
@@ -147,10 +147,10 @@ protected theorem not_le {a b : Float.Model} (ha : a ≠ nan) (hb : b ≠ nan) :
 @[simp] theorem not_le_nan (a : Float.Model) : ¬a ≤ nan := by
   simp [le_iff_unpack_le, eq_nan_iff_unpack_eq.mp rfl]
 
-@[simp] theorem neg_lt_neg_iff {a b : Float.Model} : -a < -b ↔ b < a := by
+@[simp] protected theorem neg_lt_neg_iff {a b : Float.Model} : -a < -b ↔ b < a := by
   simp only [lt_iff_unpack_lt, unpack_neg, UnpackedFloat.neg_lt_neg]
 
-@[simp] theorem neg_le_neg_iff {a b : Float.Model} : -a ≤ -b ↔ b ≤ a := by
+@[simp] protected theorem neg_le_neg_iff {a b : Float.Model} : -a ≤ -b ↔ b ≤ a := by
   simp only [le_iff_unpack_le, unpack_neg, UnpackedFloat.neg_le_neg]
 
 theorem minimum_comm (a b : Float.Model) : a.minimum b = b.minimum a := by
@@ -223,10 +223,10 @@ protected theorem not_le {x y : Float} (hx : x ≠ nan) (hy : y ≠ nan) : ¬x �
 @[simp] theorem not_le_nan (x : Float) : ¬x ≤ nan := by
   simp [le_iff_toModel_le]
 
-@[simp] theorem neg_lt_neg_iff {x y : Float} : -x < -y ↔ y < x := by
+@[simp] protected theorem neg_lt_neg_iff {x y : Float} : -x < -y ↔ y < x := by
   simp [lt_iff_toModel_lt]
 
-@[simp] theorem neg_le_neg_iff {x y : Float} : -x ≤ -y ↔ y ≤ x := by
+@[simp] protected theorem neg_le_neg_iff {x y : Float} : -x ≤ -y ↔ y ≤ x := by
   simp [le_iff_toModel_le]
 
 protected theorem min_comm (x y : Float) : min x y = min y x := by
@@ -292,10 +292,10 @@ protected theorem not_le {a b : Float32.Model} (ha : a ≠ nan) (hb : b ≠ nan)
 @[simp] theorem not_le_nan (a : Float32.Model) : ¬a ≤ nan := by
   simp [le_iff_unpack_le, eq_nan_iff_unpack_eq.mp rfl]
 
-@[simp] theorem neg_lt_neg_iff {a b : Float32.Model} : -a < -b ↔ b < a := by
+@[simp] protected theorem neg_lt_neg_iff {a b : Float32.Model} : -a < -b ↔ b < a := by
   simp only [lt_iff_unpack_lt, unpack_neg, UnpackedFloat.neg_lt_neg]
 
-@[simp] theorem neg_le_neg_iff {a b : Float32.Model} : -a ≤ -b ↔ b ≤ a := by
+@[simp] protected theorem neg_le_neg_iff {a b : Float32.Model} : -a ≤ -b ↔ b ≤ a := by
   simp only [le_iff_unpack_le, unpack_neg, UnpackedFloat.neg_le_neg]
 
 theorem minimum_comm (a b : Float32.Model) : a.minimum b = b.minimum a := by
@@ -368,10 +368,10 @@ protected theorem not_le {x y : Float32} (hx : x ≠ nan) (hy : y ≠ nan) : ¬x
 @[simp] theorem not_le_nan (x : Float32) : ¬x ≤ nan := by
   simp [le_iff_toModel_le]
 
-@[simp] theorem neg_lt_neg_iff {x y : Float32} : -x < -y ↔ y < x := by
+@[simp] protected theorem neg_lt_neg_iff {x y : Float32} : -x < -y ↔ y < x := by
   simp [lt_iff_toModel_lt]
 
-@[simp] theorem neg_le_neg_iff {x y : Float32} : -x ≤ -y ↔ y ≤ x := by
+@[simp] protected theorem neg_le_neg_iff {x y : Float32} : -x ≤ -y ↔ y ≤ x := by
   simp [le_iff_toModel_le]
 
 protected theorem min_comm (x y : Float32) : min x y = min y x := by
