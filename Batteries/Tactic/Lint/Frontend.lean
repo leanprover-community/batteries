@@ -117,6 +117,17 @@ def traceLint (msg : String) (inIO : Bool) (currentModule linterName : Option Na
       {if let some l := linterName then s!"- {l}: " else ""}\
       {msg}"
 
+/-- Reports the slowest checks for a single linter. Used by the `--profile` option. -/
+def reportSlowest (currentModule : Option Name) (linterName : Name)
+    (times : Array (Name × Nat)) (inIO : Bool) : CoreM Unit := do
+  let slowest := times.qsort (fun a b => a.2 > b.2) |>.filterMap fun (declName, ns) =>
+    let ms := ns / 1_000_000
+    if ms == 0 then none else some s!"  {ms}ms  {declName}"
+  let msg := if slowest.isEmpty then "all checks under 1ms"
+    else s!"slowest checks:\n{"\n".intercalate (slowest.take 10).toList}"
+  let line := s!"{if let some m := currentModule then s!"[{m}] " else ""}- {linterName}: {msg}"
+  if inIO then IO.println line else trace[Batteries.Lint] line
+
 /--
 The number of declarations that a lint worker takes at a time. A larger batch means fewer updates
 to the shared job counter. A smaller batch spreads the work more evenly across the workers at the
@@ -184,7 +195,9 @@ declarations of the modules a change touched), while the other linters still lin
 def lintCore (decls : Array Name) (linters : Array NamedLinter)
     -- For tracing:
     (currentModule : Option Name := none) (inIO : Bool := false)
-    (localDecls : Option (Array Name) := none) :
+    (localDecls : Option (Array Name) := none)
+    -- Report the slowest checks per linter.
+    (profile : Bool := false) :
     CoreM (Array (NamedLinter × Std.HashMap Name MessageData)) := do
   traceLint
       s!"Running linters:\n  {"\n  ".intercalate <| linters.map (s!"{·.name}") |>.toList}"
@@ -211,14 +224,20 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
   let totalDecls := batches.foldl (· + ·.1.size) 0
   let start ← IO.monoMsNow
   -- Keep only failures, and look up `nolint` once per declaration for all linters.
-  let failures ← mapOnWorkers batches numWorkers fun (decls, linters) => do
+  -- With `profile`, each worker also records the time of each check, in nanoseconds.
+  let outputs ← mapOnWorkers batches numWorkers fun (decls, linters) => do
     let mut failures := #[]
+    let mut times := #[]
     for decl in decls do
       Core.checkInterrupted
       let ignored := (nolintAttr.getParam? (← getEnv) decl).getD #[]
       for (linter, i) in linters do
         unless ignored.contains linter.name do
-          if let some msg ← lintDecl linter decl inIO then
+          let checkStart ← if profile then IO.monoNanosNow else pure 0
+          let msg? ← lintDecl linter decl inIO
+          if profile then
+            times := times.push (i, decl, (← IO.monoNanosNow) - checkStart)
+          if let some msg := msg? then
             failures := failures.push (i, decl, msg)
     if inIO then
       let (n, done, msgs) ← progress.modifyGet fun (n, done, msgs) =>
@@ -227,19 +246,26 @@ def lintCore (decls : Array Name) (linters : Array NamedLinter)
         let secs := ((← IO.monoMsNow) - start) / 1000
         traceLint s!"Linted {done}/{totalDecls} declarations ({done * 100 / totalDecls}%), \
           {msgs} messages, {secs} s" inIO currentModule
-    return failures
+    return (failures, times)
 
-  -- A batch runs only some of the linters, so each failure records its linter's index.
+  -- A batch runs only some of the linters, so each failure and each time records its linter's
+  -- index.
   let mut messages : Array (Std.HashMap Name MessageData) := .replicate linters.size {}
-  for (i, decl, msg) in failures.flatten do
-    messages := messages.modify i (·.insert decl msg)
+  let mut times : Array (Array (Name × Nat)) := .replicate linters.size #[]
+  for (failures, checkTimes) in outputs do
+    for (i, decl, msg) in failures do
+      messages := messages.modify i (·.insert decl msg)
+    for (i, decl, ns) in checkTimes do
+      times := times.modify i (·.push (decl, ns))
 
-  let result ← (linters.zip messages).mapM fun (linter, msgs) => do
+  let result ← (linters.zip (messages.zip times)).mapM fun (linter, msgs, times) => do
     traceLint
       s!"{if msgs.isEmpty then "Passed!" else
         s!"Failed with {msgs.size} messages\
         {if inIO then ", but these may include declarations in `nolints.json`" else ""}."}"
       inIO currentModule linter.name
+    if profile then
+      reportSlowest currentModule linter.name times inIO
     pure (linter, msgs)
   traceLint "Completed linting!" inIO currentModule
   return result
