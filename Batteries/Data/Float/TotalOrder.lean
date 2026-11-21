@@ -36,7 +36,7 @@ public theorem totalOrderKeyOfBits_inj {b c : UInt64} :
   unfold totalOrderKeyOfBits at h
   split at h <;> split at h <;>
     simp only [← UInt64.toNat_inj, UInt64.toNat_add, UInt64.toNat_not, UInt64.lt_iff_toNat_lt,
-      UInt64.reduceToNat, UInt64.size] at * <;> omega
+      UInt64.reduceToNat, UInt64.size] at * <;> lia
 
 /--
 The key that sorts `Float` values according to `totalCmp`: negative numbers have their bits
@@ -84,7 +84,7 @@ public theorem totalOrderKeyOfBits_inj {b c : UInt32} :
   unfold totalOrderKeyOfBits at h
   split at h <;> split at h <;>
     simp only [← UInt32.toNat_inj, UInt32.toNat_add, UInt32.toNat_not, UInt32.lt_iff_toNat_lt,
-      UInt32.reduceToNat, UInt32.size] at * <;> omega
+      UInt32.reduceToNat, UInt32.size] at * <;> lia
 
 @[inherit_doc Float.totalOrderKey, expose]
 public def totalOrderKey (x : Float32) : UInt32 :=
