@@ -114,21 +114,61 @@ infinite or `NaN`.
 The position of `x` on the number line that counts floating-point numbers, with both zeros at
 `0`, positive numbers at their bit pattern and negative numbers at the negation of the bit
 pattern of their absolute value. Infinities sit one step past the largest finite numbers.
-Returns `none` for `NaN`.
+`x` must not be `NaN`; see also `toOrdinal?` and `toOrdinal!`.
 -/
+@[expose] public def toOrdinal (x : Float) (_ : x.isNaN = false) : Int :=
+  let m := (x.toBits &&& ~~~signMask).toNat
+  if x.toBits &&& signMask != 0 then -m else m
+
+/-- The position of `x` on the number line that counts floating-point numbers, as in
+`toOrdinal`, or `none` when `x` is `NaN`. -/
 @[expose] public def toOrdinal? (x : Float) : Option Int :=
-  if x.isNaN then none else
-    let m := (x.toBits &&& ~~~signMask).toNat
-    if x.toBits &&& signMask != 0 then some (-m) else some m
+  if h : x.isNaN = false then some (x.toOrdinal h) else none
+
+/-- The position of `x` on the number line that counts floating-point numbers, as in
+`toOrdinal`. Panics when `x` is `NaN`. -/
+@[expose] public def toOrdinal! (x : Float) : Int :=
+  if h : x.isNaN = false then x.toOrdinal h else panic! "toOrdinal!: NaN argument"
 
 /--
 The number of floating-point numbers between `x` and `y`, counting one of the endpoints: the
-distance between them in units in the last place. Both zeros count as the same point, the
-infinities are one step beyond the largest finite numbers, and the result is `none` when either
-argument is `NaN`.
+distance between them in units in the last place. Both zeros count as the same point and the
+infinities are one step beyond the largest finite numbers. Neither argument may be `NaN`; see
+also `ulpDistance?` and `ulpDistance!`.
 -/
-@[expose] public def ulpDistance? (x y : Float) : Option Nat := do
-  return ((← x.toOrdinal?) - (← y.toOrdinal?)).natAbs
+@[expose] public def ulpDistance (x y : Float) (hx : x.isNaN = false) (hy : y.isNaN = false) :
+    Nat :=
+  (x.toOrdinal hx - y.toOrdinal hy).natAbs
+
+/-- The distance between `x` and `y` in units in the last place, as in `ulpDistance`, or
+`none` when either argument is `NaN`. -/
+@[expose] public def ulpDistance? (x y : Float) : Option Nat :=
+  if h : x.isNaN = false ∧ y.isNaN = false then some (ulpDistance x y h.1 h.2) else none
+
+/-- The distance between `x` and `y` in units in the last place, as in `ulpDistance`.
+Panics when either argument is `NaN`. -/
+@[expose] public def ulpDistance! (x y : Float) : Nat :=
+  if h : x.isNaN = false ∧ y.isNaN = false then ulpDistance x y h.1 h.2
+  else panic! "ulpDistance!: NaN argument"
+
+public theorem toOrdinal?_eq_some {x : Float} (h : x.isNaN = false) :
+    x.toOrdinal? = some (x.toOrdinal h) := by simp [toOrdinal?, h]
+
+public theorem toOrdinal?_eq_none {x : Float} (h : x.isNaN = true) : x.toOrdinal? = none := by
+  simp [toOrdinal?, h]
+
+public theorem toOrdinal!_eq {x : Float} (h : x.isNaN = false) : x.toOrdinal! = x.toOrdinal h := by
+  simp [toOrdinal!, h]
+
+public theorem ulpDistance?_eq_some {x y : Float} (hx : x.isNaN = false) (hy : y.isNaN = false) :
+    ulpDistance? x y = some (ulpDistance x y hx hy) := by simp [ulpDistance?, hx, hy]
+
+public theorem ulpDistance?_eq_none {x y : Float} (h : x.isNaN = true ∨ y.isNaN = true) :
+    ulpDistance? x y = none := by
+  rcases h with h | h <;> simp [ulpDistance?, h]
+
+public theorem ulpDistance!_eq {x y : Float} (hx : x.isNaN = false) (hy : y.isNaN = false) :
+    ulpDistance! x y = ulpDistance x y hx hy := by simp [ulpDistance!, hx, hy]
 
 end Float
 
@@ -187,12 +227,44 @@ infinite or `NaN`.
     else if b + 1 == exponentMask then ofBits b - ofBits (b - 1)
     else ofBits (b + 1) - ofBits b
 
-@[inherit_doc Float.toOrdinal?, expose] public def toOrdinal? (x : Float32) : Option Int :=
-  if x.isNaN then none else
-    let m := (x.toBits &&& ~~~signMask).toNat
-    if x.toBits &&& signMask != 0 then some (-m) else some m
+@[inherit_doc Float.toOrdinal, expose] public def toOrdinal (x : Float32) (_ : x.isNaN = false) : Int :=
+  let m := (x.toBits &&& ~~~signMask).toNat
+  if x.toBits &&& signMask != 0 then -m else m
 
-@[inherit_doc Float.ulpDistance?, expose] public def ulpDistance? (x y : Float32) : Option Nat := do
-  return ((← x.toOrdinal?) - (← y.toOrdinal?)).natAbs
+@[inherit_doc Float.toOrdinal?, expose] public def toOrdinal? (x : Float32) : Option Int :=
+  if h : x.isNaN = false then some (x.toOrdinal h) else none
+
+@[inherit_doc Float.toOrdinal!, expose] public def toOrdinal! (x : Float32) : Int :=
+  if h : x.isNaN = false then x.toOrdinal h else panic! "toOrdinal!: NaN argument"
+
+@[inherit_doc Float.ulpDistance, expose] public def ulpDistance (x y : Float32) (hx : x.isNaN = false) (hy : y.isNaN = false) :
+    Nat :=
+  (x.toOrdinal hx - y.toOrdinal hy).natAbs
+
+@[inherit_doc Float.ulpDistance?, expose] public def ulpDistance? (x y : Float32) : Option Nat :=
+  if h : x.isNaN = false ∧ y.isNaN = false then some (ulpDistance x y h.1 h.2) else none
+
+@[inherit_doc Float.ulpDistance!, expose] public def ulpDistance! (x y : Float32) : Nat :=
+  if h : x.isNaN = false ∧ y.isNaN = false then ulpDistance x y h.1 h.2
+  else panic! "ulpDistance!: NaN argument"
+
+public theorem toOrdinal?_eq_some {x : Float32} (h : x.isNaN = false) :
+    x.toOrdinal? = some (x.toOrdinal h) := by simp [toOrdinal?, h]
+
+public theorem toOrdinal?_eq_none {x : Float32} (h : x.isNaN = true) : x.toOrdinal? = none := by
+  simp [toOrdinal?, h]
+
+public theorem toOrdinal!_eq {x : Float32} (h : x.isNaN = false) : x.toOrdinal! = x.toOrdinal h := by
+  simp [toOrdinal!, h]
+
+public theorem ulpDistance?_eq_some {x y : Float32} (hx : x.isNaN = false) (hy : y.isNaN = false) :
+    ulpDistance? x y = some (ulpDistance x y hx hy) := by simp [ulpDistance?, hx, hy]
+
+public theorem ulpDistance?_eq_none {x y : Float32} (h : x.isNaN = true ∨ y.isNaN = true) :
+    ulpDistance? x y = none := by
+  rcases h with h | h <;> simp [ulpDistance?, h]
+
+public theorem ulpDistance!_eq {x y : Float32} (hx : x.isNaN = false) (hy : y.isNaN = false) :
+    ulpDistance! x y = ulpDistance x y hx hy := by simp [ulpDistance!, hx, hy]
 
 end Float32
