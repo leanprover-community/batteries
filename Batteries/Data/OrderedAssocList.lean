@@ -273,7 +273,7 @@ theorem KeysOrdered.orderedInsert [LawfulEqCmp cmp] [OrientedCmp cmp] (h : KeysO
 end
 
 theorem toList_orderedInsert {α : Type u} {β : Type v} {cmp : α → α → Ordering}
-    [LawfulEqCmp cmp] [TransCmp cmp] {l : AssocList α β} (h : KeysOrdered cmp l) (a : α) (b : β) :
+    [TransCmp cmp] {l : AssocList α β} (h : KeysOrdered cmp l) (a : α) (b : β) :
     (orderedInsert cmp l a b).toList =
       l.toList.filter (fun p => cmp a p.1 == .gt) ++
         (a, b) :: l.toList.filter (fun p => cmp a p.1 == .lt) := by
@@ -283,20 +283,13 @@ theorem toList_orderedInsert {α : Type u} {β : Type v} {cmp : α → α → Or
     have tail_lt : ∀ p ∈ t.toList, cmp x p.1 = .lt := fun _ hp => h.lt_of_mem hp
     simp only [orderedInsert_cons, toList, List.filter_cons]
     match w : cmp a x with
-    | .lt =>
+    | .lt | .eq =>
       have all_lt : ∀ p ∈ t.toList, cmp a p.1 = .lt :=
-        fun p hp => TransCmp.lt_trans w (tail_lt p hp)
+        fun p hp => TransCmp.lt_of_le_of_lt (by simp [w]) (tail_lt p hp)
       have e1 : t.toList.filter (fun p => cmp a p.1 == .gt) = [] :=
         List.filter_eq_nil_iff.mpr fun p hp => by simp [all_lt p hp]
       have e2 : t.toList.filter (fun p => cmp a p.1 == .lt) = t.toList :=
         List.filter_eq_self.mpr fun p hp => by simp [all_lt p hp]
-      simp [e1, e2]
-    | .eq =>
-      obtain rfl := LawfulEqCmp.eq_of_compare w
-      have e1 : t.toList.filter (fun p => cmp a p.1 == .gt) = [] :=
-        List.filter_eq_nil_iff.mpr fun p hp => by simp [tail_lt p hp]
-      have e2 : t.toList.filter (fun p => cmp a p.1 == .lt) = t.toList :=
-        List.filter_eq_self.mpr fun p hp => by simp [tail_lt p hp]
       simp [e1, e2]
     | .gt => simp [ih h.tail]
 
@@ -863,13 +856,16 @@ theorem getElem?_filterMapVal [LawfulEqCmp cmp] (l : OrderedAssocList cmp β) :
     (filterMapVal f l)[a]? = l[a]?.bind (fun b => f a b) :=
   AssocList.orderedFind?_filterMapVal l.keysOrdered
 
-theorem filterMapVal_filterMapVal [LawfulEqCmp cmp]
+theorem filterMapVal_filterMapVal
     {f : α → γ → Option δ} {g : α → β → Option γ}
     {l : OrderedAssocList cmp β} :
     filterMapVal f (filterMapVal g l) =
       filterMapVal (fun a b => (g a b).bind (fun c => f a c)) l := by
   apply ext_toAssocList
-  exact AssocList.filterMapVal_filterMapVal l.keysOrdered
+  simp only [toAssocList_filterMapVal]
+  induction l.toAssocList with
+  | nil => rfl
+  | cons k v t ih => cases h : g k v <;> simp [AssocList.filterMapVal_cons, h, ih]
 
 end filterMapVal
 

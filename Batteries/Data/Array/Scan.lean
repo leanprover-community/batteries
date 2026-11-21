@@ -82,21 +82,32 @@ theorem toList_scanrM [Monad m] [LawfulMonad m] {f : α → β → m β} {as : A
     toList <$> as.scanrM f init = as.toList.scanrM f init := by
   simp [scanrM_eq_scanrM_toList]
 
-theorem scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Array α} :
+theorem scanlM_extract [Monad m] {f : β → α → m β} {as : Array α} :
     (as.extract start stop).scanlM f init = as.scanlM f init start stop := by
-  rw (occs := [2]) [scanlM]
-  apply map_toList_inj.mp
-  rw [scanlM.loop_toList, scanlM_eq_scanlM_toList, bind_pure_comp]
-  simp_all only [toList_extract, Functor.map_map, id_map', List.nil_append_fun, id_map]
-  grind [List.take_eq_take_iff, List.drop_eq_drop_iff]
+  by_cases hs : start ≤ as.size
+  · suffices ∀ i h₁ h acc cur,
+        scanlM.loop f cur (as.extract start stop) i (min stop as.size - start) h₁ acc =
+          scanlM.loop f cur as (start + i) (min stop as.size) h acc by
+      simpa [scanlM, Nat.min_eq_left hs] using this 0 (by simp) _ #[] init
+    intro i h₁ h acc cur
+    fun_induction scanlM.loop f cur (as.extract start stop) i _ h₁ acc <;>
+      rw [scanlM.loop] <;> split <;> simp_all [Nat.add_assoc] <;> omega
+  · rw [scanlM, scanlM, scanlM.loop, scanlM.loop, dite_eq_right (by simp; omega),
+      dite_eq_right (by omega)]
 
-theorem scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Array α} :
+theorem scanrM_extract [Monad m] {f : α → β → m β} {as : Array α} :
     (as.extract stop start).scanrM f init = as.scanrM f init start stop := by
-  rw (occs := [2]) [scanrM]
-  apply map_toList_inj.mp
-  rw [scanrM.loop_toList, scanrM_eq_scanrM_toList, bind_pure_comp]
-  simp_all only [toList_extract,  Functor.map_map, id_map', List.reverse_nil, List.append_nil]
-  grind [List.take_eq_take_iff, List.drop_eq_drop_iff]
+  by_cases hs : stop ≤ min start as.size
+  · suffices ∀ i h₁ h acc cur, scanrM.loop f cur (as.extract stop start) i 0 h₁ acc =
+        scanrM.loop f cur as (stop + i) stop h acc by
+      simpa [scanrM, Nat.add_sub_cancel' hs] using
+        this (min start as.size - stop) (by simp) (by omega) #[] init
+    intro i h₁ h acc cur
+    fun_induction scanrM.loop f cur (as.extract stop start) i 0 h₁ acc <;>
+      rw [scanrM.loop] <;> split <;> simp_all +zetaDelta
+    all_goals first | omega | simp (disch := omega) [Nat.add_sub_assoc, *]
+  · rw [scanrM, scanrM, scanrM.loop, scanrM.loop, dite_eq_right (by simp; omega),
+      dite_eq_right (by omega)]
 
 @[simp, grind =]
 theorem scanlM_empty [Monad m] {f : β → α → m β} {start stop : Nat} :
@@ -136,14 +147,24 @@ theorem idRun_scanrM {f : α → β → Id β} {as : Array α} :
   scanrM_pure
 
 @[grind =]
-theorem scanlM_map [Monad m] [LawfulMonad m] {f : α₁ → α₂ } {g: β → α₂ → m β} {as : Array α₁} :
+theorem scanlM_map [Monad m] {f : α₁ → α₂ } {g: β → α₂ → m β} {as : Array α₁} :
     (as.map f).scanlM g init = as.scanlM (g · <| f ·) init := by
-  simp only [scanlM_eq_scanlM_toList, toList_map, List.scanlM_map]
+  suffices ∀ start stop h acc cur, scanlM.loop g cur (as.map f) start stop (by simpa) acc =
+      scanlM.loop (g · <| f ·) cur as start stop h acc by
+    simp only [scanlM, size_map]; exact this ..
+  intro start stop h acc cur
+  fun_induction scanlM.loop (g · <| f ·) cur as start stop h acc <;> rw [scanlM.loop] <;>
+    split <;> simp_all
 
 @[grind =]
-theorem scanrM_map [Monad m] [LawfulMonad m] {f : α₁ → α₂ } {g: α₂ → β → m β} {as : Array α₁} :
+theorem scanrM_map [Monad m] {f : α₁ → α₂ } {g: α₂ → β → m β} {as : Array α₁} :
     (as.map f).scanrM g init = as.scanrM (fun a b => g (f a) b) init := by
-  simp only [scanrM_eq_scanrM_toList, toList_map, List.scanrM_map]
+  suffices ∀ start stop h acc cur, scanrM.loop g cur (as.map f) start stop (by simpa) acc =
+      scanrM.loop (fun a b => g (f a) b) cur as start stop h acc by
+    simp only [scanrM, size_map]; exact this ..
+  intro start stop h acc cur
+  fun_induction scanrM.loop (fun a b => g (f a) b) cur as start stop h acc <;>
+    rw [scanrM.loop] <;> split <;> simp_all +zetaDelta
 
 /-- ### Array.scanl -/
 
@@ -363,12 +384,12 @@ end List
 namespace Subarray
 
 @[simp]
-theorem scanlM_eq_scanlM_extract [Monad m] [LawfulMonad m] {f : β → α → m β} {as : Subarray α} :
+theorem scanlM_eq_scanlM_extract [Monad m] {f : β → α → m β} {as : Subarray α} :
     as.scanlM f init = (as.array.extract as.start as.stop).scanlM f init := by
   simp only [scanlM, Array.scanlM_extract]
 
 @[simp]
-theorem scanrM_eq_scanrM_extract [Monad m] [LawfulMonad m] {f : α → β → m β} {as : Subarray α} :
+theorem scanrM_eq_scanrM_extract [Monad m] {f : α → β → m β} {as : Subarray α} :
     as.scanrM f init = (as.array.extract as.start as.stop).scanrM f init := by
   simp only [scanrM, Array.scanrM_extract]
 
