@@ -5,8 +5,6 @@ Authors: Robin Arnez
 -/
 module
 
-import all Init.Data.OfScientific -- remove when Float.ofNat is exposed
-
 public section
 
 namespace Float.Model.UnpackedFloat
