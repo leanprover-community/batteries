@@ -21,15 +21,15 @@ namespace Sign
 
 @[simp] theorem neg_neg (s : Sign) : - -s = s := by cases s <;> rfl
 
-@[simp] theorem neg_mul (s t : Sign) : -s * t = -(s * t) := by cases s <;> cases t <;> rfl
+@[simp] protected theorem neg_mul (s t : Sign) : -s * t = -(s * t) := by cases s <;> cases t <;> rfl
 
-@[simp] theorem mul_neg (s t : Sign) : s * -t = -(s * t) := by cases s <;> cases t <;> rfl
+@[simp] protected theorem mul_neg (s t : Sign) : s * -t = -(s * t) := by cases s <;> cases t <;> rfl
 
-@[simp] theorem neg_div (s t : Sign) : -s / t = -(s / t) := by cases s <;> cases t <;> rfl
+@[simp] protected theorem neg_div (s t : Sign) : -s / t = -(s / t) := by cases s <;> cases t <;> rfl
 
-@[simp] theorem div_neg (s t : Sign) : s / -t = -(s / t) := by cases s <;> cases t <;> rfl
+@[simp] protected theorem div_neg (s t : Sign) : s / -t = -(s / t) := by cases s <;> cases t <;> rfl
 
-theorem mul_comm (s t : Sign) : s * t = t * s := by cases s <;> cases t <;> rfl
+protected theorem mul_comm (s t : Sign) : s * t = t * s := by cases s <;> cases t <;> rfl
 
 end Sign
 
@@ -82,27 +82,27 @@ theorem roundWithAccuracy_neg (spec : Format) (s m e a) :
   simp only [roundWithAccuracy]
   split <;> simp [neg]
 
-theorem neg_mul (spec : Format) (u v : UnpackedFloat) :
+protected theorem neg_mul (spec : Format) (u v : UnpackedFloat) :
     mul spec u.neg v = (mul spec u v).neg := by
   cases u <;> cases v <;> simp [neg, mul, roundWithAccuracy_neg]
 
-theorem mul_neg (spec : Format) (u v : UnpackedFloat) :
+protected theorem mul_neg (spec : Format) (u v : UnpackedFloat) :
     mul spec u v.neg = (mul spec u v).neg := by
   cases u <;> cases v <;> simp [neg, mul, roundWithAccuracy_neg]
 
-theorem neg_div (spec : Format) (u v : UnpackedFloat) :
+protected theorem neg_div (spec : Format) (u v : UnpackedFloat) :
     div spec u.neg v = (div spec u v).neg := by
   cases u <;> cases v <;> simp [neg, div, roundWithAccuracy_neg]
 
-theorem div_neg (spec : Format) (u v : UnpackedFloat) :
+protected theorem div_neg (spec : Format) (u v : UnpackedFloat) :
     div spec u v.neg = (div spec u v).neg := by
   cases u <;> cases v <;> simp [neg, div, roundWithAccuracy_neg]
 
-theorem mul_comm (spec : Format) (u v : UnpackedFloat) :
+protected theorem mul_comm (spec : Format) (u v : UnpackedFloat) :
     mul spec u v = mul spec v u := by
   cases u <;> cases v <;> simp [mul, Sign.mul_comm, Nat.mul_comm, Int.add_comm]
 
-theorem add_comm (spec : Format) (u v : UnpackedFloat) :
+protected theorem add_comm (spec : Format) (u v : UnpackedFloat) :
     add spec u v = add spec v u := by
   cases u <;> cases v <;> simp only [add]
   · rename_i s t; cases s <;> cases t <;> rfl
@@ -140,27 +140,27 @@ theorem neg_pack (u : UnpackedFloat) : -(pack u) = pack u.neg := by
   change pack (pack a.unpack.neg).unpack.neg = a
   rw [unpack_pack_neg_unpack, UnpackedFloat.neg_neg, pack_unpack]
 
-theorem neg_mul (a b : Float.Model) : -a * b = -(a * b) := by
+protected theorem neg_mul (a b : Float.Model) : -a * b = -(a * b) := by
   change pack (UnpackedFloat.mul _ (pack a.unpack.neg).unpack b.unpack) = -(pack _)
   rw [unpack_pack_neg_unpack, UnpackedFloat.neg_mul, neg_pack]
 
-theorem mul_neg (a b : Float.Model) : a * -b = -(a * b) := by
+protected theorem mul_neg (a b : Float.Model) : a * -b = -(a * b) := by
   change pack (UnpackedFloat.mul _ a.unpack (pack b.unpack.neg).unpack) = -(pack _)
   rw [unpack_pack_neg_unpack, UnpackedFloat.mul_neg, neg_pack]
 
-theorem neg_div (a b : Float.Model) : -a / b = -(a / b) := by
+protected theorem neg_div (a b : Float.Model) : -a / b = -(a / b) := by
   change pack (UnpackedFloat.div _ (pack a.unpack.neg).unpack b.unpack) = -(pack _)
   rw [unpack_pack_neg_unpack, UnpackedFloat.neg_div, neg_pack]
 
-theorem div_neg (a b : Float.Model) : a / -b = -(a / b) := by
+protected theorem div_neg (a b : Float.Model) : a / -b = -(a / b) := by
   change pack (UnpackedFloat.div _ a.unpack (pack b.unpack.neg).unpack) = -(pack _)
   rw [unpack_pack_neg_unpack, UnpackedFloat.div_neg, neg_pack]
 
-theorem mul_comm (a b : Float.Model) : a * b = b * a := by
+protected theorem mul_comm (a b : Float.Model) : a * b = b * a := by
   change pack (UnpackedFloat.mul _ a.unpack b.unpack) = pack (UnpackedFloat.mul _ b.unpack a.unpack)
   rw [UnpackedFloat.mul_comm]
 
-theorem add_comm (a b : Float.Model) : a + b = b + a := by
+protected theorem add_comm (a b : Float.Model) : a + b = b + a := by
   change pack (UnpackedFloat.add _ a.unpack b.unpack) = pack (UnpackedFloat.add _ b.unpack a.unpack)
   rw [UnpackedFloat.add_comm]
 
@@ -172,27 +172,27 @@ namespace Float
   change ofModel (- -x.toModel) = x
   rw [Model.neg_neg]
 
-@[simp] theorem neg_mul (x y : Float) : -x * y = -(x * y) := by
+@[simp] protected theorem neg_mul (x y : Float) : -x * y = -(x * y) := by
   change ofModel (-x.toModel * y.toModel) = ofModel (-(x.toModel * y.toModel))
   rw [Model.neg_mul]
 
-@[simp] theorem mul_neg (x y : Float) : x * -y = -(x * y) := by
+@[simp] protected theorem mul_neg (x y : Float) : x * -y = -(x * y) := by
   change ofModel (x.toModel * -y.toModel) = ofModel (-(x.toModel * y.toModel))
   rw [Model.mul_neg]
 
-@[simp] theorem neg_div (x y : Float) : -x / y = -(x / y) := by
+@[simp] protected theorem neg_div (x y : Float) : -x / y = -(x / y) := by
   change ofModel (-x.toModel / y.toModel) = ofModel (-(x.toModel / y.toModel))
   rw [Model.neg_div]
 
-@[simp] theorem div_neg (x y : Float) : x / -y = -(x / y) := by
+@[simp] protected theorem div_neg (x y : Float) : x / -y = -(x / y) := by
   change ofModel (x.toModel / -y.toModel) = ofModel (-(x.toModel / y.toModel))
   rw [Model.div_neg]
 
-theorem mul_comm (x y : Float) : x * y = y * x := by
+protected theorem mul_comm (x y : Float) : x * y = y * x := by
   change ofModel (x.toModel * y.toModel) = ofModel (y.toModel * x.toModel)
   rw [Model.mul_comm]
 
-theorem add_comm (x y : Float) : x + y = y + x := by
+protected theorem add_comm (x y : Float) : x + y = y + x := by
   change ofModel (x.toModel + y.toModel) = ofModel (y.toModel + x.toModel)
   rw [Model.add_comm]
 
@@ -229,27 +229,27 @@ theorem neg_pack (u : UnpackedFloat) : -(pack u) = pack u.neg := by
   change pack (pack a.unpack.neg).unpack.neg = a
   rw [unpack_pack_neg_unpack, UnpackedFloat.neg_neg, pack_unpack]
 
-theorem neg_mul (a b : Float32.Model) : -a * b = -(a * b) := by
+protected theorem neg_mul (a b : Float32.Model) : -a * b = -(a * b) := by
   change pack (UnpackedFloat.mul _ (pack a.unpack.neg).unpack b.unpack) = -(pack _)
   rw [unpack_pack_neg_unpack, UnpackedFloat.neg_mul, neg_pack]
 
-theorem mul_neg (a b : Float32.Model) : a * -b = -(a * b) := by
+protected theorem mul_neg (a b : Float32.Model) : a * -b = -(a * b) := by
   change pack (UnpackedFloat.mul _ a.unpack (pack b.unpack.neg).unpack) = -(pack _)
   rw [unpack_pack_neg_unpack, UnpackedFloat.mul_neg, neg_pack]
 
-theorem neg_div (a b : Float32.Model) : -a / b = -(a / b) := by
+protected theorem neg_div (a b : Float32.Model) : -a / b = -(a / b) := by
   change pack (UnpackedFloat.div _ (pack a.unpack.neg).unpack b.unpack) = -(pack _)
   rw [unpack_pack_neg_unpack, UnpackedFloat.neg_div, neg_pack]
 
-theorem div_neg (a b : Float32.Model) : a / -b = -(a / b) := by
+protected theorem div_neg (a b : Float32.Model) : a / -b = -(a / b) := by
   change pack (UnpackedFloat.div _ a.unpack (pack b.unpack.neg).unpack) = -(pack _)
   rw [unpack_pack_neg_unpack, UnpackedFloat.div_neg, neg_pack]
 
-theorem mul_comm (a b : Float32.Model) : a * b = b * a := by
+protected theorem mul_comm (a b : Float32.Model) : a * b = b * a := by
   change pack (UnpackedFloat.mul _ a.unpack b.unpack) = pack (UnpackedFloat.mul _ b.unpack a.unpack)
   rw [UnpackedFloat.mul_comm]
 
-theorem add_comm (a b : Float32.Model) : a + b = b + a := by
+protected theorem add_comm (a b : Float32.Model) : a + b = b + a := by
   change pack (UnpackedFloat.add _ a.unpack b.unpack) = pack (UnpackedFloat.add _ b.unpack a.unpack)
   rw [UnpackedFloat.add_comm]
 
@@ -261,27 +261,27 @@ namespace Float32
   change ofModel (- -x.toModel) = x
   rw [Model.neg_neg]
 
-@[simp] theorem neg_mul (x y : Float32) : -x * y = -(x * y) := by
+@[simp] protected theorem neg_mul (x y : Float32) : -x * y = -(x * y) := by
   change ofModel (-x.toModel * y.toModel) = ofModel (-(x.toModel * y.toModel))
   rw [Model.neg_mul]
 
-@[simp] theorem mul_neg (x y : Float32) : x * -y = -(x * y) := by
+@[simp] protected theorem mul_neg (x y : Float32) : x * -y = -(x * y) := by
   change ofModel (x.toModel * -y.toModel) = ofModel (-(x.toModel * y.toModel))
   rw [Model.mul_neg]
 
-@[simp] theorem neg_div (x y : Float32) : -x / y = -(x / y) := by
+@[simp] protected theorem neg_div (x y : Float32) : -x / y = -(x / y) := by
   change ofModel (-x.toModel / y.toModel) = ofModel (-(x.toModel / y.toModel))
   rw [Model.neg_div]
 
-@[simp] theorem div_neg (x y : Float32) : x / -y = -(x / y) := by
+@[simp] protected theorem div_neg (x y : Float32) : x / -y = -(x / y) := by
   change ofModel (x.toModel / -y.toModel) = ofModel (-(x.toModel / y.toModel))
   rw [Model.div_neg]
 
-theorem mul_comm (x y : Float32) : x * y = y * x := by
+protected theorem mul_comm (x y : Float32) : x * y = y * x := by
   change ofModel (x.toModel * y.toModel) = ofModel (y.toModel * x.toModel)
   rw [Model.mul_comm]
 
-theorem add_comm (x y : Float32) : x + y = y + x := by
+protected theorem add_comm (x y : Float32) : x + y = y + x := by
   change ofModel (x.toModel + y.toModel) = ofModel (y.toModel + x.toModel)
   rw [Model.add_comm]
 

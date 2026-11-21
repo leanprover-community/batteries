@@ -42,34 +42,34 @@ theorem compare_swap (a b : UnpackedFloat) :
     b.compare a = (a.compare b).map Ordering.swap := by
   cases_uf a <;> cases_uf b <;> simp
 
-theorem lt_irrefl (a : UnpackedFloat) : ¬ a.lt a := by
+protected theorem lt_irrefl (a : UnpackedFloat) : ¬ a.lt a := by
   cases_uf a <;> simp
 
-theorem lt_asymm {a b : UnpackedFloat} : a.lt b → ¬ b.lt a := by
+protected theorem lt_asymm {a b : UnpackedFloat} : a.lt b → ¬ b.lt a := by
   cases_uf a <;> cases_uf b <;> simp <;> lia
 
-theorem lt_trans {a b c : UnpackedFloat} : a.lt b → b.lt c → a.lt c := by
+protected theorem lt_trans {a b c : UnpackedFloat} : a.lt b → b.lt c → a.lt c := by
   cases_uf a <;> cases_uf b <;> cases_uf c <;> simp <;> lia
 
-theorem le_trans {a b c : UnpackedFloat} : a.le b → b.le c → a.le c := by
+protected theorem le_trans {a b c : UnpackedFloat} : a.le b → b.le c → a.le c := by
   cases_uf a <;> cases_uf b <;> cases_uf c <;> simp <;> lia
 
-theorem lt_of_lt_of_le {a b c : UnpackedFloat} : a.lt b → b.le c → a.lt c := by
+protected theorem lt_of_lt_of_le {a b c : UnpackedFloat} : a.lt b → b.le c → a.lt c := by
   cases_uf a <;> cases_uf b <;> cases_uf c <;> simp <;> lia
 
-theorem lt_of_le_of_lt {a b c : UnpackedFloat} : a.le b → b.lt c → a.lt c := by
+protected theorem lt_of_le_of_lt {a b c : UnpackedFloat} : a.le b → b.lt c → a.lt c := by
   cases_uf a <;> cases_uf b <;> cases_uf c <;> simp <;> lia
 
-theorem le_of_lt {a b : UnpackedFloat} : a.lt b → a.le b := by
+protected theorem le_of_lt {a b : UnpackedFloat} : a.lt b → a.le b := by
   cases_uf a <;> cases_uf b <;> simp <;> lia
 
-theorem lt_iff_le_not_ge {a b : UnpackedFloat} : a.lt b ↔ a.le b ∧ ¬ b.le a := by
+protected theorem lt_iff_le_not_ge {a b : UnpackedFloat} : a.lt b ↔ a.le b ∧ ¬ b.le a := by
   cases_uf a <;> cases_uf b <;> simp <;> lia
 
 theorem le_refl_iff {a : UnpackedFloat} : a.le a ↔ a ≠ notANumber := by
   cases_uf a <;> simp
 
-theorem not_le {a b : UnpackedFloat} (ha : a ≠ notANumber) (hb : b ≠ notANumber) :
+protected theorem not_le {a b : UnpackedFloat} (ha : a ≠ notANumber) (hb : b ≠ notANumber) :
     ¬ a.le b ↔ b.lt a := by
   cases_uf a <;> cases_uf b <;> simp at ha hb ⊢ <;> lia
 
@@ -109,29 +109,29 @@ theorem eq_nan_iff_unpack_eq {a : Float.Model} : a = nan ↔ a.unpack = .notANum
 
 theorem unpack_neg (a : Float.Model) : (-a).unpack = a.unpack.neg := unpack_pack_neg_unpack a
 
-theorem lt_irrefl (a : Float.Model) : ¬a < a := UnpackedFloat.lt_irrefl _
+protected theorem lt_irrefl (a : Float.Model) : ¬a < a := UnpackedFloat.lt_irrefl _
 
-theorem lt_asymm {a b : Float.Model} : a < b → ¬b < a := UnpackedFloat.lt_asymm
+protected theorem lt_asymm {a b : Float.Model} : a < b → ¬b < a := UnpackedFloat.lt_asymm
 
-theorem lt_trans {a b c : Float.Model} : a < b → b < c → a < c := UnpackedFloat.lt_trans
+protected theorem lt_trans {a b c : Float.Model} : a < b → b < c → a < c := UnpackedFloat.lt_trans
 
-theorem le_trans {a b c : Float.Model} : a ≤ b → b ≤ c → a ≤ c := UnpackedFloat.le_trans
+protected theorem le_trans {a b c : Float.Model} : a ≤ b → b ≤ c → a ≤ c := UnpackedFloat.le_trans
 
-theorem lt_of_lt_of_le {a b c : Float.Model} : a < b → b ≤ c → a < c :=
+protected theorem lt_of_lt_of_le {a b c : Float.Model} : a < b → b ≤ c → a < c :=
   UnpackedFloat.lt_of_lt_of_le
 
-theorem lt_of_le_of_lt {a b c : Float.Model} : a ≤ b → b < c → a < c :=
+protected theorem lt_of_le_of_lt {a b c : Float.Model} : a ≤ b → b < c → a < c :=
   UnpackedFloat.lt_of_le_of_lt
 
-theorem le_of_lt {a b : Float.Model} : a < b → a ≤ b := UnpackedFloat.le_of_lt
+protected theorem le_of_lt {a b : Float.Model} : a < b → a ≤ b := UnpackedFloat.le_of_lt
 
-theorem lt_iff_le_not_ge {a b : Float.Model} : a < b ↔ a ≤ b ∧ ¬b ≤ a :=
+protected theorem lt_iff_le_not_ge {a b : Float.Model} : a < b ↔ a ≤ b ∧ ¬b ≤ a :=
   UnpackedFloat.lt_iff_le_not_ge
 
 theorem le_refl_iff {a : Float.Model} : a ≤ a ↔ a ≠ nan := by
   rw [ne_eq, eq_nan_iff_unpack_eq, le_iff_unpack_le]; exact UnpackedFloat.le_refl_iff
 
-theorem not_le {a b : Float.Model} (ha : a ≠ nan) (hb : b ≠ nan) : ¬a ≤ b ↔ b < a := by
+protected theorem not_le {a b : Float.Model} (ha : a ≠ nan) (hb : b ≠ nan) : ¬a ≤ b ↔ b < a := by
   rw [ne_eq, eq_nan_iff_unpack_eq] at ha hb
   exact UnpackedFloat.not_le ha hb
 
@@ -178,36 +178,36 @@ theorem le_iff_toModel_le {x y : Float} : x ≤ y ↔ x.toModel ≤ y.toModel :=
 theorem eq_nan_iff_toModel_eq {x : Float} : x = nan ↔ x.toModel = .nan := by
   cases x; simp [nan]
 
-theorem lt_irrefl (x : Float) : ¬x < x := by
+protected theorem lt_irrefl (x : Float) : ¬x < x := by
   simpa [lt_iff_toModel_lt] using Model.lt_irrefl x.toModel
 
-theorem lt_asymm {x y : Float} : x < y → ¬y < x := by
+protected theorem lt_asymm {x y : Float} : x < y → ¬y < x := by
   simpa [lt_iff_toModel_lt] using @Model.lt_asymm x.toModel y.toModel
 
-theorem lt_trans {x y z : Float} : x < y → y < z → x < z := by
+protected theorem lt_trans {x y z : Float} : x < y → y < z → x < z := by
   simpa [lt_iff_toModel_lt] using @Model.lt_trans x.toModel y.toModel z.toModel
 
-theorem le_trans {x y z : Float} : x ≤ y → y ≤ z → x ≤ z := by
+protected theorem le_trans {x y z : Float} : x ≤ y → y ≤ z → x ≤ z := by
   simpa [le_iff_toModel_le] using @Model.le_trans x.toModel y.toModel z.toModel
 
-theorem lt_of_lt_of_le {x y z : Float} : x < y → y ≤ z → x < z := by
+protected theorem lt_of_lt_of_le {x y z : Float} : x < y → y ≤ z → x < z := by
   simpa [lt_iff_toModel_lt, le_iff_toModel_le] using
     @Model.lt_of_lt_of_le x.toModel y.toModel z.toModel
 
-theorem lt_of_le_of_lt {x y z : Float} : x ≤ y → y < z → x < z := by
+protected theorem lt_of_le_of_lt {x y z : Float} : x ≤ y → y < z → x < z := by
   simpa [lt_iff_toModel_lt, le_iff_toModel_le] using
     @Model.lt_of_le_of_lt x.toModel y.toModel z.toModel
 
-theorem le_of_lt {x y : Float} : x < y → x ≤ y := by
+protected theorem le_of_lt {x y : Float} : x < y → x ≤ y := by
   simpa [lt_iff_toModel_lt, le_iff_toModel_le] using @Model.le_of_lt x.toModel y.toModel
 
-theorem lt_iff_le_not_ge {x y : Float} : x < y ↔ x ≤ y ∧ ¬y ≤ x := by
+protected theorem lt_iff_le_not_ge {x y : Float} : x < y ↔ x ≤ y ∧ ¬y ≤ x := by
   simpa [lt_iff_toModel_lt, le_iff_toModel_le] using @Model.lt_iff_le_not_ge x.toModel y.toModel
 
 theorem le_refl_iff {x : Float} : x ≤ x ↔ x ≠ nan := by
   simpa [le_iff_toModel_le, eq_nan_iff_toModel_eq] using @Model.le_refl_iff x.toModel
 
-theorem not_le {x y : Float} (hx : x ≠ nan) (hy : y ≠ nan) : ¬x ≤ y ↔ y < x := by
+protected theorem not_le {x y : Float} (hx : x ≠ nan) (hy : y ≠ nan) : ¬x ≤ y ↔ y < x := by
   rw [ne_eq, eq_nan_iff_toModel_eq] at hx hy
   simpa [lt_iff_toModel_lt, le_iff_toModel_le] using Model.not_le hx hy
 
@@ -254,29 +254,29 @@ theorem eq_nan_iff_unpack_eq {a : Float32.Model} : a = nan ↔ a.unpack = .notAN
 
 theorem unpack_neg (a : Float32.Model) : (-a).unpack = a.unpack.neg := unpack_pack_neg_unpack a
 
-theorem lt_irrefl (a : Float32.Model) : ¬a < a := UnpackedFloat.lt_irrefl _
+protected theorem lt_irrefl (a : Float32.Model) : ¬a < a := UnpackedFloat.lt_irrefl _
 
-theorem lt_asymm {a b : Float32.Model} : a < b → ¬b < a := UnpackedFloat.lt_asymm
+protected theorem lt_asymm {a b : Float32.Model} : a < b → ¬b < a := UnpackedFloat.lt_asymm
 
-theorem lt_trans {a b c : Float32.Model} : a < b → b < c → a < c := UnpackedFloat.lt_trans
+protected theorem lt_trans {a b c : Float32.Model} : a < b → b < c → a < c := UnpackedFloat.lt_trans
 
-theorem le_trans {a b c : Float32.Model} : a ≤ b → b ≤ c → a ≤ c := UnpackedFloat.le_trans
+protected theorem le_trans {a b c : Float32.Model} : a ≤ b → b ≤ c → a ≤ c := UnpackedFloat.le_trans
 
-theorem lt_of_lt_of_le {a b c : Float32.Model} : a < b → b ≤ c → a < c :=
+protected theorem lt_of_lt_of_le {a b c : Float32.Model} : a < b → b ≤ c → a < c :=
   UnpackedFloat.lt_of_lt_of_le
 
-theorem lt_of_le_of_lt {a b c : Float32.Model} : a ≤ b → b < c → a < c :=
+protected theorem lt_of_le_of_lt {a b c : Float32.Model} : a ≤ b → b < c → a < c :=
   UnpackedFloat.lt_of_le_of_lt
 
-theorem le_of_lt {a b : Float32.Model} : a < b → a ≤ b := UnpackedFloat.le_of_lt
+protected theorem le_of_lt {a b : Float32.Model} : a < b → a ≤ b := UnpackedFloat.le_of_lt
 
-theorem lt_iff_le_not_ge {a b : Float32.Model} : a < b ↔ a ≤ b ∧ ¬b ≤ a :=
+protected theorem lt_iff_le_not_ge {a b : Float32.Model} : a < b ↔ a ≤ b ∧ ¬b ≤ a :=
   UnpackedFloat.lt_iff_le_not_ge
 
 theorem le_refl_iff {a : Float32.Model} : a ≤ a ↔ a ≠ nan := by
   rw [ne_eq, eq_nan_iff_unpack_eq, le_iff_unpack_le]; exact UnpackedFloat.le_refl_iff
 
-theorem not_le {a b : Float32.Model} (ha : a ≠ nan) (hb : b ≠ nan) : ¬a ≤ b ↔ b < a := by
+protected theorem not_le {a b : Float32.Model} (ha : a ≠ nan) (hb : b ≠ nan) : ¬a ≤ b ↔ b < a := by
   rw [ne_eq, eq_nan_iff_unpack_eq] at ha hb
   exact UnpackedFloat.not_le ha hb
 
@@ -323,36 +323,36 @@ theorem le_iff_toModel_le {x y : Float32} : x ≤ y ↔ x.toModel ≤ y.toModel 
 theorem eq_nan_iff_toModel_eq {x : Float32} : x = nan ↔ x.toModel = .nan := by
   cases x; simp [nan]
 
-theorem lt_irrefl (x : Float32) : ¬x < x := by
+protected theorem lt_irrefl (x : Float32) : ¬x < x := by
   simpa [lt_iff_toModel_lt] using Model.lt_irrefl x.toModel
 
-theorem lt_asymm {x y : Float32} : x < y → ¬y < x := by
+protected theorem lt_asymm {x y : Float32} : x < y → ¬y < x := by
   simpa [lt_iff_toModel_lt] using @Model.lt_asymm x.toModel y.toModel
 
-theorem lt_trans {x y z : Float32} : x < y → y < z → x < z := by
+protected theorem lt_trans {x y z : Float32} : x < y → y < z → x < z := by
   simpa [lt_iff_toModel_lt] using @Model.lt_trans x.toModel y.toModel z.toModel
 
-theorem le_trans {x y z : Float32} : x ≤ y → y ≤ z → x ≤ z := by
+protected theorem le_trans {x y z : Float32} : x ≤ y → y ≤ z → x ≤ z := by
   simpa [le_iff_toModel_le] using @Model.le_trans x.toModel y.toModel z.toModel
 
-theorem lt_of_lt_of_le {x y z : Float32} : x < y → y ≤ z → x < z := by
+protected theorem lt_of_lt_of_le {x y z : Float32} : x < y → y ≤ z → x < z := by
   simpa [lt_iff_toModel_lt, le_iff_toModel_le] using
     @Model.lt_of_lt_of_le x.toModel y.toModel z.toModel
 
-theorem lt_of_le_of_lt {x y z : Float32} : x ≤ y → y < z → x < z := by
+protected theorem lt_of_le_of_lt {x y z : Float32} : x ≤ y → y < z → x < z := by
   simpa [lt_iff_toModel_lt, le_iff_toModel_le] using
     @Model.lt_of_le_of_lt x.toModel y.toModel z.toModel
 
-theorem le_of_lt {x y : Float32} : x < y → x ≤ y := by
+protected theorem le_of_lt {x y : Float32} : x < y → x ≤ y := by
   simpa [lt_iff_toModel_lt, le_iff_toModel_le] using @Model.le_of_lt x.toModel y.toModel
 
-theorem lt_iff_le_not_ge {x y : Float32} : x < y ↔ x ≤ y ∧ ¬y ≤ x := by
+protected theorem lt_iff_le_not_ge {x y : Float32} : x < y ↔ x ≤ y ∧ ¬y ≤ x := by
   simpa [lt_iff_toModel_lt, le_iff_toModel_le] using @Model.lt_iff_le_not_ge x.toModel y.toModel
 
 theorem le_refl_iff {x : Float32} : x ≤ x ↔ x ≠ nan := by
   simpa [le_iff_toModel_le, eq_nan_iff_toModel_eq] using @Model.le_refl_iff x.toModel
 
-theorem not_le {x y : Float32} (hx : x ≠ nan) (hy : y ≠ nan) : ¬x ≤ y ↔ y < x := by
+protected theorem not_le {x y : Float32} (hx : x ≠ nan) (hy : y ≠ nan) : ¬x ≤ y ↔ y < x := by
   rw [ne_eq, eq_nan_iff_toModel_eq] at hx hy
   simpa [lt_iff_toModel_lt, le_iff_toModel_le] using Model.not_le hx hy
 
