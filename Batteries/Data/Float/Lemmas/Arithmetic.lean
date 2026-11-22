@@ -109,6 +109,10 @@ protected theorem add_comm (spec : Format) (u v : UnpackedFloat) :
   · rename_i s t; cases s <;> cases t <;> rfl
   · rw [Int.min_comm, Int.add_comm]
 
+protected theorem fma_comm (spec : Format) (u v w : UnpackedFloat) :
+    fma spec u v w = fma spec v u w := by
+  cases u <;> cases v <;> cases w <;> simp [fma, Sign.mul_comm, Nat.mul_comm, Int.add_comm]
+
 end Float.Model.UnpackedFloat
 
 namespace Float.Model
@@ -164,6 +168,11 @@ protected theorem add_comm (a b : Float.Model) : a + b = b + a := by
   change pack (UnpackedFloat.add _ a.unpack b.unpack) = pack (UnpackedFloat.add _ b.unpack a.unpack)
   rw [UnpackedFloat.add_comm]
 
+protected theorem fma_comm (a b c : Float.Model) : a.fma b c = b.fma a c := by
+  change pack (UnpackedFloat.fma _ a.unpack b.unpack c.unpack) =
+    pack (UnpackedFloat.fma _ b.unpack a.unpack c.unpack)
+  rw [UnpackedFloat.fma_comm]
+
 end Float.Model
 
 namespace Float
@@ -195,6 +204,10 @@ protected theorem mul_comm (x y : Float) : x * y = y * x := by
 protected theorem add_comm (x y : Float) : x + y = y + x := by
   change ofModel (x.toModel + y.toModel) = ofModel (y.toModel + x.toModel)
   rw [Model.add_comm]
+
+protected theorem fma_comm (x y z : Float) : x.fma y z = y.fma x z := by
+  change ofModel (x.toModel.fma y.toModel z.toModel) = ofModel (y.toModel.fma x.toModel z.toModel)
+  rw [Model.fma_comm]
 
 end Float
 
@@ -253,6 +266,11 @@ protected theorem add_comm (a b : Float32.Model) : a + b = b + a := by
   change pack (UnpackedFloat.add _ a.unpack b.unpack) = pack (UnpackedFloat.add _ b.unpack a.unpack)
   rw [UnpackedFloat.add_comm]
 
+protected theorem fma_comm (a b c : Float32.Model) : a.fma b c = b.fma a c := by
+  change pack (UnpackedFloat.fma _ a.unpack b.unpack c.unpack) =
+    pack (UnpackedFloat.fma _ b.unpack a.unpack c.unpack)
+  rw [UnpackedFloat.fma_comm]
+
 end Float32.Model
 
 namespace Float32
@@ -284,5 +302,9 @@ protected theorem mul_comm (x y : Float32) : x * y = y * x := by
 protected theorem add_comm (x y : Float32) : x + y = y + x := by
   change ofModel (x.toModel + y.toModel) = ofModel (y.toModel + x.toModel)
   rw [Model.add_comm]
+
+protected theorem fma_comm (x y z : Float32) : x.fma y z = y.fma x z := by
+  change ofModel (x.toModel.fma y.toModel z.toModel) = ofModel (y.toModel.fma x.toModel z.toModel)
+  rw [Model.fma_comm]
 
 end Float32
