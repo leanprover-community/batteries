@@ -7,7 +7,7 @@ module
 
 public import Lean.Elab.Binders
 
-@[expose] public section
+public section
 
 /-!
 # Additional operations on Expr and related types

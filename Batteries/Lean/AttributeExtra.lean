@@ -7,7 +7,7 @@ module
 
 public import Batteries.Lean.TagAttribute
 
-@[expose] public section
+public section
 
 open Lean
 

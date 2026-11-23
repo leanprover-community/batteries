@@ -7,7 +7,7 @@ module
 
 import Batteries.Data.Char.Basic
 
-@[expose] public section
+public section
 
 /-! # Lemmas for ASCII-casing
 

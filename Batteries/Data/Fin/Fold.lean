@@ -7,7 +7,7 @@ module
 
 public import Batteries.Data.Fin.Basic
 
-@[expose] public section
+public section
 
 namespace Fin
 

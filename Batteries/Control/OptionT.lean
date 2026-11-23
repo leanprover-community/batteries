@@ -8,7 +8,7 @@ module
 public import Batteries.Control.LawfulMonadState
 import all Init.Control.Option
 
-@[expose] public section
+public section
 
 /-!
 # Lemmas About Option Monad Transformer

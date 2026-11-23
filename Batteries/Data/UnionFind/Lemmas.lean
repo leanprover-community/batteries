@@ -8,7 +8,7 @@ module
 public import Batteries.Data.UnionFind.Basic
 import Batteries.Tactic.SeqFocus
 
-@[expose] public section
+public section
 
 namespace Batteries.UnionFind
 

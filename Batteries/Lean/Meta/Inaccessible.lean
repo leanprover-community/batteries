@@ -7,7 +7,7 @@ module
 
 public import Lean.Meta.Basic
 
-@[expose] public section
+public section
 
 open Lean Lean.Meta Std
 

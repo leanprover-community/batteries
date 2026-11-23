@@ -7,7 +7,7 @@ module
 
 public import Batteries.Data.DList.Basic
 
-@[expose] public section
+public section
 
 /-!
 # Difference list
