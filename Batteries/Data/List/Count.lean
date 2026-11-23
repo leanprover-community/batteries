@@ -58,7 +58,6 @@ theorem fst_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin xs.leng
 theorem snd_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin xs.length} :
     (xs.idxToSigmaCount i).2 = ⟨xs.countBefore xs[i.1] i, by grind⟩ := rfl
 
-@[simp, grind =]
 theorem coe_snd_idxToSigmaCount [BEq α] [ReflBEq α] {xs: List α} {i : Fin xs.length} :
     ((xs.idxToSigmaCount i).2 : Nat) = xs.countBefore xs[i.1] i := rfl
 
