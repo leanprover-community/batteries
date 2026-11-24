@@ -50,6 +50,8 @@ structure LinterConfig where
   (`Linter.isLocal`) then lint only the declarations defined in those modules; the other linters
   still lint everything. -/
   onlyModules : Option System.FilePath := none
+  /-- Whether to report the slowest checks per linter. Default is `false`; set with `--profile`. -/
+  profile := false
 
 @[always_inline, inline]
 private def Except.consError (e : ε) : Except (List ε) α → Except (List ε) α
@@ -83,6 +85,7 @@ where
     | "--no-build" => some { parsed with noBuild := true }
     | "--trace"
     | "-v"         => some { parsed with trace := true }
+    | "--profile"  => some { parsed with profile := true }
     | arg =>
       if let some file := arg.dropPrefix? "--only-modules=" then
         if file.isEmpty then none else some { parsed with onlyModules := some file.toString }
@@ -112,7 +115,7 @@ environment, so set `leakEnv` only when the process exits after the lint.
 -/
 unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
     (leakEnv := false) : IO Unit := do
-  let { updateNoLints, noBuild, trace, onlyModules } := cfg
+  let { updateNoLints, noBuild, trace, onlyModules, profile } := cfg
   if updateNoLints && onlyModules.isSome then
     IO.eprintln "--update cannot be combined with --only-modules: \
       it would rewrite the nolints file from a partial run"
@@ -188,7 +191,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
           {linters.size - nLocal} lint all {decls.size} declarations."
         pure (some restricted)
     let results ← lintCore decls linters (inIO := true) (currentModule := module)
-      (localDecls := localDecls)
+      (localDecls := localDecls) (profile := profile)
     if updateNoLints then
       traceLint s!"Updating nolints file at {nolintsFile}" (inIO := true) (currentModule := module)
       writeJsonFile (α := NoLints) nolintsFile <|
@@ -221,7 +224,7 @@ unsafe def runLinterOnModule (cfg : LinterConfig) (module : Name)
       IO.println s!"-- Linting passed for {module}."
 
 /--
-Usage: `runLinter [--update] [--trace | -v] [--no-build] [--only-modules=FILE]
+Usage: `runLinter [--update] [--trace | -v] [--no-build] [--profile] [--only-modules=FILE]
   [Batteries.Data.Nat.Basic]...`
 
 Runs the linters on all declarations in the given modules
@@ -234,6 +237,8 @@ If `--trace` (or, synonymously, `-v`) is set, tracing will be enabled and logged
 
 If `--no-build` is set, `runLinter` will throw if either the oleans to be linted or the oleans
 which drive the linting itself are not present.
+
+If `--profile` is set, the slowest checks per linter are reported.
 
 If `--only-modules=FILE` is set, where `FILE` lists module names one per line, local linters
 (`Linter.isLocal`) lint only the declarations defined in those modules, for example to lint only
@@ -249,7 +254,7 @@ unsafe def main (args : List String) : IO Unit := do
     | Except.error msgs => do
       IO.eprintln s!"Error parsing args:\n  {"\n  ".intercalate msgs}"
       IO.eprintln "Usage: \
-        runLinter [--update] [--trace | -v] [--no-build] [--only-modules=FILE] \
+        runLinter [--update] [--trace | -v] [--no-build] [--profile] [--only-modules=FILE] \
         [Batteries.Data.Nat.Basic]..."
       IO.Process.exit 1
 
