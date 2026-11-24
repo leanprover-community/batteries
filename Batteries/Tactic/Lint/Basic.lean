@@ -7,6 +7,7 @@ module
 
 public meta import Lean.Structure
 public meta import Lean.Meta.Basic
+public meta import Lean.Meta.Eqns
 meta import Lean.Elab.InfoTree.Main
 meta import Lean.ExtraModUses
 import Lean.Structure
@@ -33,6 +34,31 @@ metadata is stored in the `Linter` structure. We define two attributes:
 -/
 
 /--
+Whether elaborating the imported module `i` could see the bodies of the definitions of the
+imported module `j`: `i` is `j`, or is not a `module` file, or reaches `j` through a chain of
+`import all`s. This is when core reserves the equation lemma names of `j`'s definitions in `i`.
+-/
+def seesBodiesOf (env : Environment) (i j : ModuleIdx) : Bool := Id.run do
+  if i == j then return true
+  let data := env.header.moduleData
+  let some d := data[i]? | return false
+  if !d.isModule then return true
+  let mut seen : Std.HashSet ModuleIdx := {i}
+  let mut todo := #[i]
+  -- Each module is visited at most once, so `data.size` rounds suffice.
+  for _ in [0:data.size] do
+    let some k := todo.back? | return false
+    todo := todo.pop
+    for imp in (data[k]?.map (·.imports)).getD #[] do
+      if !imp.importAll then continue
+      let some l := env.getModuleIdx? imp.module | continue
+      if l == j then return true
+      if !seen.contains l then
+        seen := seen.insert l
+        todo := todo.push l
+  return false
+
+/--
 Returns true if `decl` is an automatically generated declaration.
 
 Also returns true if `decl` is an internal name or created during macro expansion (after stripping
@@ -42,6 +68,22 @@ def _root_.Lean.Environment.isAutoDecl (env : Environment) (decl : Name) : Bool 
   let declUserName := privateToUserName decl
   if declUserName.hasMacroScopes || declUserName.isInternal then return true
   if isReservedName env decl then return true
+  -- The equation lemmas of a definition whose body is not exposed are private to the module that
+  -- generated them, as in `_private.M.0.f.eq_1`. `isReservedName` recognizes them only in `M`
+  -- itself, because `mkEqLikeNameFor` builds the private prefix from the current main module.
+  -- Core reserves these names in `M` (and so rejects hand-written declarations with them) exactly
+  -- when `M` sees the body of `f`; see `seesBodiesOf`. Then a hand-written declaration can only
+  -- have one if it was declared before `f`, and its statement cannot mention `f`. Not covered,
+  -- so still linted: equation lemmas generated in another module for a private `f`, whose names
+  -- are not reserved there and from which `declFromEqLikeName` does not find `f`; and any
+  -- equation lemma when the current environment does not see `f`'s body, so that `f` is not known
+  -- to be a definition (for example in a `module` file that imports `f` without `import all`).
+  if isPrivateName decl then
+    if let some (declName, _) := declFromEqLikeName env decl then
+      if let (some i, some j) := (env.getModuleIdxFor? decl, env.getModuleIdxFor? declName) then
+        if seesBodiesOf env i j &&
+            (env.find? decl).any (·.type.find? (·.isConstOf declName) |>.isSome) then
+          return true
   if let Name.str n s := decl then
     if env.isAutoDecl n then return true
     if s.startsWith "proof_"
