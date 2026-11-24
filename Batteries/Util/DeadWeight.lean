@@ -36,12 +36,12 @@ with a real condition. It is dead weight if nothing but predicates that are alwa
 the parameters that it fills. Then these parameters can be removed, and so can the predicate.
 
 To find out, the analysis follows predicates from the arguments of constants to their parameters,
-and through structure fields. It takes a value to be always true if it has no content, see `isAlwaysTrue`.
-Where it cannot follow a predicate, such as through a `match` or a partial application, it assumes
-that there is an alternative.
+and through structure fields. It takes a value to be always true if it has no content, see
+`isAlwaysTrue`. Where it cannot follow a predicate, such as through a `match` or a partial
+application, it assumes that there is an alternative.
 
-The same holds for propositions, such as `def NoCondition : Prop := True`. These are also dead weight
-if they are not an argument at all, for example if they are only a hypothesis.
+The same holds for propositions, such as `def NoCondition : Prop := True`. These are also dead
+weight if they are not an argument at all, for example if they are only a hypothesis.
 
 ## Limitations
 
@@ -57,8 +57,9 @@ modules, so remove them together.
 * A field that is read only to build a field that nothing reads counts as read.
 * A lemma that is general on purpose, but is used only once and for a predicate that is always true,
   looks like one with a parameter that can be removed.
-* For programs, the analysis follows the logical definitions. It does not see the bodies of `partial`
-  definitions, which are opaque, or code that only `implemented_by`, `extern` or `csimp` refer to.
+* For programs, the analysis follows the logical definitions. It does not see the bodies of
+  `partial` definitions, which are opaque, or code that only `implemented_by`, `extern` or `csimp`
+  refer to.
 * If the proof of a theorem is not loaded, what it uses looks dead. `import` in a file that uses
   `module` has this effect. `lake exe deadWeight` loads the private data of all modules, so it does
   see the proofs, and it reports a theorem without one as an unexpected axiom.
@@ -167,8 +168,8 @@ structure Report where
   /-- The reachable axioms. If the body of a theorem is not loaded, it shows up here. -/
   axioms : Array Name := #[]
 
-/-- Runs `x` with a resource limit, and returns `default` if it fails or exceeds the limit. This keeps
-a single term from ending a run on a large development. -/
+/-- Runs `x` with a resource limit, and returns `default` if it fails or exceeds the limit. This
+keeps a single term from ending a run on a large development. -/
 def guarded (default : α) (x : MetaM α) : MetaM α :=
   tryCatchRuntimeEx
     (withTheReader Core.Context (fun ctx => { ctx with maxHeartbeats := 20000 * 1000 }) <|
@@ -178,13 +179,13 @@ def guarded (default : α) (x : MetaM α) : MetaM α :=
 /-! ### Constant predicates -/
 
 /--
-Whether the proposition `prop` is always true because it has no content, if this holds for all values
-of the predicates `atoms`. After unfolding at most `fuel` definitions and constructors, it is built
-from `True` and values of `atoms` with `∀`, `→` and inductive propositions that have a constructor for
-all indices and from hypotheses that are always true, such as `∧`.
+Whether the proposition `prop` is always true because it has no content, if this holds for all
+values of the predicates `atoms`. After unfolding at most `fuel` definitions and constructors, it is
+built from `True` and values of `atoms` with `∀`, `→` and inductive propositions that have a
+constructor for all indices and from hypotheses that are always true, such as `∧`.
 
-This does not include all propositions that are easy to prove. For example, `∀ n : Nat, n + 0 = n` is
-true by `rfl`, but a proof of it can be used.
+This does not include all propositions that are easy to prove. For example, `∀ n : Nat, n + 0 = n`
+is true by `rfl`, but a proof of it can be used.
 -/
 partial def isAlwaysTrue (atoms : Array Expr) (prop : Expr) (fuel : Nat := 16) : MetaM Bool := do
   let prop ← whnfCore prop
@@ -203,7 +204,8 @@ partial def isAlwaysTrue (atoms : Array Expr) (prop : Expr) (fuel : Nat := 16) :
     val.ctors.anyM fun ctor => do
       forallTelescope (← inferType (mkAppN (.const ctor us) params)) fun fields result => do
         let vars := result.getAppArgs.extract val.numParams
-        unless vars.all fields.contains && vars.toList.eraseDups.length == indices.size do return false
+        unless vars.all fields.contains && vars.toList.eraseDups.length == indices.size do
+          return false
         fields.allM fun field => do
           if vars.contains field then return true
           let hyp := (← inferType field).replaceFVars vars indices
@@ -223,8 +225,8 @@ structure ConstantPredicate where
   msg : MessageData
 
 /--
-If `value` is `fun x₁ … xₙ => p` where `p` is a proposition that is always true (see `isAlwaysTrue`),
-or that mentions none of `x₁ … xₙ` (with `n > 0`), returns what is known about it.
+If `value` is `fun x₁ … xₙ => p` where `p` is a proposition that is always true (see
+`isAlwaysTrue`), or that mentions none of `x₁ … xₙ` (with `n > 0`), returns what is known about it.
 -/
 def constantPredicate? (value : Expr) : MetaM (Option ConstantPredicate) :=
   lambdaTelescope value fun xs body => do
@@ -256,8 +258,8 @@ def predicateArity? (env : Environment) (type : Expr) (fuel := 16) : Option Nat 
 parameter. -/
 abbrev Slot := Name × Nat
 
-/-- The indices of the parameters of the constant `name` that are propositions or predicates, and their
-arities. The motives of recursors do not count. -/
+/-- The indices of the parameters of the constant `name` that are propositions or predicates, and
+their arities. The motives of recursors do not count. -/
 def slotsOf (env : Environment) (name : Name) : Array (Nat × Nat) :=
   match env.find? name with
   | none | some (.recInfo _) => #[]
@@ -270,7 +272,10 @@ where
     match type with
     | .mdata _ type => go type i slots fuel
     | .forallE _ d b _ =>
-      go b (i + 1) (match predicateArity? env d with | some n => slots.push (i, n) | none => slots) fuel
+      let slots := match predicateArity? env d with
+        | some n => slots.push (i, n)
+        | none => slots
+      go b (i + 1) slots fuel
     | type => match fuel, unfoldHead? env type with
       | fuel + 1, some type => go type i slots fuel
       | _, _ => slots
@@ -377,8 +382,8 @@ partial def addSubterms (es : Std.HashSet Expr) (e : Expr) : Std.HashSet Expr :=
   if es.contains e then es else e.foldlM (m := Id) addSubterms (es.insert e)
 
 /-- The predicates in `value` whose values are not given by `value` itself, and the parameters that
-they come from. These are variables, of which `xs` are the kinds, and structure fields. The parameter
-is `none` if the predicate is unknown. -/
+they come from. These are variables, of which `xs` are the kinds, and structure fields. The
+parameter is `none` if the predicate is unknown. -/
 def sources (flow : Flow) (owner : Name) (value : Expr) (xs : Array (Expr × BinderKind)) :
     MetaM (Array (Expr × Option Slot)) := do
   let env ← getEnv
@@ -441,8 +446,8 @@ def argsIn (flow : Flow) (name : Name) : FlowM (Array CheckedArg) := do
   modify (·.insert name args)
   return args
 
-/-- The declarations in which the predicates that reach `slot` are available: the one that `slot` is a
-parameter of, and if `slot` is a structure field, the ones that read it. -/
+/-- The declarations in which the predicates that reach `slot` are available: the one that `slot` is
+a parameter of, and if `slot` is a structure field, the ones that read it. -/
 def readers (flow : Flow) (slot : Slot) : MetaM (Array Name) := do
   let some (.ctorInfo { induct, numParams, .. }) := (← getEnv).find? slot.1 | return #[slot.1]
   if slot.2 < numParams then return #[slot.1]
@@ -452,9 +457,9 @@ def readers (flow : Flow) (slot : Slot) : MetaM (Array Name) := do
 
 /--
 Looks for an alternative to `name`, which is a proposition or a predicate of the given arity that is
-always true: a value that is not always true, but reaches a parameter that `name` reaches. If there is
-none, returns the constants that take `name` as an argument. Otherwise, returns a description of the
-alternative.
+always true: a value that is not always true, but reaches a parameter that `name` reaches. If there
+is none, returns the constants that take `name` as an argument. Otherwise, returns a description of
+the alternative.
 
 If `name` is a predicate, then the parameters that are propositions do not count. They are where a
 value of the predicate goes, and they are often parameters of general lemmas.
@@ -586,12 +591,13 @@ def analyze (roots : Array Name) (inScope : Name → Bool) : MetaM Report := do
       for fieldName in fieldNames, i in [0:fieldNames.size] do
         let projFn? := getProjFnForField? env name fieldName
         unless projs.contains (name, i) || projFn?.any consts.contains do
-          report := { report with
-            unreadFields := report.unreadFields.push { structName := name, fieldName, destructured } }
+          let field := { structName := name, fieldName, destructured }
+          report := { report with unreadFields := report.unreadFields.push field }
     if let .defnInfo { value, type, .. } := info then
       if let some pred ← guarded none (constantPredicate? value) then
         constantPredicates := constantPredicates.push (name, pred)
-      else if isConstantFunction value && !(← guarded true (isProp type)) && !(← isInstance name) then
+      else if isConstantFunction value && !(← guarded true (isProp type)) &&
+          !(← isInstance name) then
         report := { report with constantFunctions := report.constantFunctions.push name }
   let vacuous := constantPredicates.filterMap fun (name, pred) =>
     if pred.isAlwaysTrue then some name else none
