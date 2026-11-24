@@ -614,6 +614,7 @@ def analyze (roots : Array Name) (inScope : Name → Bool) : MetaM Report := do
         report := { report with vacuousPredicates := report.vacuousPredicates.push (name, filled) }
         continue
       | .error why => msg := m!"{msg}, but {why}"
+    msg ← addMessageContext msg
     report := { report with constantPredicates := report.constantPredicates.push (name, msg) }
   let deadModules := dead.keysArray.filter (!liveModules.contains ·)
   let deadDecls := dead.toArray.flatMap fun (mod, decls) =>

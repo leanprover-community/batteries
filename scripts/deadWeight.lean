@@ -28,6 +28,11 @@ def printSection (title : String) (lines : Array String) : IO Unit := do
     IO.println s!"\n## {title} ({lines.size})"
     for line in lines do IO.println line
 
+/-- Formats `msg` on one line, and cuts it off if it is long. -/
+def oneLine (msg : MessageData) : IO String := do
+  let line := (← msg.format).pretty (width := 1000000)
+  return if line.length ≤ 300 then line else s!"{line.take 300}…"
+
 /-- Prints `report`. -/
 def printReport (env : Environment) (report : Report) : IO Unit := do
   let located (name : Name) : String :=
@@ -52,7 +57,7 @@ def printReport (env : Environment) (report : Report) : IO Unit := do
       if filled.isEmpty then located name else s!"{located name}, as a parameter of {shown}{more}"
   printSection "Other reachable propositions and predicates that are constant" <|
     ← report.constantPredicates.mapM fun (name, msg) =>
-      return s!"{located name} {← msg.toString}"
+      return s!"{located name} {← oneLine msg}"
   printSection "Other reachable definitions that ignore all of their arguments" <|
     report.constantFunctions.map located
 

@@ -599,3 +599,29 @@ info: Propositions.someNat is always `∃ x, True`
 #guard_msgs in run_cmd printPredicates ``Propositions.existential
 
 #guard_msgs in run_cmd printPredicates ``Propositions.content
+
+namespace Printing
+
+class Pointed (α : Type) where
+  point : α
+
+structure Placeholder (α : Type) [Pointed α] (x : α) : Type
+
+def constant (_ : Nat) : Prop :=
+  ∀ (α : Type) [Pointed α] (x : α), x = Pointed.point → Nonempty (Placeholder α x)
+
+theorem root : constant 0 → constant 1 := id
+
+end Printing
+
+-- The messages can be printed outside of `MetaM`, as the script does.
+/--
+info: is always `∀ (α : Type) [inst : Printing.Pointed α] (x : α),
+  x = Printing.Pointed.point → Nonempty (Printing.Placeholder α x)`
+-/
+#guard_msgs in
+run_meta do
+  let env ← getEnv
+  let report ← analyze #[``Printing.root] fun n => (env.getModuleIdxFor? n).isNone
+  for (_, msg) in report.constantPredicates do
+    logInfo (← msg.toString)
