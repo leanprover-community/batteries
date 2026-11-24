@@ -124,7 +124,7 @@ unread fields: [DeadWeightTest.Bundle.data,
  DeadWeightTest.Child.d,
  DeadWeightTest.Parent.b]
 inconclusive fields: [DeadWeightTest.Destructured.left, DeadWeightTest.Destructured.right]
-constant predicates: [(DeadWeightTest.anyGeometry, is always `True`, but it is part of what the roots state)]
+constant predicates: [(DeadWeightTest.anyGeometry, is always true, but it is part of what the roots state)]
 constant functions: [DeadWeightTest.constantData]
 axioms: []
 -/
@@ -262,27 +262,27 @@ info: dead weight: Geometry.anyGeometry, as a parameter of [Geometry.OX,
 #guard_msgs in run_cmd printPredicates ``Geometry.dead
 
 /--
-info: Geometry.anyGeometry is always `True`, but `Geometry.transfer` also gets `Geometry.realGeometry`
+info: Geometry.anyGeometry is always true, but `Geometry.transfer` also gets `Geometry.realGeometry`
 -/
 #guard_msgs in run_cmd printPredicates ``Geometry.alternative
 
 /--
-info: Geometry.anyGeometry is always `True`, but `Geometry.mkParameters` also gets `Geometry.realGeometry`
+info: Geometry.anyGeometry is always true, but `Geometry.mkParameters` also gets `Geometry.realGeometry`
 -/
 #guard_msgs in run_cmd printPredicates ``Geometry.alternativeInField
 
 /--
-info: Geometry.anyGeometry is always `True`, but the root `Geometry.alternativeInRoot` has a predicate as a parameter
+info: Geometry.anyGeometry is always true, but the root `Geometry.alternativeInRoot` has a predicate as a parameter
 -/
 #guard_msgs in run_cmd printPredicates ``Geometry.alternativeInRoot
 
 /--
-info: Geometry.anyGeometry is always `True`, but it is part of what the roots state
+info: Geometry.anyGeometry is always true, but it is part of what the roots state
 -/
 #guard_msgs in run_cmd printPredicates ``Geometry.stated
 
 /--
-info: Geometry.anyGeometry is always `True`, but it is part of what the roots state
+info: Geometry.anyGeometry is always true, but it is part of what the roots state
 -/
 #guard_msgs in run_cmd printPredicates ``Geometry.statedIndirectly
 
@@ -330,17 +330,17 @@ theorem throughType : True :=
 end Comparison
 
 /--
-info: Comparison.trivialCondition is always `True`, but `Comparison.values` also gets `Comparison.algCls`
+info: Comparison.trivialCondition is always true, but `Comparison.values` also gets `Comparison.algCls`
 -/
 #guard_msgs in run_cmd printPredicates ``Comparison.compared
 
 /--
-info: Comparison.trivialCondition is always `True`, but `Comparison.Point.a` also gets `Comparison.onIdeal`
+info: Comparison.trivialCondition is always true, but `Comparison.Point.a` also gets `Comparison.onIdeal`
 -/
 #guard_msgs in run_cmd printPredicates ``Comparison.base
 
 /--
-info: Comparison.trivialCondition is always `True`, but `Comparison.Represents` also gets `Comparison.onUniversal`
+info: Comparison.trivialCondition is always true, but `Comparison.Represents` also gets `Comparison.onUniversal`
 -/
 #guard_msgs in run_cmd printPredicates ``Comparison.throughType
 
@@ -357,19 +357,21 @@ def size (P : Nat → Prop) (s : S P) : Nat := s.n
 
 -- Values that are always true are not alternatives.
 def other : Nat → Prop := fun _ => True
-def conj (P : Nat → Prop) : Nat → Prop := fun n => P n ∧ n = n
+def conj (P : Nat → Prop) : Nat → Prop := fun n => P n ∧ ∀ m : Nat, m = n → P m
 theorem deadSame : True := aboutTrue (p := size any s = size (fun n => any n) ⟨1⟩) rfl
 theorem deadOther : True := aboutTrue (p := size any s = size other ⟨1⟩) rfl
 theorem deadConj : True := aboutTrue (p := size any s = size (conj any) ⟨1⟩) rfl
 
 -- Other values are, even if they mention the predicate.
 def strengthen (P : Nat → Prop) : Nat → Prop := fun n => P n ∧ 3 < n
+def reflexive : Nat → Prop := fun n => n = n
 def never : Nat → Prop := fun _ => False
 def choose : Option Nat → Nat → Prop
   | none => any
   | some k => fun n => n = k
 theorem strengthened : True := aboutTrue (p := size any s = size (strengthen any) ⟨1⟩) rfl
 theorem lambda : True := aboutTrue (p := size any s = size (fun n => any n ∧ 3 < n) ⟨1⟩) rfl
+theorem easyToProve : True := aboutTrue (p := size any s = size reflexive ⟨1⟩) rfl
 theorem opposite : True := aboutTrue (p := size any s = size never ⟨1⟩) rfl
 theorem chosen (o : Option Nat) : True := aboutTrue (p := size any s = size (choose o) ⟨1⟩) rfl
 
@@ -418,43 +420,182 @@ info: dead weight: Values.any, as a parameter of [Values.loop]
 #guard_msgs in run_cmd printPredicates ``Values.deadLoop
 
 /--
-info: Values.any is always `True`, but `Values.size` also gets `Values.strengthen`
+info: Values.any is always true, but `Values.size` also gets `Values.strengthen`
 -/
 #guard_msgs in run_cmd printPredicates ``Values.strengthened
 
 /--
-info: Values.any is always `True`, but `Values.size` also gets another value
+info: Values.any is always true, but `Values.size` also gets another value
 -/
 #guard_msgs in run_cmd printPredicates ``Values.lambda
 
 /--
-info: Values.any is always `True`, but `Values.size` also gets `Values.never`
+info: Values.any is always true, but `Values.size` also gets `Values.never`
 ---
 info: Values.never is always `False`
 -/
 #guard_msgs in run_cmd printPredicates ``Values.opposite
 
 /--
-info: Values.any is always `True`, but `Values.size` also gets `Values.choose`
+info: Values.any is always true, but `Values.size` also gets `Values.reflexive`
+-/
+#guard_msgs in run_cmd printPredicates ``Values.easyToProve
+
+/--
+info: Values.any is always true, but `Values.size` also gets `Values.choose`
 -/
 #guard_msgs in run_cmd printPredicates ``Values.chosen
 
 /--
-info: Values.any is always `True`, but `Values.size` also gets a value that is not known
+info: Values.any is always true, but `Values.size` also gets a value that is not known
 -/
 #guard_msgs in run_cmd printPredicates ``Values.destructed
 
 /--
-info: Values.any is always `True`, but `Values.size` also gets a value that is not known
+info: Values.any is always true, but `Values.size` also gets a value that is not known
 -/
 #guard_msgs in run_cmd printPredicates ``Values.partialApplication
 
 /--
-info: Values.any is always `True`, but it is never an argument for a predicate parameter in scope
+info: Values.any is always true, but it is never an argument for a predicate parameter in scope
 -/
 #guard_msgs in run_cmd printPredicates ``Values.neverPassed
 
 /--
-info: Values.any is always `True`, but it is never an argument for a predicate parameter in scope
+info: Values.any is always true, but it is never an argument for a predicate parameter in scope
 -/
 #guard_msgs in run_cmd printPredicates ``Values.library
+
+/-! ## Resource limits -/
+
+-- A check that exceeds a limit does not end the run.
+/-- info: (0, (0, 1)) -/
+#guard_msgs in
+run_meta do
+  let deep ← guarded 0 <| withTheReader Core.Context ({ · with maxRecDepth := 16 }) do
+    let rec go (n : Nat) : MetaM Nat := withIncRecDepth do
+      if n = 0 then return 1 else go (n - 1)
+    go 100
+  let slow ← guarded 0 do
+    IO.addHeartbeats (10 ^ 9)
+    Core.checkMaxHeartbeats "test"
+    return 1
+  logInfo m!"{(deep, slow, ← guarded 0 (return 1))}"
+
+namespace Propositions
+
+/-! Propositions without arguments, and other definitions without content. -/
+
+def NoCondition : Prop := True
+
+-- Easy to prove, but it has content.
+def RealCondition : Prop := ∀ n : Nat, n < n + 1
+
+theorem unusedHypothesis (_ : NoCondition) (n : Nat) : n = n := rfl
+
+-- A hypothesis that holds trivially.
+theorem deadHypothesis (n : Nat) : n = n := unusedHypothesis trivial n
+
+-- A field that holds trivially.
+structure Record where
+  n : Nat
+  h : NoCondition
+def record : Record := ⟨1, trivial⟩
+theorem deadField : True := aboutTrue (p := record.n = 1) rfl
+
+-- A compound proposition, for a parameter of a general lemma.
+theorem deadInside : True := aboutTrue (p := NoCondition → 1 = 1) fun _ => rfl
+
+structure Assuming (P : Prop) where
+  n : Nat
+
+def assuming : Assuming NoCondition := ⟨1⟩
+
+theorem deadParameter : True := aboutTrue (p := assuming.n = 1) rfl
+
+-- The alternative reaches the same parameter.
+theorem alternative : True :=
+  aboutTrue (p := assuming.n = 1 ∧ (Assuming.mk 1 : Assuming RealCondition).n = 1) ⟨rfl, rfl⟩
+
+-- The root is about the proposition.
+theorem stated (_ : NoCondition) (n : Nat) : n = n := rfl
+
+-- Definitions without content.
+def both (_ : Nat) : Prop := True ∧ ∀ _ : Nat, True
+def implied (n : Nat) : Prop := n = 0 → True
+def renamed (n : Nat) : Prop := both n
+structure S (P : Nat → Prop) where
+  n : Nat
+theorem deadBoth : True := aboutTrue (p := (S.mk 1 : S both).n = 1) rfl
+theorem deadImplied : True := aboutTrue (p := (S.mk 1 : S implied).n = 1) rfl
+theorem deadRenamed : True := aboutTrue (p := (S.mk 1 : S renamed).n = 1) rfl
+
+-- A proposition that contains data has content.
+def someNat (_ : Nat) : Prop := ∃ _ : Nat, True
+theorem existential : True :=
+  aboutTrue (p := (S.mk 1 : S both).n = 1 ∧ (S.mk 1 : S someNat).n = 1) ⟨rfl, rfl⟩
+
+-- A proposition that is easy to prove can have content. It is not in the report.
+def addZero : Prop := ∀ n : Nat, n + 0 = n
+theorem addZero_holds : addZero := fun _ => rfl
+theorem content : True := aboutTrue (p := 1 + 0 = 1) (addZero_holds 1)
+
+end Propositions
+
+/--
+info: dead weight: Propositions.NoCondition, as a parameter of []
+-/
+#guard_msgs in run_cmd printPredicates ``Propositions.deadHypothesis
+
+/--
+info: dead weight: Propositions.NoCondition, as a parameter of []
+-/
+#guard_msgs in run_cmd printPredicates ``Propositions.deadField
+
+/--
+info: dead weight: Propositions.NoCondition, as a parameter of []
+-/
+#guard_msgs in run_cmd printPredicates ``Propositions.deadInside
+
+/--
+info: dead weight: Propositions.NoCondition, as a parameter of [Propositions.Assuming,
+ Propositions.Assuming.mk,
+ Propositions.Assuming.n]
+-/
+#guard_msgs in run_cmd printPredicates ``Propositions.deadParameter
+
+/--
+info: Propositions.NoCondition is always true, but `Propositions.Assuming.mk` also gets `Propositions.RealCondition`
+-/
+#guard_msgs in run_cmd printPredicates ``Propositions.alternative
+
+/--
+info: Propositions.NoCondition is always true, but it is part of what the roots state
+-/
+#guard_msgs in run_cmd printPredicates ``Propositions.stated
+
+/--
+info: dead weight: Propositions.both, as a parameter of [Propositions.S.mk, Propositions.S.n]
+-/
+#guard_msgs in run_cmd printPredicates ``Propositions.deadBoth
+
+/--
+info: dead weight: Propositions.implied, as a parameter of [Propositions.S.mk, Propositions.S.n]
+-/
+#guard_msgs in run_cmd printPredicates ``Propositions.deadImplied
+
+/--
+info: dead weight: Propositions.renamed, as a parameter of [Propositions.S.mk, Propositions.S.n]
+---
+info: Propositions.both is always true, but it is never an argument for a predicate parameter in scope
+-/
+#guard_msgs in run_cmd printPredicates ``Propositions.deadRenamed
+
+/--
+info: Propositions.both is always true, but `Propositions.S.n` also gets `Propositions.someNat`
+---
+info: Propositions.someNat is always `∃ x, True`
+-/
+#guard_msgs in run_cmd printPredicates ``Propositions.existential
+
+#guard_msgs in run_cmd printPredicates ``Propositions.content

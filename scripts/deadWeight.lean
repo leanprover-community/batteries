@@ -45,12 +45,12 @@ def printReport (env : Environment) (report : Report) : IO Unit := do
   printSection "Structure fields that are never read" <| unread.map field
   printSection "Structure fields that are never projected, in destructured structures \
     (inconclusive)" <| unsure.map field
-  printSection "Predicates that are always true, and have no alternative where they are used" <|
-    report.vacuousPredicates.map fun (name, filled) =>
+  printSection "Propositions and predicates that are always true, and have no alternative where they \
+    are used" <| report.vacuousPredicates.map fun (name, filled) =>
       let shown := ", ".intercalate (filled.toList.take 5 |>.map fun c => s!"{privateToUserName c}")
       let more := if filled.size > 5 then s!" and {filled.size - 5} more" else ""
-      s!"{located name}, as a parameter of {shown}{more}"
-  printSection "Other reachable predicates that are constant" <|
+      if filled.isEmpty then located name else s!"{located name}, as a parameter of {shown}{more}"
+  printSection "Other reachable propositions and predicates that are constant" <|
     ← report.constantPredicates.mapM fun (name, msg) =>
       return s!"{located name} {← msg.toString}"
   printSection "Other reachable definitions that ignore all of their arguments" <|

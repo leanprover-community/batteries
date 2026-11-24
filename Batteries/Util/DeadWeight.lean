@@ -21,7 +21,7 @@ the parts of the development that the roots do not use:
 
 * modules and declarations that no root reaches,
 * structure fields that nothing reachable reads,
-* predicates that are always true and have no alternative,
+* propositions and predicates that are always true and have no alternative,
 * other reachable definitions that ignore every argument.
 
 This is a property of the whole environment. In particular, a structure field cannot be judged
@@ -36,10 +36,12 @@ with a real condition. It is dead weight if nothing but predicates that are alwa
 the parameters that it fills. Then these parameters can be removed, and so can the predicate.
 
 To find out, the analysis follows predicates from the arguments of constants to their parameters,
-and through structure fields. It takes a value to be always true if it unfolds to `True`, or to an
-inductive predicate with a constructor whose hypotheses are always true. Where it cannot follow a
-predicate, such as through a `match` or a partial application, it assumes that there is an
-alternative.
+and through structure fields. It takes a value to be always true if it has no content, see `isAlwaysTrue`.
+Where it cannot follow a predicate, such as through a `match` or a partial application, it assumes
+that there is an alternative.
+
+The same holds for propositions, such as `def NoCondition : Prop := True`. These are also dead weight
+if they are not an argument at all, for example if they are only a hypothesis.
 
 ## Limitations
 
@@ -165,22 +167,74 @@ structure Report where
   /-- The reachable axioms. If the body of a theorem is not loaded, it shows up here. -/
   axioms : Array Name := #[]
 
+/-- Runs `x` with a resource limit, and returns `default` if it fails or exceeds the limit. This keeps
+a single term from ending a run on a large development. -/
+def guarded (default : α) (x : MetaM α) : MetaM α :=
+  tryCatchRuntimeEx
+    (withTheReader Core.Context (fun ctx => { ctx with maxHeartbeats := 20000 * 1000 }) <|
+      withCurrHeartbeats x)
+    fun ex => if ex.isInterrupt then throw ex else return default
+
 /-! ### Constant predicates -/
 
 /--
-If `value` is `fun x₁ … xₙ => p` where `p` is a proposition that is `True`, or that mentions none
-of `x₁ … xₙ` (with `n > 0`), returns `p` and `n`.
+Whether the proposition `prop` is always true because it has no content, if this holds for all values
+of the predicates `atoms`. After unfolding at most `fuel` definitions and constructors, it is built
+from `True` and values of `atoms` with `∀`, `→` and inductive propositions that have a constructor for
+all indices and from hypotheses that are always true, such as `∧`.
 
-The body is reduced with `whnfCore`, which sees through a `match` whose only pattern is a variable,
-but does not unfold definitions.
+This does not include all propositions that are easy to prove. For example, `∀ n : Nat, n + 0 = n` is
+true by `rfl`, but a proof of it can be used.
 -/
-def constantPredicate? (value : Expr) : MetaM (Option (Expr × Nat)) :=
+partial def isAlwaysTrue (atoms : Array Expr) (prop : Expr) (fuel : Nat := 16) : MetaM Bool := do
+  let prop ← whnfCore prop
+  if prop.isTrue then return true
+  let isValueOf (atom : Expr) : Bool :=
+    mkAppN prop.getAppFn (prop.getAppArgs.extract 0 atom.getAppNumArgs) == atom
+  if atoms.any isValueOf then return true
+  let fuel + 1 := fuel | return false
+  if prop.isForall then
+    return ← forallTelescope prop fun _ prop => isAlwaysTrue atoms prop fuel
+  let .const c us := prop.getAppFn | return false
+  match (← getEnv).find? c with
+  | some (.inductInfo val) =>
+    let params := prop.getAppArgs.extract 0 val.numParams
+    let indices := prop.getAppArgs.extract val.numParams
+    val.ctors.anyM fun ctor => do
+      forallTelescope (← inferType (mkAppN (.const ctor us) params)) fun fields result => do
+        let vars := result.getAppArgs.extract val.numParams
+        unless vars.all fields.contains && vars.toList.eraseDups.length == indices.size do return false
+        fields.allM fun field => do
+          if vars.contains field then return true
+          let hyp := (← inferType field).replaceFVars vars indices
+          isProp hyp <&&> isAlwaysTrue atoms hyp fuel
+  | some (.defnInfo _) =>
+    let some prop ← unfoldDefinition? prop | return false
+    isAlwaysTrue atoms prop fuel
+  | _ => return false
+
+/-- A definition of a proposition or a predicate that does not depend on its arguments. -/
+structure ConstantPredicate where
+  /-- The number of arguments. -/
+  arity : Nat
+  /-- Whether it is always true. -/
+  isAlwaysTrue : Bool
+  /-- A description of its values. -/
+  msg : MessageData
+
+/--
+If `value` is `fun x₁ … xₙ => p` where `p` is a proposition that is always true (see `isAlwaysTrue`),
+or that mentions none of `x₁ … xₙ` (with `n > 0`), returns what is known about it.
+-/
+def constantPredicate? (value : Expr) : MetaM (Option ConstantPredicate) :=
   lambdaTelescope value fun xs body => do
     unless ← isProp body do return none
+    if ← isAlwaysTrue #[] body then
+      return some { arity := xs.size, isAlwaysTrue := true, msg := "is always true" }
+    -- This sees through a `match` whose only pattern is a variable.
     let body ← whnfCore body
-    unless body.isTrue || (!xs.isEmpty && !body.hasAnyFVar fun x => xs.contains (.fvar x)) do
-      return none
-    return some (body, xs.size)
+    if xs.isEmpty || body.hasAnyFVar fun x => xs.contains (.fvar x) then return none
+    return some { arity := xs.size, isAlwaysTrue := false, msg := m!"is always `{body}`" }
 
 /-- Unfolds the constant at the head of `e`, if it is a definition. -/
 def unfoldHead? (env : Environment) (e : Expr) : Option Expr := do
@@ -188,31 +242,23 @@ def unfoldHead? (env : Environment) (e : Expr) : Option Expr := do
   let .defnInfo info ← env.find? c | none
   return (info.value.instantiateLevelParams info.levelParams us).beta e.getAppArgs
 
-/-- Whether `type` is `∀ x₁ … xₙ, Prop` with `n > 0`, up to unfolding at most `fuel` definitions. -/
-def isPredicateType (env : Environment) (type : Expr) (fuel := 16) : Bool :=
+/-- If `type` is `∀ x₁ … xₙ, Prop`, up to unfolding at most `fuel` definitions, returns `n`. -/
+def predicateArity? (env : Environment) (type : Expr) (fuel := 16) : Option Nat :=
   match type with
-  | .mdata _ type => isPredicateType env type fuel
-  | .forallE _ _ body _ => go body fuel
+  | .mdata _ type => predicateArity? env type fuel
+  | .forallE _ _ body _ => (· + 1) <$> predicateArity? env body fuel
+  | .sort u => if u.isZero then some 0 else none
   | type => match fuel, unfoldHead? env type with
-    | fuel + 1, some type => isPredicateType env type fuel
-    | _, _ => false
-where
-  /-- Whether `type` is `∀ x₁ … xₙ, Prop`. -/
-  go (type : Expr) (fuel : Nat) : Bool :=
-    match type with
-    | .mdata _ type => go type fuel
-    | .forallE _ _ body _ => go body fuel
-    | .sort u => u.isZero
-    | type => match fuel, unfoldHead? env type with
-      | fuel + 1, some type => go type fuel
-      | _, _ => false
+    | fuel + 1, some type => predicateArity? env type fuel
+    | _, _ => none
 
-/-- A parameter that is a predicate: the name of the constant, and the index of the parameter. -/
+/-- A parameter that is a proposition or a predicate: the name of the constant, and the index of the
+parameter. -/
 abbrev Slot := Name × Nat
 
-/-- The indices of the parameters of the constant `name` that are predicates. The motives of
-recursors do not count. -/
-def slotsOf (env : Environment) (name : Name) : Array Nat :=
+/-- The indices of the parameters of the constant `name` that are propositions or predicates, and their
+arities. The motives of recursors do not count. -/
+def slotsOf (env : Environment) (name : Name) : Array (Nat × Nat) :=
   match env.find? name with
   | none | some (.recInfo _) => #[]
   | some info =>
@@ -220,10 +266,11 @@ def slotsOf (env : Environment) (name : Name) : Array Nat :=
     else go info.type 0 #[] 16
 where
   /-- Adds the parameters in `type`, the first of which has index `i`. -/
-  go (type : Expr) (i : Nat) (slots : Array Nat) (fuel : Nat) : Array Nat :=
+  go (type : Expr) (i : Nat) (slots : Array (Nat × Nat)) (fuel : Nat) : Array (Nat × Nat) :=
     match type with
     | .mdata _ type => go type i slots fuel
-    | .forallE _ d b _ => go b (i + 1) (if isPredicateType env d then slots.push i else slots) fuel
+    | .forallE _ d b _ =>
+      go b (i + 1) (match predicateArity? env d with | some n => slots.push (i, n) | none => slots) fuel
     | type => match fuel, unfoldHead? env type with
       | fuel + 1, some type => go type i slots fuel
       | _, _ => slots
@@ -299,46 +346,14 @@ where
       for arg in args do go arg ctx id none inType
     | _ => return
 
-/--
-Whether the proposition `goal` is true for a simple reason, if all values of the predicates `atoms`
-are true: after unfolding at most `fuel` definitions and constructors, it is `True`, a value of one
-of `atoms`, or an inductive proposition with a constructor whose hypotheses are true in this way.
--/
-partial def isAlwaysTrue (atoms : Array Expr) (goal : Expr) (fuel : Nat := 16) : MetaM Bool := do
-  let goal ← whnfCore goal
-  if goal.isTrue then return true
-  let isValueOf (atom : Expr) : Bool :=
-    mkAppN goal.getAppFn (goal.getAppArgs.extract 0 atom.getAppNumArgs) == atom
-  if atoms.any isValueOf then return true
-  let fuel + 1 := fuel | return false
-  if goal.isForall then
-    return ← forallTelescope goal fun _ goal => isAlwaysTrue atoms goal fuel
-  let .const c us := goal.getAppFn | return false
-  match (← getEnv).find? c with
-  | some (.inductInfo val) =>
-    val.ctors.anyM fun ctor => withoutModifyingMCtx do
-      let ctor := mkAppN (.const ctor us) (goal.getAppArgs.extract 0 val.numParams)
-      let (fields, _, result) ← forallMetaTelescope (← inferType ctor)
-      unless ← withReducible <| isDefEq result goal do return false
-      fields.allM fun field => do
-        -- A field that occurs in the indices is known by now.
-        if (← instantiateMVars field).isMVar then
-          isAlwaysTrue atoms (← instantiateMVars (← inferType field)) fuel <&&>
-            isProp (← inferType field)
-        else return true
-  | some (.defnInfo _) =>
-    let some goal ← unfoldDefinition? goal | return false
-    isAlwaysTrue atoms goal fuel
-  | _ => return false
-
 /-- The reachable predicates in scope, and where they are used. -/
 structure Flow where
   /-- The roots. -/
   roots : Array Name
   /-- The constants that the statements of the roots refer to, directly or indirectly. -/
   stated : Std.HashSet Name
-  /-- The indices of the predicate parameters of each constant that has any. -/
-  slots : Std.HashMap Name (Array Nat)
+  /-- The parameters of each constant that are propositions or predicates, and their arities. -/
+  slots : Std.HashMap Name (Array (Nat × Nat))
   /-- The declarations that refer to a constant. -/
   users : Std.HashMap Name (Array Name)
 
@@ -369,7 +384,7 @@ def sources (flow : Flow) (owner : Name) (value : Expr) (xs : Array (Expr × Bin
   let env ← getEnv
   let mut sources := #[]
   for (x, kind) in xs do
-    if value.containsFVar x.fvarId! && isPredicateType env (← inferType x) then
+    if value.containsFVar x.fvarId! && (predicateArity? env (← inferType x)).isSome then
       match kind with
       | .param i => sources := sources.push (x, some (owner, i))
       | .unknown => sources := sources.push (x, none)
@@ -387,8 +402,8 @@ def sources (flow : Flow) (owner : Name) (value : Expr) (xs : Array (Expr × Bin
     | _ => none
   for e in addSubterms {} value do
     let some (ctor, i) := isField e | continue
-    if !e.hasLooseBVars && isPredicateType env (← inferType e) then
-      let known := (flow.slots.getD ctor #[]).contains i
+    if !e.hasLooseBVars && (predicateArity? env (← inferType e)).isSome then
+      let known := (flow.slots.getD ctor #[]).any (·.1 == i)
       sources := sources.push (e, if known then some (ctor, i) else none)
   return sources
 
@@ -419,9 +434,9 @@ where
 /-- The arguments for predicate parameters in the declaration `name`. -/
 def argsIn (flow : Flow) (name : Name) : FlowM (Array CheckedArg) := do
   if let some args := (← get)[name]? then return args
-  let args := argsOf (flow.slots.getD · #[]) (← getConstInfo name)
+  let args := argsOf (fun c => (flow.slots.getD c #[]).map (·.1)) (← getConstInfo name)
   let args ← args.mapM fun (slot, arg) => do
-    let sources ← try flow.check arg catch _ => pure (.error "a value that is not known")
+    let sources ← guarded (.error "a value that is not known") (flow.check arg)
     return { slot, value? := arg.value?, sources : CheckedArg }
   modify (·.insert name args)
   return args
@@ -436,17 +451,27 @@ def readers (flow : Flow) (slot : Slot) : MetaM (Array Name) := do
     (projFn?.map (flow.users.getD · #[])).getD #[]
 
 /--
-Looks for an alternative to the predicate `name`, which is always true: a value that is not always
-true, but reaches a parameter that `name` reaches. If there is none, returns the constants that take
-`name` as an argument. Otherwise, returns a description of the alternative.
+Looks for an alternative to `name`, which is a proposition or a predicate of the given arity that is
+always true: a value that is not always true, but reaches a parameter that `name` reaches. If there is
+none, returns the constants that take `name` as an argument. Otherwise, returns a description of the
+alternative.
+
+If `name` is a predicate, then the parameters that are propositions do not count. They are where a
+value of the predicate goes, and they are often parameters of general lemmas.
 -/
-def alternative? (flow : Flow) (name : Name) : FlowM (Except MessageData (Array Name)) := do
+def alternative? (flow : Flow) (name : Name) (arity : Nat) :
+    FlowM (Except MessageData (Array Name)) := do
   if flow.stated.contains name then return .error "it is part of what the roots state"
+  let counts (slot : Slot) : Bool := arity == 0 ||
+    (flow.slots.getD slot.1 #[]).any fun (i, n) => i == slot.2 && n > 0
   let mut direct := #[]
   for owner in flow.users.getD name #[] do
     for arg in ← flow.argsIn owner do
-      if arg.value?.any (·.getUsedConstants.contains name) then direct := direct.push arg.slot
-  if direct.isEmpty then return .error "it is never an argument for a predicate parameter in scope"
+      if arg.sources matches .ok _ && counts arg.slot then
+        if arg.value?.any (·.getUsedConstants.contains name) then direct := direct.push arg.slot
+  -- A proposition can be used without being an argument, for example as a hypothesis.
+  if direct.isEmpty && arity > 0 then
+    return .error "it is never an argument for a predicate parameter in scope"
   -- The parameters that `name` reaches.
   let mut reached : Std.HashSet Slot := {}
   let mut todo := direct
@@ -458,7 +483,7 @@ def alternative? (flow : Flow) (name : Name) : FlowM (Except MessageData (Array 
     for owner in ← flow.readers slot do
       for arg in ← flow.argsIn owner do
         if let .ok slots := arg.sources then
-          if slots.contains slot then todo := todo.push arg.slot
+          if slots.contains slot && counts arg.slot then todo := todo.push arg.slot
     -- A value of an inductive type contains the fields of a constructor with the same parameters.
     if let some (.inductInfo { numParams, ctors, .. }) := (← getEnv).find? slot.1 then
       if slot.2 < numParams then todo := todo ++ (ctors.map (·, slot.2)).toArray
@@ -503,7 +528,7 @@ def mkFlow (env : Environment) (roots : Array Name) (consts : Std.HashSet Name)
       if let some (.ctorInfo { induct, numParams, .. }) := env.find? c then
         used := used.insert induct
         if let some info := getStructureInfo? env induct then
-          for i in cs do
+          for (i, _) in cs do
             if let some projFn := info.getProjFn? (i - numParams) then
               if i ≥ numParams then used := used.insert projFn
   let mut users := {}
@@ -564,29 +589,26 @@ def analyze (roots : Array Name) (inScope : Name → Bool) : MetaM Report := do
           report := { report with
             unreadFields := report.unreadFields.push { structName := name, fieldName, destructured } }
     if let .defnInfo { value, type, .. } := info then
-      if let some (body, n) ← constantPredicate? value then
-        constantPredicates := constantPredicates.push (name, body, n)
-      else if isConstantFunction value && !(← isProp type) && !(← isInstance name) then
+      if let some pred ← guarded none (constantPredicate? value) then
+        constantPredicates := constantPredicates.push (name, pred)
+      else if isConstantFunction value && !(← guarded true (isProp type)) && !(← isInstance name) then
         report := { report with constantFunctions := report.constantFunctions.push name }
-  -- An always true predicate can be replaced by another one, so they are not alternatives.
-  let isVacuous (body : Expr) (n : Nat) : Bool := body.isTrue && n > 0
-  let vacuous := constantPredicates.filter fun (_, body, n) => isVacuous body n
+  let vacuous := constantPredicates.filterMap fun (name, pred) =>
+    if pred.isAlwaysTrue then some name else none
   let flow := if vacuous.isEmpty then { roots, stated := {}, slots := {}, users := {} } else
-    mkFlow env roots consts inScope (vacuous.map (·.1))
+    mkFlow env roots consts inScope vacuous
   let mut cache := {}
-  for (name, body, n) in constantPredicates do
-    let msg := m!"is always `{body}`"
-    if isVacuous body n then
-      let (result, cache') ← (flow.alternative? name).run cache
+  for (name, pred) in constantPredicates do
+    let mut msg := pred.msg
+    if pred.isAlwaysTrue then
+      let (result, cache') ← (flow.alternative? name pred.arity).run cache
       cache := cache'
       match result with
       | .ok filled =>
         report := { report with vacuousPredicates := report.vacuousPredicates.push (name, filled) }
-      | .error why =>
-        report := { report with
-          constantPredicates := report.constantPredicates.push (name, m!"{msg}, but {why}") }
-    else
-      report := { report with constantPredicates := report.constantPredicates.push (name, msg) }
+        continue
+      | .error why => msg := m!"{msg}, but {why}"
+    report := { report with constantPredicates := report.constantPredicates.push (name, msg) }
   let deadModules := dead.keysArray.filter (!liveModules.contains ·)
   let deadDecls := dead.toArray.flatMap fun (mod, decls) =>
     if liveModules.contains mod then decls else #[]
