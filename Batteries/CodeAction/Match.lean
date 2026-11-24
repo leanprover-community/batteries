@@ -20,13 +20,11 @@ open Lean Meta Elab Server RequestM CodeAction
 
 /-- Filter for the info-nodes to find the match-nodes.
 
-Only considers `match` terms whose `match` atom has original source info, so
-macro-generated matches (e.g. from `@fun`) are ignored. -/
+Only considers `match` terms with original source info, so macro-generated
+matches (e.g. from `@fun` or equation compilers) are ignored. -/
 def isMatchTerm : Info → Bool
   | .ofTermInfo i =>
-    i.stx.isOfKind ``Lean.Parser.Term.match
-      && i.stx.getArgs.any fun s =>
-        s.isAtom && s.getAtomVal == "match" && (s.getHeadInfo matches .original ..)
+    i.stx.isOfKind ``Lean.Parser.Term.match && (i.stx.getHeadInfo matches .original ..)
   | _ => false
 
 /-- Returns the String.range that encompasses `match e (with)`. -/
