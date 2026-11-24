@@ -36,7 +36,7 @@ theorem recAuxOn_succ {motive : Nat → Sort _} (zero : motive 0)
     (succ : ∀ n, motive n → motive (n+1)) (n) :
     Nat.recAuxOn (n+1) zero succ = succ n (Nat.recAuxOn n zero succ) := rfl
 
-@[simp] theorem casesAuxOn_zero {motive : Nat → Sort _} (zero : motive 0)
+theorem casesAuxOn_zero {motive : Nat → Sort _} (zero : motive 0)
     (succ : ∀ n, motive (n+1)) :
     Nat.casesAuxOn 0 zero succ = zero := rfl
 

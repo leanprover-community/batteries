@@ -158,20 +158,19 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
           else
             let (e, s) ← dsimp e ctx (stats := stats)
             return (Simp.Result.mk e .none .true, s)
-        let ({ expr := lhs', proof? := prf1, .. }, prf1Stats) ←
+        let ({ expr := lhs', .. }, lhsStats) ←
           decorateError "simplify fails on left-hand side:" <| simplify lhs ctx
         -- For an equational theorem `decl.eq_1`, treat `decl` as self-use, too:
         -- `recordSimpTheorem` collapses `foo.eq_N` to `foo`.
-        let used := prf1Stats.usedTheorems.map
+        let used := lhsStats.usedTheorems.map
         if used.contains (.decl declName) ||
            (← isEqnThm? declName).any (used.contains <| .decl ·) then return none
         let ({ expr := rhs', .. }, stats) ←
-          decorateError "simplify fails on right-hand side:" <| simplify rhs ctx prf1Stats
+          decorateError "simplify fails on right-hand side:" <| simplify rhs ctx lhsStats
         let lhs'EqRhs' ← isSimpEq lhs' rhs' (whnfFirst := false)
         let lhsInNF ← isSimpEq lhs' lhs
         let simpName := if !isRfl then "simp" else "dsimp"
         if lhs'EqRhs' then
-          if prf1.isNone then return none -- TODO: FP rewriting foo.eq_2 using `simp only [foo]`
           return m!"\
             {simpName} can prove this:\
             \n  by {← formatLemmas stats.usedTheorems simpName higherOrder}\
@@ -182,7 +181,7 @@ and https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-Normal-Forms/
           return m!"\
             Left-hand side simplifies from{indentD lhs}\
             \nto{indentD lhs'}\
-            \nusing{indentD <| ← formatLemmas prf1Stats.usedTheorems simpName higherOrder}\
+            \nusing{indentD <| ← formatLemmas lhsStats.usedTheorems simpName higherOrder}\
             \nTry to change the left-hand side to the simplified term!"
         else if lhs == lhs' then
           let lhsType ← inferType lhs
