@@ -18,9 +18,13 @@ namespace Batteries.CodeAction
 open Lean Meta Elab Server RequestM CodeAction
 
 
-/-- Filter for the info-nodes to find the match-nodes. -/
+/-- Filter for the info-nodes to find the match-nodes.
+
+Only considers `match` terms with original source info, so macro-generated
+matches (e.g. from `@fun` or equation compilers) are ignored. -/
 def isMatchTerm : Info → Bool
-  | .ofTermInfo i => i.stx.isOfKind ``Lean.Parser.Term.match
+  | .ofTermInfo i =>
+    i.stx.isOfKind ``Lean.Parser.Term.match && (i.stx.getHeadInfo matches .original ..)
   | _ => false
 
 /-- Returns the String.range that encompasses `match e (with)`. -/
