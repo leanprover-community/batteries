@@ -190,3 +190,41 @@ instance (P : Char → Prop) [DecidablePred P] : Decidable (∃ c, P c) :=
   | true => isTrue <|
       match exists_eq_true_of_any_eq_true h with
       | ⟨c, hc⟩ => ⟨c, of_decide_eq_true hc⟩
+
+theorem forall_toNat_lt_iff {n : Nat} {P : Char → Prop} :
+    (∀ c : Char, c.toNat < n → P c) ↔ ∀ k, k < n → ∀ h : k.isValidChar, P (.ofNatAux k h) := by
+  constructor
+  · intro H k hk h
+    exact H _ (by simpa using hk)
+  · intro H c hc
+    have hv : c.toNat.isValidChar := c.valid
+    have := H c.toNat hc hv
+    rwa [← ofNat_toNat c, ofNat, dite_eq_left hv]
+
+theorem exists_toNat_lt_iff {n : Nat} {P : Char → Prop} :
+    (∃ c : Char, c.toNat < n ∧ P c) ↔ ∃ k, k < n ∧ ∃ h : k.isValidChar, P (.ofNatAux k h) := by
+  constructor
+  · intro ⟨c, hc, h⟩
+    have hv : c.toNat.isValidChar := c.valid
+    refine ⟨c.toNat, hc, hv, ?_⟩
+    rwa [← ofNat_toNat c, ofNat, dite_eq_left hv] at h
+  · intro ⟨k, hk, h, hP⟩
+    exact ⟨_, by simpa using hk, hP⟩
+
+instance (priority := high) decidableBallToNatLT (n : Nat) (P : Char → Prop) [DecidablePred P] :
+    Decidable (∀ c : Char, c.toNat < n → P c) :=
+  decidable_of_iff _ forall_toNat_lt_iff.symm
+
+instance (priority := high) decidableBallValLT (n : UInt32) (P : Char → Prop) [DecidablePred P] :
+    Decidable (∀ c : Char, c.val < n → P c) :=
+  decidable_of_iff (∀ c : Char, c.toNat < n.toNat → P c) <| by
+    simp only [UInt32.lt_iff_toNat_lt, toNat_val]
+
+instance (priority := high) decidableBexToNatLT (n : Nat) (P : Char → Prop) [DecidablePred P] :
+    Decidable (∃ c : Char, c.toNat < n ∧ P c) :=
+  decidable_of_iff _ exists_toNat_lt_iff.symm
+
+instance (priority := high) decidableBexValLT (n : UInt32) (P : Char → Prop) [DecidablePred P] :
+    Decidable (∃ c : Char, c.val < n ∧ P c) :=
+  decidable_of_iff (∃ c : Char, c.toNat < n.toNat ∧ P c) <| by
+    simp only [UInt32.lt_iff_toNat_lt, toNat_val]
