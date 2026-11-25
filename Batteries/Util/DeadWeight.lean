@@ -477,37 +477,41 @@ def alternative? (flow : Flow) (name : Name) (arity : Nat) :
   -- A proposition can be used without being an argument, for example as a hypothesis.
   if direct.isEmpty && arity > 0 then
     return .error "it is never an argument for a predicate parameter in scope"
-  -- The parameters that `name` reaches.
+  -- The parameters that `name` reaches, and the ones that these get their values from. Following
+  -- `name` can lead through every declaration that reads a structure field, so look for an
+  -- alternative at each parameter before going on.
   let mut reached : Std.HashSet Slot := {}
-  let mut todo := direct
-  repeat
-    let some slot := todo.back? | break
-    todo := todo.pop
-    if reached.contains slot then continue
-    reached := reached.insert slot
-    for owner in ← flow.readers slot do
-      for arg in ← flow.argsIn owner do
-        if let .ok slots := arg.sources then
-          if slots.contains slot && counts arg.slot then todo := todo.push arg.slot
-    -- A value of an inductive type contains the fields of a constructor with the same parameters.
-    if let some (.inductInfo { numParams, ctors, .. }) := (← getEnv).find? slot.1 then
-      if slot.2 < numParams then todo := todo ++ (ctors.map (·, slot.2)).toArray
-  -- The values that reach them.
   let mut seen : Std.HashSet Slot := {}
-  todo := reached.toArray
+  let mut forward := direct
+  let mut backward := direct
   repeat
-    let some slot := todo.back? | break
-    todo := todo.pop
-    if seen.contains slot then continue
-    seen := seen.insert slot
-    if flow.roots.contains slot.1 then
-      return .error m!"the root `{.ofConstName slot.1}` has a predicate as a parameter"
-    for owner in flow.users.getD slot.1 #[] do
-      for arg in ← flow.argsIn owner do
-        if arg.slot == slot then
-          match arg.sources with
-          | .ok slots => todo := todo ++ slots
-          | .error value => return .error m!"`{.ofConstName slot.1}` also gets {value}"
+    if let some slot := backward.back? then
+      backward := backward.pop
+      if seen.contains slot then continue
+      seen := seen.insert slot
+      if flow.roots.contains slot.1 then
+        return .error m!"the root `{.ofConstName slot.1}` has a predicate as a parameter"
+      for owner in flow.users.getD slot.1 #[] do
+        for arg in ← flow.argsIn owner do
+          if arg.slot == slot then
+            match arg.sources with
+            | .ok slots => backward := backward ++ slots
+            | .error value => return .error m!"`{.ofConstName slot.1}` also gets {value}"
+    else
+      let some slot := forward.back? | break
+      forward := forward.pop
+      if reached.contains slot then continue
+      reached := reached.insert slot
+      let mut next := #[]
+      for owner in ← flow.readers slot do
+        for arg in ← flow.argsIn owner do
+          if let .ok slots := arg.sources then
+            if slots.contains slot && counts arg.slot then next := next.push arg.slot
+      -- A value of an inductive type contains the fields of a constructor with the same parameters.
+      if let some (.inductInfo { numParams, ctors, .. }) := (← getEnv).find? slot.1 then
+        if slot.2 < numParams then next := next ++ (ctors.map (·, slot.2)).toArray
+      forward := forward ++ next
+      backward := backward ++ next
   return .ok <| (Std.HashSet.ofArray (direct.map (·.1))).toArray.qsort Name.lt
 
 end Flow

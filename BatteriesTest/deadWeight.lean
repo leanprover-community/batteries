@@ -262,7 +262,7 @@ info: dead weight: Geometry.anyGeometry, as a parameter of [Geometry.OX,
 #guard_msgs in run_cmd printPredicates ``Geometry.dead
 
 /--
-info: Geometry.anyGeometry is always true, but `Geometry.transfer` also gets `Geometry.realGeometry`
+info: Geometry.anyGeometry is always true, but `Geometry.geoCl` also gets `Geometry.realGeometry`
 -/
 #guard_msgs in run_cmd printPredicates ``Geometry.alternative
 
@@ -420,17 +420,17 @@ info: dead weight: Values.any, as a parameter of [Values.loop]
 #guard_msgs in run_cmd printPredicates ``Values.deadLoop
 
 /--
-info: Values.any is always true, but `Values.size` also gets `Values.strengthen`
+info: Values.any is always true, but `Values.S.mk` also gets `Values.strengthen`
 -/
 #guard_msgs in run_cmd printPredicates ``Values.strengthened
 
 /--
-info: Values.any is always true, but `Values.size` also gets another value
+info: Values.any is always true, but `Values.S.mk` also gets another value
 -/
 #guard_msgs in run_cmd printPredicates ``Values.lambda
 
 /--
-info: Values.any is always true, but `Values.size` also gets `Values.never`
+info: Values.any is always true, but `Values.S.mk` also gets `Values.never`
 ---
 info: Values.never is always `False`
 -/
@@ -442,12 +442,12 @@ info: Values.any is always true, but `Values.size` also gets `Values.reflexive`
 #guard_msgs in run_cmd printPredicates ``Values.easyToProve
 
 /--
-info: Values.any is always true, but `Values.size` also gets `Values.choose`
+info: Values.any is always true, but `Values.S.mk` also gets `Values.choose`
 -/
 #guard_msgs in run_cmd printPredicates ``Values.chosen
 
 /--
-info: Values.any is always true, but `Values.size` also gets a value that is not known
+info: Values.any is always true, but `Values.S.mk` also gets a value that is not known
 -/
 #guard_msgs in run_cmd printPredicates ``Values.destructed
 
@@ -565,7 +565,7 @@ info: dead weight: Propositions.NoCondition, as a parameter of [Propositions.Ass
 #guard_msgs in run_cmd printPredicates ``Propositions.deadParameter
 
 /--
-info: Propositions.NoCondition is always true, but `Propositions.Assuming.mk` also gets `Propositions.RealCondition`
+info: Propositions.NoCondition is always true, but `Propositions.Assuming.n` also gets `Propositions.RealCondition`
 -/
 #guard_msgs in run_cmd printPredicates ``Propositions.alternative
 
@@ -592,7 +592,7 @@ info: Propositions.both is always true, but it is never an argument for a predic
 #guard_msgs in run_cmd printPredicates ``Propositions.deadRenamed
 
 /--
-info: Propositions.both is always true, but `Propositions.S.n` also gets `Propositions.someNat`
+info: Propositions.both is always true, but `Propositions.S.mk` also gets `Propositions.someNat`
 ---
 info: Propositions.someNat is always `∃ x, True`
 -/
