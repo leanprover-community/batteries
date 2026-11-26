@@ -1,4 +1,4 @@
-import Batteries.Tactic.Lint
+import Batteries.Linter
 import BatteriesTest.Internal.PrivateEqnLemmasDefs
 import BatteriesTest.Internal.PrivateEqnLemmasDownstream
 import BatteriesTest.Internal.PrivateEqnLemmasPlain
@@ -85,5 +85,5 @@ run_meta showAutoDecls
 #guard_msgs in
 run_meta do
   let n := mkPrivateNameCore `BatteriesTest.Internal.PrivateEqnLemmasPlain `hiddenDouble.eq_7
-  let some msg ← Batteries.Tactic.Lint.synTaut.test n | logInfo "no report"
+  let some msg ← Batteries.Linter.synTaut.test n | logInfo "no report"
   logInfo m!"`synTaut` on the hand-written `hiddenDouble.eq_7`: {msg}"

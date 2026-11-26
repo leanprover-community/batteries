@@ -1,10 +1,8 @@
 module
 
 -- import `Linter` into both private and public scopes for testing
-import Batteries.Tactic.Lint.Basic
-public import Batteries.Tactic.Lint.Basic
-
-open Batteries.Tactic.Lint
+import Batteries.Linter.Basic
+public import Batteries.Linter.Basic
 
 /--
 error: Cannot add attribute `[env_linter]`: Declaration `foo` must be marked as `meta`

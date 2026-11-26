@@ -1,6 +1,6 @@
-import Batteries.Tactic.Lint
+import Batteries.Linter
 
-open Lean Meta Batteries.Tactic.Lint
+open Lean Meta Batteries.Linter
 
 /-! Regression tests for batched environment linting. -/
 
@@ -14,7 +14,7 @@ run_meta do
 run_meta do
   let originalModule := (← getEnv).mainModule
   let names ← IO.mkRef ({} : Std.HashSet Name)
-  let test : Batteries.Tactic.Lint.Linter := {
+  let test : Batteries.Linter := {
     noErrorsFound := ""
     errorsFound := ""
     test := fun decl => do
