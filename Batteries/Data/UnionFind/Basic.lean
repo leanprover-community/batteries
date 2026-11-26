@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 module
 
-import Batteries.Tactic.Lint.Misc
+import Batteries.Linter.Misc
 public import Batteries.Util.Panic
 import Batteries.Tactic.SeqFocus
 

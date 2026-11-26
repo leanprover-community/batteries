@@ -1,6 +1,6 @@
 module
 
-import Batteries.Tactic.Lint
+import Batteries.Linter
 import Batteries.Util.ProofWanted
 
 public section
