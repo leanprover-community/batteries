@@ -1,7 +1,5 @@
 module
 
-public import Batteries.Recycling.RBTree.Alter
-public import Batteries.Recycling.RBTree.Basic
-public import Batteries.Recycling.RBTree.Depth
-public import Batteries.Recycling.RBTree.Lemmas
-public import Batteries.Recycling.RBTree.WF
+deprecated_module
+  "This module has been moved to `leanprover-community/batteries-recycling`"
+  (since := "2026-10-05")

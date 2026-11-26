@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Arthur Paulino, Floris van Doorn, Jannis Limperg
 -/
 module
-import Batteries.Tactic.Alias
+meta import Batteries.Tactic.Alias
 import Batteries.Data.UInt
 
 public section
@@ -24,7 +24,7 @@ elements when disregarding order and duplicates. `O(n*m)`! If your element type
 has an `Ord` instance, it is asymptotically more efficient to sort the two
 arrays, remove duplicates and then compare them elementwise.
 -/
-def equalSet [BEq α] (xs ys : Array α) : Bool :=
+@[expose] def equalSet [BEq α] (xs ys : Array α) : Bool :=
   xs.all (ys.contains ·) && ys.all (xs.contains ·)
 
 /--

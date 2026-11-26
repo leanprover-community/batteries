@@ -80,25 +80,21 @@ public import Batteries.Lean.System.IO
 public meta import Batteries.Lean.TagAttribute
 public import Batteries.Lean.Util.EnvSearch
 public import Batteries.Linter
+public import Batteries.Linter.Basic
+public import Batteries.Linter.Frontend
+public import Batteries.Linter.Misc
+public import Batteries.Linter.Simp
+public import Batteries.Linter.TypeClass
 public import Batteries.Linter.UnnecessarySeqFocus
 public import Batteries.Linter.UnreachableTactic
 public import Batteries.Logic
 public import Batteries.Recycling.MonadSatisfying
-public import Batteries.Recycling.MonadSatisfying.Array
-public import Batteries.Recycling.MonadSatisfying.Basic
-public meta import Batteries.Recycling.MonadSatisfying.Lean
-public import Batteries.Recycling.MonadSatisfying.List
-public import Batteries.Recycling.MonadSatisfying.Vector
 public import Batteries.Recycling.RBTree
-public import Batteries.Recycling.RBTree.Alter
-public import Batteries.Recycling.RBTree.Basic
-public import Batteries.Recycling.RBTree.Depth
-public import Batteries.Recycling.RBTree.Lemmas
-public import Batteries.Recycling.RBTree.WF
 public import Batteries.Tactic.Alias
 public import Batteries.Tactic.Basic
 public import Batteries.Tactic.Case
 public import Batteries.Tactic.Congr
+public import Batteries.Tactic.DoCommand
 public import Batteries.Tactic.Exact
 public import Batteries.Tactic.GeneralizeProofs
 public import Batteries.Tactic.HelpCmd
@@ -123,7 +119,9 @@ public import Batteries.Tactic.SqueezeScope
 public import Batteries.Tactic.Trans
 public import Batteries.Tactic.Unreachable
 public meta import Batteries.Util.Cache
+public import Batteries.Util.Eval
 public import Batteries.Util.ExtendedBinder
+public import Batteries.Util.Incremental
 public import Batteries.Util.LibraryNote
 public import Batteries.Util.Panic
 public meta import Batteries.Util.Pickle

@@ -38,18 +38,18 @@ theorem get_push_lt (a : ByteArray) (x : UInt8) (i : Nat) (h : i < a.size) :
 
 @[simp] theorem size_set (a : ByteArray) (i : Fin a.size) (v : UInt8) :
     (a.set i v).size = a.size :=
-  Array.size_set ..
+  Array.size_set (h := i.2)
 
 @[simp] theorem get_set_eq (a : ByteArray) (i : Fin a.size) (v : UInt8) : (a.set i v)[i.val] = v :=
-  Array.getElem_set_self _
+  Array.getElem_set_self i.2
 
 theorem get_set_ne (a : ByteArray) (i : Fin a.size) (v : UInt8) (hj : j < a.size) (h : i.val ≠ j) :
     (a.set i v)[j]'(a.size_set .. ▸ hj) = a[j] :=
-  Array.getElem_set_ne (h := h) ..
+  Array.getElem_set_ne (h := h) (h' := i.2) ..
 
 theorem set_set (a : ByteArray) (i : Fin a.size) (v v' : UInt8) :
     (a.set i v).set i v' = a.set i v' :=
-  ByteArray.ext <| Array.set_set ..
+  ByteArray.ext <| Array.set_set (h := i.2) ..
 
 /-! ### copySlice -/
 

@@ -5,9 +5,9 @@ Authors: David Thrane Christiansen, Kim Morrison
 -/
 module
 
-import Batteries.Tactic.Lint.Misc
+import Batteries.Linter.Misc
 public meta import Lean.Meta.Tactic.TryThis -- shake: keep
-import Lean.Parser.Command
+meta import Lean.Parser.Command
 
 /-!
 # The `theorem_wanted`, `def_wanted`, and `instance_wanted` commands
