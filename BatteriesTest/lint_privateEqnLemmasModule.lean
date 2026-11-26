@@ -1,6 +1,6 @@
 module
 
-meta import Batteries.Tactic.Lint
+meta import Batteries.Linter
 import BatteriesTest.Internal.PrivateEqnLemmasDefs
 
 open Lean
