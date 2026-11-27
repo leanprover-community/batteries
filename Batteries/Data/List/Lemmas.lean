@@ -124,6 +124,28 @@ theorem erase_eq_self_iff_forall_bne [BEq α] (a : α) (xs : List α) :
     xs.erase a = xs ↔ ∀ (x : α), x ∈ xs → ¬x == a := by
   rw [erase_eq_eraseP', eraseP_eq_self_iff]
 
+/-! ### removeAll -/
+
+theorem removeAll_notin {α} [DecidableEq α] (xs ys : List α) {y : α} (hy : y ∈ ys) :
+   y ∉ List.removeAll xs ys := by
+     simp [List.removeAll]
+     intro h
+     exact hy
+
+theorem removeAll_cons_notin {α} [DecidableEq α] (xs ys : List α) (y : α) :
+   y ∉ List.removeAll xs (y :: ys) := by
+  induction xs
+  case nil =>
+    simp [List.removeAll]
+  case cons x xs ih =>
+    simp [List.removeAll]
+
+theorem removeAll_cons_notin_rest {α} [DecidableEq α] (xs ys : List α) (y : α) :
+  ∀ y' ∈ ys, y' ∉ List.removeAll xs (y :: ys) := by
+    simp [List.removeAll]
+    intro y' hy'ys hy'xs hy'y
+    exact hy'ys
+
 /-! ### replaceF -/
 
 theorem replaceF_nil : [].replaceF p = [] := rfl
