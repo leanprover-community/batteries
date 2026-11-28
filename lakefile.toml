@@ -20,5 +20,10 @@ srcDir = "scripts"
 supportInterpreter = true
 
 [[lean_exe]]
+name = "deadWeight"
+srcDir = "scripts"
+supportInterpreter = true
+
+[[lean_exe]]
 name = "test"
 srcDir = "scripts"
