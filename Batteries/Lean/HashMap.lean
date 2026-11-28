@@ -36,3 +36,30 @@ def mergeWith (f : α → β → β → β) (self other : HashMap α β) : HashM
     match map[k]? with
     | none => map.insert k v₂
     | some v₁ => map.insert k <| f k v₁ v₂
+
+/--
+Given a key `a`, returns a key-value pair in the map whose key compares equal to `a`.
+Note that the returned key may not be identical to the input, if `==` ignores some part
+of the value.
+```
+def hashMap := ofList [("one", 1), ("two", 2)]
+hashMap.findEntry? "one" = some ("one", 1)
+hashMap.findEntry? "three" = none
+```
+-/
+-- This could be given a more efficient low level implementation.
+@[inline]
+def findEntry? [BEq α] [Hashable α] (m : Std.HashMap α β) (k : α) : Option (α × β) :=
+  if h : k ∈ m then some (m.getKey k h, m.get k h) else none
+
+/--
+Variant of `ofList` which accepts a function that combines values of duplicated keys.
+```
+ofListWith [("one", 1), ("one", 2)] (fun v₁ v₂ => v₁ + v₂) = {"one" => 3}
+```
+-/
+def ofListWith [BEq α] [Hashable α] (l : List (α × β)) (f : β → β → β) : HashMap α β :=
+  l.foldl (init := ∅) fun m p =>
+    match m[p.1]? with
+    | none   => m.insert p.1 p.2
+    | some v => m.insert p.1 <| f v p.2
