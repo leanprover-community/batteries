@@ -101,9 +101,12 @@ section AlternativeMonad
     _ = (PEmpty.elim <$> failure) >>= pure := by rw [bind_map_left, Function.comp_def]
     _ = failure := by rw [map_failure, bind_pure]
 
-@[simp] theorem seq_failure [AlternativeMonad m] [LawfulAlternative m] [LawfulMonad m]
+@[simp] theorem seq_failure [AlternativeMonad m] [LawfulAlternative m]
     (x : m (α → β)) : x <*> failure = x *> failure := by
-  simp only [seq_eq_bind_map, map_failure, seqRight_eq, bind_map_left]
+  have h {γ δ} (y : m (γ → δ)) : y <*> failure = ((· ∘ PEmpty.elim) <$> y) <*> failure := by
+    rw [← map_failure PEmpty.elim, ← pure_seq, seq_assoc, seq_pure, ← comp_map]; rfl
+  rw [seqRight_eq, h (_ <$> x), h x, ← comp_map]
+  exact congrArg (· <$> x <*> failure) (funext fun _ => funext nofun)
 
 end AlternativeMonad
 

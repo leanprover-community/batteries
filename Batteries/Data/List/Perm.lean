@@ -282,10 +282,12 @@ theorem Perm.union_right [BEq α] [LawfulBEq α] (t₁ : List α) (h : l₁ ~ l�
   | swap => apply perm_insert_swap
   | trans _ _ ih_1 ih_2 => exact ih_1.trans ih_2
 
-theorem Perm.union_left [BEq α] [LawfulBEq α] (l : List α) (h : t₁ ~ t₂) : l ∪ t₁ ~ l ∪ t₂ := by
+theorem Perm.union_left [BEq α] (l : List α) (h : t₁ ~ t₂) : l ∪ t₁ ~ l ∪ t₂ := by
   induction l with
-  | nil => simp only [nil_union, h]
-  | cons _ _ ih => simp only [cons_union, Perm.insert _ ih]
+  | nil => exact h
+  | cons a _ ih =>
+    simp only [cons_union, List.insert, show elem a _ = elem a _ from ih.contains_eq]
+    split <;> simp [ih]
 
 theorem Perm.union [BEq α] [LawfulBEq α] {l₁ l₂ t₁ t₂ : List α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) :
     l₁ ∪ t₁ ~ l₂ ∪ t₂ :=
@@ -293,10 +295,10 @@ theorem Perm.union [BEq α] [LawfulBEq α] {l₁ l₂ t₁ t₂ : List α} (p₁
 
 theorem Perm.inter_right [BEq α] (t₁ : List α) : l₁ ~ l₂ → l₁ ∩ t₁ ~ l₂ ∩ t₁ := .filter _
 
-theorem Perm.inter_left [BEq α] [LawfulBEq α] (l : List α) (p : t₁ ~ t₂) : l ∩ t₁ = l ∩ t₂ :=
-  filter_congr fun a _ => by simpa using p.mem_iff (a := a)
+theorem Perm.inter_left [BEq α] (l : List α) (p : t₁ ~ t₂) : l ∩ t₁ = l ∩ t₂ :=
+  filter_congr fun _ _ => p.contains_eq
 
-theorem Perm.inter [BEq α] [LawfulBEq α] {l₁ l₂ t₁ t₂ : List α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) :
+theorem Perm.inter [BEq α] {l₁ l₂ t₁ t₂ : List α} (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) :
     l₁ ∩ t₁ ~ l₂ ∩ t₂ :=
   p₂.inter_left l₂ ▸ p₁.inter_right t₁
 
