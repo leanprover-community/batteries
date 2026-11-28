@@ -9,6 +9,8 @@ public import Batteries.Classes.Order
 
 public section
 
+grind_pattern System.Platform.numBits_eq => System.Platform.numBits
+
 /-! ### UInt8 -/
 
 @[ext] theorem UInt8.ext : {x y : UInt8} → x.toNat = y.toNat → x = y
