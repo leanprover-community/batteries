@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.PreDefinition.EqnsUtils","Lean.Meta.HaveTelescope","Lean.Meta.LetToHave","Lean.Meta.Match.NamedPatterns","Lean.Meta.Match.Rewrite","Lean.Meta.Tactic.CasesOnStuckLHS","Lean.Meta.Tactic.Refl","Lean.Meta.Tactic.Simp.Main","Lean.Meta.Tactic.Split","Lean.Meta.Tactic.SplitIf"],"instances":[],"name":"Lean.Elab.PreDefinition.Eqns"}

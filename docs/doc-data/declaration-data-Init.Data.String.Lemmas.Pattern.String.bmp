@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Data.String.Lemmas.Pattern.String.Basic","Init.Data.String.Lemmas.Pattern.String.ForwardPattern","Init.Data.String.Lemmas.Pattern.String.ForwardSearcher"],"instances":[],"name":"Init.Data.String.Lemmas.Pattern.String"}

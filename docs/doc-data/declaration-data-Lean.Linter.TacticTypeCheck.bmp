@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Lean.Elab.Command","Lean.Linter.Util","Lean.Meta.Check","Lean.Meta.Diagnostics"],"instances":[],"name":"Lean.Linter.TacticTypeCheck"}

@@ -1,0 +1,1 @@
+{"declarations":[],"imports":["Init.Data.Char.Basic","Init.Data.Char.Lemmas","Init.Data.Char.Order","Init.Data.Char.Ordinal","Init.Data.Char.Package"],"instances":[],"name":"Init.Data.Char"}
