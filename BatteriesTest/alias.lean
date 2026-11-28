@@ -85,7 +85,7 @@ protected alias Foo.barbaz := trivial
 #guard_msgs in example : True := barbaz
 example : True := Foo.barbaz
 
-/- Test that the namespace of the alias name is open when resolving the target, as for `def` -/
+/- Test that the target is resolved with the namespace of the alias name open, as for `def` -/
 
 def Ns.ns1 : Nat := 7
 alias Ns.ns2 := ns1
@@ -93,14 +93,25 @@ example : Ns.ns2 = 7 := rfl
 alias Ns.Inner.ns3 := ns1
 example : Ns.Inner.ns3 = 7 := rfl
 
--- the ambient scope takes precedence
+/-- error: Unknown constant `ns1` -/
+#guard_msgs in alias _root_.Ns.ns6 := ns1
+
+-- the current scope takes precedence
 def ns4 : Nat := 1
 def Ns.ns4 : Nat := 2
 alias Ns.ns5 := ns4
 example : Ns.ns5 = 1 := rfl
+alias Ns.ns7 := Ns.ns4
+example : Ns.ns7 = 2 := rfl
 
-/-- error: Unknown constant `ns1` -/
-#guard_msgs in alias _root_.Ns.ns6 := ns1
+theorem Ns.ns_iff : True ↔ True := Iff.rfl
+alias ⟨Ns.ns_mp, _⟩ := ns_iff
+alias ⟨_, Ns.Inner.ns_mpr⟩ := ns_iff
+
+-- the namespaces of the two names of an iff alias must agree
+theorem Ns'.ns_iff : 1 = 1 ↔ True := ⟨fun _ => trivial, fun _ => rfl⟩
+/-- error: ambiguous alias target `ns_iff`, it could refer to `Ns.ns_iff`, `Ns'.ns_iff` -/
+#guard_msgs in alias ⟨Ns.ns_mp', Ns'.ns_mpr'⟩ := ns_iff
 
 /- Test noncomputable -/
 
