@@ -21,3 +21,11 @@ import Batteries.Data.Char
 #guard Char.cmpCaseInsensitiveAsciiOnly 'γ' 'Γ' == .gt
 #guard Char.cmpCaseInsensitiveAsciiOnly 'ä' 'Ä' == .gt
 -/
+
+/-! Bounded quantifiers over `Char` are decided by checking only the code points below the bound. -/
+
+example : ∀ c : Char, c.val < 0x80 → c.isUpper → c.isAlpha := by decide
+example : ∀ c : Char, c.toNat < 128 → c.isDigit → c.isAlphanum := by decide
+example : ¬ ∃ c : Char, c.toNat < 0x41 ∧ c.isUpper := by decide
+example : ∃ c : Char, c.val < 0x80 ∧ c.isWhitespace := by decide +kernel
+example : ∀ c : Char, c.toNat < 0x100 → c.toNat < 0x80 ∨ ¬ c.isAlpha := by decide +kernel
